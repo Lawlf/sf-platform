@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="Camada_10" data-name="Camada 10" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 3303.15 1109.45">
+  <defs>
+    <style>
+      .cls-1 {
+        letter-spacing: .01em;
+      }
+
+      .cls-2 {
+        letter-spacing: 0em;
+      }
+
+      .cls-3 {
+        letter-spacing: -.01em;
+      }
+
+      .cls-4 {
+        letter-spacing: 0em;
+      }
+
+      .cls-5 {
+        font-size: 720px;
+      }
+
+      .cls-5, .cls-6 {
+        fill: #f28e25;
+        font-family: CasualMemories-Bold, 'Casual Memories';
+        font-weight: 700;
+      }
+
+      .cls-6 {
+        font-size: 725px;
+      }
+
+      .cls-7 {
+        letter-spacing: -.02em;
+      }
+    </style>
+  </defs>
+  <text class="cls-6" transform="translate(691.66 579.26)"><tspan x="0" y="0">S</tspan><tspan class="cls-7" x="388.7" y="0">a</tspan><tspan class="cls-1" x="732.43" y="0">b</tspan><tspan class="cls-4" x="1136.35" y="0">or</tspan></text>
+  <text class="cls-5" transform="translate(114.08 988.51)"><tspan x="0" y="0">Fin</tspan><tspan class="cls-7" x="916.88" y="0">a</tspan><tspan x="1258.24" y="0">nc</tspan><tspan class="cls-2" x="1970.16" y="0">e</tspan><tspan x="2304.49" y="0">i</tspan><tspan class="cls-3" x="2506.64" y="0">r</tspan><tspan x="2776.29" y="0">o</tspan></text>
+</svg>

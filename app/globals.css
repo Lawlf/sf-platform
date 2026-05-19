@@ -1,0 +1,108 @@
+@import "tailwindcss";
+
+@theme {
+  /* brand palette */
+  --color-brand-50: #fef4e7;
+  --color-brand-100: #fce0c0;
+  --color-brand-200: #f9c98e;
+  --color-brand-300: #f6b259;
+  --color-brand-400: #f4a13a;
+  --color-brand-500: #f28e25; /* primary */
+  --color-brand-600: #ef7a1a;
+  --color-brand-700: #d96813;
+  --color-brand-800: #ba5717;
+  --color-brand-900: #8d4112;
+
+  /* semantic */
+  --color-positive: #16a34a;
+  --color-negative: #dc2626;
+
+  /* neutrals */
+  --color-charcoal-900: #1f1d1c;
+  --color-charcoal-800: #2a2725;
+  --color-charcoal-700: #3a3633;
+  --color-off-white: #fdf8f3;
+
+  /* typography */
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Inter, "Helvetica Neue", Arial,
+    sans-serif;
+  --font-display: var(--font-sans);
+
+  /* radii */
+  --radius-glass: 1rem;
+
+  /* shadows */
+  --shadow-glass: 0 8px 32px 0 rgba(31, 29, 28, 0.12);
+}
+
+@layer base {
+  :root {
+    color-scheme: light dark;
+  }
+
+  html,
+  body {
+    min-height: 100vh;
+    background-color: var(--color-off-white);
+    color: var(--color-charcoal-900);
+    font-family: var(--font-sans);
+  }
+
+  @media (prefers-color-scheme: dark) {
+    html,
+    body {
+      background-color: var(--color-charcoal-900);
+      color: var(--color-off-white);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+}
+
+@layer utilities {
+  .glass-light {
+    background-color: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: var(--radius-glass);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-dark {
+    background-color: rgba(31, 29, 28, 0.6);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-glass);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .glass-brand {
+    background-color: rgba(242, 142, 37, 0.15);
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(242, 142, 37, 0.3);
+    border-radius: var(--radius-glass);
+    box-shadow: var(--shadow-glass);
+  }
+
+  .focus-ring {
+    outline: 2px solid transparent;
+    outline-offset: 2px;
+  }
+  .focus-ring:focus-visible {
+    outline: 2px solid var(--color-brand-500);
+    outline-offset: 2px;
+  }
+}

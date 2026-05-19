@@ -1,0 +1,9 @@
+node_modules
+.next
+dist
+coverage
+pnpm-lock.yaml
+drizzle/migrations
+public/sw.js
+docs
+nestjs-architecture-template.md
