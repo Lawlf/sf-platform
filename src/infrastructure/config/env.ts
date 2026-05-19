@@ -21,7 +21,6 @@ const envSchema = z.object({
   APPLE_OAUTH_TEAM_ID: emptyToUndefined,
   APPLE_OAUTH_KEY_ID: emptyToUndefined,
   APPLE_OAUTH_PRIVATE_KEY: emptyToUndefined,
-  EMAIL_FROM: emptyToUndefined,
   RESEND_API_KEY: emptyToUndefined,
   UPSTASH_REDIS_REST_URL: emptyToUndefined,
   UPSTASH_REDIS_REST_TOKEN: emptyToUndefined,
@@ -57,12 +56,9 @@ function required<K extends keyof Env>(key: K, value: Env[K]): NonNullable<Env[K
   return value as NonNullable<Env[K]>;
 }
 
-export const DEFAULT_EMAIL_FROM = "onboarding@resend.dev";
-
-export function requireResendConfig(env: Env = loadEnv()): { apiKey: string; from: string } {
+export function requireResendConfig(env: Env = loadEnv()): { apiKey: string } {
   return {
     apiKey: required("RESEND_API_KEY", env.RESEND_API_KEY),
-    from: env.EMAIL_FROM ?? DEFAULT_EMAIL_FROM,
   };
 }
 

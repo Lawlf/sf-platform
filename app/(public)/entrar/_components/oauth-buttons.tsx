@@ -10,11 +10,7 @@ export function OAuthButtons() {
           Entrar com Google
         </Link>
       </Button>
-      <Button asChild variant="glass" className="w-full justify-center">
-        <Link href="/api/auth/apple/start" aria-label="Entrar com Apple">
-          Entrar com Apple
-        </Link>
-      </Button>
+      {/* Apple sign-in oculto ate Apple Developer config (Services ID + P8) estar pronto. */}
     </div>
   );
 }

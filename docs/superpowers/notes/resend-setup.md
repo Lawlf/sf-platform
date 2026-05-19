@@ -23,24 +23,27 @@ Mailbox `dmarc@saborfinanceiro.com.br` needs to exist (or use an external aggreg
 
 ## 3. Configure env vars
 
-`.env.local` (dev):
+`.env.local` (dev) and Vercel (production):
 
 ```
 RESEND_API_KEY=re_xxx
-# EMAIL_FROM left blank -> falls back to onboarding@resend.dev (Resend sandbox sender).
-# Useful for dev before the domain is verified.
-EMAIL_FROM=
 ```
 
-`.env.local` (after domain verifies, optional):
+Sender addresses are NOT configured via env. They are hardcoded per purpose in
+`src/infrastructure/email/senders.ts`:
 
 ```
-EMAIL_FROM=nao-responda@saborfinanceiro.com.br
+auth          -> nao-responda@saborfinanceiro.com.br
+transactional -> nao-responda@saborfinanceiro.com.br
 ```
 
-Vercel (production):
+Add new purposes (notifications, marketing, etc.) by extending the `EmailPurpose`
+union in `src/domain/ports/services/email.service.ts` and adding an entry to
+`EMAIL_SENDERS` in `senders.ts`. This is a brand/product decision and lives
+alongside the code, not in deployment config.
 
-- Settings -> Environment Variables -> add `RESEND_API_KEY` and `EMAIL_FROM` for the `Production` (and `Preview` if you want previews to send real email) environments.
+Vercel: Settings -> Environment Variables -> add `RESEND_API_KEY` for the
+`Production` (and `Preview` if you want previews to send real email) environments.
 
 ## 4. Smoke test
 

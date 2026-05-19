@@ -1,0 +1,119 @@
+import { describe, expect, it, vi } from "vitest";
+
+import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import { Money } from "@/domain/value-objects/money.vo";
+import { isOk } from "@/shared/errors";
+
+import { registerIncome } from "./register-income.use-case";
+
+function makeIncomeRepo(): IncomeRepository {
+  return {
+    findById: vi.fn(),
+    listForUser: vi.fn(),
+    create: vi.fn(),
+    update: vi.fn(),
+    setActive: vi.fn(),
+  };
+}
+
+function makeClock(now = new Date("2026-01-15T10:00:00Z")) {
+  return { now: vi.fn(() => now) };
+}
+
+function makeAmount(value = 5000): Money {
+  const r = Money.from(value);
+  if (!isOk(r)) throw new Error("test setup: invalid money");
+  return r.value;
+}
+
+describe("registerIncome", () => {
+  it("creates an active income with generated id and persists via repository", async () => {
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+    const amount = makeAmount(5000);
+    (incomes.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+
+    const result = await registerIncome(
+      { incomes, clock },
+      {
+        userId: "user-1",
+        label: "Salario",
+        amount,
+        frequency: "monthly",
+        startDate: new Date("2026-01-01"),
+        endDate: null,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    expect(incomes.create).toHaveBeenCalledTimes(1);
+    const arg = (incomes.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as IncomeEntity;
+    expect(arg.userId).toBe("user-1");
+    expect(arg.label).toBe("Salario");
+    expect(arg.amount).toBe(amount);
+    expect(arg.frequency).toBe("monthly");
+    expect(arg.endDate).toBeNull();
+    expect(arg.isActive).toBe(true);
+    expect(typeof arg.id).toBe("string");
+    expect(arg.id.length).toBeGreaterThan(0);
+  });
+
+  it("preserves endDate when provided", async () => {
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+    const amount = makeAmount(2500);
+    (incomes.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+
+    const endDate = new Date("2026-12-31");
+    await registerIncome(
+      { incomes, clock },
+      {
+        userId: "user-2",
+        label: "Freelance",
+        amount,
+        frequency: "one_off",
+        startDate: new Date("2026-06-01"),
+        endDate,
+      },
+    );
+
+    const arg = (incomes.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as IncomeEntity;
+    expect(arg.endDate).toBe(endDate);
+    expect(arg.frequency).toBe("one_off");
+  });
+
+  it("returns the persisted entity from the repository", async () => {
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+    const amount = makeAmount(1000);
+    const persisted: IncomeEntity = {
+      id: "persisted-id",
+      userId: "user-3",
+      label: "Aluguel",
+      amount,
+      frequency: "weekly",
+      startDate: new Date("2026-01-01"),
+      endDate: null,
+      isActive: true,
+    };
+    (incomes.create as ReturnType<typeof vi.fn>).mockResolvedValue(persisted);
+
+    const result = await registerIncome(
+      { incomes, clock },
+      {
+        userId: "user-3",
+        label: "Aluguel",
+        amount,
+        frequency: "weekly",
+        startDate: new Date("2026-01-01"),
+        endDate: null,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    if (isOk(result)) {
+      expect(result.value).toBe(persisted);
+    }
+  });
+});

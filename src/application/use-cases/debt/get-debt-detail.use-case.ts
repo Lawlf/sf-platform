@@ -1,0 +1,57 @@
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
+import { Forbidden } from "@/domain/errors";
+import { DebtNotFound } from "@/domain/errors/financial-errors";
+import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import { PriceAmortizationService } from "@/domain/services/amortization/price-amortization.service";
+import { SacAmortizationService } from "@/domain/services/amortization/sac-amortization.service";
+import type { AmortizationSchedule } from "@/domain/value-objects/amortization-schedule.vo";
+import { err, isOk, ok, type Result } from "@/shared/errors";
+
+export interface GetDebtDetailDeps {
+  debts: DebtRepository;
+  payments: DebtPaymentRepository;
+}
+
+export interface GetDebtDetailInput {
+  userId: string;
+  debtId: string;
+}
+
+export interface GetDebtDetailOutput {
+  debt: DebtEntity;
+  amortization: AmortizationSchedule | null;
+  payments: DebtPaymentEntity[];
+}
+
+export async function getDebtDetail(
+  deps: GetDebtDetailDeps,
+  input: GetDebtDetailInput,
+): Promise<Result<GetDebtDetailOutput, DebtNotFound | Forbidden>> {
+  const debt = await deps.debts.findById(input.debtId);
+  if (!debt) return err(new DebtNotFound("Divida nao encontrada."));
+  if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+
+  let amortization: AmortizationSchedule | null = null;
+  if (debt.kind === "financing") {
+    const svc =
+      debt.amortizationMethod === "PRICE" ? PriceAmortizationService : SacAmortizationService;
+    const s = svc.generate({
+      principal: debt.originalPrincipal,
+      annualRate: debt.annualInterestRate,
+      termMonths: debt.termMonths,
+    });
+    if (isOk(s)) amortization = s.value;
+  } else if (debt.kind === "personal_loan") {
+    const s = PriceAmortizationService.generate({
+      principal: debt.originalPrincipal,
+      annualRate: debt.annualInterestRate,
+      termMonths: debt.termMonths,
+    });
+    if (isOk(s)) amortization = s.value;
+  }
+
+  const payments = await deps.payments.listForDebt(debt.id);
+  return ok({ debt, amortization, payments });
+}

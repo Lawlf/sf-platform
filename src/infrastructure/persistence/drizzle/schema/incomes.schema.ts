@@ -1,0 +1,44 @@
+import { sql } from "drizzle-orm";
+import {
+  bigint,
+  boolean,
+  index,
+  pgEnum,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+import { users } from "./users.schema";
+
+export const incomeFrequency = pgEnum("income_frequency", ["monthly", "weekly", "one_off"]);
+
+export const incomes = pgTable(
+  "incomes",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    label: text("label").notNull(),
+    amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    frequency: incomeFrequency("frequency").notNull(),
+    startDate: timestamp("start_date", { withTimezone: true }).notNull(),
+    endDate: timestamp("end_date", { withTimezone: true }),
+    isActive: boolean("is_active").notNull().default(true),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (table) => ({
+    userIdx: index("incomes_user_id_idx").on(table.userId),
+    userActiveIdx: index("incomes_user_id_active_idx").on(table.userId, table.isActive),
+  }),
+);
+
+export type IncomeRow = typeof incomes.$inferSelect;
+export type NewIncomeRow = typeof incomes.$inferInsert;

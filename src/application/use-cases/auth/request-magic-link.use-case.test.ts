@@ -96,6 +96,7 @@ describe("requestMagicLink", () => {
         to: "u@e.com",
         subject: expect.any(String),
         html: expect.any(String),
+        purpose: "auth",
       }),
     );
   });

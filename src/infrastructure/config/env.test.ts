@@ -6,7 +6,6 @@ import {
   requireUpstashConfig,
   requireGoogleOauthConfig,
   requireAppleOauthConfig,
-  DEFAULT_EMAIL_FROM,
 } from "./env";
 
 const baseValid = {
@@ -56,7 +55,6 @@ describe("require* helpers", () => {
     NEXT_PUBLIC_APP_URL: "http://localhost:3000",
     SESSION_COOKIE_SECRET: "a".repeat(32),
     RESEND_API_KEY: "re_test",
-    EMAIL_FROM: "no-reply@saborfinanceiro.com.br",
     UPSTASH_REDIS_REST_URL: "https://x.upstash.io",
     UPSTASH_REDIS_REST_TOKEN: "tk",
     GOOGLE_OAUTH_CLIENT_ID: "g.id",
@@ -67,17 +65,9 @@ describe("require* helpers", () => {
     APPLE_OAUTH_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMOCK\n-----END PRIVATE KEY-----",
   };
 
-  it("requireResendConfig returns values when EMAIL_FROM present", () => {
+  it("requireResendConfig returns apiKey", () => {
     const env = parseEnv(fullValid);
-    expect(requireResendConfig(env)).toEqual({
-      apiKey: "re_test",
-      from: "no-reply@saborfinanceiro.com.br",
-    });
-  });
-
-  it("requireResendConfig falls back to DEFAULT_EMAIL_FROM when EMAIL_FROM empty", () => {
-    const env = parseEnv({ ...fullValid, EMAIL_FROM: "" });
-    expect(requireResendConfig(env).from).toBe(DEFAULT_EMAIL_FROM);
+    expect(requireResendConfig(env)).toEqual({ apiKey: "re_test" });
   });
 
   it("requireResendConfig throws when RESEND_API_KEY missing", () => {

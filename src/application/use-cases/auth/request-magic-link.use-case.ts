@@ -75,6 +75,7 @@ export async function requestMagicLink(
     to: email.toString(),
     subject: "Seu codigo de acesso ao Sabor Financeiro",
     html,
+    purpose: "auth",
   });
 
   return ok({ tokenHash, expiresAt });

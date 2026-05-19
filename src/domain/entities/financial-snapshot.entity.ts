@@ -1,0 +1,13 @@
+import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
+import type { Money } from "@/domain/value-objects/money.vo";
+
+export interface FinancialSnapshotEntity {
+  id: string;
+  userId: string;
+  asOfDate: Date;
+  totalIncome: Money;
+  totalDebtBalance: Money;
+  netWorth: Money;
+  cetWeightedAverage: InterestRate;
+  incomeCommittedPct: number;
+}
