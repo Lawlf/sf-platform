@@ -3,28 +3,17 @@ import path from "node:path";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  oxc: {
-    jsx: {
-      runtime: "automatic",
-    },
-  },
   test: {
     environment: "node",
     globals: false,
-    include: ["src/**/*.test.ts", "src/**/*.test.tsx", "app/**/*.test.ts", "app/**/*.test.tsx"],
-    exclude: ["**/*.it.test.ts", "node_modules", ".next"],
-    coverage: {
-      provider: "v8",
-      reporter: ["text", "lcov"],
-      include: ["src/**/*.ts", "src/**/*.tsx"],
-      exclude: [
-        "src/**/*.test.ts",
-        "src/**/*.test.tsx",
-        "src/**/*.it.test.ts",
-        "src/**/index.ts",
-        "src/**/.gitkeep",
-      ],
-    },
+    include: ["src/**/*.it.test.ts"],
+    testTimeout: 30_000,
+    hookTimeout: 30_000,
+    // Integration tests share a single Postgres database; some suites use
+    // overlapping email-prefix cleanups (e.g. the user IT wipes "it-test-%"
+    // which cascades into sessions/oauth_accounts/magic_link_tokens). Serialize
+    // file execution to keep cross-suite FK references stable.
+    fileParallelism: false,
   },
   resolve: {
     alias: {
