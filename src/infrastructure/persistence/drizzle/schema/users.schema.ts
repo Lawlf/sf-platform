@@ -1,8 +1,13 @@
 import { sql } from "drizzle-orm";
-import { index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const userRole = pgEnum("user_role", ["user", "admin"]);
 export const userPlan = pgEnum("user_plan", ["free", "pro"]);
+export const contentDiagnosticAnswer = pgEnum("content_diagnostic_answer", [
+  "pagar-divida",
+  "guardar",
+  "investir",
+]);
 
 export const users = pgTable(
   "users",
@@ -13,8 +18,13 @@ export const users = pgTable(
     displayName: text("display_name"),
     role: userRole("role").notNull().default("user"),
     plan: userPlan("plan").notNull().default("free"),
+    isPro: boolean("is_pro").notNull().default(false),
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     deactivationReason: text("deactivation_reason"),
+    contentDiagnosticAnswer: contentDiagnosticAnswer("content_diagnostic_answer"),
+    contentDiagnosticAnsweredAt: timestamp("content_diagnostic_answered_at", {
+      withTimezone: true,
+    }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

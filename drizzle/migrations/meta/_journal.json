@@ -15,6 +15,146 @@
       "when": 1779215902760,
       "tag": "0001_sad_rhodey",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779236066483,
+      "tag": "0002_bizarre_wind_dancer",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1779301734095,
+      "tag": "0003_curly_agent_zero",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779302335400,
+      "tag": "0004_peaceful_adam_warlock",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1779308142323,
+      "tag": "0005_dusty_hex",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1779314884346,
+      "tag": "0006_certain_wrecking_crew",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1779320702499,
+      "tag": "0007_clumsy_the_santerians",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1779325783602,
+      "tag": "0008_curved_lucky_pierre",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1779329143387,
+      "tag": "0009_dizzy_living_mummy",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1779334571443,
+      "tag": "0010_drop_one_off_kind",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1779421000000,
+      "tag": "0011_add_is_closing_payment",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1779507400000,
+      "tag": "0012_add_notifications",
+      "breakpoints": true
+    },
+    {
+      "idx": 13,
+      "version": "7",
+      "when": 1779593800000,
+      "tag": "0013_add_deleted_at_to_debts",
+      "breakpoints": true
+    },
+    {
+      "idx": 14,
+      "version": "7",
+      "when": 1779680200000,
+      "tag": "0014_add_deleted_at_to_incomes",
+      "breakpoints": true
+    },
+    {
+      "idx": 15,
+      "version": "7",
+      "when": 1779766600000,
+      "tag": "0015_add_deleted_at_to_assets",
+      "breakpoints": true
+    },
+    {
+      "idx": 16,
+      "version": "7",
+      "when": 1779853000000,
+      "tag": "0016_add_debt_amount_adjustments",
+      "breakpoints": true
+    },
+    {
+      "idx": 17,
+      "version": "7",
+      "when": 1779421034154,
+      "tag": "0017_green_dexter_bennett",
+      "breakpoints": true
+    },
+    {
+      "idx": 18,
+      "version": "7",
+      "when": 1779422973914,
+      "tag": "0018_premium_venus",
+      "breakpoints": true
+    },
+    {
+      "idx": 19,
+      "version": "7",
+      "when": 1779460905746,
+      "tag": "0019_large_swordsman",
+      "breakpoints": true
+    },
+    {
+      "idx": 20,
+      "version": "7",
+      "when": 1779484349053,
+      "tag": "0020_real_harpoon",
+      "breakpoints": true
+    },
+    {
+      "idx": 21,
+      "version": "7",
+      "when": 1779485963506,
+      "tag": "0021_known_oracle",
+      "breakpoints": true
     }
   ]
 }
