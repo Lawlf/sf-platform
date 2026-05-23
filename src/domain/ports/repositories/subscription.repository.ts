@@ -8,6 +8,7 @@ export interface SubscriptionRepository {
   ): Promise<Subscription | null>;
   findActiveByUserId(userId: string): Promise<Subscription | null>;
   findAllByUserId(userId: string): Promise<Subscription[]>;
+  countByPlanId(planId: string): Promise<number>;
   /** Upsert por id. Insere se novo, atualiza se existir. */
   save(sub: Subscription): Promise<void>;
 }

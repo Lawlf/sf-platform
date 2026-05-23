@@ -17,6 +17,7 @@ function basePayment(overrides: Partial<Payment> = {}): Payment {
     paidAt: new Date("2026-05-01T00:00:00Z"),
     failedAt: null,
     failureReason: null,
+    hostedInvoiceUrl: null,
     createdAt: new Date("2026-05-01T00:00:00Z"),
     ...overrides,
   };

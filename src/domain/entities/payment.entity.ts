@@ -18,6 +18,7 @@ export interface Payment {
   paidAt: Date | null;
   failedAt: Date | null;
   failureReason: string | null;
+  hostedInvoiceUrl: string | null;
   createdAt: Date;
 }
 

@@ -51,25 +51,24 @@ export function NewsletterEmail({
     >
       <Text
         style={{
-          margin: "0 0 4px",
-          fontSize: 12,
-          fontWeight: 700,
-          textTransform: "uppercase",
-          letterSpacing: 1.2,
-          color: EMAIL_COLORS.brandOrangeDark,
+          margin: "0 0 6px",
+          fontSize: 13,
+          fontWeight: 600,
+          color: EMAIL_COLORS.textMuted,
         }}
       >
-        Edição #{edicaoNumero}
+        Sabor mensal, edição {edicaoNumero}
       </Text>
 
       <Heading
         as="h1"
         style={{
-          margin: "0 0 6px",
-          fontSize: 24,
+          margin: "0 0 10px",
+          fontSize: 26,
           fontWeight: 800,
           letterSpacing: -0.4,
           color: EMAIL_COLORS.textPrimary,
+          lineHeight: 1.2,
         }}
       >
         {titulo}
@@ -77,12 +76,13 @@ export function NewsletterEmail({
 
       <Text
         style={{
-          margin: "0 0 24px",
+          margin: "0 0 28px",
           fontSize: 14,
+          lineHeight: 1.55,
           color: EMAIL_COLORS.textSecondary,
         }}
       >
-        Mês novo, edição nova.
+        Macro, produto e uma coisa pra pensar. Sempre nessa ordem.
       </Text>
 
       {sections.map((section, idx) => (
@@ -135,7 +135,7 @@ export function NewsletterEmail({
             display: "inline-block",
           }}
         >
-          Abrir o Sabor
+          Abrir meu mês
         </Button>
       </Section>
 
@@ -146,7 +146,7 @@ export function NewsletterEmail({
           color: EMAIL_COLORS.textMuted,
         }}
       >
-        Seu mês está lá dentro, atualizado.
+        Seu mês tá lá, atualizado, do jeito que você deixou.
       </Text>
 
       <Text
@@ -158,8 +158,8 @@ export function NewsletterEmail({
           fontStyle: "italic",
         }}
       >
-        PS: se essa edição não fez sentido pra você, responde esse email contando o que faltou. A
-        gente lê todas.
+        PS: se faltou alguma coisa nessa edição, responde aqui. A gente lê todas e a próxima carta
+        sai um pouco menos ruim por causa de quem responde.
       </Text>
     </EmailLayout>
   );

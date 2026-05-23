@@ -12,6 +12,7 @@ const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 export interface Subscription {
   id: string;
   userId: string;
+  planId: string | null;
   provider: PaymentProvider;
   providerSubscriptionId: string | null;
   providerCustomerId: string | null;

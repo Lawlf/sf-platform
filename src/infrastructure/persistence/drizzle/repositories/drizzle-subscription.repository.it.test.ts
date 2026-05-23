@@ -30,6 +30,7 @@ describe("DrizzleSubscriptionRepository (IT)", () => {
     const sub: Subscription = {
       id: crypto.randomUUID(),
       userId,
+      planId: null,
       provider: "stripe",
       providerSubscriptionId: "sub_xyz",
       providerCustomerId: "cus_xyz",
@@ -87,6 +88,7 @@ describe("DrizzleSubscriptionRepository (IT)", () => {
     return {
       id: crypto.randomUUID(),
       userId,
+      planId: null,
       provider: "stripe",
       providerSubscriptionId: `sub_${crypto.randomUUID()}`,
       providerCustomerId: "cus_test",

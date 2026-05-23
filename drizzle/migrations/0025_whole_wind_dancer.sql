@@ -1,0 +1,1 @@
+ALTER TABLE "payments" ADD COLUMN "hosted_invoice_url" text;

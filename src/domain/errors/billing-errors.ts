@@ -15,3 +15,23 @@ export class BillingProviderError extends DomainError {
 export class InvalidWebhookSignatureError extends DomainError {
   readonly code = "INVALID_WEBHOOK_SIGNATURE" as const;
 }
+
+export class PlanNotFoundError extends DomainError {
+  readonly code = "PLAN_NOT_FOUND" as const;
+}
+
+export class PlanNotCheckoutReadyError extends DomainError {
+  readonly code = "PLAN_NOT_CHECKOUT_READY" as const;
+}
+
+export class LifetimeSoldOutError extends DomainError {
+  readonly code = "LIFETIME_SOLD_OUT" as const;
+}
+
+export class SamePlanError extends DomainError {
+  readonly code = "SAME_PLAN" as const;
+}
+
+export class PlanSwapNotSupportedError extends DomainError {
+  readonly code = "PLAN_SWAP_NOT_SUPPORTED" as const;
+}

@@ -8,6 +8,7 @@ export interface PaymentRepository {
     providerPaymentId: string,
   ): Promise<Payment | null>;
   findBySubscriptionId(subscriptionId: string): Promise<Payment[]>;
-  findByUserId(userId: string, limit?: number): Promise<Payment[]>;
+  findByUserId(userId: string, limit?: number, offset?: number): Promise<Payment[]>;
+  countByUserId(userId: string): Promise<number>;
   save(payment: Payment): Promise<void>;
 }

@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 
 import type {
   PaymentProvider,
@@ -15,6 +15,7 @@ function toEntity(row: SubscriptionRow): Subscription {
   return {
     id: row.id,
     userId: row.userId,
+    planId: row.planId,
     provider: row.provider,
     providerSubscriptionId: row.providerSubscriptionId,
     providerCustomerId: row.providerCustomerId,
@@ -78,12 +79,21 @@ export class DrizzleSubscriptionRepository implements SubscriptionRepository {
     return rows.map(toEntity);
   }
 
+  async countByPlanId(planId: string): Promise<number> {
+    const rows = await getDb()
+      .select({ count: sql<number>`count(*)::int` })
+      .from(subscriptions)
+      .where(eq(subscriptions.planId, planId));
+    return rows[0]?.count ?? 0;
+  }
+
   async save(sub: Subscription): Promise<void> {
     await getDb()
       .insert(subscriptions)
       .values({
         id: sub.id,
         userId: sub.userId,
+        planId: sub.planId,
         provider: sub.provider,
         providerSubscriptionId: sub.providerSubscriptionId,
         providerCustomerId: sub.providerCustomerId,
@@ -101,6 +111,7 @@ export class DrizzleSubscriptionRepository implements SubscriptionRepository {
       .onConflictDoUpdate({
         target: subscriptions.id,
         set: {
+          planId: sub.planId,
           status: sub.status,
           providerSubscriptionId: sub.providerSubscriptionId,
           providerCustomerId: sub.providerCustomerId,

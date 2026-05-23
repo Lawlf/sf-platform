@@ -3,7 +3,6 @@ import {
   bigint,
   boolean,
   index,
-  pgEnum,
   pgTable,
   text,
   timestamp,
@@ -11,17 +10,11 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { paymentProvider, subscriptionStatus } from "./billing-enums.schema";
+import { plans } from "./plans.schema";
 import { users } from "./users.schema";
 
-export const paymentProvider = pgEnum("payment_provider", ["manual", "stripe"]);
-
-export const subscriptionStatus = pgEnum("subscription_status", [
-  "incomplete",
-  "active",
-  "past_due",
-  "canceled",
-  "paused",
-]);
+export { paymentProvider, subscriptionStatus };
 
 export const subscriptions = pgTable(
   "subscriptions",
@@ -30,6 +23,7 @@ export const subscriptions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    planId: uuid("plan_id").references(() => plans.id, { onDelete: "set null" }),
     provider: paymentProvider("provider").notNull(),
     providerSubscriptionId: text("provider_subscription_id"),
     providerCustomerId: text("provider_customer_id"),
@@ -50,6 +44,7 @@ export const subscriptions = pgTable(
   },
   (table) => ({
     userIdx: index("subscriptions_user_idx").on(table.userId),
+    planIdx: index("subscriptions_plan_idx").on(table.planId),
     activeUserIdx: uniqueIndex("subscriptions_active_per_user_idx")
       .on(table.userId)
       .where(sql`${table.status} IN ('active', 'past_due', 'incomplete')`),

@@ -13,6 +13,8 @@ export * from "./push-subscriptions.schema";
 export * from "./sessions.schema";
 export * from "./stock-catalog.schema";
 export * from "./users.schema";
+export * from "./billing-enums.schema";
 export * from "./subscriptions.schema";
+export * from "./plans.schema";
 export * from "./payments.schema";
 export * from "./stripe-webhook-events.schema";

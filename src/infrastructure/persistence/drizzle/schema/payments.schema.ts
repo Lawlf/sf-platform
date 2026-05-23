@@ -43,6 +43,7 @@ export const payments = pgTable(
     paidAt: timestamp("paid_at", { withTimezone: true }),
     failedAt: timestamp("failed_at", { withTimezone: true }),
     failureReason: text("failure_reason"),
+    hostedInvoiceUrl: text("hosted_invoice_url"),
     rawEvent: jsonb("raw_event"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

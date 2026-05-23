@@ -11,6 +11,7 @@ function baseSub(overrides: Partial<Subscription> = {}): Subscription {
   return {
     id: "sub_1",
     userId: "user_1",
+    planId: null,
     provider: "stripe",
     providerSubscriptionId: "sub_stripe_1",
     providerCustomerId: "cus_1",

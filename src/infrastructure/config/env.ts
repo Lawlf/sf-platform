@@ -31,11 +31,16 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: emptyToUndefined,
   STRIPE_PUBLISHABLE_KEY: emptyToUndefined,
   STRIPE_WEBHOOK_SECRET: emptyToUndefined,
-  STRIPE_PRICE_ID_PRO_MONTHLY: emptyToUndefined,
-  NEXT_PUBLIC_PRO_PRICE_CENTS: z
+  /** Comma-separated list. Defaults to "card". Ex: "card,pix" once PIX is activated on the Stripe account. */
+  STRIPE_PAYMENT_METHODS: z
     .string()
     .optional()
-    .transform((v) => (v && v.length > 0 ? Number(v) : 1490)),
+    .transform((v) => (v && v.length > 0 ? v : "card")),
+
+  // QStash (async webhook processing in production). When unset, webhooks process inline.
+  QSTASH_TOKEN: emptyToUndefined,
+  QSTASH_CURRENT_SIGNING_KEY: emptyToUndefined,
+  QSTASH_NEXT_SIGNING_KEY: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -92,12 +97,32 @@ export function requireGoogleOauthConfig(env: Env = loadEnv()): {
 export function requireStripeConfig(env: Env = loadEnv()): {
   secretKey: string;
   webhookSecret: string;
-  priceIdProMonthly: string;
+  paymentMethods: string[];
 } {
   return {
     secretKey: required("STRIPE_SECRET_KEY", env.STRIPE_SECRET_KEY),
     webhookSecret: required("STRIPE_WEBHOOK_SECRET", env.STRIPE_WEBHOOK_SECRET),
-    priceIdProMonthly: required("STRIPE_PRICE_ID_PRO_MONTHLY", env.STRIPE_PRICE_ID_PRO_MONTHLY),
+    paymentMethods: env.STRIPE_PAYMENT_METHODS.split(",")
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0),
+  };
+}
+
+export interface QStashConfig {
+  token: string;
+  currentSigningKey: string;
+  nextSigningKey: string;
+}
+
+/** Returns null if QStash is not configured (dev fallback to inline processing). */
+export function getQStashConfig(env: Env = loadEnv()): QStashConfig | null {
+  if (!env.QSTASH_TOKEN || !env.QSTASH_CURRENT_SIGNING_KEY || !env.QSTASH_NEXT_SIGNING_KEY) {
+    return null;
+  }
+  return {
+    token: env.QSTASH_TOKEN,
+    currentSigningKey: env.QSTASH_CURRENT_SIGNING_KEY,
+    nextSigningKey: env.QSTASH_NEXT_SIGNING_KEY,
   };
 }
 

@@ -81,7 +81,7 @@ export function EmailLayout({ preview, appUrl, children, unsubscribeNode }: Emai
               }}
             >
               <Img
-                src={`${safeUrl}/icons/icon-192.png`}
+                src={resolveLogoSrc(safeUrl)}
                 width={32}
                 height={32}
                 alt="Sabor Financeiro"
@@ -144,6 +144,18 @@ export function EmailLayout({ preview, appUrl, children, unsubscribeNode }: Emai
       </Body>
     </Html>
   );
+}
+
+/**
+ * No preview do `react-email dev` (porta 3010), o iframe não consegue carregar
+ * imagens do Next dev server (`localhost:3000`) por causa do sandbox de
+ * srcDoc. A solução é servir o logo do próprio react-email via pasta
+ * `templates/static/`. Para qualquer outro `appUrl` (produção), usamos
+ * `/icons/icon-192.png` que é o asset PWA.
+ */
+function resolveLogoSrc(safeUrl: string): string {
+  if (safeUrl === "http://localhost:3000") return "/static/logo.png";
+  return `${safeUrl}/icons/icon-192.png`;
 }
 
 export const EMAIL_COLORS = {

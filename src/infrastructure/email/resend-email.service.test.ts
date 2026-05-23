@@ -29,7 +29,7 @@ describe("ResendEmailService", () => {
     await svc.send({ to: "u@example.com", subject: "S", html: "<p>x</p>", purpose: "auth" });
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(sendMock).toHaveBeenCalledWith({
-      from: "nao-responda@saborfinanceiro.com.br",
+      from: "Sabor Financeiro <nao-responda@saborfinanceiro.com.br>",
       to: "u@example.com",
       subject: "S",
       html: "<p>x</p>",
@@ -45,7 +45,9 @@ describe("ResendEmailService", () => {
       html: "<p>x</p>",
       purpose: "transactional",
     });
-    expect(sendMock.mock.calls[0]?.[0].from).toBe("nao-responda@saborfinanceiro.com.br");
+    expect(sendMock.mock.calls[0]?.[0].from).toBe(
+      "Sabor Financeiro <nao-responda@saborfinanceiro.com.br>",
+    );
   });
 
   it("throws on resend error", async () => {
