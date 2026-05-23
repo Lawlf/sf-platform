@@ -45,6 +45,10 @@ function makeFinancingDebt(overrides: Partial<FinancingDebt> = {}): FinancingDeb
     termMonths: 360,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as FinancingDebt;
 }
@@ -66,6 +70,10 @@ function makeOverdraftDebt(overrides: Partial<OverdraftDebt> = {}): OverdraftDeb
     bankName: "Banco X",
     monthlyRate: rateMonthly(0.08),
     lastChargeDate: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as OverdraftDebt;
 }

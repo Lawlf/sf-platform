@@ -20,6 +20,8 @@ export interface FinancialSnapshotInput {
 }
 
 const CREDIT_CARD_MIN_PCT = 0.15;
+// 52 semanas / 12 meses = 4.333... (mesmo coeficiente do TimelineService).
+const WEEKS_PER_MONTH = 4.33;
 const SAME_MONTH = (a: Date, b: Date): boolean =>
   a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth();
 
@@ -93,6 +95,7 @@ export class FinancialHealthService {
       asOfDate: input.asOfDate,
       totalIncome,
       totalDebtBalance,
+      totalMonthlyService,
       netWorth: netWorthR.value,
       cetWeightedAverage: cetRateR.value.toAnnual(),
       incomeCommittedPct,
@@ -129,6 +132,9 @@ function monthlyRateFor(debt: DebtEntity): number {
       return debt.revolvingMonthlyRate?.toDecimal() ?? 0;
     case "overdraft":
       return debt.monthlyRate.toDecimal();
+    case "recurring":
+      // Compromissos recorrentes não incidem juros sobre saldo.
+      return 0;
   }
 }
 
@@ -159,5 +165,14 @@ function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmortizatio
     }
     case "overdraft":
       return ok(debt.currentBalance.toNumber() * debt.monthlyRate.toDecimal());
+    case "recurring": {
+      const amountCents = Number(debt.recurringAmountCents ?? 0n);
+      // amountCents é em centavos; Money.from espera reais.
+      const amountReais = amountCents / 100;
+      if (debt.recurringFrequency === "weekly") {
+        return ok(amountReais * WEEKS_PER_MONTH);
+      }
+      return ok(amountReais);
+    }
   }
 }

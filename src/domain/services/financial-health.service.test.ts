@@ -36,6 +36,8 @@ function income(over: Partial<IncomeEntity> = {}): IncomeEntity {
     startDate: new Date("2024-01-01"),
     endDate: null,
     isActive: true,
+    createdAt: new Date("2024-01-01"),
+    deletedAt: null,
     ...over,
   };
 }
@@ -59,6 +61,10 @@ function financingDebt(over: Partial<FinancingDebt> = {}): FinancingDebt {
     termMonths: 360,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...over,
   } as FinancingDebt;
 }
@@ -80,6 +86,10 @@ function overdraftDebt(over: Partial<OverdraftDebt> = {}): OverdraftDebt {
     bankName: "Banco",
     monthlyRate: rateMonthly(0.08),
     lastChargeDate: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...over,
   } as OverdraftDebt;
 }

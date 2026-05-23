@@ -7,6 +7,7 @@ export interface FinancialSnapshotEntity {
   asOfDate: Date;
   totalIncome: Money;
   totalDebtBalance: Money;
+  totalMonthlyService: Money;
   netWorth: Money;
   cetWeightedAverage: InterestRate;
   incomeCommittedPct: number;

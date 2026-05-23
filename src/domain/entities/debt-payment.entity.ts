@@ -8,4 +8,12 @@ export interface DebtPaymentEntity {
   principalPortion: Money;
   interestPortion: Money;
   isExtra: boolean;
+  /**
+   * Marca o pagamento sintético criado por `archiveDebt` quando uma dívida é
+   * arquivada com `reason = "paid_off"` e saldo > 0. Permite que
+   * `reactivateDebt` identifique e desfaça esse pagamento (deleta + restaura
+   * saldo) ao reativar a dívida. Pagamentos regulares (registrados pelo
+   * usuário) têm `false`.
+   */
+  isClosingPayment: boolean;
 }

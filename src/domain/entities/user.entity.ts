@@ -1,5 +1,6 @@
 export type UserRole = "user" | "admin";
 export type UserPlan = "free" | "pro";
+export type ContentDiagnosticAnswer = "pagar-divida" | "guardar" | "investir";
 
 export interface UserEntity {
   id: string;
@@ -8,8 +9,11 @@ export interface UserEntity {
   displayName: string | null;
   role: UserRole;
   plan: UserPlan;
+  isPro: boolean;
   deactivatedAt: Date | null;
   deactivationReason: string | null;
+  contentDiagnosticAnswer: ContentDiagnosticAnswer | null;
+  contentDiagnosticAnsweredAt: Date | null;
   createdAt: Date;
   updatedAt: Date;
 }

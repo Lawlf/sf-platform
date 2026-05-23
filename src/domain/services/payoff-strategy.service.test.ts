@@ -44,6 +44,10 @@ function makePersonalLoan(over: Partial<PersonalLoanDebt> = {}): PersonalLoanDeb
     annualInterestRate: rateAnnual(0.05),
     termMonths: 24,
     monthlyInstallment: moneyOf(90),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...over,
   } as PersonalLoanDebt;
 }
@@ -65,6 +69,10 @@ function makeOverdraft(over: Partial<OverdraftDebt> = {}): OverdraftDebt {
     bankName: "Banco",
     monthlyRate: rateMonthly(0.08),
     lastChargeDate: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...over,
   } as OverdraftDebt;
 }
@@ -76,6 +84,10 @@ describe("PayoffStrategyService", () => {
       currentBalance: moneyOf(500),
       originalPrincipal: moneyOf(500),
       monthlyInstallment: moneyOf(60),
+      deletedAt: null,
+      recurringFrequency: null,
+      recurringAmountCents: null,
+      expenseCategory: null,
       annualInterestRate: rateAnnual(0.05),
     });
     const expensive = makeOverdraft({
@@ -128,6 +140,10 @@ describe("PayoffStrategyService", () => {
       id: "a",
       currentBalance: moneyOf(500),
       monthlyInstallment: moneyOf(40),
+      deletedAt: null,
+      recurringFrequency: null,
+      recurringAmountCents: null,
+      expenseCategory: null,
       annualInterestRate: rateAnnual(0.02),
     });
     const b = makeOverdraft({
@@ -186,6 +202,10 @@ describe("PayoffStrategyService", () => {
       revolvingBalance: null,
       revolvingMonthlyRate: rateMonthly(0.15),
       installmentPurchases: [],
+      deletedAt: null,
+      recurringFrequency: null,
+      recurringAmountCents: null,
+      expenseCategory: null,
     } as CreditCardDebt;
     expect(
       isErr(

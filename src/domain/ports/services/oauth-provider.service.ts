@@ -1,5 +1,7 @@
+import type { OauthProviderId } from "@/domain/entities/oauth-account.entity";
+
 export interface OauthProfile {
-  provider: "google" | "apple";
+  provider: OauthProviderId;
   providerUserId: string;
   email: string;
   emailVerified: boolean;
@@ -7,7 +9,7 @@ export interface OauthProfile {
 }
 
 export interface OauthProvider {
-  readonly id: "google" | "apple";
+  readonly id: OauthProviderId;
   buildAuthUrl(input: { state: string; codeChallenge: string }): Promise<string>;
   exchangeCode(input: { code: string; codeVerifier: string }): Promise<OauthProfile>;
 }

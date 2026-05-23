@@ -209,5 +209,9 @@ function minimumFor(debt: DebtEntity): Result<DebtMinimum, InvalidAmortizationPa
         value: debt.currentBalance.toNumber() * debt.monthlyRate.toDecimal(),
         monthlyRate: debt.monthlyRate.toDecimal(),
       });
+    case "recurring":
+      // Compromissos recorrentes não entram no jogo de payoff
+      // (não acumulam juros, não têm saldo a quitar). Mínimo zero, taxa zero.
+      return ok({ value: 0, monthlyRate: 0 });
   }
 }

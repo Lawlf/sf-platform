@@ -1,7 +1,14 @@
 import type { SessionEntity } from "@/domain/entities/session.entity";
+import type { UserEntity } from "@/domain/entities/user.entity";
+
+export interface SessionWithUser {
+  session: SessionEntity;
+  user: UserEntity;
+}
 
 export interface SessionRepository {
   findByIdHash(idHash: string): Promise<SessionEntity | null>;
+  findWithUserByIdHash(idHash: string): Promise<SessionWithUser | null>;
   listActiveForUser(userId: string): Promise<SessionEntity[]>;
   create(input: {
     idHash: string;

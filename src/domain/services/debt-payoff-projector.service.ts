@@ -134,6 +134,9 @@ function monthlyRateFor(debt: DebtEntity): number {
       return debt.revolvingMonthlyRate?.toDecimal() ?? 0;
     case "overdraft":
       return debt.monthlyRate.toDecimal();
+    case "recurring":
+      // Compromissos recorrentes não acumulam juros.
+      return 0;
   }
 }
 

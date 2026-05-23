@@ -23,3 +23,19 @@ export class DebtNotFound extends DomainError {
 export class IncomeNotFound extends DomainError {
   readonly code = "INCOME_NOT_FOUND" as const;
 }
+
+export class IncomeAlreadyActive extends DomainError {
+  readonly code = "INCOME_ALREADY_ACTIVE" as const;
+}
+
+export class DebtAlreadyActive extends DomainError {
+  readonly code = "DEBT_ALREADY_ACTIVE" as const;
+}
+
+export class PaymentExceedsBalanceError extends DomainError {
+  readonly code = "PAYMENT_EXCEEDS_BALANCE" as const;
+}
+
+export class NotificationNotFound extends DomainError {
+  readonly code = "NOTIFICATION_NOT_FOUND" as const;
+}
