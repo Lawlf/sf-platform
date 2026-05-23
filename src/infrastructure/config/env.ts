@@ -89,19 +89,15 @@ export function requireGoogleOauthConfig(env: Env = loadEnv()): {
   };
 }
 
-export function requireStripeConfig(): {
+export function requireStripeConfig(env: Env = loadEnv()): {
   secretKey: string;
   webhookSecret: string;
   priceIdProMonthly: string;
 } {
-  const env = loadEnv();
-  if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY is required");
-  if (!env.STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET is required");
-  if (!env.STRIPE_PRICE_ID_PRO_MONTHLY) throw new Error("STRIPE_PRICE_ID_PRO_MONTHLY is required");
   return {
-    secretKey: env.STRIPE_SECRET_KEY,
-    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
-    priceIdProMonthly: env.STRIPE_PRICE_ID_PRO_MONTHLY,
+    secretKey: required("STRIPE_SECRET_KEY", env.STRIPE_SECRET_KEY),
+    webhookSecret: required("STRIPE_WEBHOOK_SECRET", env.STRIPE_WEBHOOK_SECRET),
+    priceIdProMonthly: required("STRIPE_PRICE_ID_PRO_MONTHLY", env.STRIPE_PRICE_ID_PRO_MONTHLY),
   };
 }
 
