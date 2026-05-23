@@ -13,12 +13,12 @@ export function PaymentsSection({ payments }: Props) {
         <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
           Pagamentos registrados
         </h2>
-        <span className="text-[11px] text-[color:var(--text-muted)]">
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
           {payments.length} {payments.length === 1 ? "registro" : "registros"}
         </span>
       </div>
       {payments.length === 0 ? (
-        <p className="mt-3 text-[12px] text-[color:var(--text-muted)]">
+        <p className="mt-3 text-[0.75rem] text-[color:var(--text-muted)]">
           Nenhum pagamento registrado.
         </p>
       ) : (
@@ -32,7 +32,7 @@ export function PaymentsSection({ payments }: Props) {
                 <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">
                   {DATE_FMT.format(p.paidAt)}
                 </p>
-                <p className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+                <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
                   {p.principalPortion.format()} principal + {p.interestPortion.format()} juros
                 </p>
               </div>
@@ -41,7 +41,7 @@ export function PaymentsSection({ payments }: Props) {
                   {p.amount.format()}
                 </span>
                 {p.isExtra ? (
-                  <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+                  <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
                     Extra
                   </span>
                 ) : null}

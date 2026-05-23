@@ -49,7 +49,7 @@ export default async function SegurancaPage() {
               key={s.id}
               className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl sm:flex-row sm:items-center sm:justify-between"
             >
-              <div className="text-[13px]">
+              <div className="text-[0.8125rem]">
                 <p className="font-bold text-[color:var(--text-primary)]">
                   Último uso: {DATE_FMT.format(s.lastUsedAt)}
                 </p>

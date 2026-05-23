@@ -19,14 +19,14 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
   return (
     <div className="flex flex-col gap-7">
       <header>
-        <div className="mb-2 inline-flex items-center gap-1.5 text-[10.5px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
+        <div className="mb-2 inline-flex items-center gap-1.5 text-[0.65625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
           <span
             className="block h-[1.5px] w-3.5 rounded-full"
             style={{ background: "linear-gradient(90deg, #f28e25, transparent)" }}
           />
           Sua trilha
         </div>
-        <h1 className="font-serif text-[30px] font-bold leading-[1.05] tracking-[-0.025em] text-[color:var(--text-primary)] md:text-[42px]">
+        <h1 className="font-serif text-[1.875rem] font-bold leading-[1.05] tracking-[-0.025em] text-[color:var(--text-primary)] md:text-[2.625rem]">
           {renderTitleWithEmphasis(trilha.title, trilha.emphasis)}
         </h1>
         <div className="mt-3 flex items-center gap-3">
@@ -39,7 +39,7 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
               }}
             />
           </div>
-          <span className="text-[11px] font-bold tabular-nums text-[color:var(--text-secondary)]">
+          <span className="text-[0.6875rem] font-bold tabular-nums text-[color:var(--text-secondary)]">
             {totalReady} / {trilha.modules.length}
           </span>
         </div>
@@ -48,7 +48,7 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
       <NextModuleHero module={nextModule} />
 
       <section>
-        <div className="mb-3 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+        <div className="mb-3 px-1 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
           Seu ritmo
         </div>
         <RhythmGrid modulesRead={0} />
@@ -56,7 +56,7 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
 
       {firstBook ? (
         <section>
-          <div className="mb-3 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <div className="mb-3 px-1 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             Leitura recomendada
           </div>
           <BookCard book={firstBook} />
@@ -64,7 +64,7 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
       ) : null}
 
       <section>
-        <div className="mb-3 px-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+        <div className="mb-3 px-1 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
           Plano da trilha
         </div>
         <div className="flex flex-col gap-2">
@@ -74,7 +74,7 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
         </div>
       </section>
 
-      <p className="px-2 text-center text-[11px] leading-[1.45] text-[color:var(--text-muted)]">
+      <p className="px-2 text-center text-[0.6875rem] leading-[1.45] text-[color:var(--text-muted)]">
         A trilha cresce no seu ritmo.{" "}
         <strong className="font-bold text-[color:var(--text-secondary)]">
           A gente avisa quando o próximo módulo chegar.

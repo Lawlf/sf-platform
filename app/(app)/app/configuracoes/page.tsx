@@ -1,4 +1,5 @@
 import {
+  Accessibility,
   Bell,
   ChevronRight,
   Crown,
@@ -36,17 +37,6 @@ interface SettingSection {
 
 const SECTIONS: SettingSection[] = [
   {
-    title: "Aparência",
-    items: [
-      {
-        href: "/app/perfil/aparencia" as Route,
-        label: "Tema",
-        description: "Claro, escuro ou seguir sistema.",
-        icon: Palette,
-      },
-    ],
-  },
-  {
     title: "Conta",
     items: [
       {
@@ -58,7 +48,7 @@ const SECTIONS: SettingSection[] = [
       {
         href: "/app/configuracoes/planos" as Route,
         label: "Plano",
-        description: "Veja seu plano atual e compare Free com Pro.",
+        description: "Veja seu plano atual.",
         icon: Crown,
       },
       {
@@ -84,6 +74,23 @@ const SECTIONS: SettingSection[] = [
         description: "Em breve. Português (Brasil), moeda Real.",
         icon: Globe,
         disabled: true,
+      },
+    ],
+  },
+  {
+    title: "Experiência",
+    items: [
+      {
+        href: "/app/perfil/aparencia" as Route,
+        label: "Aparência",
+        description: "Tema claro, escuro ou seguir sistema.",
+        icon: Palette,
+      },
+      {
+        href: "/app/perfil/acessibilidade" as Route,
+        label: "Acessibilidade",
+        description: "Modo daltônico e leitura.",
+        icon: Accessibility,
       },
     ],
   },
@@ -130,10 +137,10 @@ export default async function ConfiguracoesPage() {
           {initials}
         </span>
         <div className="min-w-0 flex-1">
-          <div className="truncate text-[15px] font-bold text-[color:var(--text-primary)]">
+          <div className="truncate text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
             {user.displayName ?? "Sem nome"}
           </div>
-          <div className="truncate text-[12px] text-[color:var(--text-secondary)]">
+          <div className="truncate text-[0.75rem] text-[color:var(--text-secondary)]">
             {user.email}
           </div>
         </div>
@@ -141,7 +148,7 @@ export default async function ConfiguracoesPage() {
 
       {SECTIONS.map((section) => (
         <section key={section.title} className="flex flex-col gap-2">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             {section.title}
           </h2>
           <div className="flex flex-col gap-2">
@@ -158,10 +165,10 @@ export default async function ConfiguracoesPage() {
                       <Icon size={18} strokeWidth={1.75} aria-hidden />
                     </span>
                     <div className="flex-1">
-                      <div className="text-[14px] font-semibold text-[color:var(--text-primary)]">
+                      <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
                         {item.label}
                       </div>
-                      <div className="mt-0.5 text-[12px] text-[color:var(--text-muted)]">
+                      <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-muted)]">
                         {item.description}
                       </div>
                     </div>
@@ -178,10 +185,10 @@ export default async function ConfiguracoesPage() {
                     <Icon size={18} strokeWidth={1.75} aria-hidden />
                   </span>
                   <div className="flex-1">
-                    <div className="text-[14px] font-semibold text-[color:var(--text-primary)]">
+                    <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
                       {item.label}
                     </div>
-                    <div className="mt-0.5 text-[12px] text-[color:var(--text-secondary)]">
+                    <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
                       {item.description}
                     </div>
                   </div>
@@ -201,7 +208,7 @@ export default async function ConfiguracoesPage() {
       <form action="/api/auth/sign-out" method="post" className="mt-4">
         <button
           type="submit"
-          className="focus-ring flex w-full items-center justify-center gap-2 rounded-2xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/[0.08] px-4 py-3 text-[14px] font-bold text-[color:var(--semantic-negative)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.14]"
+          className="focus-ring flex w-full items-center justify-center gap-2 rounded-2xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/[0.08] px-4 py-3 text-[0.875rem] font-bold text-[color:var(--semantic-negative)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.14]"
         >
           <LogOut size={16} strokeWidth={1.75} aria-hidden />
           Sair da conta

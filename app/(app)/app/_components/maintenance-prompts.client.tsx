@@ -8,7 +8,10 @@ import { useState, useTransition } from "react";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
-import { fetchMaintenancePrompts } from "../_actions/maintenance-queries";
+import {
+  fetchMaintenancePrompts,
+  type MaintenancePromptPayload,
+} from "../_actions/maintenance-queries";
 import { queryKeys } from "../_lib/query-keys";
 import { markReviewedAction } from "../patrimonio/[id]/_actions/mark-reviewed.action";
 
@@ -67,19 +70,19 @@ function PromptRow({
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           {institution ? (
-            <div className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+            <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
               {institution}
             </div>
           ) : null}
-          <div className="mt-0.5 truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+          <div className="mt-0.5 truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
             {label}
           </div>
           {yieldDescription ? (
-            <div className="mt-0.5 text-[12px] font-semibold text-[color:var(--text-secondary)]">
+            <div className="mt-0.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
               {yieldDescription}
             </div>
           ) : null}
-          <div className="mt-1 text-[11px] text-[color:var(--text-muted)]">{reviewLine}</div>
+          <div className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">{reviewLine}</div>
         </div>
 
         <div className="flex shrink-0 items-center gap-1">
@@ -107,7 +110,7 @@ function PromptRow({
         </div>
       </div>
       {error ? (
-        <p role="alert" className="mt-2 text-[11px] text-[color:var(--semantic-negative)]">
+        <p role="alert" className="mt-2 text-[0.6875rem] text-[color:var(--semantic-negative)]">
           {error}
         </p>
       ) : null}
@@ -115,10 +118,15 @@ function PromptRow({
   );
 }
 
-export function MaintenancePromptsClient() {
+interface MaintenancePromptsClientProps {
+  initialData: MaintenancePromptPayload[];
+}
+
+export function MaintenancePromptsClient({ initialData }: MaintenancePromptsClientProps) {
   const { data } = useSuspenseQuery({
     queryKey: queryKeys.maintenancePrompts,
     queryFn: () => fetchMaintenancePrompts(),
+    initialData,
   });
 
   if (!data || data.length === 0) return null;
@@ -126,7 +134,7 @@ export function MaintenancePromptsClient() {
   return (
     <section aria-label="Reservas que precisam de revisão">
       <div className="mb-2 flex items-center justify-between px-1">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           Suas reservas
         </h2>
         <HowItWorksSheet topic="manutencao-reservas" variant="brand" />

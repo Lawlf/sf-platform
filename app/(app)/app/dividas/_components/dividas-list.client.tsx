@@ -100,11 +100,11 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
             </span>
             <div className="min-w-0 flex-1">
               <div className="flex items-baseline justify-between gap-2">
-                <span className="truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+                <span className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
                   {d.label}
                 </span>
                 <span
-                  className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                  className="shrink-0 rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide"
                   style={{
                     background: `color-mix(in srgb, ${tone.text} 14%, transparent)`,
                     color: tone.text,
@@ -113,7 +113,7 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
                   {STATUS_LABEL[d.status]}
                 </span>
               </div>
-              <div className="mt-0.5 flex items-baseline gap-2 text-[12px]">
+              <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
                 <span className="text-[color:var(--text-muted)]">
                   {KIND_LABEL[d.kind] ?? d.kind}
                 </span>

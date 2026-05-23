@@ -130,7 +130,7 @@ export default function PrecosOg() {
                 marginTop: "6px",
               }}
             >
-              R$ 14,90
+              R$ 19,90
             </div>
             <div
               style={{

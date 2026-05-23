@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export const wizardInputClass =
-  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
 
 export interface WizardFieldProps {
   label: string;
@@ -25,7 +25,7 @@ export function WizardField({
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <label
           htmlFor={htmlFor}
-          className="block text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
+          className="block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
         >
           {label}
         </label>
@@ -33,10 +33,10 @@ export function WizardField({
       </div>
       {children}
       {helper ? (
-        <div className="mt-1 text-[11px] text-[color:var(--text-primary)] opacity-60">{helper}</div>
+        <div className="mt-1 text-[0.6875rem] text-[color:var(--text-primary)] opacity-60">{helper}</div>
       ) : null}
       {error ? (
-        <div role="alert" className="mt-1 text-[11px] text-[color:var(--semantic-negative)]">
+        <div role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
           {error}
         </div>
       ) : null}

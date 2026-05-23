@@ -101,17 +101,17 @@ export function DebtHeader({ debt }: Props) {
       />
       <div className="relative flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold uppercase tracking-wide opacity-95">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
             {KIND_LABEL[debt.kind]}
           </div>
           <h1
-            className="mt-1 text-[24px] font-extrabold leading-tight"
+            className="mt-1 text-[1.5rem] font-extrabold leading-tight"
             style={{ letterSpacing: "-0.4px" }}
           >
             {debt.label}
           </h1>
           <span
-            className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide ${statusBadgeClass(debt.status)}`}
+            className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide ${statusBadgeClass(debt.status)}`}
           >
             {STATUS_LABEL[debt.status]}
           </span>
@@ -121,7 +121,7 @@ export function DebtHeader({ debt }: Props) {
       <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
         {headerStats.map((s) => (
           <div key={s.label}>
-            <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               {s.label}
             </div>
             <div className="mt-0.5 font-bold tabular-nums">{s.value}</div>

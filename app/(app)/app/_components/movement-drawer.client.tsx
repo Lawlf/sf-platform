@@ -73,7 +73,7 @@ export function MovementDrawer({ monthIso, monthLabel, open, onOpenChange }: Mov
 
         <SheetHeader className="gap-1">
           <SheetTitle>Movimento de {monthLabel}</SheetTitle>
-          <SheetDescription className="text-[12px] text-[color:var(--text-secondary)]">
+          <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
             Quanto entrou, quanto saiu, quanto sobrou.
           </SheetDescription>
         </SheetHeader>
@@ -93,7 +93,7 @@ function MovementBody({ monthIso }: { monthIso: string }) {
 
   if (!data) {
     return (
-      <p className="mt-5 text-[12px] text-[color:var(--text-muted)]">
+      <p className="mt-5 text-[0.75rem] text-[color:var(--text-muted)]">
         Não foi possível carregar os detalhes deste mês.
       </p>
     );
@@ -152,10 +152,10 @@ function MovementBody({ monthIso }: { monthIso: string }) {
 function SectionLabel({ label, totalFormatted }: { label: string; totalFormatted: string }) {
   return (
     <div className="mb-2 mt-5 flex items-baseline justify-between px-1">
-      <span className="text-[10px] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
+      <span className="text-[0.625rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
         {label}
       </span>
-      <span className="text-[12px] font-extrabold text-[color:var(--text-primary)]">
+      <span className="text-[0.75rem] font-extrabold text-[color:var(--text-primary)]">
         {totalFormatted}
       </span>
     </div>
@@ -164,7 +164,7 @@ function SectionLabel({ label, totalFormatted }: { label: string; totalFormatted
 
 function EmptyRow({ text }: { text: string }) {
   return (
-    <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[12px] text-[color:var(--text-secondary)]">
+    <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[0.75rem] text-[color:var(--text-secondary)]">
       {text}
     </p>
   );
@@ -174,14 +174,14 @@ function IncomeRow({ row }: { row: SerializedIncomeRow }) {
   return (
     <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
       <div className="flex min-w-0 flex-col">
-        <span className="truncate text-[13px] font-bold text-[color:var(--text-primary)]">
+        <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
           {row.label}
         </span>
-        <span className="mt-0.5 text-[10px] font-semibold text-[color:var(--text-muted)]">
+        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
           {FREQUENCY_LABELS[row.frequency]}
         </span>
       </div>
-      <span className="text-[13px] font-extrabold text-[color:var(--semantic-positive)]">
+      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-positive)]">
         +{row.amount.formatted}
       </span>
     </li>
@@ -193,18 +193,18 @@ function ExpenseRow({ row }: { row: SerializedExpenseRow }) {
     <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
       <div className="flex min-w-0 flex-col">
         <span className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-[2px] text-[10px] font-bold text-[color:var(--color-brand-800)]">
+          <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-[2px] text-[0.625rem] font-bold text-[color:var(--color-brand-800)]">
             {CATEGORY_LABELS[row.category]}
           </span>
-          <span className="truncate text-[13px] font-bold text-[color:var(--text-primary)]">
+          <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
             {row.label}
           </span>
         </span>
-        <span className="mt-0.5 text-[10px] font-semibold text-[color:var(--text-muted)]">
+        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
           {FREQUENCY_LABELS[row.frequency]}
         </span>
       </div>
-      <span className="text-[13px] font-extrabold text-[color:var(--semantic-negative)]">
+      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
         −{row.amount.formatted}
       </span>
     </li>
@@ -215,14 +215,14 @@ function PaymentRow({ row, monthLabel }: { row: SerializedPaymentRow; monthLabel
   return (
     <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
       <div className="flex min-w-0 flex-col">
-        <span className="truncate text-[13px] font-bold text-[color:var(--text-primary)]">
+        <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
           {row.debtLabel}
         </span>
-        <span className="mt-0.5 text-[10px] font-semibold text-[color:var(--text-muted)]">
+        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
           Pagamento de {monthLabel}
         </span>
       </div>
-      <span className="text-[13px] font-extrabold text-[color:var(--semantic-negative)]">
+      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
         −{row.amount.formatted}
       </span>
     </li>

@@ -77,21 +77,21 @@ export function TimelineHero({
             </button>
           </SimpleTooltip>
 
-          <div className="text-[10px] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
+          <div className="text-[0.625rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
             Patrimônio líquido
           </div>
-          <div className="mt-1 text-[28px] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[32px]">
+          <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
             {patrimonyFormatted}
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {deltaText ? (
-              <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--semantic-positive)]/[0.14] px-2 py-1 text-[11px] font-bold text-[color:var(--semantic-positive)]">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--semantic-positive)]/[0.14] px-2 py-1 text-[0.6875rem] font-bold text-[color:var(--semantic-positive)]">
                 {deltaText}
               </span>
             ) : null}
             {streakCount >= 2 ? (
               <span
-                className={`inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2.5 py-1 text-[11px] font-bold text-[color:var(--color-brand-800)] ${
+                className={`inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2.5 py-1 text-[0.6875rem] font-bold text-[color:var(--color-brand-800)] ${
                   streakCount >= 3 ? "sf-pulse-soft" : ""
                 }`}
               >
@@ -99,7 +99,7 @@ export function TimelineHero({
                 {streakCount} no verde
               </span>
             ) : null}
-            <span className="text-[11px] font-semibold text-[color:var(--text-muted)]">
+            <span className="text-[0.6875rem] font-semibold text-[color:var(--text-muted)]">
               {formatRangeLabel(range)}
             </span>
           </div>

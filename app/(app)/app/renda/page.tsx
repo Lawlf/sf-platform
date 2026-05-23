@@ -19,7 +19,7 @@ export default async function RendaPage() {
     <PageShell title="Renda" description="Salário, dividendos, freelances. Suas fontes de renda.">
       <Link
         href={"/app/renda/nova" as Route}
-        className="focus-ring flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
+        className="focus-ring flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
       >
         Adicionar nova renda
       </Link>

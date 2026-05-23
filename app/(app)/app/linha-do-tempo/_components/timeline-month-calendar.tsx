@@ -62,7 +62,7 @@ export function TimelineMonthCalendar({
       <div className="mb-3 flex items-center justify-between">
         <span
           aria-label={`Ano ${year}`}
-          className="text-[13px] font-bold text-[color:var(--text-primary)]"
+          className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]"
         >
           {year}
         </span>
@@ -105,7 +105,7 @@ export function TimelineMonthCalendar({
               onClick={() => onSelect(iso)}
               aria-label={`${name} ${year}${dataAvail ? " (com dados)" : ""}`}
               aria-selected={active}
-              className={`focus-ring flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-[11px] font-bold transition-colors ${
+              className={`focus-ring flex flex-col items-center gap-1 rounded-lg px-2 py-2.5 text-[0.6875rem] font-bold transition-colors ${
                 active
                   ? "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_4px_12px_rgba(239,122,26,0.3)]"
                   : "bg-[color:var(--surface-2)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-1)] hover:text-[color:var(--color-brand-800)]"

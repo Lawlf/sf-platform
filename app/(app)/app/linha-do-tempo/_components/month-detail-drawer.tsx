@@ -38,7 +38,7 @@ export function MonthDetailDrawer({ point, open, onOpenChange }: MonthDetailDraw
 
         <SheetHeader className="gap-1">
           <SheetTitle>{point.monthLabel}</SheetTitle>
-          <SheetDescription className="text-[12px] text-[color:var(--text-secondary)]">
+          <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
             Detalhes do mês.
           </SheetDescription>
         </SheetHeader>
@@ -67,11 +67,11 @@ export function MonthDetailDrawer({ point, open, onOpenChange }: MonthDetailDraw
         {open ? <MonthDetailBody monthIso={point.monthIso} /> : null}
 
         <div className="mt-5 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-4 backdrop-blur-md">
-          <div className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Patrimônio no fim do mês
           </div>
           <div
-            className={`mt-1 text-[20px] font-extrabold ${
+            className={`mt-1 text-[1.25rem] font-extrabold ${
               BigInt(point.netWorth.cents) < 0n
                 ? "text-[color:var(--semantic-negative)]"
                 : "text-[color:var(--semantic-positive)]"
@@ -79,7 +79,7 @@ export function MonthDetailDrawer({ point, open, onOpenChange }: MonthDetailDraw
           >
             {point.netWorth.formatted}
           </div>
-          <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+          <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
             Ativos {point.assetsTotal.formatted} menos dívidas {point.debtsBalance.formatted}.
           </div>
         </div>
@@ -107,11 +107,11 @@ function KPI({
         : "var(--color-brand-800)";
   return (
     <div className="flex flex-col gap-1 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-3 backdrop-blur-md">
-      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+      <div className="flex items-center gap-1 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
         {icon}
         {label}
       </div>
-      <div className="text-[13px] font-bold" style={{ color }}>
+      <div className="text-[0.8125rem] font-bold" style={{ color }}>
         {value}
       </div>
     </div>
@@ -127,7 +127,7 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
 
   if (!data) {
     return (
-      <p className="mt-5 text-[12px] text-[color:var(--text-muted)]">
+      <p className="mt-5 text-[0.75rem] text-[color:var(--text-muted)]">
         Não foi possível carregar os detalhes deste mês.
       </p>
     );
@@ -136,11 +136,11 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
   return (
     <>
       <section className="mt-5">
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h3 className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           Pagamentos ({data.payments.length})
         </h3>
         {data.payments.length === 0 ? (
-          <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[12px] text-[color:var(--text-secondary)]">
+          <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[0.75rem] text-[color:var(--text-secondary)]">
             Nenhum pagamento registrado neste mês.
           </p>
         ) : (
@@ -154,14 +154,14 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
                   <TrendingDown size={16} strokeWidth={1.75} aria-hidden />
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="truncate text-[13px] font-bold text-[color:var(--text-primary)]">
+                  <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
                     {p.debtLabel}
                   </div>
-                  <div className="text-[11px] text-[color:var(--text-muted)]">
+                  <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
                     Pago em {p.paidAtLabel}
                   </div>
                 </div>
-                <span className="text-[13px] font-bold text-[color:var(--semantic-negative)]">
+                <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-negative)]">
                   {p.amount.formatted}
                 </span>
               </li>
@@ -171,11 +171,11 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
       </section>
 
       <section className="mt-5">
-        <h3 className="mb-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h3 className="mb-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           Renda ativa ({data.incomes.length})
         </h3>
         {data.incomes.length === 0 ? (
-          <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[12px] text-[color:var(--text-secondary)]">
+          <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-3 text-[0.75rem] text-[color:var(--text-secondary)]">
             Nenhuma fonte de renda ativa neste mês.
           </p>
         ) : (
@@ -196,14 +196,14 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
                     <Icon size={16} strokeWidth={1.75} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[13px] font-bold text-[color:var(--text-primary)]">
+                    <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
                       {inc.label}
                     </div>
-                    <div className="text-[11px] text-[color:var(--text-muted)]">
+                    <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
                       {FREQUENCY_LABELS[inc.frequency]}
                     </div>
                   </div>
-                  <span className="text-[13px] font-bold text-[color:var(--semantic-positive)]">
+                  <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-positive)]">
                     {inc.amount.formatted}
                   </span>
                 </li>

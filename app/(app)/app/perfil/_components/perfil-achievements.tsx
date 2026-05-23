@@ -38,7 +38,7 @@ const ACHIEVEMENTS: Achievement[] = [
 export function PerfilAchievements() {
   return (
     <section>
-      <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+      <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
         Conquistas
       </h2>
       <div className="grid gap-2 md:grid-cols-2">
@@ -59,22 +59,22 @@ export function PerfilAchievements() {
               {a.icon}
             </span>
             <div className="min-w-0 flex-1">
-              <div className="truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+              <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
                 {a.title}
               </div>
-              <div className="mt-0.5 text-[11px] text-[color:var(--text-secondary)]">
+              <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-secondary)]">
                 {a.description}
               </div>
             </div>
             {a.locked ? (
-              <span className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+              <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
                 Em breve
               </span>
             ) : null}
           </div>
         ))}
       </div>
-      <p className="mt-3 px-1 text-[11px] text-[color:var(--text-muted)]">
+      <p className="mt-3 px-1 text-[0.6875rem] text-[color:var(--text-muted)]">
         Conquistas dinâmicas chegam no Plan 8 (gamificação). Por enquanto, vitrine estática.
       </p>
     </section>

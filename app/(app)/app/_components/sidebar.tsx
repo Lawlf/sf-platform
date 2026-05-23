@@ -105,7 +105,7 @@ export function Sidebar() {
         >
           <BrandLogo size={32} />
           {!collapsed ? (
-            <span className="text-[14px] font-bold tracking-tight text-[color:var(--color-brand-800)]">
+            <span className="text-[0.875rem] font-bold tracking-tight text-[color:var(--color-brand-800)]">
               Sabor Financeiro
             </span>
           ) : null}
@@ -127,7 +127,7 @@ export function Sidebar() {
                 href={item.href}
                 aria-current={active ? "page" : undefined}
                 aria-label={item.label}
-                className={`focus-ring relative flex items-center rounded-lg text-[14px] font-medium transition-colors ${cls} ${
+                className={`focus-ring relative flex items-center rounded-lg text-[0.875rem] font-medium transition-colors ${cls} ${
                   collapsed ? "justify-center px-2 py-2.5" : "gap-2.5 px-3 py-2.5"
                 }`}
               >

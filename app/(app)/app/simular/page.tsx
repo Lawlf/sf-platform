@@ -54,10 +54,10 @@ export default function SimularHubPage() {
                 <Icon size={20} strokeWidth={1.75} aria-hidden />
               </span>
               <div>
-                <div className="text-[14px] font-bold text-[color:var(--text-primary)]">
+                <div className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">
                   {title}
                 </div>
-                <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">{desc}</div>
+                <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">{desc}</div>
               </div>
             </div>
             <ChevronRight

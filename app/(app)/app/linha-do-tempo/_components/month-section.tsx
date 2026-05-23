@@ -104,16 +104,16 @@ function MonthChip({ label, isCurrent }: { label: string; isCurrent: boolean }) 
 
   if (isCurrent) {
     return (
-      <span className="inline-flex items-baseline gap-1.5 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.5px] text-white shadow-[0_4px_12px_rgba(239,122,26,0.35)]">
+      <span className="inline-flex items-baseline gap-1.5 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.5px] text-white shadow-[0_4px_12px_rgba(239,122,26,0.35)]">
         {name}
-        <span className="text-[9px] font-bold text-white/85">HOJE</span>
+        <span className="text-[0.5625rem] font-bold text-white/85">HOJE</span>
       </span>
     );
   }
   return (
-    <span className="inline-flex items-baseline gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-3 py-1 text-[11px] font-extrabold uppercase tracking-[0.5px] text-[color:var(--color-brand-800)]">
+    <span className="inline-flex items-baseline gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-3 py-1 text-[0.6875rem] font-extrabold uppercase tracking-[0.5px] text-[color:var(--color-brand-800)]">
       {name}
-      {year ? <span className="text-[9px] font-bold opacity-55">{year}</span> : null}
+      {year ? <span className="text-[0.5625rem] font-bold opacity-55">{year}</span> : null}
     </span>
   );
 }
@@ -131,7 +131,7 @@ function ComparePill({
 }) {
   if (isFlat) {
     return (
-      <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--surface-2)] px-2 py-0.5 text-[10px] font-bold text-[color:var(--text-muted)]">
+      <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--surface-2)] px-2 py-0.5 text-[0.625rem] font-bold text-[color:var(--text-muted)]">
         Igual a {previousLabel}
       </span>
     );
@@ -142,7 +142,7 @@ function ComparePill({
   const Icon = isUp ? ChevronUp : ChevronDown;
   return (
     <span
-      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold ${Cls}`}
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[0.625rem] font-bold ${Cls}`}
     >
       <Icon size={10} strokeWidth={3} aria-hidden />
       {pct}% vs {previousLabel}
@@ -152,7 +152,7 @@ function ComparePill({
 
 function BestMonthBadge() {
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-2 py-0.5 text-[10px] font-extrabold uppercase tracking-[0.5px] text-white shadow-[0_3px_8px_rgba(239,122,26,0.3)]">
+    <span className="inline-flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-2 py-0.5 text-[0.625rem] font-extrabold uppercase tracking-[0.5px] text-white shadow-[0_3px_8px_rgba(239,122,26,0.3)]">
       <Star size={10} strokeWidth={2.5} aria-hidden />
       Melhor mês
     </span>

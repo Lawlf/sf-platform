@@ -175,7 +175,7 @@ const GROUPS: Group[] = [
         pro: true,
       },
       {
-        feature: "Sem conectar banco",
+        feature: "Lançamento manual, no seu ritmo",
         free: true,
         pro: true,
       },

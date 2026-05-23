@@ -6,7 +6,7 @@ import { type Control, Controller, type FieldValues, type Path } from "react-hoo
 const MAX_CENTS = 999_999_999_99n;
 
 const fieldClass =
-  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
 
 export interface WizardMoneyFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;

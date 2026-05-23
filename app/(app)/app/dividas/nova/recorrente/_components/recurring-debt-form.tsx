@@ -159,14 +159,14 @@ function CategoryCard({ icon, title, description, active, pending, onSelect }: C
       </span>
       <span className="flex-1 text-left">
         <span
-          className={`block text-[14px] font-bold transition-colors duration-200 ${
+          className={`block text-[0.875rem] font-bold transition-colors duration-200 ${
             filled ? "text-white" : "text-[color:var(--text-primary)]"
           }`}
         >
           {title}
         </span>
         <span
-          className={`mt-0.5 block text-[11px] leading-[1.3] transition-colors duration-200 ${
+          className={`mt-0.5 block text-[0.6875rem] leading-[1.3] transition-colors duration-200 ${
             filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-65"
           }`}
         >
@@ -312,8 +312,8 @@ export function RecurringDebtForm() {
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[15px] font-bold">Mensal</div>
-            <div className="mt-1 text-[11px] opacity-80">Todo mês</div>
+            <div className="text-[0.9375rem] font-bold">Mensal</div>
+            <div className="mt-1 text-[0.6875rem] opacity-80">Todo mês</div>
           </button>
           <button
             type="button"
@@ -326,8 +326,8 @@ export function RecurringDebtForm() {
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[15px] font-bold">Semanal</div>
-            <div className="mt-1 text-[11px] opacity-80">Toda semana</div>
+            <div className="text-[0.9375rem] font-bold">Semanal</div>
+            <div className="mt-1 text-[0.6875rem] opacity-80">Toda semana</div>
           </button>
           <button
             type="button"
@@ -340,11 +340,11 @@ export function RecurringDebtForm() {
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[15px] font-bold">Anual</div>
-            <div className="mt-1 text-[11px] opacity-80">Uma vez por ano</div>
+            <div className="text-[0.9375rem] font-bold">Anual</div>
+            <div className="mt-1 text-[0.6875rem] opacity-80">Uma vez por ano</div>
           </button>
         </div>
-        <p className="mt-3 text-[12px] leading-[1.5] text-[color:var(--text-primary)] opacity-65">
+        <p className="mt-3 text-[0.75rem] leading-[1.5] text-[color:var(--text-primary)] opacity-65">
           Você pode editar depois.
         </p>
       </WizardShell>
@@ -498,7 +498,7 @@ export function RecurringDebtForm() {
       {serverError ? (
         <div
           role="alert"
-          className="mb-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+          className="mb-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
         >
           {serverError}
         </div>

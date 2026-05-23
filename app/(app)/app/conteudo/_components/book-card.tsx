@@ -23,26 +23,26 @@ export function BookCard({ book }: BookCardProps) {
         }}
       >
         <div>
-          <div className="text-[7px] font-bold uppercase tracking-[0.1em] text-white/50">
+          <div className="text-[0.4375rem] font-bold uppercase tracking-[0.1em] text-white/50">
             {book.publisher}
           </div>
-          <div className="mt-1 font-serif text-[10px] font-bold leading-[1.15] tracking-[-0.01em] text-white">
+          <div className="mt-1 font-serif text-[0.625rem] font-bold leading-[1.15] tracking-[-0.01em] text-white">
             {book.title}
           </div>
         </div>
-        <div className="font-serif text-[7.5px] italic text-white/70">{book.author}</div>
+        <div className="font-serif text-[0.46875rem] italic text-white/70">{book.author}</div>
       </div>
       <div className="min-w-0 flex-1">
-        <div className="mb-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
+        <div className="mb-1 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
           Pra essa trilha
         </div>
-        <h3 className="font-serif text-[15px] font-bold leading-[1.2] tracking-[-0.01em] text-[color:var(--text-primary)]">
+        <h3 className="font-serif text-[0.9375rem] font-bold leading-[1.2] tracking-[-0.01em] text-[color:var(--text-primary)]">
           {book.title}
         </h3>
-        <p className="mb-2 mt-0.5 text-[12px] italic text-[color:var(--text-secondary)]">
+        <p className="mb-2 mt-0.5 text-[0.75rem] italic text-[color:var(--text-secondary)]">
           {book.author} · {book.publisher}
         </p>
-        <p className="mb-2.5 text-[12px] leading-[1.45] text-[color:var(--text-secondary)]">
+        <p className="mb-2.5 text-[0.75rem] leading-[1.45] text-[color:var(--text-secondary)]">
           {book.why}
         </p>
         {book.amazonUrl ? (
@@ -50,7 +50,7 @@ export function BookCard({ book }: BookCardProps) {
             href={book.amazonUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[11px] font-bold text-[color:var(--color-brand-800)] hover:underline"
+            className="inline-flex items-center gap-1 text-[0.6875rem] font-bold text-[color:var(--color-brand-800)] hover:underline"
           >
             Comprar na Amazon
             <ExternalLink size={11} strokeWidth={2.2} aria-hidden />

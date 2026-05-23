@@ -69,7 +69,7 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
   return (
     <div className="flex flex-col gap-3">
       {fields.length === 0 ? (
-        <p className="text-[12px] text-[color:var(--text-muted)]">{emptyMessage}</p>
+        <p className="text-[0.75rem] text-[color:var(--text-muted)]">{emptyMessage}</p>
       ) : (
         <div className="flex flex-col gap-3">
           {fields.map((field, idx) => {
@@ -94,7 +94,7 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
                 className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3"
               >
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+                  <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
                     Compra {idx + 1}
                   </span>
                   <button
@@ -150,14 +150,14 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
                     />
                   </WizardField>
                 </div>
-                <div className="flex items-center justify-between border-t border-[color:var(--border-soft)] pt-2 text-[12px]">
+                <div className="flex items-center justify-between border-t border-[color:var(--border-soft)] pt-2 text-[0.75rem]">
                   <span className="text-[color:var(--text-muted)]">Parcela mensal</span>
                   <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
                     {formatCentsBRL(monthlyCents)}
                   </span>
                 </div>
                 {purchaseError ? (
-                  <span role="alert" className="text-[12px] text-[color:var(--semantic-negative)]">
+                  <span role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
                     {purchaseError}
                   </span>
                 ) : null}
@@ -178,7 +178,7 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
           } as any)
         }
-        className="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--color-brand-500)]/40 bg-[color:var(--color-brand-500)]/[0.08] px-3 py-2.5 text-[13px] font-semibold text-[color:var(--color-brand-800)] hover:bg-[color:var(--color-brand-500)]/[0.14]"
+        className="inline-flex items-center justify-center gap-2 rounded-xl border border-dashed border-[color:var(--color-brand-500)]/40 bg-[color:var(--color-brand-500)]/[0.08] px-3 py-2.5 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] hover:bg-[color:var(--color-brand-500)]/[0.14]"
       >
         <Plus size={14} strokeWidth={2.25} aria-hidden />
         Adicionar compra
@@ -186,10 +186,10 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
 
       {fields.length > 0 ? (
         <div className="flex items-center justify-between rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3 py-2.5">
-          <span className="text-[12px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             Soma das parcelas mensais
           </span>
-          <span className="text-[14px] font-bold tabular-nums text-[color:var(--text-primary)]">
+          <span className="text-[0.875rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             {formatCentsBRL(totalMonthlyCents)}
           </span>
         </div>

@@ -252,7 +252,7 @@ export function TimelineContent() {
       ) : null}
 
       {!hasNextPage && items.length > 0 ? (
-        <p className="py-6 text-center text-[12px] text-[color:var(--text-muted)]">
+        <p className="py-6 text-center text-[0.75rem] text-[color:var(--text-muted)]">
           Você chegou ao início do seu histórico.
         </p>
       ) : null}

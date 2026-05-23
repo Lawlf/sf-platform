@@ -1,12 +1,12 @@
-import { Database, Download, ShieldCheck, UserX } from "lucide-react";
+import { CalendarClock, Database, Download, UserX } from "lucide-react";
 
 import { RevealOnScroll } from "./reveal-on-scroll";
 
 const items = [
   {
-    icon: ShieldCheck,
-    title: "Sem conectar banco.",
-    body: "A gente não conecta no seu banco e não pede senha de conta. Você lança o que quer, no ritmo que faz sentido. Se um dia mudar, a gente avisa e você decide se entra ou não.",
+    icon: CalendarClock,
+    title: "No seu ritmo.",
+    body: "Você lança renda, dívida e patrimônio quando faz sentido pra você. Sem corre-corre, sem cada cafezinho. A cadência é mensal, do jeito que a vida real acontece.",
   },
   {
     icon: Database,
@@ -37,8 +37,8 @@ export function LandingPrivacy() {
             Seus dados, sua casa.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--text-secondary)] sm:text-lg">
-            A gente vê o macro porque você anotou, não porque sugou da sua
-            conta. Privacidade não é página de termos: é decisão de produto.
+            A gente vê o macro porque você anotou, com calma, no seu ritmo.
+            Privacidade não é página de termos: é decisão de produto.
           </p>
         </RevealOnScroll>
 

@@ -34,12 +34,12 @@ export function DownloadCalendarButton({
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <label className="flex items-center gap-2 text-[12px] text-[color:var(--text-secondary)]">
+      <label className="flex items-center gap-2 text-[0.75rem] text-[color:var(--text-secondary)]">
         Lembrete
         <select
           value={alarm}
           onChange={(e) => setAlarm(e.target.value as AlarmChoice)}
-          className="focus-ring h-9 rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-2 text-[13px] text-[color:var(--text-primary)]"
+          className="focus-ring h-9 rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-2 text-[0.8125rem] text-[color:var(--text-primary)]"
         >
           {ALARM_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>

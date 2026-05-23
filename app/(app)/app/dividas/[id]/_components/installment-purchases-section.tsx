@@ -14,7 +14,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
     if (debt.status !== "active") return null;
     return (
       <section className="rounded-2xl border border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-center backdrop-blur-xl">
-        <p className="text-[13px] text-[color:var(--text-muted)]">
+        <p className="text-[0.8125rem] text-[color:var(--text-muted)]">
           Sem compras parceladas cadastradas.
         </p>
         <div className="mt-3">
@@ -38,7 +38,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
           Compras parceladas
         </h2>
         <div className="flex items-center gap-2">
-          <span className="text-[11px] text-[color:var(--text-muted)]">
+          <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
             {debt.installmentPurchases.length}{" "}
             {debt.installmentPurchases.length === 1 ? "compra" : "compras"}
           </span>
@@ -59,7 +59,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
               <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">
                 {p.description}
               </p>
-              <p className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+              <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
                 {p.installmentsTotal - p.installmentsRemaining}/{p.installmentsTotal} pagas · Total{" "}
                 {p.total.format()}
               </p>
@@ -68,7 +68,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
               <span className="text-sm font-semibold tabular-nums text-[color:var(--text-primary)]">
                 {p.monthlyValue.format()}
               </span>
-              <span className="text-[10px] uppercase tracking-wide text-[color:var(--text-muted)]">
+              <span className="text-[0.625rem] uppercase tracking-wide text-[color:var(--text-muted)]">
                 /mês
               </span>
             </div>
@@ -76,7 +76,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
         ))}
       </ul>
       <div className="mt-3 flex items-center justify-between border-t border-[color:var(--border-soft)] pt-3">
-        <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+        <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
           Total mensal
         </span>
         <span className="text-sm font-bold tabular-nums text-[color:var(--text-primary)]">

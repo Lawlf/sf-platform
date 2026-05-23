@@ -235,7 +235,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
       {error ? (
         <div
           role="alert"
-          className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+          className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
         >
           {error}
         </div>
@@ -247,7 +247,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
             <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
               Faixas de valor
             </h2>
-            <p className="mt-0.5 text-[12px] text-[color:var(--text-secondary)]">
+            <p className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
               Reajustes ou períodos com valor diferente do base.
             </p>
           </div>
@@ -255,14 +255,14 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
             type="button"
             onClick={() => setPeriodModalOpen(true)}
             disabled={pending}
-            className="focus-ring inline-flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-1.5 text-[12px] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.3)] disabled:opacity-50"
+            className="focus-ring inline-flex items-center gap-1 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-1.5 text-[0.75rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.3)] disabled:opacity-50"
           >
             <Plus size={14} strokeWidth={2.25} aria-hidden />
             Adicionar
           </button>
         </div>
         {periods.length === 0 ? (
-          <p className="mt-3 text-[13px] text-[color:var(--text-muted)]">
+          <p className="mt-3 text-[0.8125rem] text-[color:var(--text-muted)]">
             Nenhuma faixa cadastrada. O valor base da dívida vale pra todos os meses.
           </p>
         ) : (
@@ -272,7 +272,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                 key={p.id}
                 className="flex items-center justify-between gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2"
               >
-                <div className="flex items-center gap-2 text-[13px] text-[color:var(--text-primary)]">
+                <div className="flex items-center gap-2 text-[0.8125rem] text-[color:var(--text-primary)]">
                   <CalendarRange
                     size={14}
                     strokeWidth={2}
@@ -309,14 +309,14 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
             <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
               Linha do tempo
             </h2>
-            <p className="mt-0.5 text-[12px] text-[color:var(--text-secondary)]">
+            <p className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
               Cada mês com a data prevista de pagamento. Toque em ajustar pra mudar só o valor desse
               mês.
             </p>
           </div>
         </div>
         <div className="mt-3 overflow-hidden rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)]">
-          <div className="grid grid-cols-[1fr_84px_1fr_88px] gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          <div className="grid grid-cols-[1fr_84px_1fr_88px] gap-2 px-3 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             <span>Mês</span>
             <span className="text-right">Data</span>
             <span className="text-right">Valor</span>
@@ -341,7 +341,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                         cls: "bg-[color:var(--surface-2)] text-[color:var(--text-muted)]",
                       };
               const rowCls = [
-                "grid grid-cols-[1fr_84px_1fr_88px] items-center gap-2 px-3 py-2.5 text-[13px] tabular-nums",
+                "grid grid-cols-[1fr_84px_1fr_88px] items-center gap-2 px-3 py-2.5 text-[0.8125rem] tabular-nums",
                 isCurrent
                   ? "bg-[color:var(--color-brand-500)]/[0.10] font-semibold text-[color:var(--text-primary)]"
                   : "text-[color:var(--text-primary)]",
@@ -349,31 +349,31 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
               return (
                 <li key={row.monthKey} className={rowCls}>
                   <div className="flex flex-col">
-                    <span className="font-semibold text-[14px]">{formatMonth(row.monthKey)}</span>
+                    <span className="font-semibold text-[0.875rem]">{formatMonth(row.monthKey)}</span>
                     <span className="mt-0.5 flex items-center gap-1.5">
                       <span
-                        className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider ${sourceBadge.cls}`}
+                        className={`inline-flex w-fit items-center rounded-full px-2 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wider ${sourceBadge.cls}`}
                       >
                         {sourceBadge.label}
                       </span>
                       {isCurrent ? (
-                        <span className="rounded-full bg-[color:var(--color-brand-500)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-brand-800)]">
+                        <span className="rounded-full bg-[color:var(--color-brand-500)]/15 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-[color:var(--color-brand-800)]">
                           Atual
                         </span>
                       ) : null}
                     </span>
                   </div>
-                  <span className="text-right text-[13px] text-[color:var(--text-secondary)]">
+                  <span className="text-right text-[0.8125rem] text-[color:var(--text-secondary)]">
                     {formatDueDayMonth(row.dueDateIso)}
                   </span>
-                  <span className="text-right text-[14px] font-semibold">
+                  <span className="text-right text-[0.875rem] font-semibold">
                     {formatBRL(BigInt(row.amountCents))}
                   </span>
                   <button
                     type="button"
                     onClick={() => setEditingMonth(row.monthKey)}
                     disabled={pending}
-                    className="focus-ring justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-1 text-[11px] font-semibold text-[color:var(--text-primary)] hover:bg-[color:var(--surface-2)] disabled:opacity-50"
+                    className="focus-ring justify-self-end rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-1 text-[0.6875rem] font-semibold text-[color:var(--text-primary)] hover:bg-[color:var(--surface-2)] disabled:opacity-50"
                   >
                     Ajustar
                   </button>
@@ -408,37 +408,37 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
               </button>
             </div>
             <div className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1 text-[12px] font-semibold text-[color:var(--text-secondary)]">
+              <label className="flex flex-col gap-1 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
                 Mês inicial
                 <input
                   required
                   name="startMonth"
                   type="month"
-                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[14px] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.875rem] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
                 />
               </label>
-              <label className="flex flex-col gap-1 text-[12px] font-semibold text-[color:var(--text-secondary)]">
+              <label className="flex flex-col gap-1 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
                 Mês final (opcional, em branco = em diante)
                 <input
                   name="endMonth"
                   type="month"
-                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[14px] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.875rem] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
                 />
               </label>
-              <label className="flex flex-col gap-1 text-[12px] font-semibold text-[color:var(--text-secondary)]">
+              <label className="flex flex-col gap-1 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
                 Valor mensal
                 <input
                   required
                   name="amount"
                   inputMode="decimal"
                   placeholder="Ex: 39,90"
-                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[14px] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.875rem] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
                 />
               </label>
               <button
                 type="submit"
                 disabled={pending}
-                className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
+                className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
               >
                 {pending ? "Salvando..." : "Salvar faixa"}
               </button>
@@ -470,24 +470,24 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                 <X size={16} strokeWidth={2} aria-hidden />
               </button>
             </div>
-            <p className="mb-3 text-[12px] text-[color:var(--text-secondary)]">
+            <p className="mb-3 text-[0.75rem] text-[color:var(--text-secondary)]">
               Valor pontual deste mês. Sobrepõe qualquer faixa que cubra este mês.
             </p>
             <div className="flex flex-col gap-3">
-              <label className="flex flex-col gap-1 text-[12px] font-semibold text-[color:var(--text-secondary)]">
+              <label className="flex flex-col gap-1 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
                 Valor pago
                 <input
                   required
                   name="amount"
                   inputMode="decimal"
                   placeholder="Ex: 55,90"
-                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[14px] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+                  className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.875rem] text-[color:var(--text-primary)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
                 />
               </label>
               <button
                 type="submit"
                 disabled={pending}
-                className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
+                className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
               >
                 {pending ? "Salvando..." : "Salvar ajuste"}
               </button>

@@ -22,7 +22,7 @@ export function RateInput<TFieldValues extends FieldValues>(props: RateInputProp
         <div className="flex flex-col gap-1.5">
           <label
             htmlFor={inputId}
-            className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]"
+            className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]"
           >
             {props.label}
           </label>

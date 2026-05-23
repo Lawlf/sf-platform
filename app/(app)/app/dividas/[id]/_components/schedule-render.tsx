@@ -37,7 +37,7 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
   return (
     <div className="flex flex-col gap-2">
       <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] overflow-hidden">
-        <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 px-3 py-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+        <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 px-3 py-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
           <span>Mês</span>
           <span className="text-right">Parcela</span>
           <span className="text-right">Principal</span>
@@ -50,7 +50,7 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
             const isCurrent = currentMonth != null && row.month === currentMonth;
             const isPast = currentMonth != null && row.month < currentMonth;
             const rowClass = [
-              "grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 px-3 py-2 text-[13px] tabular-nums",
+              "grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 px-3 py-2 text-[0.8125rem] tabular-nums",
               isCurrent
                 ? "bg-[color:var(--color-brand-500)]/[0.10] font-semibold text-[color:var(--text-primary)]"
                 : isPast
@@ -61,7 +61,7 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
             return (
               <div key={row.month}>
                 {ellipsisAfterIndex === idx ? (
-                  <div className="border-y border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-center text-[11px] font-medium text-[color:var(--text-muted)]">
+                  <div className="border-y border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-center text-[0.6875rem] font-medium text-[color:var(--text-muted)]">
                     ... {total - 18} parcelas ocultas ...
                   </div>
                 ) : null}
@@ -78,7 +78,7 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
         </div>
 
         {totals ? (
-          <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 border-t-2 border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3 py-2.5 text-[12px] font-bold tabular-nums text-[color:var(--text-primary)]">
+          <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 border-t-2 border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3 py-2.5 text-[0.75rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             <span className="uppercase tracking-wide">Total</span>
             <span className="text-right">{totals.totalInstallment}</span>
             <span className="text-right">{totals.totalPrincipal}</span>

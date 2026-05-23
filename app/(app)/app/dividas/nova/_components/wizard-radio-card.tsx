@@ -19,8 +19,8 @@ export function WizardRadioCard({ title, description, active, onSelect }: Wizard
           : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-2)]"
       }`}
     >
-      <div className="text-[13px] font-bold text-[color:var(--text-primary)]">{title}</div>
-      <div className="mt-0.5 text-[10px] text-[color:var(--text-primary)] opacity-65">
+      <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">{title}</div>
+      <div className="mt-0.5 text-[0.625rem] text-[color:var(--text-primary)] opacity-65">
         {description}
       </div>
     </button>

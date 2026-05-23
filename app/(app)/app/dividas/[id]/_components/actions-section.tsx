@@ -50,7 +50,7 @@ export function ActionsSection({ debt, hasCalendarSchedule = false }: Props) {
         </div>
       ) : null}
       {debt.notes ? (
-        <p className="mt-3 text-[12px] italic text-[color:var(--text-muted)]">{debt.notes}</p>
+        <p className="mt-3 text-[0.75rem] italic text-[color:var(--text-muted)]">{debt.notes}</p>
       ) : null}
     </section>
   );

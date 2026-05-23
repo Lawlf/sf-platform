@@ -33,7 +33,7 @@ export function AssetCard({
       </span>
       <div className="flex-1 min-w-0">
         <div className="truncate text-sm font-bold text-[color:var(--text-primary)]">{label}</div>
-        <div className="mt-0.5 flex items-baseline gap-2 text-[11px]">
+        <div className="mt-0.5 flex items-baseline gap-2 text-[0.6875rem]">
           <span className="text-[color:var(--text-muted)]">Valor</span>
           <span className="font-semibold text-[color:var(--text-primary)]">{valueFormatted}</span>
           <span className="text-[color:var(--text-muted)]">·</span>

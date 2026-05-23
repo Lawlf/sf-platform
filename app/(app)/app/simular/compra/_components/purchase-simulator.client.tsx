@@ -116,7 +116,7 @@ export function PurchaseSimulatorClient() {
   return (
     <div className="flex flex-col gap-4">
       <section className="glass-light p-4">
-        <h2 className="mb-3 text-[11px] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+        <h2 className="mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
           Dados da simulação
         </h2>
 
@@ -188,13 +188,13 @@ export function PurchaseSimulatorClient() {
       <section className="rounded-2xl bg-[linear-gradient(135deg,#ef7a1a,#f28e25)] p-4 text-white shadow-[0_14px_32px_rgba(239,122,26,0.30)]">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <span className="text-[10px] font-bold uppercase tracking-[0.7px] text-white/85">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
               Custo de oportunidade
             </span>
-            <div className="mt-1 text-[26px] font-extrabold leading-none md:text-[30px]">
+            <div className="mt-1 text-[1.625rem] font-extrabold leading-none md:text-[1.875rem]">
               {brl(result.opportunityCostCents)}
             </div>
-            <p className="mt-2 text-[12px] font-medium text-white/85">
+            <p className="mt-2 text-[0.75rem] font-medium text-white/85">
               Diferença entre investir e comprar e manter.
             </p>
           </div>
@@ -221,17 +221,17 @@ export function PurchaseSimulatorClient() {
         <section className="glass-light p-4">
           <div className="mb-3 flex items-start justify-between gap-3">
             <div>
-              <h2 className="text-[11px] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+              <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
                 Registrar como compra
               </h2>
-              <p className="mt-1 text-[12px] text-[color:var(--text-secondary)]">
+              <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
                 Cria um ativo no seu patrimônio.
               </p>
             </div>
             <button
               type="button"
               onClick={() => setShowSaveForm(false)}
-              className="text-[12px] font-semibold text-[color:var(--text-secondary)] underline-offset-2 hover:underline"
+              className="text-[0.75rem] font-semibold text-[color:var(--text-secondary)] underline-offset-2 hover:underline"
             >
               Cancelar
             </button>
@@ -343,7 +343,7 @@ export function PurchaseSimulatorClient() {
             {serverError ? (
               <div
                 role="alert"
-                className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+                className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
               >
                 {serverError}
               </div>
@@ -367,8 +367,8 @@ function DisabledRadioCard({ title, description }: { title: string; description:
       aria-pressed={false}
       className="cursor-not-allowed rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-2)]/60 p-3 text-center opacity-70"
     >
-      <div className="text-[13px] font-bold text-[color:var(--text-muted)]">{title}</div>
-      <div className="mt-0.5 text-[10px] text-[color:var(--text-muted)]">{description}</div>
+      <div className="text-[0.8125rem] font-bold text-[color:var(--text-muted)]">{title}</div>
+      <div className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{description}</div>
     </button>
   );
 }
@@ -412,11 +412,11 @@ function SliderField({
       <div className="flex items-center justify-between">
         <label
           htmlFor={id}
-          className="text-[11px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+          className="text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
         >
           {label}
         </label>
-        <span className="text-[12px] font-bold text-[color:var(--color-brand-800)]">
+        <span className="text-[0.75rem] font-bold text-[color:var(--color-brand-800)]">
           {displayValue}
         </span>
       </div>
@@ -471,13 +471,13 @@ function ScenarioCard({ tone, icon: Icon, title, headline, subline, detail }: Sc
         >
           <Icon size={16} strokeWidth={2} />
         </span>
-        <h3 className="text-[12px] font-bold text-[color:var(--text-primary)]">{title}</h3>
+        <h3 className="text-[0.75rem] font-bold text-[color:var(--text-primary)]">{title}</h3>
       </div>
-      <div className={`mt-3 text-[22px] font-extrabold leading-none ${headlineColor}`}>
+      <div className={`mt-3 text-[1.375rem] font-extrabold leading-none ${headlineColor}`}>
         {headline}
       </div>
-      <p className="mt-2 text-[11px] text-[color:var(--text-secondary)]">{subline}</p>
-      <p className="mt-1 text-[11px] font-bold text-[color:var(--text-primary)]">{detail}</p>
+      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-secondary)]">{subline}</p>
+      <p className="mt-1 text-[0.6875rem] font-bold text-[color:var(--text-primary)]">{detail}</p>
     </article>
   );
 }

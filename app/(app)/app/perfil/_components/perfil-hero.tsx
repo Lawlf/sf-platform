@@ -71,15 +71,15 @@ export function PerfilHero({ initialDisplayName, email }: PerfilHeroProps) {
                 placeholder="Seu nome"
                 aria-label="Nome do perfil"
                 autoFocus
-                className="w-full rounded-xl border border-white/40 bg-white/20 px-3 py-2 text-[20px] font-extrabold tracking-tight text-white outline-none placeholder:text-white/60 focus:border-white"
+                className="w-full rounded-xl border border-white/40 bg-white/20 px-3 py-2 text-[1.25rem] font-extrabold tracking-tight text-white outline-none placeholder:text-white/60 focus:border-white"
               />
-              {error ? <span className="text-[11px] text-white/95">{error}</span> : null}
+              {error ? <span className="text-[0.6875rem] text-white/95">{error}</span> : null}
               <div className="flex gap-2">
                 <button
                   type="button"
                   onClick={save}
                   disabled={pending}
-                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-white/30 px-3 py-1.5 text-[12px] font-bold backdrop-blur-sm transition-colors hover:bg-white/45 disabled:opacity-50"
+                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-white/30 px-3 py-1.5 text-[0.75rem] font-bold backdrop-blur-sm transition-colors hover:bg-white/45 disabled:opacity-50"
                 >
                   <Check size={12} strokeWidth={2.5} aria-hidden />
                   Salvar
@@ -88,7 +88,7 @@ export function PerfilHero({ initialDisplayName, email }: PerfilHeroProps) {
                   type="button"
                   onClick={cancel}
                   disabled={pending}
-                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-[12px] font-bold backdrop-blur-sm transition-colors hover:bg-white/20 disabled:opacity-50"
+                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-white/10 px-3 py-1.5 text-[0.75rem] font-bold backdrop-blur-sm transition-colors hover:bg-white/20 disabled:opacity-50"
                 >
                   <X size={12} strokeWidth={2.5} aria-hidden />
                   Cancelar
@@ -98,7 +98,7 @@ export function PerfilHero({ initialDisplayName, email }: PerfilHeroProps) {
           ) : (
             <>
               <div className="flex items-center gap-2">
-                <h2 className="truncate text-[24px] font-extrabold leading-tight tracking-tight">
+                <h2 className="truncate text-[1.5rem] font-extrabold leading-tight tracking-tight">
                   {displayName || "Sem nome"}
                 </h2>
                 <button
@@ -110,7 +110,7 @@ export function PerfilHero({ initialDisplayName, email }: PerfilHeroProps) {
                   <Pencil size={12} strokeWidth={2} aria-hidden />
                 </button>
               </div>
-              <div className="mt-1 truncate text-[12px] opacity-90">{email}</div>
+              <div className="mt-1 truncate text-[0.75rem] opacity-90">{email}</div>
             </>
           )}
         </div>

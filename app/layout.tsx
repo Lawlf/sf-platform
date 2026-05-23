@@ -6,6 +6,8 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { QueryProvider } from "@/app/components/providers/query-provider";
 import { Toaster } from "@/app/components/ui/sonner";
+import { getA11yPrefs } from "@/theme/a11y-cookie";
+import { getColorblindPreference } from "@/theme/colorblind-cookie";
 import { getThemePreference } from "@/theme/theme-cookie";
 import { ThemeScript } from "@/theme/theme-script";
 
@@ -111,6 +113,8 @@ export const viewport: Viewport = {
 
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   const theme = await getThemePreference();
+  const colorblind = await getColorblindPreference();
+  const a11y = await getA11yPrefs();
   const initialDataTheme = theme === "light" ? "light" : "dark";
   return (
     <html
@@ -118,6 +122,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       suppressHydrationWarning
       className={inter.variable}
       data-theme={initialDataTheme}
+      data-cb={colorblind}
+      data-density={a11y.density}
+      data-motion={a11y.motion}
+      data-contrast={a11y.contrast}
+      style={{ fontSize: `${a11y.textsize}px` }}
     >
       <head>
         <ThemeScript />

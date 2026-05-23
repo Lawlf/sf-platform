@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, Coins, HomeIcon, PlusCircle, Wallet } from "lucide-react";
+import { Coins, HomeIcon, PlusCircle, TrendingUp, Wallet } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -15,10 +15,10 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true },
-  { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
+  { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
   { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle, fab: true },
+  { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
   { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
-  { href: "/app/conteudo" as Route, label: "Conteúdo", icon: BookOpen },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -31,7 +31,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação principal"
-      className="glass-tier-2 fixed bottom-2 left-2 right-2 z-20 mx-auto flex max-w-md items-end justify-around px-2 py-2"
+      className="glass-tier-2 fixed bottom-2 left-2 right-2 z-20 mx-auto flex h-[72px] max-w-md items-end justify-around px-2 py-2"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;
@@ -45,10 +45,10 @@ export function BottomNav() {
               aria-current={active ? "page" : undefined}
               className="focus-ring -mt-6 flex flex-col items-center gap-1"
             >
-              <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_8px_24px_rgba(239,122,26,0.4)]">
-                <Icon className="h-7 w-7" strokeWidth={1.75} aria-hidden />
+              <span className="flex h-16 w-16 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_8px_24px_rgba(239,122,26,0.4)]">
+                <Icon className="h-8 w-8" strokeWidth={1.75} aria-hidden />
               </span>
-              <span className="text-[11px] font-semibold text-[color:var(--color-brand-700)]">
+              <span className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)]">
                 {item.label}
               </span>
             </Link>
@@ -63,7 +63,7 @@ export function BottomNav() {
             href={item.href}
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            className={`focus-ring relative flex flex-1 flex-col items-center justify-center gap-0.5 rounded-md px-2 py-1 text-xs transition-colors ${labelColor}`}
+            className={`focus-ring relative flex flex-1 flex-col items-center justify-center gap-1 rounded-md px-2 py-1 text-[0.8125rem] transition-colors ${labelColor}`}
           >
             {active ? (
               <span
@@ -76,7 +76,7 @@ export function BottomNav() {
                 }}
               />
             ) : null}
-            <Icon className="h-5 w-5" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
+            <Icon className="h-6 w-6" strokeWidth={active ? 2.25 : 1.75} aria-hidden />
             <span className={active ? "font-bold" : ""}>{item.label}</span>
           </Link>
         );

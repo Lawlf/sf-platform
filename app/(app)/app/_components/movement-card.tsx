@@ -29,7 +29,7 @@ export function MovementCard({
       className="focus-ring group w-full rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[18px] text-left backdrop-blur-md transition-all hover:bg-[color:var(--surface-1)] hover:shadow-[0_8px_24px_rgba(31,29,28,0.06)]"
     >
       <header className="mb-[14px] flex items-center justify-between">
-        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--semantic-positive)]/[0.12] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.6px] text-[color:var(--semantic-positive)]">
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-[color:var(--semantic-positive)]/[0.12] px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-[0.6px] text-[color:var(--semantic-positive)]">
           <MoveRight size={11} strokeWidth={2.5} aria-hidden />
           Movimento do mês
         </span>
@@ -96,19 +96,19 @@ function EqRow({ sign, name, hint, value, tone }: EqRowProps) {
     <div className="grid grid-cols-[1fr_auto] items-center gap-2 border-b border-[color:var(--border-soft)] py-2 last-of-type:border-b-0">
       <div className="flex items-center gap-2.5">
         <span
-          className={`flex h-7 w-7 items-center justify-center rounded-lg text-[14px] font-extrabold ${iconBg}`}
+          className={`flex h-7 w-7 items-center justify-center rounded-lg text-[0.875rem] font-extrabold ${iconBg}`}
           aria-hidden
         >
           {glyph}
         </span>
         <span className="flex flex-col">
-          <span className="text-[13px] font-bold leading-tight text-[color:var(--text-primary)]">
+          <span className="text-[0.8125rem] font-bold leading-tight text-[color:var(--text-primary)]">
             {name}
           </span>
-          <span className="mt-0.5 text-[10px] text-[color:var(--text-muted)]">{hint}</span>
+          <span className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{hint}</span>
         </span>
       </div>
-      <span className={`text-[15px] font-extrabold tracking-[-0.2px] ${valueColor}`}>{value}</span>
+      <span className={`text-[0.9375rem] font-extrabold tracking-[-0.2px] ${valueColor}`}>{value}</span>
     </div>
   );
 }
@@ -130,12 +130,12 @@ export function ResultLine({ head, sub, value, tone }: ResultLineProps) {
   return (
     <div className="mt-3.5 flex items-center justify-between gap-3 rounded-[14px] border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/10 px-4 py-3.5 shadow-[0_2px_8px_rgba(31,29,28,0.04)]">
       <div className="flex min-w-0 flex-col">
-        <span className="text-[9px] font-extrabold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]/85">
+        <span className="text-[0.5625rem] font-extrabold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]/85">
           {head}
         </span>
-        <span className="mt-0.5 text-[10px] text-[color:var(--text-muted)]">{sub}</span>
+        <span className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{sub}</span>
       </div>
-      <span className={`text-[24px] font-extrabold tracking-[-0.4px] ${valColor}`}>{value}</span>
+      <span className={`text-[1.5rem] font-extrabold tracking-[-0.4px] ${valColor}`}>{value}</span>
     </div>
   );
 }

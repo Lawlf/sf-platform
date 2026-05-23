@@ -139,11 +139,11 @@ export function MonthCard({
 
   return (
     <article className={`rounded-2xl px-4 py-4 backdrop-blur-md md:px-5 ${cardClass}`}>
-      <p className="text-[13px] font-semibold leading-snug text-[color:var(--text-secondary)]">
+      <p className="text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
         <CoachLine monthLabel={point.monthLabel} focus={focus} isCurrent={isCurrent} />
       </p>
       <div
-        className={`mt-1 text-[26px] font-extrabold leading-none tracking-[-0.6px] ${valueColor(focus, focusVal.isNegative)}`}
+        className={`mt-1 text-[1.625rem] font-extrabold leading-none tracking-[-0.6px] ${valueColor(focus, focusVal.isNegative)}`}
       >
         {focusVal.formatted}
       </div>
@@ -155,7 +155,7 @@ export function MonthCard({
           colorClass="text-[color:var(--semantic-positive)]"
           ghostWidth={incomeGhostWidth}
           fgWidth={incomeFgWidth}
-          fgClass="bg-gradient-to-r from-[#22c55e] to-[#16a34a]"
+          fgClass="bg-[color:var(--semantic-positive)]"
         />
         <BarBlock
           label="Saídas"
@@ -163,22 +163,22 @@ export function MonthCard({
           colorClass="text-[color:var(--semantic-negative)]"
           ghostWidth={debtGhostWidth}
           fgWidth={debtFgWidth}
-          fgClass="bg-gradient-to-r from-[#ef4444] to-[#dc2626]"
+          fgClass="bg-[color:var(--semantic-negative)]"
         />
       </div>
 
       <div className="mt-4 flex items-center justify-between border-t border-[color:var(--border-soft)] pt-3">
         <div className="flex flex-col gap-0.5">
-          <span className="text-[9px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+          <span className="text-[0.5625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
             Patrimônio
           </span>
-          <span className="text-[14px] font-extrabold text-[color:var(--color-brand-800)]">
+          <span className="text-[0.875rem] font-extrabold text-[color:var(--color-brand-800)]">
             {point.netWorth.formatted}
           </span>
         </div>
         {delta && previousLabel ? (
           <span
-            className={`rounded-full px-2 py-1 text-[10px] font-bold ${
+            className={`rounded-full px-2 py-1 text-[0.625rem] font-bold ${
               delta.isPositive
                 ? "bg-[color:var(--semantic-positive)]/[0.12] text-[color:var(--semantic-positive)]"
                 : "bg-[color:var(--semantic-negative)]/[0.12] text-[color:var(--semantic-negative)]"
@@ -210,10 +210,10 @@ function BarBlock({
   return (
     <div className="flex flex-col gap-1.5">
       <div className="flex items-baseline justify-between gap-2">
-        <span className="text-[10px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+        <span className="text-[0.625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
           {label}
         </span>
-        <span className={`text-[12px] font-extrabold ${colorClass}`}>{value}</span>
+        <span className={`text-[0.75rem] font-extrabold ${colorClass}`}>{value}</span>
       </div>
       <div className="relative h-2 overflow-hidden rounded-full bg-[color:var(--surface-2)]">
         {ghostWidth > 0 ? (

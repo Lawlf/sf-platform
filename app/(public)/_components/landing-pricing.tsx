@@ -49,7 +49,7 @@ export function LandingPricing() {
             className="text-4xl font-extrabold text-[color:var(--text-primary)] sm:text-5xl"
             style={{ letterSpacing: "-0.035em" }}
           >
-            Grátis pra sempre. R$ 14,90 quando quiser histórico.
+            Grátis pra sempre. R$ 19,90 quando quiser histórico.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--text-secondary)] sm:text-lg">
             Se até aqui fez sentido, o resto da decisão é só preço.

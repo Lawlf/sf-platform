@@ -69,7 +69,7 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
           <div className="flex flex-col gap-1.5">
             <label
               htmlFor={inputId}
-              className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+              className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
             >
               {props.label}
             </label>
@@ -84,13 +84,13 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
               onChange={handleChange}
               onBlur={field.onBlur}
               aria-required={props.required}
-              className="w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
+              className="w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
             />
             {props.helper ? (
-              <span className="text-[11px] text-[color:var(--text-muted)]">{props.helper}</span>
+              <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{props.helper}</span>
             ) : null}
             {fieldState.error ? (
-              <span role="alert" className="text-[11px] text-[color:var(--semantic-negative)]">
+              <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
                 {fieldState.error.message}
               </span>
             ) : null}

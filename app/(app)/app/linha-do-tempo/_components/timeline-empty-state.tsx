@@ -19,19 +19,19 @@ export function TimelineEmptyState() {
       <div className="flex flex-wrap items-center justify-center gap-2">
         <Link
           href={"/app/renda/nova" as Route}
-          className="focus-ring inline-flex items-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2.5 text-[13px] font-bold text-white shadow-[0_4px_12px_rgba(239,122,26,0.25)] transition hover:brightness-105"
+          className="focus-ring inline-flex items-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2.5 text-[0.8125rem] font-bold text-white shadow-[0_4px_12px_rgba(239,122,26,0.25)] transition hover:brightness-105"
         >
           Adicionar renda
         </Link>
         <Link
           href={"/app/dividas/nova" as Route}
-          className="focus-ring inline-flex items-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[13px] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)]"
+          className="focus-ring inline-flex items-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.8125rem] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)]"
         >
           Cadastrar dívida
         </Link>
         <Link
           href={"/app/patrimonio/novo" as Route}
-          className="focus-ring inline-flex items-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[13px] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)]"
+          className="focus-ring inline-flex items-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.8125rem] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)]"
         >
           Adicionar ativo
         </Link>

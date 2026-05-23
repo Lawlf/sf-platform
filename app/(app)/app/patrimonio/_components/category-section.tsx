@@ -48,10 +48,10 @@ export function CategorySection({ category, totalFormatted, items }: CategorySec
   return (
     <section>
       <div className="mb-2 flex items-baseline justify-between px-1">
-        <h2 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           {CATEGORY_LABEL[category]}
         </h2>
-        <span className="text-[11px] font-semibold text-[color:var(--text-secondary)]">
+        <span className="text-[0.6875rem] font-semibold text-[color:var(--text-secondary)]">
           {totalFormatted}
         </span>
       </div>

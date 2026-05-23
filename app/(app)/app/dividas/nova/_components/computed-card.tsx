@@ -14,9 +14,9 @@ export function ComputedCard({ label, value, sub }: ComputedCardProps) {
       }}
       aria-live="polite"
     >
-      <div className="text-[10px] font-semibold uppercase tracking-[0.6px] opacity-90">{label}</div>
-      <div className="mt-1 text-[26px] font-extrabold leading-tight">{value}</div>
-      {sub ? <div className="mt-0.5 text-[11px] opacity-85">{sub}</div> : null}
+      <div className="text-[0.625rem] font-semibold uppercase tracking-[0.6px] opacity-90">{label}</div>
+      <div className="mt-1 text-[1.625rem] font-extrabold leading-tight">{value}</div>
+      {sub ? <div className="mt-0.5 text-[0.6875rem] opacity-85">{sub}</div> : null}
     </section>
   );
 }

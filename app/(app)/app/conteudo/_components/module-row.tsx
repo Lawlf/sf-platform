@@ -29,10 +29,10 @@ export function ModuleRow({ module, isNext }: ModuleRowProps) {
         )}
       </span>
       <div className="min-w-0 flex-1">
-        <div className="font-serif text-[13.5px] font-semibold leading-[1.25] tracking-[-0.005em] text-[color:var(--text-primary)]">
+        <div className="font-serif text-[0.84375rem] font-semibold leading-[1.25] tracking-[-0.005em] text-[color:var(--text-primary)]">
           {String(module.num).padStart(2, "0")}. {module.title}
         </div>
-        <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           {module.subtitle} · {isNext ? "em construção" : "em breve"}
         </div>
       </div>

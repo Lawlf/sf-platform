@@ -20,11 +20,13 @@ const ZONE_TEXT: Record<Zone, { label: string; color: string }> = {
   critical: { label: "Crítico: considere simular cenários.", color: "var(--semantic-negative)" },
 };
 
+// Cores vêm das vars semânticas para honrar o modo daltônico (positivo
+// vira azul em [data-cb="on"]). Excelente e saudável = positivo.
 const ZONE_FILL: Record<Zone, string> = {
-  excellent: "linear-gradient(90deg, #16a34a, #22c55e)",
-  healthy: "linear-gradient(90deg, #65a30d, #84cc16)",
-  attention: "linear-gradient(90deg, #ca8a04, #eab308)",
-  critical: "linear-gradient(90deg, #dc2626, #ef4444)",
+  excellent: "var(--semantic-positive)",
+  healthy: "var(--semantic-positive)",
+  attention: "var(--semantic-warning)",
+  critical: "var(--semantic-negative)",
 };
 
 export function CommitmentCard({ pct }: CommitmentCardProps) {
@@ -39,26 +41,20 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
     <section className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] pb-[18px] pt-[14px] backdrop-blur-xl">
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             Renda comprometida
           </span>
           <HowItWorksSheet topic="renda-comprometida" variant="brand" />
         </div>
         <span
-          className="shrink-0 text-[22px] font-extrabold leading-none"
+          className="shrink-0 text-[1.375rem] font-extrabold leading-none"
           style={{ letterSpacing: "-0.5px", color: tone.color }}
         >
           {display}
-          <span className="ml-0.5 text-[14px] font-semibold opacity-70">%</span>
+          <span className="ml-0.5 text-[0.875rem] font-semibold opacity-70">%</span>
         </span>
       </div>
-      <div
-        className="relative mt-3 h-3 overflow-hidden rounded-full"
-        style={{
-          background:
-            "linear-gradient(90deg, #bbf7d0 0% 15%, #dcfce7 15% 30%, #fef3c7 30% 50%, #fee2e2 50% 100%)",
-        }}
-      >
+      <div className="commitment-track relative mt-3 h-3 overflow-hidden rounded-full">
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -78,7 +74,7 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
           />
         ) : null}
       </div>
-      <div className="mt-2 flex justify-between text-[9px] text-[color:var(--text-muted)] md:text-[10px]">
+      <div className="mt-2 flex justify-between text-[0.5625rem] text-[color:var(--text-muted)] md:text-[0.625rem]">
         <span>Excelente</span>
         <span>Saudável</span>
         <span>Atenção</span>

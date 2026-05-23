@@ -81,6 +81,81 @@
     --skeleton-shine: rgba(253, 248, 243, 0.18);
   }
 
+  /* Modo daltônico: positivo verde -> azul. Azul vs vermelho é
+     distinguível por deuteranopia, protanopia e tritanopia (verde vs
+     vermelho não é). Negativo segue vermelho, marca segue laranja. */
+  [data-cb="on"] {
+    --semantic-positive: #0072b2;
+  }
+
+  [data-theme="dark"][data-cb="on"] {
+    --semantic-positive: #56b4e9;
+  }
+
+  /* Tamanho do texto: font-size raiz definida inline em <html> (slider, 14-20px).
+     Todo texto em rem acompanha. Spacing fica em px (abaixo) para NÃO escalar
+     junto — texto e densidade são controles independentes. */
+
+  /* Densidade visual: --spacing é a base da escala de espaçamento do Tailwind v4
+     (p-4 = calc(var(--spacing) * 4)). Em px (não rem) para não acompanhar o
+     tamanho do texto. Default = cozy (3.5px); compact 3px é a opção mais justa. */
+  [data-density="compact"] {
+    --spacing: 3px;
+  }
+  [data-density="cozy"] {
+    --spacing: 3.5px;
+  }
+  [data-density="comfortable"] {
+    --spacing: 4px;
+  }
+
+  /* Reduzir movimento: corta transições e animações. */
+  [data-motion="reduce"] *,
+  [data-motion="reduce"] *::before,
+  [data-motion="reduce"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  /* Alto contraste: reforça textos secundários e bordas. */
+  [data-contrast="high"] {
+    --text-secondary: rgba(31, 29, 28, 0.92);
+    --text-muted: rgba(31, 29, 28, 0.78);
+    --border-soft: rgba(31, 29, 28, 0.2);
+    --border-strong: rgba(31, 29, 28, 0.32);
+  }
+
+  /* Trilho da barra de renda comprometida. No modo daltônico troca o
+     verde→amarelo→vermelho por azul→âmbar→vermelho (vars semânticas). */
+  .commitment-track {
+    background: linear-gradient(
+      90deg,
+      #bbf7d0 0% 15%,
+      #dcfce7 15% 30%,
+      #fef3c7 30% 50%,
+      #fee2e2 50% 100%
+    );
+  }
+
+  [data-cb="on"] .commitment-track {
+    background: linear-gradient(
+      90deg,
+      color-mix(in srgb, var(--semantic-positive) 35%, transparent) 0% 30%,
+      color-mix(in srgb, var(--semantic-warning) 35%, transparent) 30% 50%,
+      color-mix(in srgb, var(--semantic-negative) 35%, transparent) 50% 100%
+    );
+  }
+
+  [data-theme="dark"][data-contrast="high"] {
+    --text-secondary: rgba(253, 248, 243, 0.95);
+    --text-muted: rgba(253, 248, 243, 0.8);
+    --border-soft: rgba(253, 248, 243, 0.24);
+    --border-strong: rgba(253, 248, 243, 0.36);
+  }
+
+
   html {
     scrollbar-gutter: stable;
     scroll-behavior: smooth;
