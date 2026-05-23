@@ -155,6 +155,13 @@
       "when": 1779485963506,
       "tag": "0021_known_oracle",
       "breakpoints": true
+    },
+    {
+      "idx": 22,
+      "version": "7",
+      "when": 1779939400000,
+      "tag": "0022_fancy_network",
+      "breakpoints": true
     }
   ]
 }
