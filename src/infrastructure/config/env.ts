@@ -26,6 +26,16 @@ const envSchema = z.object({
   BRAPI_TOKEN: emptyToUndefined,
   // Segredo do cron para a rota de atualização diária de cotações.
   CRON_SECRET: emptyToUndefined,
+
+  // Stripe billing
+  STRIPE_SECRET_KEY: emptyToUndefined,
+  STRIPE_PUBLISHABLE_KEY: emptyToUndefined,
+  STRIPE_WEBHOOK_SECRET: emptyToUndefined,
+  STRIPE_PRICE_ID_PRO_MONTHLY: emptyToUndefined,
+  NEXT_PUBLIC_PRO_PRICE_CENTS: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.length > 0 ? Number(v) : 1490)),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -76,6 +86,22 @@ export function requireGoogleOauthConfig(env: Env = loadEnv()): {
   return {
     clientId: required("GOOGLE_OAUTH_CLIENT_ID", env.GOOGLE_OAUTH_CLIENT_ID),
     clientSecret: required("GOOGLE_OAUTH_CLIENT_SECRET", env.GOOGLE_OAUTH_CLIENT_SECRET),
+  };
+}
+
+export function requireStripeConfig(): {
+  secretKey: string;
+  webhookSecret: string;
+  priceIdProMonthly: string;
+} {
+  const env = loadEnv();
+  if (!env.STRIPE_SECRET_KEY) throw new Error("STRIPE_SECRET_KEY is required");
+  if (!env.STRIPE_WEBHOOK_SECRET) throw new Error("STRIPE_WEBHOOK_SECRET is required");
+  if (!env.STRIPE_PRICE_ID_PRO_MONTHLY) throw new Error("STRIPE_PRICE_ID_PRO_MONTHLY is required");
+  return {
+    secretKey: env.STRIPE_SECRET_KEY,
+    webhookSecret: env.STRIPE_WEBHOOK_SECRET,
+    priceIdProMonthly: env.STRIPE_PRICE_ID_PRO_MONTHLY,
   };
 }
 
