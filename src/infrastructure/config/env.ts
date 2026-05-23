@@ -17,15 +17,15 @@ const envSchema = z.object({
   // optional (filled in later plans)
   GOOGLE_OAUTH_CLIENT_ID: emptyToUndefined,
   GOOGLE_OAUTH_CLIENT_SECRET: emptyToUndefined,
-  APPLE_OAUTH_CLIENT_ID: emptyToUndefined,
-  APPLE_OAUTH_TEAM_ID: emptyToUndefined,
-  APPLE_OAUTH_KEY_ID: emptyToUndefined,
-  APPLE_OAUTH_PRIVATE_KEY: emptyToUndefined,
   RESEND_API_KEY: emptyToUndefined,
   UPSTASH_REDIS_REST_URL: emptyToUndefined,
   UPSTASH_REDIS_REST_TOKEN: emptyToUndefined,
   SENTRY_DSN: emptyToUndefined,
   PLAUSIBLE_DOMAIN: emptyToUndefined,
+  // Cotação de ações (brapi.dev). Opcional: sem token, a UI degrada graciosamente.
+  BRAPI_TOKEN: emptyToUndefined,
+  // Segredo do cron para a rota de atualização diária de cotações.
+  CRON_SECRET: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -79,16 +79,3 @@ export function requireGoogleOauthConfig(env: Env = loadEnv()): {
   };
 }
 
-export function requireAppleOauthConfig(env: Env = loadEnv()): {
-  clientId: string;
-  teamId: string;
-  keyId: string;
-  privateKey: string;
-} {
-  return {
-    clientId: required("APPLE_OAUTH_CLIENT_ID", env.APPLE_OAUTH_CLIENT_ID),
-    teamId: required("APPLE_OAUTH_TEAM_ID", env.APPLE_OAUTH_TEAM_ID),
-    keyId: required("APPLE_OAUTH_KEY_ID", env.APPLE_OAUTH_KEY_ID),
-    privateKey: required("APPLE_OAUTH_PRIVATE_KEY", env.APPLE_OAUTH_PRIVATE_KEY),
-  };
-}

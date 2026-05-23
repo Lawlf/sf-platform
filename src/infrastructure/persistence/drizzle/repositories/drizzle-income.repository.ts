@@ -1,4 +1,4 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
@@ -17,6 +17,8 @@ function rowToEntity(row: IncomeRow): IncomeEntity {
     startDate: row.startDate,
     endDate: row.endDate,
     isActive: row.isActive,
+    createdAt: row.createdAt,
+    deletedAt: row.deletedAt ?? null,
   };
 }
 
@@ -30,20 +32,26 @@ function entityToRow(entity: IncomeEntity): NewIncomeRow {
     startDate: entity.startDate,
     endDate: entity.endDate,
     isActive: entity.isActive,
+    createdAt: entity.createdAt,
+    deletedAt: entity.deletedAt,
   };
 }
 
 export class DrizzleIncomeRepository implements IncomeRepository {
   async findById(id: string): Promise<IncomeEntity | null> {
-    const rows = await getDb().select().from(incomes).where(eq(incomes.id, id)).limit(1);
+    const rows = await getDb()
+      .select()
+      .from(incomes)
+      .where(and(eq(incomes.id, id), isNull(incomes.deletedAt)))
+      .limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
   async listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> {
     const cond =
       opts?.onlyActive === true
-        ? and(eq(incomes.userId, userId), eq(incomes.isActive, true))
-        : eq(incomes.userId, userId);
+        ? and(eq(incomes.userId, userId), eq(incomes.isActive, true), isNull(incomes.deletedAt))
+        : and(eq(incomes.userId, userId), isNull(incomes.deletedAt));
     const rows = await getDb().select().from(incomes).where(cond).orderBy(desc(incomes.createdAt));
     return rows.map(rowToEntity);
   }
@@ -70,6 +78,13 @@ export class DrizzleIncomeRepository implements IncomeRepository {
     await getDb()
       .update(incomes)
       .set({ isActive, updatedAt: new Date() })
+      .where(eq(incomes.id, id));
+  }
+
+  async softDelete(id: string, deletedAt: Date): Promise<void> {
+    await getDb()
+      .update(incomes)
+      .set({ deletedAt, updatedAt: deletedAt })
       .where(eq(incomes.id, id));
   }
 }

@@ -50,6 +50,10 @@ beforeAll(async () => {
     termMonths: 24,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
   await debts.create(debt);
   debtId = debt.id;
@@ -74,6 +78,7 @@ function makePayment(overrides: Partial<DebtPaymentEntity> = {}): DebtPaymentEnt
     principalPortion: Money.fromCents(40_000n),
     interestPortion: Money.fromCents(10_000n),
     isExtra: false,
+    isClosingPayment: false,
     ...overrides,
   };
 }

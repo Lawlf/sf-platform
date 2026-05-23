@@ -1,8 +1,15 @@
+import { createRemoteJWKSet, jwtVerify, type JWTPayload } from "jose";
+
 import type { OauthProfile, OauthProvider } from "@/domain/ports/services/oauth-provider.service";
 import { loadEnv, requireGoogleOauthConfig } from "@/infrastructure/config/env";
 
 const AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const TOKEN_URL = "https://oauth2.googleapis.com/token";
+const JWKS_URL = "https://www.googleapis.com/oauth2/v3/certs";
+const ISSUER = ["https://accounts.google.com", "accounts.google.com"];
+
+// Cached across invocations; jose handles refresh + cache TTL internally.
+const jwks = createRemoteJWKSet(new URL(JWKS_URL));
 
 export class GoogleOauthProvider implements OauthProvider {
   readonly id = "google" as const;
@@ -48,7 +55,13 @@ export class GoogleOauthProvider implements OauthProvider {
     if (!tokens.id_token) {
       throw new Error("Google token exchange: missing id_token in response");
     }
-    const payload = decodeJwtPayload(tokens.id_token);
+
+    const { payload } = await jwtVerify<JWTPayload>(tokens.id_token, jwks, {
+      issuer: ISSUER,
+      audience: cfg.clientId,
+      algorithms: ["RS256"],
+    });
+
     if (typeof payload.sub !== "string" || typeof payload.email !== "string") {
       throw new Error("Google id_token missing required claims");
     }
@@ -60,12 +73,4 @@ export class GoogleOauthProvider implements OauthProvider {
       displayName: typeof payload.name === "string" ? payload.name : null,
     };
   }
-}
-
-function decodeJwtPayload(jwt: string): Record<string, unknown> {
-  const parts = jwt.split(".");
-  if (parts.length < 2 || !parts[1]) throw new Error("Invalid JWT");
-  const payload = parts[1].replace(/-/g, "+").replace(/_/g, "/");
-  const padded = payload + "=".repeat((4 - (payload.length % 4)) % 4);
-  return JSON.parse(Buffer.from(padded, "base64").toString("utf-8")) as Record<string, unknown>;
 }

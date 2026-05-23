@@ -1,10 +1,15 @@
 import { and, desc, eq, gt } from "drizzle-orm";
 
 import type { SessionEntity } from "@/domain/entities/session.entity";
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
+import type { UserEntity } from "@/domain/entities/user.entity";
+import type {
+  SessionRepository,
+  SessionWithUser,
+} from "@/domain/ports/repositories/session.repository";
 
 import { getDb } from "../client";
 import { sessions } from "../schema/sessions.schema";
+import { users } from "../schema/users.schema";
 
 function toEntity(row: typeof sessions.$inferSelect): SessionEntity {
   return {
@@ -18,10 +23,40 @@ function toEntity(row: typeof sessions.$inferSelect): SessionEntity {
   };
 }
 
+function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
+  return {
+    id: row.id,
+    email: row.email,
+    emailVerifiedAt: row.emailVerifiedAt,
+    displayName: row.displayName,
+    role: row.role,
+    plan: row.plan,
+    isPro: row.isPro,
+    deactivatedAt: row.deactivatedAt,
+    deactivationReason: row.deactivationReason,
+    contentDiagnosticAnswer: row.contentDiagnosticAnswer,
+    contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
+  };
+}
+
 export class DrizzleSessionRepository implements SessionRepository {
   async findByIdHash(idHash: string): Promise<SessionEntity | null> {
     const rows = await getDb().select().from(sessions).where(eq(sessions.idHash, idHash)).limit(1);
     return rows[0] ? toEntity(rows[0]) : null;
+  }
+
+  async findWithUserByIdHash(idHash: string): Promise<SessionWithUser | null> {
+    const rows = await getDb()
+      .select({ session: sessions, user: users })
+      .from(sessions)
+      .innerJoin(users, eq(sessions.userId, users.id))
+      .where(eq(sessions.idHash, idHash))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return null;
+    return { session: toEntity(row.session), user: userRowToEntity(row.user) };
   }
 
   async listActiveForUser(userId: string): Promise<SessionEntity[]> {

@@ -11,8 +11,10 @@ vi.mock("@upstash/ratelimit", () => {
     limit = limitMock;
   }
   (
-    Ratelimit as unknown as { slidingWindow: (max: number, window: string) => unknown }
-  ).slidingWindow = vi.fn().mockReturnValue({ kind: "slidingWindow" });
+    Ratelimit as unknown as {
+      tokenBucket: (refill: number, window: string, max: number) => unknown;
+    }
+  ).tokenBucket = vi.fn().mockReturnValue({ kind: "tokenBucket" });
   return { Ratelimit };
 });
 
@@ -49,5 +51,17 @@ describe("UpstashRateLimiter", () => {
     const r = await rl.check("user:abc", { window: "1 h", max: 5 });
     expect(r.ok).toBe(false);
     expect(r.remaining).toBe(0);
+  });
+
+  it("fails closed when upstash throws", async () => {
+    limitMock.mockRejectedValue(new Error("upstash down"));
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const { UpstashRateLimiter } = await import("./upstash-rate-limiter");
+    const rl = new UpstashRateLimiter();
+    const r = await rl.check("user:abc", { window: "1 h", max: 5 });
+    expect(r.ok).toBe(false);
+    expect(r.remaining).toBe(0);
+    expect(warn).toHaveBeenCalled();
+    warn.mockRestore();
   });
 });

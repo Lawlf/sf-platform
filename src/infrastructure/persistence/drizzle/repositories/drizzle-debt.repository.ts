@@ -1,6 +1,12 @@
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, isNull } from "drizzle-orm";
 
-import type { DebtEntity, DebtStatus, InstallmentPurchase } from "@/domain/entities/debt.entity";
+import type {
+  DebtEntity,
+  DebtStatus,
+  ExpenseCategory,
+  InstallmentPurchase,
+  RecurringFrequency,
+} from "@/domain/entities/debt.entity";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -8,6 +14,28 @@ import { isOk } from "@/shared/errors";
 
 import { getDb } from "../client";
 import { debts, type DebtRow, type NewDebtRow } from "../schema/debts.schema";
+
+const EXPENSE_CATEGORIES: ExpenseCategory[] = [
+  "housing",
+  "utilities",
+  "food",
+  "transport",
+  "health",
+  "leisure",
+  "subscriptions",
+  "education",
+  "other",
+];
+
+function parseExpenseCategory(raw: string | null): ExpenseCategory | null {
+  if (raw === null) return null;
+  return (EXPENSE_CATEGORIES as string[]).includes(raw) ? (raw as ExpenseCategory) : null;
+}
+
+function parseRecurringFrequency(raw: string | null): RecurringFrequency | null {
+  if (raw === "monthly" || raw === "weekly" || raw === "annual") return raw;
+  return null;
+}
 
 function rowToEntity(row: DebtRow): DebtEntity {
   const base = {
@@ -22,6 +50,10 @@ function rowToEntity(row: DebtRow): DebtEntity {
     notes: row.notes,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
+    deletedAt: row.deletedAt ?? null,
+    recurringFrequency: parseRecurringFrequency(row.recurringFrequency),
+    recurringAmountCents: row.recurringAmountCents,
+    expenseCategory: parseExpenseCategory(row.expenseCategory),
   };
 
   switch (row.kind) {
@@ -88,6 +120,33 @@ function rowToEntity(row: DebtRow): DebtEntity {
         lastChargeDate: row.lastChargeDate,
       } as DebtEntity;
     }
+    case "recurring": {
+      const freq = parseRecurringFrequency(row.recurringFrequency) ?? "monthly";
+      const category = parseExpenseCategory(row.expenseCategory) ?? "other";
+      return {
+        ...base,
+        kind: "recurring",
+        recurringFrequency: freq,
+        recurringAmountCents: row.recurringAmountCents ?? 0n,
+        expenseCategory: category,
+        dueDay: row.dueDay ?? null,
+      } as DebtEntity;
+    }
+    case "one_off": {
+      // Histórico: o kind `one_off` foi removido do domínio. O enum do
+      // Postgres ainda aceita o valor (drop é caro), mas nenhuma escrita
+      // nova produz `one_off`. Caso encontremos uma linha legada, tratamos
+      // como `recurring` mensal pra evitar quebrar a leitura.
+      const category = parseExpenseCategory(row.expenseCategory) ?? "other";
+      return {
+        ...base,
+        kind: "recurring",
+        recurringFrequency: "monthly",
+        recurringAmountCents: row.recurringAmountCents ?? 0n,
+        expenseCategory: category,
+        dueDay: row.dueDay ?? null,
+      } as DebtEntity;
+    }
   }
 }
 
@@ -105,6 +164,10 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
     notes: entity.notes,
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,
+    deletedAt: entity.deletedAt,
+    recurringFrequency: entity.recurringFrequency,
+    recurringAmountCents: entity.recurringAmountCents,
+    expenseCategory: entity.expenseCategory,
   };
 
   switch (entity.kind) {
@@ -142,6 +205,14 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
         overdraftMonthlyRateDecimal: entity.monthlyRate.toDecimal().toString(),
         lastChargeDate: entity.lastChargeDate,
       };
+    case "recurring":
+      // Reusa a coluna `due_day` (originalmente do credit_card) pra guardar o
+      // dia do vencimento mensal do compromisso recorrente. `null` cai pro
+      // dia de `startDate` na geração de calendário.
+      return {
+        ...base,
+        dueDay: entity.dueDay,
+      };
   }
 }
 
@@ -176,7 +247,11 @@ function serializeInstallments(list: InstallmentPurchase[]): SerializedInstallme
 
 export class DrizzleDebtRepository implements DebtRepository {
   async findById(id: string): Promise<DebtEntity | null> {
-    const rows = await getDb().select().from(debts).where(eq(debts.id, id)).limit(1);
+    const rows = await getDb()
+      .select()
+      .from(debts)
+      .where(and(eq(debts.id, id), isNull(debts.deletedAt)))
+      .limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
@@ -184,8 +259,8 @@ export class DrizzleDebtRepository implements DebtRepository {
     const status = opts?.status;
     const conditions =
       !status || status === "all"
-        ? eq(debts.userId, userId)
-        : and(eq(debts.userId, userId), eq(debts.status, status));
+        ? and(eq(debts.userId, userId), isNull(debts.deletedAt))
+        : and(eq(debts.userId, userId), eq(debts.status, status), isNull(debts.deletedAt));
     const rows = await getDb()
       .select()
       .from(debts)
@@ -214,5 +289,9 @@ export class DrizzleDebtRepository implements DebtRepository {
 
   async setStatus(id: string, status: DebtStatus): Promise<void> {
     await getDb().update(debts).set({ status, updatedAt: new Date() }).where(eq(debts.id, id));
+  }
+
+  async softDelete(id: string, deletedAt: Date): Promise<void> {
+    await getDb().update(debts).set({ deletedAt, updatedAt: deletedAt }).where(eq(debts.id, id));
   }
 }

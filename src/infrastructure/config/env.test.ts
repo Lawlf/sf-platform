@@ -5,7 +5,6 @@ import {
   requireResendConfig,
   requireUpstashConfig,
   requireGoogleOauthConfig,
-  requireAppleOauthConfig,
 } from "./env";
 
 const baseValid = {
@@ -59,10 +58,6 @@ describe("require* helpers", () => {
     UPSTASH_REDIS_REST_TOKEN: "tk",
     GOOGLE_OAUTH_CLIENT_ID: "g.id",
     GOOGLE_OAUTH_CLIENT_SECRET: "g.secret",
-    APPLE_OAUTH_CLIENT_ID: "com.sabor.app",
-    APPLE_OAUTH_TEAM_ID: "TEAMID",
-    APPLE_OAUTH_KEY_ID: "KEYID",
-    APPLE_OAUTH_PRIVATE_KEY: "-----BEGIN PRIVATE KEY-----\nMOCK\n-----END PRIVATE KEY-----",
   };
 
   it("requireResendConfig returns apiKey", () => {
@@ -83,10 +78,5 @@ describe("require* helpers", () => {
   it("requireGoogleOauthConfig throws when client id missing", () => {
     const env = parseEnv({ ...fullValid, GOOGLE_OAUTH_CLIENT_ID: "" });
     expect(() => requireGoogleOauthConfig(env)).toThrow(/GOOGLE_OAUTH_CLIENT_ID/);
-  });
-
-  it("requireAppleOauthConfig throws when private key missing", () => {
-    const env = parseEnv({ ...fullValid, APPLE_OAUTH_PRIVATE_KEY: "" });
-    expect(() => requireAppleOauthConfig(env)).toThrow(/APPLE_OAUTH_PRIVATE_KEY/);
   });
 });

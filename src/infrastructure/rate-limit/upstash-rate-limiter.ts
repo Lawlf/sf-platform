@@ -1,33 +1,25 @@
 import { Ratelimit } from "@upstash/ratelimit";
-import { Redis } from "@upstash/redis";
 
 import type {
   RateLimitResult,
   RateLimitWindow,
   RateLimiter,
 } from "@/domain/ports/services/rate-limiter.service";
-import { requireUpstashConfig } from "@/infrastructure/config/env";
+import { getUpstashRedis } from "@/infrastructure/cache/upstash-redis";
 
-const redisInstances = new Map<string, Redis>();
 const limiterInstances = new Map<string, Ratelimit>();
-
-function getRedis(): Redis {
-  const cfg = requireUpstashConfig();
-  const cacheKey = `${cfg.url}:${cfg.token}`;
-  const cached = redisInstances.get(cacheKey);
-  if (cached) return cached;
-  const fresh = new Redis({ url: cfg.url, token: cfg.token });
-  redisInstances.set(cacheKey, fresh);
-  return fresh;
-}
 
 function getLimiter(window: string, max: number): Ratelimit {
   const cacheKey = `${window}:${max}`;
   const cached = limiterInstances.get(cacheKey);
   if (cached) return cached;
   const fresh = new Ratelimit({
-    redis: getRedis(),
-    limiter: Ratelimit.slidingWindow(max, window as Parameters<typeof Ratelimit.slidingWindow>[1]),
+    redis: getUpstashRedis(),
+    limiter: Ratelimit.tokenBucket(
+      max,
+      window as Parameters<typeof Ratelimit.tokenBucket>[1],
+      max,
+    ),
     analytics: false,
     prefix: "sf_rl",
   });
@@ -37,11 +29,21 @@ function getLimiter(window: string, max: number): Ratelimit {
 
 export class UpstashRateLimiter implements RateLimiter {
   async check(key: string, opts: RateLimitWindow): Promise<RateLimitResult> {
-    const result = await getLimiter(opts.window, opts.max).limit(key);
-    return {
-      ok: result.success,
-      remaining: result.remaining,
-      resetAt: new Date(result.reset),
-    };
+    try {
+      const result = await getLimiter(opts.window, opts.max).limit(key);
+      return {
+        ok: result.success,
+        remaining: result.remaining,
+        resetAt: new Date(result.reset),
+      };
+    } catch (error) {
+      console.warn("[rate-limit] upstash error, failing closed", {
+        key,
+        window: opts.window,
+        max: opts.max,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return { ok: false, remaining: 0, resetAt: new Date(Date.now() + 60_000) };
+    }
   }
 }

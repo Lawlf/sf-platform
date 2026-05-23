@@ -1,5 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+const jwtVerifyMock = vi.fn();
+const createRemoteJWKSetMock = vi.fn().mockReturnValue({ kid: "fake-jwks" });
+
+vi.mock("jose", () => ({
+  createRemoteJWKSet: createRemoteJWKSetMock,
+  jwtVerify: jwtVerifyMock,
+}));
+
 describe("GoogleOauthProvider", () => {
   beforeEach(() => {
     vi.stubEnv("DATABASE_URL", "postgres://u:p@h:5432/db");
@@ -7,6 +15,7 @@ describe("GoogleOauthProvider", () => {
     vi.stubEnv("SESSION_COOKIE_SECRET", "a".repeat(32));
     vi.stubEnv("GOOGLE_OAUTH_CLIENT_ID", "client-id");
     vi.stubEnv("GOOGLE_OAUTH_CLIENT_SECRET", "client-secret");
+    jwtVerifyMock.mockReset();
     vi.resetModules();
   });
 
@@ -33,24 +42,35 @@ describe("GoogleOauthProvider", () => {
     expect(url.searchParams.get("prompt")).toBe("select_account");
   });
 
-  it("exchangeCode parses id_token claims into OauthProfile", async () => {
-    const payload = {
-      sub: "google-12345",
-      email: "u@example.com",
-      email_verified: true,
-      name: "User Example",
-    };
-    const b64 = Buffer.from(JSON.stringify(payload)).toString("base64url");
-    const idToken = `eyJhbGciOiJSUzI1NiJ9.${b64}.sig`;
+  it("exchangeCode verifies id_token via JWKS and parses claims", async () => {
+    jwtVerifyMock.mockResolvedValueOnce({
+      payload: {
+        sub: "google-12345",
+        email: "u@example.com",
+        email_verified: true,
+        name: "User Example",
+        iss: "https://accounts.google.com",
+        aud: "client-id",
+      },
+    });
 
     const fetchMock = vi
       .spyOn(globalThis, "fetch")
-      .mockResolvedValue(new Response(JSON.stringify({ id_token: idToken }), { status: 200 }));
+      .mockResolvedValue(new Response(JSON.stringify({ id_token: "signed.token.here" }), { status: 200 }));
 
     const { GoogleOauthProvider } = await import("./google-oauth.provider");
     const profile = await new GoogleOauthProvider().exchangeCode({ code: "c", codeVerifier: "v" });
 
     expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(jwtVerifyMock).toHaveBeenCalledWith(
+      "signed.token.here",
+      expect.anything(),
+      expect.objectContaining({
+        issuer: ["https://accounts.google.com", "accounts.google.com"],
+        audience: "client-id",
+        algorithms: ["RS256"],
+      }),
+    );
     expect(profile).toEqual({
       provider: "google",
       providerUserId: "google-12345",
@@ -58,6 +78,17 @@ describe("GoogleOauthProvider", () => {
       emailVerified: true,
       displayName: "User Example",
     });
+  });
+
+  it("exchangeCode rejects when JWKS verification fails", async () => {
+    jwtVerifyMock.mockRejectedValueOnce(new Error("signature verification failed"));
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(JSON.stringify({ id_token: "forged.token" }), { status: 200 }),
+    );
+    const { GoogleOauthProvider } = await import("./google-oauth.provider");
+    await expect(
+      new GoogleOauthProvider().exchangeCode({ code: "c", codeVerifier: "v" }),
+    ).rejects.toThrow(/signature verification failed/);
   });
 
   it("exchangeCode throws on non-200 from Google", async () => {

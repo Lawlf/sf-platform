@@ -71,6 +71,10 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
     termMonths: 60,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as FinancingDebt;
 }
@@ -92,6 +96,10 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
     annualInterestRate: rateAnnual(0.12),
     termMonths: 24,
     monthlyInstallment: Money.fromCents(9000n),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as PersonalLoanDebt;
 }
@@ -117,6 +125,10 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
     revolvingBalance: null,
     revolvingMonthlyRate: null,
     installmentPurchases: [],
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as CreditCardDebt;
 }
@@ -138,6 +150,10 @@ function makeOverdraft(overrides: Partial<OverdraftDebt> = {}): OverdraftDebt {
     bankName: "Banco Teste",
     monthlyRate: rateMonthly(0.08),
     lastChargeDate: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   } as OverdraftDebt;
 }

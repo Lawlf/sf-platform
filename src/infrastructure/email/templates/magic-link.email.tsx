@@ -1,14 +1,6 @@
-import {
-  Body,
-  Button,
-  Container,
-  Head,
-  Heading,
-  Html,
-  Preview,
-  Section,
-  Text,
-} from "@react-email/components";
+import { Button, Heading, Section, Text } from "@react-email/components";
+
+import { EMAIL_COLORS, EmailLayout } from "./_components/email-layout.email";
 
 export interface MagicLinkEmailProps {
   appUrl: string;
@@ -16,66 +8,126 @@ export interface MagicLinkEmailProps {
   code: string;
 }
 
+export const MAGIC_LINK_SUBJECT = "Seu acesso ao Sabor (expira em 15 min)";
+
 export function MagicLinkEmail({ appUrl, token, code }: MagicLinkEmailProps) {
-  const verifyUrl = `${appUrl}/verificar?token=${token}`;
+  const verifyUrl = `${appUrl.replace(/\/$/, "")}/verificar?token=${token}`;
   return (
-    <Html lang="pt-BR">
-      <Head />
-      <Preview>Seu codigo de acesso ao Sabor Financeiro: {code}</Preview>
-      <Body
+    <EmailLayout
+      appUrl={appUrl}
+      preview="Toca no botão e a gente te leva pra dentro. Vale por 15 minutos."
+    >
+      <Heading
+        as="h1"
         style={{
-          backgroundColor: "#fdf8f3",
-          fontFamily: "system-ui, sans-serif",
-          padding: "24px 0",
+          margin: "0 0 12px",
+          fontSize: 24,
+          fontWeight: 800,
+          letterSpacing: -0.4,
+          color: EMAIL_COLORS.textPrimary,
         }}
       >
-        <Container
+        Seu acesso chegou.
+      </Heading>
+
+      <Text
+        style={{
+          margin: "0 0 24px",
+          fontSize: 15,
+          lineHeight: 1.55,
+          color: EMAIL_COLORS.textSecondary,
+        }}
+      >
+        Toca no botão abaixo e você entra direto. Sem senha, sem etapa extra.
+      </Text>
+
+      <Section style={{ textAlign: "left", margin: "0 0 28px" }}>
+        <Button
+          href={verifyUrl}
           style={{
-            maxWidth: 480,
-            margin: "0 auto",
-            background: "#ffffff",
-            padding: 24,
-            borderRadius: 12,
+            backgroundImage: `linear-gradient(135deg, #f28e25, ${EMAIL_COLORS.brandOrange})`,
+            backgroundColor: EMAIL_COLORS.brandOrange,
+            color: "#ffffff",
+            padding: "14px 24px",
+            borderRadius: 999,
+            fontWeight: 700,
+            fontSize: 15,
+            textDecoration: "none",
+            display: "inline-block",
           }}
         >
-          <Heading style={{ color: "#ba5717", fontSize: 22, margin: "0 0 12px" }}>
-            Sabor Financeiro
-          </Heading>
-          <Text style={{ fontSize: 14, color: "#1f1d1c" }}>Use o botao abaixo para entrar.</Text>
-          <Section style={{ textAlign: "center", margin: "24px 0" }}>
-            <Button
-              href={verifyUrl}
-              style={{
-                backgroundColor: "#f28e25",
-                color: "#ffffff",
-                padding: "12px 20px",
-                borderRadius: 8,
-                fontWeight: 600,
-                textDecoration: "none",
-              }}
-            >
-              Entrar agora
-            </Button>
-          </Section>
-          <Text style={{ fontSize: 12, color: "#3a3633", textAlign: "center" }}>
-            Ou use este codigo:
-          </Text>
-          <Text
-            style={{
-              fontSize: 28,
-              fontWeight: 700,
-              color: "#1f1d1c",
-              textAlign: "center",
-              letterSpacing: 6,
-            }}
-          >
-            {code}
-          </Text>
-          <Text style={{ fontSize: 11, color: "#6b6a67", marginTop: 24 }}>
-            O link e o codigo expiram em 15 minutos. Se voce nao solicitou, ignore este email.
-          </Text>
-        </Container>
-      </Body>
-    </Html>
+          Entrar no Sabor
+        </Button>
+      </Section>
+
+      <Text
+        style={{
+          margin: "0 0 8px",
+          fontSize: 13,
+          color: EMAIL_COLORS.textSecondary,
+        }}
+      >
+        Botão não abriu? Usa o código abaixo na tela de login.
+      </Text>
+
+      <Section
+        style={{
+          textAlign: "center",
+          margin: "8px 0 24px",
+          padding: "16px 12px",
+          backgroundColor: EMAIL_COLORS.bgCream,
+          borderRadius: 12,
+          border: `1px solid ${EMAIL_COLORS.borderSoft}`,
+        }}
+      >
+        <Text
+          style={{
+            margin: 0,
+            fontSize: 28,
+            fontWeight: 800,
+            color: EMAIL_COLORS.textPrimary,
+            letterSpacing: 8,
+            fontFamily:
+              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
+          }}
+        >
+          {code}
+        </Text>
+      </Section>
+
+      <Text
+        style={{
+          margin: "0 0 8px",
+          fontSize: 12,
+          color: EMAIL_COLORS.textMuted,
+          lineHeight: 1.5,
+        }}
+      >
+        Esse link e código valem por 15 minutos. Se não usar a tempo, peça um novo.
+      </Text>
+
+      <Text
+        style={{
+          margin: 0,
+          fontSize: 12,
+          color: EMAIL_COLORS.textMuted,
+          lineHeight: 1.5,
+        }}
+      >
+        Não pediu pra entrar? Ignora. A gente só envia esse email quando alguém digita seu endereço
+        no login.
+      </Text>
+    </EmailLayout>
   );
 }
+
+// Default export é exigido pelo `react-email dev` (preview server). Mantemos
+// o named export pra uso no código real (route handler), e re-exportamos
+// como default só pra detecção da CLI.
+MagicLinkEmail.PreviewProps = {
+  appUrl: "http://localhost:3000",
+  token: "preview-token-abc123",
+  code: "482915",
+} as MagicLinkEmailProps;
+
+export default MagicLinkEmail;

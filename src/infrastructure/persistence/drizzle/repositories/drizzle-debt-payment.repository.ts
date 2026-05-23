@@ -1,4 +1,4 @@
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq, gte, isNull, lte } from "drizzle-orm";
 
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
@@ -10,6 +10,7 @@ import {
   type DebtPaymentRow,
   type NewDebtPaymentRow,
 } from "../schema/debt-payments.schema";
+import { debts } from "../schema/debts.schema";
 
 function rowToEntity(row: DebtPaymentRow): DebtPaymentEntity {
   return {
@@ -20,6 +21,10 @@ function rowToEntity(row: DebtPaymentRow): DebtPaymentEntity {
     principalPortion: Money.fromCents(row.principalPortionCents),
     interestPortion: Money.fromCents(row.interestPortionCents),
     isExtra: row.isExtra,
+    // Defaults to false for rows persisted before the column existed (migration
+    // 0011). Drizzle should never return undefined here once the column is in
+    // place, but the fallback guards against partial-rollout states.
+    isClosingPayment: row.isClosingPayment ?? false,
   };
 }
 
@@ -32,6 +37,7 @@ function entityToRow(entity: DebtPaymentEntity): NewDebtPaymentRow {
     principalPortionCents: entity.principalPortion.toCents(),
     interestPortionCents: entity.interestPortion.toCents(),
     isExtra: entity.isExtra,
+    isClosingPayment: entity.isClosingPayment,
   };
 }
 
@@ -45,10 +51,38 @@ export class DrizzleDebtPaymentRepository implements DebtPaymentRepository {
     return rows.map(rowToEntity);
   }
 
+  async listForUserInRange(
+    userId: string,
+    range: { from: Date; to: Date },
+  ): Promise<DebtPaymentEntity[]> {
+    const rows = await getDb()
+      .select({ p: debtPayments })
+      .from(debtPayments)
+      .innerJoin(debts, eq(debtPayments.debtId, debts.id))
+      .where(
+        and(
+          eq(debts.userId, userId),
+          isNull(debts.deletedAt),
+          gte(debtPayments.paidAt, range.from),
+          lte(debtPayments.paidAt, range.to),
+        ),
+      )
+      .orderBy(asc(debtPayments.paidAt));
+    return rows.map((r) => rowToEntity(r.p));
+  }
+
   async create(entity: DebtPaymentEntity): Promise<DebtPaymentEntity> {
     const rows = await getDb().insert(debtPayments).values(entityToRow(entity)).returning();
     const row = rows[0];
     if (!row) throw new Error("Failed to insert payment");
     return rowToEntity(row);
+  }
+
+  async delete(id: string): Promise<void> {
+    await getDb().delete(debtPayments).where(eq(debtPayments.id, id));
+  }
+
+  async deleteByDebtId(debtId: string): Promise<void> {
+    await getDb().delete(debtPayments).where(eq(debtPayments.debtId, debtId));
   }
 }

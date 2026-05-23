@@ -1,4 +1,4 @@
-import { eq, sql } from "drizzle-orm";
+import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
 import type { UserRepository } from "@/domain/ports/repositories/user.repository";
@@ -14,8 +14,11 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     displayName: row.displayName,
     role: row.role,
     plan: row.plan,
+    isPro: row.isPro,
     deactivatedAt: row.deactivatedAt,
     deactivationReason: row.deactivationReason,
+    contentDiagnosticAnswer: row.contentDiagnosticAnswer,
+    contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -64,5 +67,32 @@ export class DrizzleUserRepository implements UserRepository {
       .update(users)
       .set({ deactivatedAt: new Date(), deactivationReason: reason })
       .where(eq(users.id, id));
+  }
+
+  async update(user: UserEntity): Promise<void> {
+    await getDb()
+      .update(users)
+      .set({
+        email: user.email.toLowerCase(),
+        emailVerifiedAt: user.emailVerifiedAt,
+        displayName: user.displayName,
+        role: user.role,
+        plan: user.plan,
+        isPro: user.isPro,
+        deactivatedAt: user.deactivatedAt,
+        deactivationReason: user.deactivationReason,
+        contentDiagnosticAnswer: user.contentDiagnosticAnswer,
+        contentDiagnosticAnsweredAt: user.contentDiagnosticAnsweredAt,
+        updatedAt: user.updatedAt,
+      })
+      .where(eq(users.id, user.id));
+  }
+
+  async findAllPro(): Promise<UserEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(users)
+      .where(and(eq(users.isPro, true), isNull(users.deactivatedAt)));
+    return rows.map(toEntity);
   }
 }
