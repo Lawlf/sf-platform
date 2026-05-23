@@ -4,5 +4,11 @@
   "buildCommand": "pnpm db:migrate && pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
   "devCommand": "pnpm dev",
-  "regions": ["gru1"]
+  "regions": ["gru1"],
+  "crons": [
+    {
+      "path": "/api/cron/push-notifications",
+      "schedule": "0 12 * * *"
+    }
+  ]
 }

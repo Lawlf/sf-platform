@@ -9,14 +9,51 @@ const withSerwist = withSerwistInit({
   disable: process.env.NODE_ENV === "development",
 });
 
+const isProd = process.env.NODE_ENV === "production";
+
+const cspDirectives: Record<string, string[]> = {
+  "default-src": ["'self'"],
+  "script-src": [
+    "'self'",
+    "'unsafe-inline'",
+    ...(isProd ? [] : ["'unsafe-eval'"]),
+    "https://va.vercel-scripts.com",
+    "https://vercel.live",
+  ],
+  "style-src": ["'self'", "'unsafe-inline'"],
+  "img-src": ["'self'", "data:", "blob:", "https:"],
+  "font-src": ["'self'", "data:"],
+  "connect-src": [
+    "'self'",
+    "https://va.vercel-scripts.com",
+    "https://vitals.vercel-insights.com",
+    "https://vercel.live",
+    "wss://ws-us3.pusher.com",
+  ],
+  "frame-ancestors": ["'none'"],
+  "base-uri": ["'self'"],
+  "form-action": ["'self'"],
+  "object-src": ["'none'"],
+  "worker-src": ["'self'", "blob:"],
+  "manifest-src": ["'self'"],
+  ...(isProd ? { "upgrade-insecure-requests": [] } : {}),
+};
+
+const csp = Object.entries(cspDirectives)
+  .map(([k, v]) => (v.length ? `${k} ${v.join(" ")}` : k))
+  .join("; ");
+
 const baseConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
+  poweredByHeader: false,
   async headers() {
     return [
       {
         source: "/(.*)",
         headers: [
+          { key: "Content-Security-Policy", value: csp },
+          { key: "X-Frame-Options", value: "DENY" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
@@ -27,6 +64,8 @@ const baseConfig: NextConfig = {
             key: "Strict-Transport-Security",
             value: "max-age=31536000; includeSubDomains; preload",
           },
+          { key: "Cross-Origin-Opener-Policy", value: "same-origin-allow-popups" },
+          { key: "Cross-Origin-Resource-Policy", value: "same-origin" },
         ],
       },
     ];

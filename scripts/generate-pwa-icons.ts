@@ -4,19 +4,50 @@ import path from "node:path";
 import sharp from "sharp";
 
 const ROOT = process.cwd();
-const SOURCE_PNG = path.join(ROOT, "icons/PNG/Sabor financeiro 1.png");
-const OUT_DIR = path.join(ROOT, "public/icons");
+// Sabor financeiro 2.png is the brand mark (circle + flame), not the wordmark.
+const SOURCE_PNG = path.join(ROOT, "icons/PNG/Sabor financeiro 2.png");
+const PUBLIC_ICONS_DIR = path.join(ROOT, "public/icons");
+const APP_DIR = path.join(ROOT, "app");
 
-const TARGETS: { name: string; size: number; padding: number }[] = [
-  { name: "icon-192.png", size: 192, padding: 0 },
-  { name: "icon-512.png", size: 512, padding: 0 },
-  // Maskable icons need ~20% safe-zone padding (PWA spec)
-  { name: "icon-maskable-192.png", size: 192, padding: 38 },
-  { name: "icon-maskable-512.png", size: 512, padding: 100 },
+interface Target {
+  outPath: string;
+  size: number;
+  padding: number;
+  // Background applied behind the mark. Null means transparent (PNG).
+  background: { r: number; g: number; b: number; alpha: number } | null;
+}
+
+const TARGETS: Target[] = [
+  // Next.js convention: app/icon.png is the favicon (32x32)
+  { outPath: path.join(APP_DIR, "icon.png"), size: 64, padding: 0, background: null },
+  // Apple touch icon (180x180) - solid background per Apple guidelines (no alpha)
+  {
+    outPath: path.join(APP_DIR, "apple-icon.png"),
+    size: 180,
+    padding: 0,
+    background: { r: 0xfd, g: 0xf8, b: 0xf3, alpha: 1 },
+  },
+  // PWA standard icons (transparent background)
+  { outPath: path.join(PUBLIC_ICONS_DIR, "icon-192.png"), size: 192, padding: 0, background: null },
+  { outPath: path.join(PUBLIC_ICONS_DIR, "icon-512.png"), size: 512, padding: 0, background: null },
+  // Maskable: 20% safe-zone padding + opaque background (Android adaptive icons)
+  {
+    outPath: path.join(PUBLIC_ICONS_DIR, "icon-maskable-192.png"),
+    size: 192,
+    padding: 38,
+    background: { r: 0xfd, g: 0xf8, b: 0xf3, alpha: 1 },
+  },
+  {
+    outPath: path.join(PUBLIC_ICONS_DIR, "icon-maskable-512.png"),
+    size: 512,
+    padding: 100,
+    background: { r: 0xfd, g: 0xf8, b: 0xf3, alpha: 1 },
+  },
 ];
 
 async function main() {
-  await mkdir(OUT_DIR, { recursive: true });
+  await mkdir(PUBLIC_ICONS_DIR, { recursive: true });
+  await mkdir(APP_DIR, { recursive: true });
   const source = await readFile(SOURCE_PNG);
 
   for (const target of TARGETS) {
@@ -26,20 +57,39 @@ async function main() {
       .png()
       .toBuffer();
 
-    const finalImage = await sharp({
-      create: {
-        width: target.size,
-        height: target.size,
-        channels: 4,
-        background: { r: 0xfd, g: 0xf8, b: 0xf3, alpha: 1 },
-      },
-    })
-      .composite([{ input: inner, top: target.padding, left: target.padding }])
-      .png()
-      .toBuffer();
-
-    await writeFile(path.join(OUT_DIR, target.name), finalImage);
-    console.warn(`generated ${target.name}`);
+    if (target.background === null) {
+      // Transparent background: just write the inner image at the target size with optional padding.
+      if (target.padding === 0) {
+        await writeFile(target.outPath, inner);
+      } else {
+        const canvas = await sharp({
+          create: {
+            width: target.size,
+            height: target.size,
+            channels: 4,
+            background: { r: 0, g: 0, b: 0, alpha: 0 },
+          },
+        })
+          .composite([{ input: inner, top: target.padding, left: target.padding }])
+          .png()
+          .toBuffer();
+        await writeFile(target.outPath, canvas);
+      }
+    } else {
+      const canvas = await sharp({
+        create: {
+          width: target.size,
+          height: target.size,
+          channels: 4,
+          background: target.background,
+        },
+      })
+        .composite([{ input: inner, top: target.padding, left: target.padding }])
+        .png()
+        .toBuffer();
+      await writeFile(target.outPath, canvas);
+    }
+    console.warn(`generated ${path.relative(ROOT, target.outPath)}`);
   }
 }
 

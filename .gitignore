@@ -12,6 +12,8 @@
 
 # testing
 /coverage
+/docs
+.claude
 
 # next.js
 /.next/
@@ -48,3 +50,4 @@ next-env.d.ts
 test-results/
 playwright-report/
 playwright/.cache/
+.superpowers/

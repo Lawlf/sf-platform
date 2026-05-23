@@ -12,6 +12,26 @@ export default function manifest(): MetadataRoute.Manifest {
     lang: "pt-BR",
     orientation: "portrait",
     categories: ["finance", "productivity", "education"],
+    shortcuts: [
+      {
+        name: "Dívidas",
+        short_name: "Dívidas",
+        description: "Ver e gerenciar dívidas",
+        url: "/app/dividas",
+      },
+      {
+        name: "Renda",
+        short_name: "Renda",
+        description: "Ver e gerenciar renda",
+        url: "/app/renda",
+      },
+      {
+        name: "Simular",
+        short_name: "Simular",
+        description: "Simuladores financeiros",
+        url: "/app/simular",
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",
