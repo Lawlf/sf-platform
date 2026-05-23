@@ -69,6 +69,14 @@ describe("nextBillingDate", () => {
   it("returns null when status is canceled", () => {
     expect(nextBillingDate(baseSub({ status: "canceled" }))).toBeNull();
   });
+
+  it("returns null when status is incomplete", () => {
+    expect(nextBillingDate(baseSub({ status: "incomplete" }))).toBeNull();
+  });
+
+  it("returns null when status is paused", () => {
+    expect(nextBillingDate(baseSub({ status: "paused" }))).toBeNull();
+  });
 });
 
 describe("accessEndDate", () => {
