@@ -5,6 +5,17 @@ import { requireResendConfig } from "@/infrastructure/config/env";
 
 import { getSenderFor } from "./senders";
 
+const SEND_TIMEOUT_MS = 8000;
+
+function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) =>
+      setTimeout(() => reject(new Error(`Resend send timed out after ${ms}ms`)), ms),
+    ),
+  ]);
+}
+
 export class ResendEmailService implements EmailService {
   private readonly client: Resend;
 
@@ -15,12 +26,15 @@ export class ResendEmailService implements EmailService {
 
   async send(message: EmailMessage): Promise<void> {
     const from = getSenderFor(message.purpose);
-    const result = await this.client.emails.send({
-      from,
-      to: message.to,
-      subject: message.subject,
-      html: message.html,
-    });
+    const result = await withTimeout(
+      this.client.emails.send({
+        from,
+        to: message.to,
+        subject: message.subject,
+        html: message.html,
+      }),
+      SEND_TIMEOUT_MS,
+    );
     if (result.error) {
       throw new Error(`Resend send failed: ${result.error.message}`);
     }

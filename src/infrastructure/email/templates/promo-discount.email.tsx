@@ -23,7 +23,7 @@ export interface PromoDiscountEmailProps {
 }
 
 export const promoDiscountSubject = (discountPercent: number, expiresAtLabel: string): string =>
-  `${discountPercent}% no Pro até ${expiresAtLabel}`;
+  `Janela aberta: ${discountPercent}% no Pro até ${expiresAtLabel}.`;
 
 export function PromoDiscountEmail({
   appUrl,
@@ -36,95 +36,140 @@ export function PromoDiscountEmail({
   return (
     <EmailLayout
       appUrl={appUrl}
-      preview={`Cupom no email, vale até ${expiresAtLabel}. Cancela quando quiser, sempre foi assim.`}
+      preview={`Janela aberta até ${expiresAtLabel}. ${discountPercent}% no Pro, sem pressão.`}
       unsubscribeNode={
-        <Link
-          href={unsubscribeUrl}
-          style={{ color: EMAIL_COLORS.textSecondary }}
-        >
+        <Link href={unsubscribeUrl} style={{ color: EMAIL_COLORS.textSecondary }}>
           Descadastrar
         </Link>
       }
     >
+      <Section style={{ margin: "0 0 18px" }}>
+        <div
+          style={{
+            display: "inline-block",
+            padding: "5px 12px",
+            borderRadius: 999,
+            backgroundColor: "rgba(242,142,37,0.14)",
+            color: EMAIL_COLORS.brandOrangeDark,
+            fontSize: 11,
+            fontWeight: 700,
+            letterSpacing: 1.4,
+            textTransform: "uppercase",
+          }}
+        >
+          ✦  Janela aberta
+        </div>
+      </Section>
+
       <Heading
         as="h1"
         style={{
-          margin: "0 0 16px",
-          fontSize: 26,
+          margin: "0 0 14px",
+          fontSize: 28,
           fontWeight: 800,
-          letterSpacing: -0.4,
+          letterSpacing: -0.5,
           color: EMAIL_COLORS.textPrimary,
+          lineHeight: 1.15,
         }}
       >
-        {discountPercent}% no Pro até {expiresAtLabel}.
+        Abriu janela no Pro.
       </Heading>
 
       <Text
         style={{
-          margin: "0 0 16px",
-          fontSize: 15,
-          lineHeight: 1.6,
-          color: EMAIL_COLORS.textSecondary,
+          margin: "0 0 18px",
+          fontSize: 18,
+          fontWeight: 800,
+          lineHeight: 1.3,
+          letterSpacing: -0.3,
+          color: EMAIL_COLORS.textPrimary,
         }}
       >
-        O Pro do Sabor é R$ 14,90 por mês. Com o cupom abaixo, fica {discountPercent}% mais barato
-        até {expiresAtLabel}.
+        Loja que vive em promoção só disfarça o preço.{" "}
+        <span style={{ color: EMAIL_COLORS.brandOrangeDark }}>
+          A gente quase nunca abre.
+        </span>
       </Text>
 
       <Text
         style={{
-          margin: "0 0 24px",
+          margin: "0 0 28px",
           fontSize: 15,
-          lineHeight: 1.6,
+          lineHeight: 1.65,
           color: EMAIL_COLORS.textSecondary,
         }}
       >
-        Vem com histórico completo da sua linha do tempo, ações da B3 ao vivo, criptos, FIIs e
-        avisos quando uma dívida tá pra vencer ou um preço mexe. A ideia é a mesma de sempre: você
-        vê o mês inteiro num lugar só, sem precisar conectar banco nenhum.
+        Essa fica até {expiresAtLabel}: {discountPercent}% no Pro. Se for hora, aproveita. Se não
+        for, ignora sem culpa, volta quando fizer sentido.
       </Text>
 
-      <Section
-        style={{
-          margin: "0 0 20px",
-          padding: "16px 18px",
-          backgroundColor: EMAIL_COLORS.bgCream,
-          borderRadius: 12,
-          border: `1px solid ${EMAIL_COLORS.borderSoft}`,
-        }}
-      >
-        <Text
+      <Section style={{ margin: "0 0 24px" }}>
+        <div
           style={{
-            margin: "0 0 6px",
-            fontSize: 12,
-            color: EMAIL_COLORS.textSecondary,
+            position: "relative",
+            padding: "22px 22px 20px",
+            borderRadius: 16,
+            backgroundImage:
+              "linear-gradient(135deg, rgba(242,142,37,0.10) 0%, rgba(242,142,37,0.04) 100%)",
+            border: `1px dashed ${EMAIL_COLORS.brandOrange}`,
           }}
         >
-          Cole esse código quando for finalizar:
-        </Text>
-        <Text
-          style={{
-            margin: 0,
-            fontSize: 22,
-            fontWeight: 800,
-            letterSpacing: 3,
-            color: EMAIL_COLORS.textPrimary,
-            fontFamily:
-              "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
-          }}
-        >
-          {couponCode}
-        </Text>
+          <Text
+            style={{
+              margin: "0 0 4px",
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: 1.4,
+              textTransform: "uppercase",
+              color: EMAIL_COLORS.brandOrangeDark,
+            }}
+          >
+            Seu convite
+          </Text>
+          <Text
+            style={{
+              margin: "0 0 14px",
+              fontSize: 13,
+              color: EMAIL_COLORS.textSecondary,
+            }}
+          >
+            Cupom no seu nome, válido até {expiresAtLabel}.
+          </Text>
+          <div
+            style={{
+              display: "inline-block",
+              padding: "10px 18px",
+              borderRadius: 12,
+              backgroundColor: "#ffffff",
+              border: `1px solid ${EMAIL_COLORS.brandOrange}`,
+              fontSize: 22,
+              fontWeight: 800,
+              color: EMAIL_COLORS.textPrimary,
+              letterSpacing: 1.5,
+            }}
+          >
+            {couponCode}
+          </div>
+          <Text
+            style={{
+              margin: "12px 0 0",
+              fontSize: 12,
+              color: EMAIL_COLORS.textMuted,
+            }}
+          >
+            {discountPercent}% off aplicado direto no checkout.
+          </Text>
+        </div>
       </Section>
 
-      <Section style={{ textAlign: "left", margin: "0 0 20px" }}>
+      <Section style={{ textAlign: "left", margin: "0 0 22px" }}>
         <Button
           href={ctaUrl}
           style={{
             backgroundImage: `linear-gradient(135deg, #f28e25, ${EMAIL_COLORS.brandOrange})`,
             backgroundColor: EMAIL_COLORS.brandOrange,
             color: "#ffffff",
-            padding: "14px 24px",
+            padding: "14px 26px",
             borderRadius: 999,
             fontWeight: 700,
             fontSize: 15,
@@ -132,7 +177,7 @@ export function PromoDiscountEmail({
             display: "inline-block",
           }}
         >
-          Assinar o Pro com {discountPercent}% off
+          Aceitar a janela
         </Button>
       </Section>
 
@@ -143,7 +188,7 @@ export function PromoDiscountEmail({
           color: EMAIL_COLORS.textMuted,
         }}
       >
-        Vale até {expiresAtLabel}. Depois disso volta pro preço cheio.
+        Janela fecha em {expiresAtLabel}. Depois disso, preço cheio de volta.
       </Text>
 
       <Text
@@ -154,8 +199,8 @@ export function PromoDiscountEmail({
           lineHeight: 1.55,
         }}
       >
-        Sem fidelidade, sem multa. Cancela direto no painel a qualquer momento e o Pro fica ativo
-        até o fim do período que você pagou.
+        A regra de sempre vale aqui também: cancela quando quiser, Pro fica ativo até o fim do
+        período pago, sem multa.
       </Text>
     </EmailLayout>
   );
