@@ -84,18 +84,18 @@ export function DetailsStep({
     const hasCash = (cashAssets ?? []).length > 0;
     return (
       <>
-        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-[13px] text-[color:var(--text-primary)]">
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-[0.8125rem] text-[color:var(--text-primary)]">
           Tudo certo. Vamos registrar essa compra.
         </div>
 
         {loadingCash ? (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[13px] opacity-70">
+          <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] opacity-70">
             <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
             Carregando contas...
           </div>
         ) : hasCash ? (
           <div className="mt-3">
-            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
+            <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
               De qual conta saiu?
             </div>
             <div className="flex flex-col gap-2">
@@ -115,7 +115,7 @@ export function DetailsStep({
           </div>
         ) : (
           <div className="mt-3">
-            <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
+            <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
               Quer cadastrar sua conta agora?
             </div>
             <div className="flex flex-col gap-2">
@@ -151,7 +151,7 @@ export function DetailsStep({
                       placeholder="R$ 0,00"
                     />
                   </WizardField>
-                  <div className="text-[11px] leading-[1.4] text-[color:var(--text-primary)] opacity-65">
+                  <div className="text-[0.6875rem] leading-[1.4] text-[color:var(--text-primary)] opacity-65">
                     A gente vai descontar essa compra automaticamente.
                   </div>
                 </div>
@@ -199,20 +199,20 @@ export function DetailsStep({
 
         {perInstallment !== null ? (
           <div className="mb-3 rounded-2xl bg-[linear-gradient(135deg,#ef7a1a,#f28e25)] p-4 text-white shadow-[0_8px_24px_rgba(239,122,26,0.3)]">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.6px] opacity-90">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.6px] opacity-90">
               Valor da parcela
             </div>
-            <div className="mt-1 text-[22px] font-extrabold leading-tight">
+            <div className="mt-1 text-[1.375rem] font-extrabold leading-tight">
               {formatBRL(perInstallment)}
             </div>
-            <div className="mt-0.5 text-[11px] opacity-85">
+            <div className="mt-0.5 text-[0.6875rem] opacity-85">
               Estimativa sem juros. Com juros, ajuste depois.
             </div>
           </div>
         ) : null}
 
         {loadingCards ? (
-          <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[13px] opacity-70">
+          <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] opacity-70">
             <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
             Carregando cartões...
           </div>
@@ -243,7 +243,7 @@ export function DetailsStep({
 
         {showNewCardForm ? (
           <div className="mt-2 flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3">
-            <div className="text-[13px] font-bold text-[color:var(--text-primary)]">
+            <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
               Novo cartão
             </div>
             <WizardField label="Nome do cartão" htmlFor={newCardLabelId}>
@@ -349,13 +349,13 @@ export function DetailsStep({
 
         {principal !== null && principal > 0n ? (
           <div className="mb-3 rounded-2xl bg-[linear-gradient(135deg,#ef7a1a,#f28e25)] p-4 text-white shadow-[0_8px_24px_rgba(239,122,26,0.3)]">
-            <div className="text-[10px] font-semibold uppercase tracking-[0.6px] opacity-90">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-[0.6px] opacity-90">
               Valor financiado
             </div>
-            <div className="mt-1 text-[22px] font-extrabold leading-tight">
+            <div className="mt-1 text-[1.375rem] font-extrabold leading-tight">
               {formatBRL(principal)}
             </div>
-            <div className="mt-0.5 text-[11px] opacity-85">
+            <div className="mt-0.5 text-[0.6875rem] opacity-85">
               Valor da compra menos a entrada. Sistema PRICE (parcela fixa).
             </div>
           </div>
@@ -405,12 +405,12 @@ export function DetailsStep({
 
       {total !== null ? (
         <div className="mb-3 rounded-2xl bg-[linear-gradient(135deg,#ef7a1a,#f28e25)] p-4 text-white shadow-[0_8px_24px_rgba(239,122,26,0.3)]">
-          <div className="text-[10px] font-semibold uppercase tracking-[0.6px] opacity-90">
+          <div className="text-[0.625rem] font-semibold uppercase tracking-[0.6px] opacity-90">
             Total pago no fim
           </div>
-          <div className="mt-1 text-[22px] font-extrabold leading-tight">{formatBRL(total)}</div>
+          <div className="mt-1 text-[1.375rem] font-extrabold leading-tight">{formatBRL(total)}</div>
           {interest !== null ? (
-            <div className="mt-0.5 text-[11px] opacity-85">
+            <div className="mt-0.5 text-[0.6875rem] opacity-85">
               {interest > 0n ? `Juros estimados: ${formatBRL(interest)}` : "Sem juros estimados."}
             </div>
           ) : null}

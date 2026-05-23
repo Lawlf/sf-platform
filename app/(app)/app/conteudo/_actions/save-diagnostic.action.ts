@@ -31,7 +31,7 @@ export async function saveDiagnosticAction(formData: FormData): Promise<void> {
 
   if (isErr(result)) {
     if (result.error.code === "DIAGNOSTIC_FORBIDDEN_FOR_FREE") {
-      redirect("/precos");
+      redirect("/app/configuracoes/planos");
     }
     redirect("/app/conteudo?error=save_failed");
   }

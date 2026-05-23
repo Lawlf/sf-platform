@@ -499,7 +499,7 @@ export function NewPurchaseWizard() {
         {serverError ? (
           <div
             role="alert"
-            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
           >
             {serverError}
           </div>
@@ -545,7 +545,7 @@ export function NewPurchaseWizard() {
         {serverError ? (
           <div
             role="alert"
-            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
           >
             {serverError}
           </div>
@@ -592,7 +592,7 @@ export function NewPurchaseWizard() {
         {serverError ? (
           <div
             role="alert"
-            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
           >
             {serverError}
           </div>

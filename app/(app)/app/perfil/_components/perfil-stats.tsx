@@ -31,38 +31,38 @@ export function PerfilStats({
   return (
     <section className="grid gap-3 md:grid-cols-3">
       <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           <Activity size={12} strokeWidth={2} aria-hidden />
           Saúde
         </div>
-        <div className="mt-1 text-[20px] font-extrabold" style={{ color: health.color }}>
+        <div className="mt-1 text-[1.25rem] font-extrabold" style={{ color: health.color }}>
           {health.label}
         </div>
-        <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           {pctDisplay} da renda comprometida
         </div>
       </div>
       <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           <TrendingUp size={12} strokeWidth={2} aria-hidden />
           Patrimônio
         </div>
-        <div className={`mt-1 text-[20px] font-extrabold ${nwColor}`}>
+        <div className={`mt-1 text-[1.25rem] font-extrabold ${nwColor}`}>
           {netWorthFormatted ?? "R$ 0,00"}
         </div>
-        <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           {assetCount} {assetCount === 1 ? "ativo" : "ativos"}
         </div>
       </div>
       <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <div className="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <div className="flex items-center gap-2 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           <Wallet size={12} strokeWidth={2} aria-hidden />
           Consistência
         </div>
-        <div className="mt-1 text-[20px] font-extrabold text-[color:var(--text-primary)]">
+        <div className="mt-1 text-[1.25rem] font-extrabold text-[color:var(--text-primary)]">
           Em breve
         </div>
-        <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           Streak de uso e marcos.
         </div>
       </div>

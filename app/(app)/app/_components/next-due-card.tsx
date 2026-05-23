@@ -49,11 +49,11 @@ export function NextDueCard({
         {daysLabel}
       </span>
       <div className="flex-1 pr-6">
-        <div className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--semantic-negative)]">
+        <div className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--semantic-negative)]">
           Próximo vencimento
         </div>
         <div className="mt-0.5 text-sm font-bold text-[color:var(--text-primary)]">{title}</div>
-        <div className="text-[13px] font-semibold text-[color:var(--text-secondary)]">
+        <div className="text-[0.8125rem] font-semibold text-[color:var(--text-secondary)]">
           {amountFormatted} em {dueDateLabel}
         </div>
       </div>

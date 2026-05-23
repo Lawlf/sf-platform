@@ -20,11 +20,11 @@ export function PatrimonyHero({
       />
       <div className="relative flex items-center justify-between">
         <div>
-          <div className="text-[11px] font-semibold uppercase tracking-wide opacity-95">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
             Patrimônio líquido
           </div>
           <div
-            className="mt-1 text-[36px] font-extrabold leading-none"
+            className="mt-1 text-[2.25rem] font-extrabold leading-none"
             style={{ letterSpacing: "-0.5px", textShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
           >
             {netWorthFormatted}
@@ -34,11 +34,11 @@ export function PatrimonyHero({
       </div>
       <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">Ativos</div>
+          <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">Ativos</div>
           <div className="mt-0.5 font-bold">{totalAssetsFormatted}</div>
         </div>
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+          <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
             Dívidas
           </div>
           <div className="mt-0.5 font-bold">{totalDebtFormatted}</div>

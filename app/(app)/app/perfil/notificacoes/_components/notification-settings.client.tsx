@@ -198,10 +198,10 @@ export function NotificationSettings({
                 )}
               </div>
               <div>
-                <h2 className="text-[15px] font-bold text-[color:var(--text-primary)]">
+                <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
                   Este device
                 </h2>
-                <p className="text-[12px] text-[color:var(--text-secondary)]">
+                <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
                   {devices === 0
                     ? "Nenhum device ativo. Ative pra receber avisos."
                     : devices === 1
@@ -212,7 +212,7 @@ export function NotificationSettings({
             </div>
           </div>
           {!supported ? (
-            <p className="mt-4 rounded-lg bg-[color:var(--surface-2)] px-3 py-2.5 text-[12px] text-[color:var(--text-secondary)]">
+            <p className="mt-4 rounded-lg bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
               Este navegador não suporta Web Push. No iPhone, instale o app na tela inicial
               (Compartilhar -&gt; Adicionar à Tela de Início) e tente de novo.
             </p>
@@ -222,7 +222,7 @@ export function NotificationSettings({
                 type="button"
                 onClick={enablePushOnDevice}
                 disabled={subscribing}
-                className="sf-lift focus-ring inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[13px] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)] disabled:opacity-60"
+                className="sf-lift focus-ring inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)] disabled:opacity-60"
               >
                 {subscribing ? "Aguarde..." : "Ativar neste device"}
               </button>
@@ -230,7 +230,7 @@ export function NotificationSettings({
                 type="button"
                 onClick={disablePushOnDevice}
                 disabled={subscribing}
-                className="focus-ring inline-flex h-10 items-center justify-center rounded-full border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-4 text-[13px] font-semibold text-[color:var(--text-primary)] disabled:opacity-60"
+                className="focus-ring inline-flex h-10 items-center justify-center rounded-full border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-4 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] disabled:opacity-60"
               >
                 Desativar
               </button>
@@ -240,10 +240,10 @@ export function NotificationSettings({
       ) : null}
 
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <h2 className="text-[15px] font-bold text-[color:var(--text-primary)]">
+        <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
           O que você quer receber
         </h2>
-        <p className="mt-1 text-[12px] text-[color:var(--text-secondary)]">
+        <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
           {isPro
             ? "Cada tipo pode ser ligado individualmente. O badge mostra por onde a notificação chega."
             : "No Free você ajusta as gerais. O resto libera no Pro. O badge mostra por onde a notificação chega."}
@@ -357,10 +357,10 @@ export function NotificationSettings({
         <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
           <div className="flex items-center justify-between gap-4">
             <div>
-              <h2 className="text-[15px] font-bold text-[color:var(--text-primary)]">
+              <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
                 Testar notificação
               </h2>
-              <p className="mt-1 text-[12px] text-[color:var(--text-secondary)]">
+              <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
                 Envia uma push de teste para todos seus devices ativos agora.
               </p>
             </div>
@@ -368,7 +368,7 @@ export function NotificationSettings({
               type="button"
               onClick={sendTest}
               disabled={testing || devices === 0}
-              className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08] px-4 text-[13px] font-semibold text-[color:var(--color-brand-800)] disabled:opacity-50"
+              className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08] px-4 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] disabled:opacity-50"
             >
               <Send size={14} aria-hidden />
               {testing ? "Enviando..." : "Enviar teste"}
@@ -392,13 +392,13 @@ function SectionGroup({
   return (
     <div className="mt-6">
       <div className="flex items-center justify-between gap-2">
-        <h3 className="text-[11px] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
           {title}
         </h3>
         {showProLink ? (
           <Link
             href={"/app/configuracoes/planos" as Route}
-            className="focus-ring inline-flex items-center gap-1 text-[12px] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
+            className="focus-ring inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
           >
             Se tornar Pro
             <Crown size={12} strokeWidth={2.25} aria-hidden />
@@ -422,7 +422,7 @@ function ChannelBadges({ channels }: { channels: ReadonlyArray<Channel> }) {
             key="push"
             title="Push"
             aria-label="Push"
-            className="inline-flex items-center gap-0.5 rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[color:var(--text-secondary)]"
+            className="inline-flex items-center gap-0.5 rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wider text-[color:var(--text-secondary)]"
           >
             <Bell size={9} strokeWidth={2.5} aria-hidden />
             Push
@@ -432,7 +432,7 @@ function ChannelBadges({ channels }: { channels: ReadonlyArray<Channel> }) {
             key="email"
             title="Email"
             aria-label="Email"
-            className="inline-flex items-center gap-0.5 rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[color:var(--text-secondary)]"
+            className="inline-flex items-center gap-0.5 rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wider text-[color:var(--text-secondary)]"
           >
             <Mail size={9} strokeWidth={2.5} aria-hidden />
             Email
@@ -474,7 +474,7 @@ function PrefRow({
     >
       <div className="flex-1">
         <div className="flex flex-wrap items-center gap-1.5">
-          <span className="text-[14px] font-semibold text-[color:var(--text-primary)]">
+          <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
             {label}
           </span>
           {channels && channels.length > 0 ? <ChannelBadges channels={channels} /> : null}
@@ -487,12 +487,12 @@ function PrefRow({
             />
           ) : null}
           {comingSoon ? (
-            <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-[color:var(--text-muted)]">
+            <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.5625rem] font-bold uppercase tracking-wider text-[color:var(--text-muted)]">
               Em breve
             </span>
           ) : null}
         </div>
-        <div className="mt-0.5 text-[12px] text-[color:var(--text-secondary)]">{description}</div>
+        <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">{description}</div>
       </div>
       <button
         type="button"

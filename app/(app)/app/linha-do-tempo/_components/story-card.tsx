@@ -48,10 +48,10 @@ export function StoryCard({ story }: StoryCardProps) {
             <Icon size={18} strokeWidth={2} aria-hidden />
           </span>
           <div className="relative flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.6px] text-white/85">
+            <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.6px] text-white/85">
               {story.eyebrow}
             </p>
-            <p className="mt-1 text-[13px] font-bold leading-snug text-white">{lineNodes}</p>
+            <p className="mt-1 text-[0.8125rem] font-bold leading-snug text-white">{lineNodes}</p>
           </div>
         </article>
       );
@@ -67,10 +67,10 @@ export function StoryCard({ story }: StoryCardProps) {
             <Icon size={18} strokeWidth={2} aria-hidden />
           </span>
           <div className="flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.6px] text-[color:var(--semantic-negative)]">
+            <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.6px] text-[color:var(--semantic-negative)]">
               {story.eyebrow}
             </p>
-            <p className="mt-1 text-[13px] font-semibold leading-snug text-[color:var(--text-primary)]">
+            <p className="mt-1 text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-primary)]">
               {lineNodes}
             </p>
           </div>
@@ -90,10 +90,10 @@ export function StoryCard({ story }: StoryCardProps) {
             <Icon size={18} strokeWidth={2} aria-hidden />
           </span>
           <div className="flex-1">
-            <p className="text-[10px] font-extrabold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+            <p className="text-[0.625rem] font-extrabold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
               {story.eyebrow}
             </p>
-            <p className="mt-1 text-[13px] font-semibold leading-snug text-[color:var(--text-primary)]">
+            <p className="mt-1 text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-primary)]">
               {lineNodes}
             </p>
           </div>

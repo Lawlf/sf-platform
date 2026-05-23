@@ -38,7 +38,7 @@ export function RendaListClient() {
   return (
     <>
       <section className="flex flex-col gap-2">
-        <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           Ativas ({active.length})
         </h2>
         {active.length === 0 ? (
@@ -58,10 +58,10 @@ export function RendaListClient() {
                     <Icon size={18} strokeWidth={1.75} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+                    <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
                       {income.label}
                     </div>
-                    <div className="mt-0.5 flex items-baseline gap-2 text-[12px]">
+                    <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
                       <span className="font-semibold text-[color:var(--semantic-positive)]">
                         {income.amount.formatted}
                       </span>
@@ -93,7 +93,7 @@ export function RendaListClient() {
 
       {archived.length > 0 ? (
         <section className="flex flex-col gap-2">
-          <h2 className="px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Arquivadas ({archived.length})
           </h2>
           <div className="grid gap-2 md:grid-cols-2">
@@ -108,10 +108,10 @@ export function RendaListClient() {
                     <Icon size={18} strokeWidth={1.75} aria-hidden />
                   </span>
                   <div className="min-w-0 flex-1">
-                    <div className="truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+                    <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
                       {income.label}
                     </div>
-                    <div className="mt-0.5 flex items-baseline gap-2 text-[12px]">
+                    <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
                       <span className="font-semibold text-[color:var(--text-secondary)]">
                         {income.amount.formatted}
                       </span>

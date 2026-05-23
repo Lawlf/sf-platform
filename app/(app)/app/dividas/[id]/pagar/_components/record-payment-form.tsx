@@ -93,10 +93,10 @@ export function RecordPaymentForm({
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <div className="flex items-baseline justify-between gap-3">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             Dívida atual
           </span>
-          <span className="text-[18px] font-extrabold text-[color:var(--text-primary)]">
+          <span className="text-[1.125rem] font-extrabold text-[color:var(--text-primary)]">
             {currentBalanceFormatted}
           </span>
         </div>
@@ -128,7 +128,7 @@ export function RecordPaymentForm({
         />
 
         <div className="flex flex-col gap-1.5">
-          <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+          <span className="text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
             Tipo de pagamento
           </span>
           <div className="grid grid-cols-2 gap-2">
@@ -148,10 +148,10 @@ export function RecordPaymentForm({
         </div>
 
         <div className="flex items-baseline justify-between border-t border-[color:var(--border-soft)] pt-3">
-          <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             Total
           </span>
-          <span className="text-[18px] font-extrabold text-[color:var(--text-primary)]">
+          <span className="text-[1.125rem] font-extrabold text-[color:var(--text-primary)]">
             {formatCentsForDisplay(totalCents as bigint)}
           </span>
         </div>

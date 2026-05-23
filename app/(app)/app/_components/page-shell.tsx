@@ -23,12 +23,12 @@ export function PageShell({
   backLabel = "Voltar",
 }: PageShellProps) {
   return (
-    <main className="relative mx-auto flex min-h-screen w-full max-w-md flex-col gap-4 px-4 pb-28 pt-6 md:max-w-2xl lg:max-w-4xl">
+    <main className="relative mx-auto flex w-full max-w-md flex-col gap-4 px-4 pb-8 pt-6 md:max-w-2xl md:pb-12 lg:max-w-4xl">
       {blob === "warm" ? <div className="bg-blob-top-right" aria-hidden /> : null}
       {backHref ? (
         <Link
           href={backHref}
-          className="focus-ring relative inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--surface-1)] px-3 py-1.5 text-[12px] font-semibold text-[color:var(--text-secondary)] backdrop-blur-sm transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+          className="focus-ring relative inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--surface-1)] px-3 py-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] backdrop-blur-sm transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
         >
           <ArrowLeft size={14} strokeWidth={2} aria-hidden />
           {backLabel}

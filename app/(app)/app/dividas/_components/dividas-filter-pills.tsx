@@ -36,7 +36,7 @@ export function DividasFilterPills() {
             onClick={() => setFilter(f.id)}
             disabled={pending}
             aria-current={active ? "page" : undefined}
-            className={`focus-ring shrink-0 rounded-full px-4 py-1.5 text-[12px] font-semibold transition-colors disabled:opacity-70 ${
+            className={`focus-ring shrink-0 rounded-full px-4 py-1.5 text-[0.75rem] font-semibold transition-colors disabled:opacity-70 ${
               active
                 ? "bg-[color:var(--color-brand-500)] text-white shadow-[0_2px_8px_rgba(239,122,26,0.25)]"
                 : "border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-1)]"

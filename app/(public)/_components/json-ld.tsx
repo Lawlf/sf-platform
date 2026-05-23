@@ -20,7 +20,7 @@ export function OrganizationJsonLd() {
     url: siteUrl,
     logo: `${siteUrl}/icons/icon-512.png`,
     description:
-      "Painel macro de patrimônio, dívida e renda para quem quer entender a trajetória financeira sem conectar banco.",
+      "Painel macro de patrimônio, dívida e renda para quem quer enxergar a trajetória financeira além do saldo do dia.",
     foundingDate: "2026",
     areaServed: { "@type": "Country", name: "Brasil" },
     sameAs: [] as string[],
@@ -48,7 +48,7 @@ export function SoftwareApplicationJsonLd() {
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web, Android, iOS (PWA)",
     description:
-      "Aplicativo web PWA para gestão macro de dívidas, renda e patrimônio. Simuladores SAC/PRICE, juros compostos e plano de saída do vermelho. Sem conectar conta bancária.",
+      "Aplicativo web PWA para gestão macro de dívidas, renda e patrimônio. Simuladores SAC/PRICE, juros compostos e plano de saída do vermelho.",
     url: siteUrl,
     inLanguage: "pt-BR",
     offers: [
@@ -74,7 +74,7 @@ export function SoftwareApplicationJsonLd() {
       "Comparador de empréstimos",
       "Linha do tempo de evolução financeira",
       "PWA instalável no celular",
-      "Sem conexão com banco",
+      "Cálculo de custo real da dívida (CET ponderado)",
       "Conformidade LGPD",
     ],
   };

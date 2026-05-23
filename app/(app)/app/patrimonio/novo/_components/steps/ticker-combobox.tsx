@@ -117,7 +117,7 @@ export function TickerCombobox({
           className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1 shadow-lg backdrop-blur-md"
         >
           {loading ? (
-            <div className="px-3 py-2 text-[12px] text-[color:var(--text-secondary)]">
+            <div className="px-3 py-2 text-[0.75rem] text-[color:var(--text-secondary)]">
               Buscando...
             </div>
           ) : results.length > 0 ? (
@@ -141,31 +141,31 @@ export function TickerCombobox({
                     className="focus-ring flex w-full items-center justify-between gap-2 rounded-lg px-3 py-2 text-left transition-colors hover:bg-[color:var(--color-brand-500)]/10"
                   >
                     <span className="flex flex-col">
-                      <span className="text-[13px] font-bold text-[color:var(--text-primary)]">
+                      <span className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
                         {r.ticker}
                       </span>
                       {r.companyName ? (
-                        <span className="text-[11px] text-[color:var(--text-secondary)]">
+                        <span className="text-[0.6875rem] text-[color:var(--text-secondary)]">
                           {r.companyName}
                         </span>
                       ) : null}
                     </span>
                     {price ? (
-                      <span className="shrink-0 text-[12px] font-semibold text-[color:var(--color-brand-800)]">
+                      <span className="shrink-0 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)]">
                         {price}
                       </span>
                     ) : null}
                   </button>
                 );
               })}
-              <p className="px-3 pb-2 pt-1 text-[11px] leading-snug text-[color:var(--text-secondary)]">
+              <p className="px-3 pb-2 pt-1 text-[0.6875rem] leading-snug text-[color:var(--text-secondary)]">
                 Os tickers mais populares da B3 são listados aqui. Pode usar qualquer ticker mesmo
                 que não esteja na lista.
               </p>
             </>
           ) : value.trim().length > 0 ? (
             <div className="flex flex-col gap-2 px-3 py-3">
-              <p className="text-[12px] leading-snug text-[color:var(--text-secondary)]">
+              <p className="text-[0.75rem] leading-snug text-[color:var(--text-secondary)]">
                 Nenhum ticker encontrado. Use{" "}
                 <span className="font-semibold text-[color:var(--text-primary)]">
                   {value.trim().toUpperCase()}
@@ -178,11 +178,11 @@ export function TickerCombobox({
                   onSelect(value.trim().toUpperCase(), null, null);
                   setOpen(false);
                 }}
-                className="focus-ring inline-flex w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[12px] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/10"
+                className="focus-ring inline-flex w-full items-center justify-center rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.75rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/10"
               >
                 Usar ticker {value.trim().toUpperCase()}
               </button>
-              <p className="text-[11px] leading-snug text-[color:var(--text-secondary)]">
+              <p className="text-[0.6875rem] leading-snug text-[color:var(--text-secondary)]">
                 Os tickers mais populares da B3 são listados aqui. Pode usar qualquer ticker mesmo
                 que não esteja na lista.
               </p>

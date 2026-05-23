@@ -10,7 +10,7 @@ export function NoScheduleSection({ kind }: Props) {
       <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
         Cronograma de amortização
       </h2>
-      <p className="mt-2 text-[12px] text-[color:var(--text-muted)]">
+      <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
         {kind === "credit_card"
           ? "Cartão não possui cronograma fixo; veja os pagamentos abaixo."
           : kind === "overdraft"

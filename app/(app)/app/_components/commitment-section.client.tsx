@@ -1,20 +1,21 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { useMemo } from "react";
 
-import { MonthYear } from "@/domain/value-objects/month-year.vo";
-
-import { fetchMonthDetail } from "../_actions/timeline-month-detail";
+import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
 
 import { CommitmentCard } from "./commitment-card";
 
-export function CommitmentSectionClient() {
-  const monthIso = useMemo(() => MonthYear.fromDate(new Date()).toIso(), []);
+interface Props {
+  monthIso: string;
+  initialData: SerializedMonthDetail | null;
+}
 
+export function CommitmentSectionClient({ monthIso, initialData }: Props) {
   const { data: monthDetail } = useSuspenseQuery({
     queryKey: ["timeline", "monthDetail", monthIso],
     queryFn: () => fetchMonthDetail({ monthIso }),
+    initialData,
   });
 
   if (!monthDetail) return null;

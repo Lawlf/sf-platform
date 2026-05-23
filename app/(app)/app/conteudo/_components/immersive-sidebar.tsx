@@ -30,13 +30,13 @@ export function ImmersiveSidebar({ activeTrilha }: { activeTrilha: string | null
     <nav className="flex flex-col gap-1">
       <Link
         href={"/app" as Route}
-        className="focus-ring mb-2 flex items-center gap-2 rounded-lg border-b border-[color:var(--border-soft)] px-3 pb-3 text-[13px] font-semibold text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+        className="focus-ring mb-2 flex items-center gap-2 rounded-lg border-b border-[color:var(--border-soft)] px-3 pb-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
       >
         <ChevronLeft size={16} strokeWidth={2} aria-hidden />
         Voltar pro app
       </Link>
 
-      <div className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
+      <div className="px-3 pb-1 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
         Trilha atual
       </div>
       {TRILHAS.map((t) => {
@@ -47,7 +47,7 @@ export function ImmersiveSidebar({ activeTrilha }: { activeTrilha: string | null
         return (
           <span
             key={t.slug}
-            className={`focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors ${cls}`}
+            className={`focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[0.8125rem] font-medium transition-colors ${cls}`}
           >
             <BookOpen size={16} strokeWidth={active ? 2.25 : 1.75} aria-hidden />
             <span className="flex-1">{t.title}</span>
@@ -55,7 +55,7 @@ export function ImmersiveSidebar({ activeTrilha }: { activeTrilha: string | null
         );
       })}
 
-      <div className="mt-2 px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
+      <div className="mt-2 px-3 pb-1 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-muted)]">
         Recursos
       </div>
       {RESOURCES.map((item) => {
@@ -69,7 +69,7 @@ export function ImmersiveSidebar({ activeTrilha }: { activeTrilha: string | null
             key={item.href}
             href={item.href}
             aria-current={active ? "page" : undefined}
-            className={`focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[13px] font-medium transition-colors ${cls}`}
+            className={`focus-ring flex items-center gap-2.5 rounded-lg px-3 py-2.5 text-[0.8125rem] font-medium transition-colors ${cls}`}
           >
             <Icon size={16} strokeWidth={active ? 2.25 : 1.75} aria-hidden />
             <span className="flex-1">{item.label}</span>

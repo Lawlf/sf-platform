@@ -1,15 +1,41 @@
+import { BookOpen, LineChart, type LucideIcon } from "lucide-react";
+import type { Route } from "next";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
+import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { CtaRow } from "./_components/cta-row";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
-import { MercadoLink } from "./_components/mercado-link";
+import { MaisCard } from "./_components/mais-card";
 import { PageShell } from "./_components/page-shell";
-import { TimelineLink } from "./_components/timeline-link";
+
+interface MaisItem {
+  href: Route;
+  icon: LucideIcon;
+  title: string;
+  description: string;
+}
+
+const MAIS_ITEMS: MaisItem[] = [
+  {
+    href: "/app/linha-do-tempo" as Route,
+    icon: LineChart,
+    title: "Linha do tempo",
+    description: "Sua trajetória mês a mês: renda, dívidas, patrimônio.",
+  },
+  {
+    href: "/app/conteudo" as Route,
+    icon: BookOpen,
+    title: "Conteúdo",
+    description: "Trilha de aprendizado no seu ritmo.",
+  },
+];
 
 function greetingFor(hour: number): string {
   if (hour < 5) return "Boa madrugada";
@@ -23,6 +49,12 @@ export default async function DashboardPage() {
 
   const now = new Date();
   const greeting = greetingFor(now.getHours());
+  const monthIso = MonthYear.fromDate(now).toIso();
+
+  const [initialMonthDetail, initialMaintenancePrompts] = await Promise.all([
+    fetchMonthDetail({ monthIso }),
+    fetchMaintenancePrompts(),
+  ]);
 
   return (
     <PageShell
@@ -32,7 +64,7 @@ export default async function DashboardPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="md:col-span-2">
           <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
-            <DashboardHeroClient />
+            <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
           </Suspense>
         </div>
 
@@ -41,27 +73,28 @@ export default async function DashboardPage() {
         </div>
 
         <div className="md:col-span-2">
-          <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Sua saúde financeira
           </h2>
           <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
-            <CommitmentSectionClient />
+            <CommitmentSectionClient monthIso={monthIso} initialData={initialMonthDetail} />
           </Suspense>
         </div>
 
         <div className="md:col-span-2">
           <Suspense fallback={<Skeleton className="h-[120px] rounded-2xl" />}>
-            <MaintenancePromptsClient />
+            <MaintenancePromptsClient initialData={initialMaintenancePrompts} />
           </Suspense>
         </div>
 
         <div className="md:col-span-2">
-          <h2 className="mb-2 px-1 text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Mais
           </h2>
           <div className="flex flex-col gap-2">
-            <TimelineLink />
-            <MercadoLink />
+            {MAIS_ITEMS.map((item) => (
+              <MaisCard key={item.href} {...item} />
+            ))}
           </div>
         </div>
       </div>

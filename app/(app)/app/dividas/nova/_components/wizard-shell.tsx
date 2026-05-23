@@ -73,7 +73,7 @@ export function WizardShell({
           })}
         </div>
         <span
-          className="text-[11px] font-semibold text-[color:var(--text-primary)] opacity-60"
+          className="text-[0.6875rem] font-semibold text-[color:var(--text-primary)] opacity-60"
           aria-label={`Etapa ${currentStep} de ${totalSteps}`}
         >
           {currentStep}/{totalSteps}
@@ -84,10 +84,10 @@ export function WizardShell({
         key={currentStep}
         className="relative z-10 animate-in fade-in-0 slide-in-from-right-4 duration-300"
       >
-        <h1 className="text-[22px] font-bold leading-[1.2] tracking-[-0.3px] text-[color:var(--text-primary)]">
+        <h1 className="text-[1.375rem] font-bold leading-[1.2] tracking-[-0.3px] text-[color:var(--text-primary)]">
           {title}
         </h1>
-        <p className="mb-3 mt-1.5 text-[13px] leading-[1.45] text-[color:var(--text-primary)] opacity-75">
+        <p className="mb-3 mt-1.5 text-[0.8125rem] leading-[1.45] text-[color:var(--text-primary)] opacity-75">
           {description}
         </p>
         <div className="flex flex-col gap-2 md:gap-3.5">{children}</div>
@@ -99,7 +99,7 @@ export function WizardShell({
             <button
               type="button"
               onClick={secondary.onClick}
-              className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-[14px] text-[14px] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+              className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-[14px] text-[0.875rem] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
             >
               {secondary.label}
             </button>
@@ -110,7 +110,7 @@ export function WizardShell({
               onClick={primary.onClick}
               disabled={primary.disabled || primary.loading}
               aria-busy={primary.loading || undefined}
-              className="relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-[14px] text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
+              className="relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-[14px] text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
               style={{
                 background: "linear-gradient(135deg, #f28e25, #ef7a1a)",
               }}

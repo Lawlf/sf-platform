@@ -97,8 +97,8 @@ export default function PrecosPage() {
               <PlanSummary
                 tone="pro"
                 name="Pro"
-                price="R$ 14,90"
-                cadence="por mês, ou R$ 119 no ano"
+                price="R$ 19,90"
+                cadence="por mês, ou R$ 199 no ano"
                 ctaLabel="Começar com o Pro"
                 ctaHref="/cadastrar?plan=pro"
               />

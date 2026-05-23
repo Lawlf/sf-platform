@@ -73,7 +73,7 @@ const TOPICS = {
     tag: "Manutenção",
     body: "A cada 30 dias, lembramos você de conferir suas reservas que rendem. Verifique se a taxa (% do CDI ou ao ano) mudou, atualize o saldo se sacou ou depositou, e marque como revisada para zerar o contador.",
     technical:
-      "Reservas com rendimento (cash + yieldType diferente de none) cuja última revisão foi há 30 dias ou mais entram no lembrete. Em breve no plano Pro: revisão automática via Open Finance, dispensando o ajuste manual.",
+      "Reservas com rendimento (cash + yieldType diferente de none) cuja última revisão foi há 30 dias ou mais entram no lembrete.",
   },
 } as const;
 
@@ -87,11 +87,11 @@ export interface HowItWorksSheetProps {
 }
 
 const TRIGGER_CLASSES: Record<HowItWorksVariant, string> = {
-  chip: "focus-ring inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-semibold text-current backdrop-blur-sm transition-colors hover:bg-white/30",
+  chip: "focus-ring inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-semibold text-current backdrop-blur-sm transition-colors hover:bg-white/30",
   brand:
-    "focus-ring inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--color-brand-800)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-1)]",
+    "focus-ring inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-1)]",
   plain:
-    "focus-ring inline-flex items-center gap-1 text-[12px] font-semibold text-[color:var(--color-brand-800)] underline-offset-2 hover:underline",
+    "focus-ring inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline-offset-2 hover:underline",
 };
 
 export function HowItWorksSheet({
@@ -119,23 +119,23 @@ export function HowItWorksSheet({
         />
 
         <SheetHeader className="gap-3">
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2.5 py-1 text-[0.625rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
             <Sparkles size={11} strokeWidth={2.25} aria-hidden />
             {data.tag}
           </span>
           <SheetTitle>{data.title}</SheetTitle>
         </SheetHeader>
 
-        <SheetDescription className="mt-3 text-[14px] leading-relaxed text-[color:var(--text-primary)]">
+        <SheetDescription className="mt-3 text-[0.875rem] leading-relaxed text-[color:var(--text-primary)]">
           {data.body}
         </SheetDescription>
 
         {data.technical ? (
           <div className="mt-5 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-4">
-            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+            <div className="mb-1.5 text-[0.625rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
               Para quem quer detalhe técnico
             </div>
-            <p className="text-[13px] leading-relaxed text-[color:var(--text-secondary)]">
+            <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
               {data.technical}
             </p>
           </div>

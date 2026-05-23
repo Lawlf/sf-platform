@@ -128,7 +128,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
       </section>
 
       {entries.length === 0 ? (
-        <p className="py-6 text-center text-[13px] text-[color:var(--text-muted)]">
+        <p className="py-6 text-center text-[0.8125rem] text-[color:var(--text-muted)]">
           Nenhuma movimentação registrada nesse mês.
         </p>
       ) : (
@@ -140,7 +140,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
             return (
               <section key={day} className="flex flex-col gap-2">
                 <header className="px-1">
-                  <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+                  <span className="text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
                     {label}
                   </span>
                 </header>
@@ -191,10 +191,10 @@ function Kpi({
           : "text-[color:var(--color-brand-800)]";
   return (
     <div className="flex flex-col gap-0.5">
-      <span className="text-[9px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+      <span className="text-[0.5625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
         {label}
       </span>
-      <span className={`text-[15px] font-extrabold ${color}`}>{value}</span>
+      <span className={`text-[0.9375rem] font-extrabold ${color}`}>{value}</span>
     </div>
   );
 }
@@ -332,8 +332,8 @@ function RowLink({
         : "bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]";
   const valueClass =
     tone === "neutral"
-      ? `rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2.5 py-0.5 text-[11px] font-bold uppercase tracking-[0.4px] ${valueColor}`
-      : `text-[15px] font-extrabold ${valueColor}`;
+      ? `rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2.5 py-0.5 text-[0.6875rem] font-bold uppercase tracking-[0.4px] ${valueColor}`
+      : `text-[0.9375rem] font-extrabold ${valueColor}`;
   return (
     <Link
       href={href}
@@ -343,10 +343,10 @@ function RowLink({
         <Icon size={16} strokeWidth={2} aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="truncate text-[14px] font-bold text-[color:var(--text-primary)]">
+        <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
           {label}
         </div>
-        <div className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">{meta}</div>
+        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">{meta}</div>
       </div>
       <div className="flex shrink-0 items-center gap-2">
         <span className={valueClass}>{value}</span>
@@ -411,10 +411,10 @@ function StoryRow({ story }: { story: SerializedStoryRow }) {
         <Icon size={16} strokeWidth={2} aria-hidden />
       </span>
       <div className="min-w-0 flex-1">
-        <div className={`text-[10px] font-bold uppercase tracking-[0.5px] ${eyebrowColor}`}>
+        <div className={`text-[0.625rem] font-bold uppercase tracking-[0.5px] ${eyebrowColor}`}>
           {story.eyebrow}
         </div>
-        <p className={`mt-1 text-[13px] font-semibold ${lineColor}`}>
+        <p className={`mt-1 text-[0.8125rem] font-semibold ${lineColor}`}>
           {renderStoryLine(story.line)}
         </p>
       </div>

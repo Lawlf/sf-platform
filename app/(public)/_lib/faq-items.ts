@@ -10,7 +10,7 @@ export const faqItems: FaqItem[] = [
   },
   {
     q: "Vocês acessam minha conta do banco?",
-    a: "Não. A gente não conecta no seu banco e não pede senha de conta. Você lança renda e dívida manualmente, no seu ritmo. Isso também significa que nenhum dado bancário trafega por aqui.",
+    a: "Não acessa. Você lança renda e dívida manualmente, no ritmo que faz sentido. O trabalho do app é virar isso em trajetória e plano de saída, não em planilha de extrato.",
   },
   {
     q: "É seguro? Onde ficam meus dados?",

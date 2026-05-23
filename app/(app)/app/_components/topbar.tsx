@@ -73,7 +73,7 @@ export function Topbar({ displayName, notificationCount = 0 }: TopbarProps) {
     <header className="hidden md:fixed md:left-[var(--sidebar-w)] md:right-0 md:top-0 md:z-20 md:flex md:items-center md:justify-between md:border-b md:border-[color:var(--border-soft)] md:bg-[color:var(--bg-app)]/80 md:px-8 md:py-3 md:backdrop-blur-md md:transition-[left] md:duration-200">
       <nav
         aria-label="Trilha"
-        className="flex items-center gap-1 text-[12px] font-semibold text-[color:var(--text-secondary)]"
+        className="flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]"
       >
         {crumbs.map((c, i) => (
           <Fragment key={c.href}>
@@ -94,9 +94,9 @@ export function Topbar({ displayName, notificationCount = 0 }: TopbarProps) {
           <Link
             href={"/app/perfil" as Route}
             aria-label="Ir para perfil"
-            className="focus-ring flex items-center gap-2 rounded-full bg-[color:var(--color-brand-500)]/[0.12] py-1 pl-1 pr-3 text-[13px] font-semibold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.2]"
+            className="focus-ring flex items-center gap-2 rounded-full bg-[color:var(--color-brand-500)]/[0.12] py-1 pl-1 pr-3 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.2]"
           >
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[11px] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
+            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.6875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
               {initials}
             </span>
             <span className="max-w-[160px] truncate">{displayName}</span>
@@ -114,7 +114,7 @@ export function Topbar({ displayName, notificationCount = 0 }: TopbarProps) {
             {hasNotifications ? (
               <span
                 aria-hidden
-                className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--semantic-negative)] px-1 text-[9px] font-bold text-white shadow-[0_0_0_2px_var(--bg-app)]"
+                className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-[color:var(--semantic-negative)] px-1 text-[0.5625rem] font-bold text-white shadow-[0_0_0_2px_var(--bg-app)]"
               >
                 {badgeLabel}
               </span>

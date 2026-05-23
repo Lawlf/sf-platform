@@ -12,21 +12,21 @@ export function GoogleLinkRow({ linked }: GoogleLinkRowProps) {
           <GoogleGlyph />
         </span>
         <div className="flex flex-col">
-          <span className="text-[14px] font-semibold text-[color:var(--text-primary)]">Google</span>
-          <span className="text-[12px] text-[color:var(--text-secondary)]">
+          <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">Google</span>
+          <span className="text-[0.75rem] text-[color:var(--text-secondary)]">
             {linked ? "Conta vinculada" : "Não vinculada"}
           </span>
         </div>
       </div>
       {linked ? (
-        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--semantic-positive)]/15 px-2.5 py-1 text-[11px] font-bold text-[color:var(--semantic-positive)]">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--semantic-positive)]/15 px-2.5 py-1 text-[0.6875rem] font-bold text-[color:var(--semantic-positive)]">
           <Check size={12} strokeWidth={2.5} aria-hidden />
           Ativo
         </span>
       ) : (
         <a
           href="/api/auth/google/start"
-          className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-[12px] font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
+          className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-[0.75rem] font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
         >
           Vincular
         </a>

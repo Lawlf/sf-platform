@@ -34,14 +34,14 @@ export function WizardScreen({ locked }: WizardScreenProps) {
         className="rounded-[20px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl"
         style={{ boxShadow: "0 4px 16px -4px rgba(31,29,28,0.06)" }}
       >
-        <div className="mb-2.5 inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
+        <div className="mb-2.5 inline-flex items-center gap-1.5 text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
           <span
             className="block h-[1.5px] w-3.5 rounded-full"
             style={{ background: "linear-gradient(90deg, #f28e25, transparent)" }}
           />
           1 pergunta, 10 segundos
         </div>
-        <h2 className="text-[20px] font-bold leading-[1.3] tracking-[-0.02em] text-[color:var(--text-primary)]">
+        <h2 className="text-[1.25rem] font-bold leading-[1.3] tracking-[-0.02em] text-[color:var(--text-primary)]">
           Se sobrasse{" "}
           <span
             className="px-0.5"
@@ -63,7 +63,7 @@ export function WizardScreen({ locked }: WizardScreenProps) {
         <ProUpgradeCallout />
       ) : (
         <>
-          <div className="mx-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
+          <div className="mx-1 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
             Responde com honestidade
           </div>
           <div className="flex flex-col gap-2.5">
@@ -82,7 +82,7 @@ export function WizardScreen({ locked }: WizardScreenProps) {
         </>
       )}
 
-      <p className="mt-2 text-center text-[11px] leading-[1.45] text-[color:var(--text-muted)]">
+      <p className="mt-2 text-center text-[0.6875rem] leading-[1.45] text-[color:var(--text-muted)]">
         Você muda de trilha quando quiser.{" "}
         <strong className="font-bold text-[color:var(--text-secondary)]">
           A gente só esconde o que ainda não faz sentido pra você.
@@ -112,21 +112,21 @@ function ProUpgradeCallout() {
           <Crown size={18} strokeWidth={2.2} aria-hidden />
         </span>
         <div>
-          <div className="text-[10px] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
+          <div className="text-[0.625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
             Só pra Pro
           </div>
-          <div className="text-[15px] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
+          <div className="text-[0.9375rem] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
             Responde a pergunta e a gente monta sua trilha
           </div>
         </div>
       </div>
-      <p className="mb-4 text-[12.5px] leading-[1.5] text-[color:var(--text-secondary)]">
+      <p className="mb-4 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
         No Pro a trilha aparece pronta, com módulos chegando no seu ritmo e uma leitura
-        recomendada por dor de verdade. R$ 14,90/mês, cancela quando quiser.
+        recomendada por dor de verdade. R$ 19,90/mês, cancela quando quiser.
       </p>
       <Link
-        href={"/precos" as Route}
-        className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[13.5px] font-bold text-white"
+        href={"/app/configuracoes/planos" as Route}
+        className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[0.84375rem] font-bold text-white"
         style={{ boxShadow: "0 10px 24px -8px rgba(239,122,26,0.5)" }}
       >
         Fazer upgrade pro Pro

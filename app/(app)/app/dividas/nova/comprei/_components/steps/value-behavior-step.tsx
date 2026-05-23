@@ -83,10 +83,10 @@ function BehaviorCard({
           {icon}
         </span>
         <span className="flex-1">
-          <span className="block text-[14px] font-bold text-[color:var(--text-primary)]">
+          <span className="block text-[0.875rem] font-bold text-[color:var(--text-primary)]">
             {title}
           </span>
-          <span className="mt-0.5 block text-[11px] leading-[1.3] text-[color:var(--text-primary)] opacity-65">
+          <span className="mt-0.5 block text-[0.6875rem] leading-[1.3] text-[color:var(--text-primary)] opacity-65">
             {description}
           </span>
         </span>
@@ -149,7 +149,7 @@ export function ValueBehaviorStep({
                       className={`${wizardInputClass} pr-16`}
                       aria-required
                     />
-                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[12px] font-semibold text-[color:var(--text-muted)]">
+                    <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.75rem] font-semibold text-[color:var(--text-muted)]">
                       %/ano
                     </span>
                   </div>

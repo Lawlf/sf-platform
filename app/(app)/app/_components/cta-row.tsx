@@ -12,8 +12,8 @@ interface QuickAction {
 const ACTIONS: QuickAction[] = [
   {
     href: "/app/dividas/nova" as Route,
-    label: "Adicionar compra, conta ou dívida",
-    description: "Comprei algo, peguei emprestado, conta mensal, cheque especial.",
+    label: "Adicionar compra ou dívida",
+    description: "Cartão, parcelado, financiamento, cheque especial.",
     icon: ShoppingBag,
   },
   {
@@ -45,10 +45,10 @@ export function CtaRow() {
               <Icon size={18} strokeWidth={1.75} aria-hidden />
             </span>
             <span className="flex flex-col gap-0.5">
-              <span className="text-[13px] font-bold text-[color:var(--text-primary)]">
+              <span className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
                 {a.label}
               </span>
-              <span className="text-[11px] text-[color:var(--text-secondary)]">
+              <span className="text-[0.6875rem] text-[color:var(--text-secondary)]">
                 {a.description}
               </span>
             </span>

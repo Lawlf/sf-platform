@@ -13,7 +13,7 @@ export function SummaryList({ items }: SummaryListProps) {
       {items.map((item, i) => (
         <div
           key={item.label}
-          className={`flex items-baseline justify-between gap-3 py-2.5 text-[13px] ${
+          className={`flex items-baseline justify-between gap-3 py-2.5 text-[0.8125rem] ${
             i < items.length - 1 ? "border-b border-[color:var(--border-soft)]" : ""
           }`}
         >

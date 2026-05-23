@@ -22,7 +22,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   return (
     <TooltipProvider delayDuration={150} skipDelayDuration={0}>
-      <div className="relative min-h-screen pb-24 pt-[58px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
+      <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
         <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
         <div className="bg-blob-mid" aria-hidden />
         <Sidebar />

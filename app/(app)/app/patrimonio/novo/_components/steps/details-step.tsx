@@ -164,10 +164,10 @@ export function DetailsStep({
         <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <div className="flex items-start justify-between gap-3">
             <div>
-              <div className="text-[13px] font-semibold text-[color:var(--text-primary)]">
+              <div className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
                 Ação (B3)
               </div>
-              <div className="mt-1 text-[11px] text-[color:var(--text-primary)] opacity-60">
+              <div className="mt-1 text-[0.6875rem] text-[color:var(--text-primary)] opacity-60">
                 Procure pelo ticker ou nome da empresa. A cotação salva aparece ao lado.
               </div>
             </div>
@@ -194,10 +194,10 @@ export function DetailsStep({
           </WizardField>
 
           {tickerCompanyName || (lastQuoteCents !== null && lastQuoteCents !== undefined) ? (
-            <div className="-mt-2 mb-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[12px] text-[color:var(--text-primary)]">
+            <div className="-mt-2 mb-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.75rem] text-[color:var(--text-primary)]">
               {tickerCompanyName ? <div className="font-semibold">{tickerCompanyName}</div> : null}
               {lastQuoteCents !== null && lastQuoteCents !== undefined ? (
-                <div className="text-[11px] opacity-75">
+                <div className="text-[0.6875rem] opacity-75">
                   Última cotação salva: {formatCentsBRL(lastQuoteCents)}
                 </div>
               ) : null}
@@ -459,10 +459,10 @@ export function DetailsStep({
       {shouldShowDepreciationSection(category) ? (
         <section className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <div>
-            <div className="text-[13px] font-semibold text-[color:var(--text-primary)]">
+            <div className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
               Comportamento do valor
             </div>
-            <div className="mt-1 text-[11px] text-[color:var(--text-primary)] opacity-60">
+            <div className="mt-1 text-[0.6875rem] text-[color:var(--text-primary)] opacity-60">
               Como o valor desse ativo muda com o tempo. O valor atual recalcula conforme o tempo
               passa.
             </div>

@@ -68,7 +68,7 @@ export function CashInflowStep({
   return (
     <>
       {loadingCashAssets ? (
-        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[13px] text-[color:var(--text-primary)] opacity-70">
+        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-70">
           <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
           Carregando contas...
         </div>
@@ -139,7 +139,7 @@ export function CashInflowStep({
       {serverError && cashTarget !== "new" ? (
         <div
           role="alert"
-          className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+          className="rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
         >
           {serverError}
         </div>
@@ -164,7 +164,7 @@ function NewCashAccountFields({
 }: NewCashFieldsProps) {
   return (
     <div className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3">
-      <div className="text-[13px] font-bold text-[color:var(--text-primary)]">Nova conta</div>
+      <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">Nova conta</div>
       <WizardField label="Nome da conta" htmlFor={newCashNameId} error={nameError}>
         <input
           id={newCashNameId}

@@ -60,18 +60,18 @@ export function NotificationCard({ notification }: NotificationCardProps) {
       </span>
       <div className="min-w-0 flex-1">
         <div
-          className={`text-[10px] font-bold uppercase tracking-[0.5px] ${
+          className={`text-[0.625rem] font-bold uppercase tracking-[0.5px] ${
             dismissed ? "text-[color:var(--text-muted)]" : "text-[color:var(--semantic-negative)]"
           }`}
         >
           {notification.eyebrow}
         </div>
-        <p className="mt-1 text-[13px] font-semibold text-[color:var(--text-primary)]">
+        <p className="mt-1 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
           {renderLine(notification.line)}
         </p>
       </div>
       <div className="flex shrink-0 flex-col items-end gap-2">
-        <span className="text-[11px] font-semibold text-[color:var(--text-muted)]">
+        <span className="text-[0.6875rem] font-semibold text-[color:var(--text-muted)]">
           {notification.triggeredAtLabel}
         </span>
         {!dismissed ? (

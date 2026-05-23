@@ -47,7 +47,7 @@ export function ImmersiveBottomBar() {
             href={item.href}
             aria-label={item.label}
             aria-current={active ? "page" : undefined}
-            className={`focus-ring flex flex-1 flex-col items-center gap-0.5 rounded-md px-2 py-1 text-[10px] font-semibold transition-colors ${labelColor}`}
+            className={`focus-ring flex flex-1 flex-col items-center gap-0.5 rounded-md px-2 py-1 text-[0.625rem] font-semibold transition-colors ${labelColor}`}
           >
             <span
               className={`flex h-7 w-7 items-center justify-center rounded-[10px] transition-colors ${iconBg}`}

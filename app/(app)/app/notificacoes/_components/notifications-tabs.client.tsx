@@ -19,13 +19,13 @@ export function NotificationsTabs({ active, dismissed }: NotificationsTabsProps)
       <TabsList className="self-start gap-1 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1 text-[color:var(--text-secondary)]">
         <TabsTrigger
           value="active"
-          className="rounded-full px-4 py-1.5 text-[12px] font-semibold data-[state=active]:bg-[color:var(--color-brand-500)]/[0.14] data-[state=active]:text-[color:var(--color-brand-800)] data-[state=active]:shadow-none"
+          className="rounded-full px-4 py-1.5 text-[0.75rem] font-semibold data-[state=active]:bg-[color:var(--color-brand-500)]/[0.14] data-[state=active]:text-[color:var(--color-brand-800)] data-[state=active]:shadow-none"
         >
           Ativas ({active.length})
         </TabsTrigger>
         <TabsTrigger
           value="dismissed"
-          className="rounded-full px-4 py-1.5 text-[12px] font-semibold data-[state=active]:bg-[color:var(--color-brand-500)]/[0.14] data-[state=active]:text-[color:var(--color-brand-800)] data-[state=active]:shadow-none"
+          className="rounded-full px-4 py-1.5 text-[0.75rem] font-semibold data-[state=active]:bg-[color:var(--color-brand-500)]/[0.14] data-[state=active]:text-[color:var(--color-brand-800)] data-[state=active]:shadow-none"
         >
           Dispensadas ({dismissed.length})
         </TabsTrigger>
@@ -62,8 +62,8 @@ function TabEmptyState({ title, description }: { title: string; description: str
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
         <Bell size={20} strokeWidth={1.75} aria-hidden />
       </span>
-      <p className="text-[14px] font-semibold text-[color:var(--text-primary)]">{title}</p>
-      <p className="text-[12px] text-[color:var(--text-secondary)]">{description}</p>
+      <p className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">{title}</p>
+      <p className="text-[0.75rem] text-[color:var(--text-secondary)]">{description}</p>
     </div>
   );
 }

@@ -518,7 +518,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 placeholder="R$ 0,00"
               />
               {iofCents && iofPercentText ? (
-                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[11px] font-semibold text-[color:var(--color-brand-800)]">
+                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
                   <Calculator size={11} strokeWidth={2.25} aria-hidden />
                   IOF + tarifas: {formatCentsBRL(iofCents)} ({iofPercentText}%)
                 </div>
@@ -691,7 +691,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           icon: arrowRight,
         }}
       >
-        <div className="mb-[14px] rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5 text-[12px] text-[color:var(--text-primary)] opacity-80">
+        <div className="mb-[14px] rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-primary)] opacity-80">
           Empréstimo ou crediário usa Price, parcela fixa.
         </div>
 
@@ -860,7 +860,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       {serverError ? (
         <div
           role="alert"
-          className="mb-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+          className="mb-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
         >
           {serverError}
         </div>

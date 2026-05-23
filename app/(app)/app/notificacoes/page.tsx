@@ -41,10 +41,10 @@ function EmptyState() {
       <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
         <Bell size={20} strokeWidth={1.75} aria-hidden />
       </span>
-      <p className="text-[14px] font-semibold text-[color:var(--text-primary)]">
+      <p className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
         Sem notificações no momento.
       </p>
-      <p className="text-[12px] text-[color:var(--text-secondary)]">
+      <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
         Avisos importantes sobre seu fluxo financeiro vão aparecer aqui.
       </p>
     </div>

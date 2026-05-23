@@ -8,7 +8,7 @@ import { useMemo } from "react";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
-import { fetchMonthDetail } from "../_actions/timeline-month-detail";
+import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
 
 import { HowItWorksSheet } from "./how-it-works-sheet";
 
@@ -40,14 +40,19 @@ function computeHealth(committedPct: number): HealthInfo {
   return { label: "Crítico", dotClass: "bg-[color:var(--semantic-negative)]" };
 }
 
-export function DashboardHeroClient() {
-  const month = useMemo(() => MonthYear.fromDate(new Date()), []);
-  const monthIso = month.toIso();
+interface Props {
+  monthIso: string;
+  initialData: SerializedMonthDetail | null;
+}
+
+export function DashboardHeroClient({ monthIso, initialData }: Props) {
+  const month = useMemo(() => MonthYear.fromIso(monthIso), [monthIso]);
   const timelineHref = `/app/linha-do-tempo/${monthIso}` as Route;
 
   const { data: monthDetail } = useSuspenseQuery({
     queryKey: ["timeline", "monthDetail", monthIso],
     queryFn: () => fetchMonthDetail({ monthIso }),
+    initialData,
   });
 
   if (!monthDetail) {
@@ -74,22 +79,26 @@ export function DashboardHeroClient() {
       <Link
         href={timelineHref}
         aria-label={`Ver detalhes de ${month.format()}. Saldo livre ${saldoFormatted}.`}
-        className="focus-ring relative block w-full overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#ef7a1a_0%,#f28e25_55%,#f4a13a_100%)] px-5 py-4 text-left shadow-[0_12px_28px_rgba(239,122,26,0.28)] transition-[filter] hover:brightness-105 md:px-6 md:py-5"
+        className="focus-ring relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#d96813_0%,#c25d15_55%,#ba5717_100%)] px-5 py-5 text-left shadow-[0_12px_28px_rgba(239,122,26,0.28)] transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6"
       >
         <span
           aria-hidden
           className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.20),transparent_70%)]"
         />
-        <div className="relative flex items-center justify-between gap-3">
+        <span
+          aria-hidden
+          className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(40,18,0,0.22),transparent_75%)]"
+        />
+        <div className="relative flex w-full items-center justify-between gap-3">
           <div className="flex-1">
-            <span className="text-[10px] font-bold uppercase tracking-[0.7px] text-white/85">
+            <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white">
               Saldo livre do mês
             </span>
-            <div className="mt-1.5 text-[30px] font-extrabold leading-none text-white md:text-[36px]">
+            <div className="mt-1.5 text-[1.875rem] font-extrabold leading-none text-white md:text-[2.25rem]">
               {saldoFormatted}
             </div>
             {health ? (
-              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur">
+              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-bold text-white backdrop-blur">
                 <span className={`h-2 w-2 rounded-full ${health.dotClass}`} aria-hidden />
                 {health.label}
               </span>

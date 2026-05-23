@@ -46,14 +46,14 @@ export function KindCard({ icon, title, description, selected, onSelect }: KindC
       </span>
       <span className="flex-1 text-left">
         <span
-          className={`block text-[14px] font-bold transition-colors duration-200 ${
+          className={`block text-[0.875rem] font-bold transition-colors duration-200 ${
             filled ? "text-white" : "text-[color:var(--text-primary)]"
           }`}
         >
           {title}
         </span>
         <span
-          className={`mt-0.5 block text-[11px] leading-[1.3] transition-colors duration-200 ${
+          className={`mt-0.5 block text-[0.6875rem] leading-[1.3] transition-colors duration-200 ${
             filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-65"
           }`}
         >

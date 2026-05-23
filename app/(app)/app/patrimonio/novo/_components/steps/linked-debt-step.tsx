@@ -186,12 +186,12 @@ export function LinkedDebtStep({
       {choice === "yes" ? (
         <div className="flex flex-col gap-2">
           {isLoading ? (
-            <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[13px] text-[color:var(--text-primary)] opacity-70">
+            <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-70">
               <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
               Carregando dívidas...
             </div>
           ) : !debts || debts.length === 0 ? (
-            <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[13px] text-[color:var(--text-primary)] opacity-75">
+            <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-75">
               Nenhuma dívida ativa encontrada. Escolha &quot;Cadastrar nova&quot; acima ou volte
               depois.
             </div>
@@ -215,15 +215,15 @@ export function LinkedDebtStep({
                     className="flex w-full items-start justify-between gap-2 text-left focus-visible:outline-none"
                   >
                     <div className="min-w-0 flex-1">
-                      <div className="text-[13px] font-bold text-[color:var(--text-primary)]">
+                      <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
                         {debt.label}
                       </div>
-                      <div className="mt-0.5 text-[11px] text-[color:var(--text-primary)] opacity-65">
+                      <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-primary)] opacity-65">
                         {DEBT_KIND_LABEL[debt.kind] ?? debt.kind} · {debt.currentBalance.formatted}
                       </div>
                     </div>
                     <span
-                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-[11px] font-bold ${
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-[0.6875rem] font-bold ${
                         selected
                           ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
                           : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
@@ -238,7 +238,7 @@ export function LinkedDebtStep({
                     <div className="mt-3">
                       <label
                         htmlFor={`alloc-${debt.id}`}
-                        className="mb-1 block text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
+                        className="mb-1 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
                       >
                         Quanto desta dívida pertence a este ativo?
                       </label>
@@ -258,8 +258,8 @@ export function LinkedDebtStep({
 
       {choice === "new" ? (
         <div className="mt-2 flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3">
-          <div className="text-[13px] font-bold text-[color:var(--text-primary)]">Nova dívida</div>
-          <div className="text-[11px] text-[color:var(--text-primary)] opacity-65">
+          <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">Nova dívida</div>
+          <div className="text-[0.6875rem] text-[color:var(--text-primary)] opacity-65">
             Vamos cadastrar a dívida e já vincular a este ativo.
           </div>
 
@@ -332,7 +332,7 @@ export function LinkedDebtStep({
                   />
                   <span
                     aria-hidden
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-semibold text-[color:var(--text-muted)]"
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.875rem] font-semibold text-[color:var(--text-muted)]"
                   >
                     %
                   </span>

@@ -85,7 +85,7 @@ export function TimelineFilterDrawer({
 
         <SheetHeader className="gap-1">
           <SheetTitle>Explorar linha do tempo</SheetTitle>
-          <SheetDescription className="text-[12px] text-[color:var(--text-secondary)]">
+          <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
             Busque um mês, filtre por foco ou ajuste o período.
           </SheetDescription>
         </SheetHeader>
@@ -103,7 +103,7 @@ export function TimelineFilterDrawer({
             onChange={(e) => setQ(e.target.value)}
             placeholder="Buscar mês ou conquista..."
             aria-label="Buscar"
-            className="flex-1 border-none bg-transparent text-[14px] text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-muted)]"
+            className="flex-1 border-none bg-transparent text-[0.875rem] text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-muted)]"
           />
         </div>
 
@@ -166,7 +166,7 @@ export function TimelineFilterDrawer({
           onClick={apply}
           disabled={pending}
           aria-busy={pending || undefined}
-          className="focus-ring relative mt-6 flex w-full items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+          className="focus-ring relative mt-6 flex w-full items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
         >
           <span className={pending ? "opacity-0" : "opacity-100"}>Aplicar filtros</span>
           {pending ? (
@@ -183,7 +183,7 @@ export function TimelineFilterDrawer({
 function FilterSection({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section className="mt-5">
-      <h3 className="mb-2 text-[10px] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
+      <h3 className="mb-2 text-[0.625rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
         {title}
       </h3>
       {children}
@@ -209,7 +209,7 @@ function FilterChip({
       type="button"
       onClick={onClick}
       aria-pressed={active}
-      className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[12px] font-bold transition-colors ${
+      className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-bold transition-colors ${
         active
           ? "border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]"
           : "border border-transparent bg-[color:var(--surface-2)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-1)]"

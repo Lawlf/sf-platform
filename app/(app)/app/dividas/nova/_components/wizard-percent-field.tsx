@@ -11,7 +11,7 @@ import {
 } from "react-hook-form";
 
 const fieldClass =
-  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] pr-10 text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] pr-10 text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
 
 export interface WizardPercentFieldProps<TFieldValues extends FieldValues> {
   control: Control<TFieldValues>;
@@ -83,7 +83,7 @@ function PercentInputInner<TFieldValues extends FieldValues>(props: InnerProps<T
       />
       <span
         aria-hidden
-        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[14px] font-semibold text-[color:var(--text-muted)]"
+        className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[0.875rem] font-semibold text-[color:var(--text-muted)]"
       >
         %
       </span>

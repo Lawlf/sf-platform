@@ -26,10 +26,10 @@ type FormValues = z.infer<typeof formSchema>;
 const TODAY = new Date().toISOString().slice(0, 10);
 
 const fieldClass =
-  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
 
 const labelClass =
-  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
+  "mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
 
 export function IncomeForm() {
   const router = useRouter();
@@ -81,7 +81,7 @@ export function IncomeForm() {
           className={fieldClass}
         />
         {form.formState.errors.label ? (
-          <span role="alert" className="mt-1 text-[11px] text-[color:var(--semantic-negative)]">
+          <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
             {form.formState.errors.label.message}
           </span>
         ) : null}
@@ -131,7 +131,7 @@ export function IncomeForm() {
         type="submit"
         disabled={pending}
         aria-busy={pending || undefined}
-        className="focus-ring relative mt-1 flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+        className="focus-ring relative mt-1 flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
       >
         <span className={pending ? "opacity-0" : "opacity-100"}>Adicionar renda</span>
         {pending ? (

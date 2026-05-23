@@ -120,26 +120,26 @@ export function ConfirmStep({ values, cashAssets, creditCards, serverError }: Co
   return (
     <>
       <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-md">
-        <div className="text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-70">
+        <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-70">
           Resumo
         </div>
         <ul className="mt-2 flex flex-col gap-2">
           {lines.map((line, i) => (
-            <li key={i} className="text-[14px] leading-[1.45] text-[color:var(--text-primary)]">
+            <li key={i} className="text-[0.875rem] leading-[1.45] text-[color:var(--text-primary)]">
               {line}
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="mt-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2.5 text-[12px] text-[color:var(--text-primary)] opacity-80">
+      <div className="mt-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-primary)] opacity-80">
         Compra: {purchaseName}, valor {formatBRL(values.valueCents)}.
       </div>
 
       {serverError ? (
         <div
           role="alert"
-          className="mt-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+          className="mt-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
         >
           {serverError}
         </div>

@@ -163,11 +163,11 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         />
         <div className="relative flex items-start justify-between gap-3">
           <div>
-            <div className="text-[11px] font-semibold uppercase tracking-wide opacity-95">
+            <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
               {categoryLabel(props.category)}
             </div>
             <h1
-              className="mt-1 text-[24px] font-extrabold leading-tight"
+              className="mt-1 text-[1.5rem] font-extrabold leading-tight"
               style={{ letterSpacing: "-0.4px" }}
             >
               {props.label}
@@ -177,13 +177,13 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         </div>
         <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               Valor atual
             </div>
             <div className="mt-0.5 font-bold">{props.currentValueFormatted}</div>
           </div>
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide opacity-80">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               Patrimônio líquido
             </div>
             <div className={`mt-0.5 font-bold ${nwColor}`}>{props.netWorthFormatted}</div>
@@ -285,7 +285,7 @@ function EditValueSection({
         <div className="mt-3 flex flex-col gap-2">
           <WizardMoneyField control={form.control} name="currentValueCents" placeholder="R$ 0,00" />
           {error ? (
-            <span role="alert" className="text-[11px] text-[color:var(--semantic-negative)]">
+            <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
               {error}
             </span>
           ) : null}
@@ -315,7 +315,7 @@ function CashYieldSection({ cashYield }: { cashYield: CashYieldView }) {
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Rendimento</h2>
-      <p className="mt-2 text-[13px] text-[color:var(--text-primary)] opacity-80">{text}</p>
+      <p className="mt-2 text-[0.8125rem] text-[color:var(--text-primary)] opacity-80">{text}</p>
     </section>
   );
 }
@@ -359,10 +359,10 @@ function StockSection({
         <div className="flex flex-col gap-1">
           <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Ação</h2>
           <div className="flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2.5 py-1 text-[11px] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+            <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
               {stock.ticker}
             </span>
-            <span className="text-[11px] text-[color:var(--text-muted)]">
+            <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
               {stock.shares} {stock.shares === 1 ? "ação" : "ações"}
             </span>
           </div>
@@ -370,9 +370,9 @@ function StockSection({
         <HowItWorksSheet topic="acoes" variant="brand" />
       </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
+      <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.75rem]">
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Preço médio
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
@@ -380,13 +380,13 @@ function StockSection({
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Última cotação
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
             {stock.lastQuoteFormatted ?? "—"}
             {stock.lastQuoteAt ? (
-              <span className="ml-1 text-[10px] font-normal text-[color:var(--text-muted)]">
+              <span className="ml-1 text-[0.625rem] font-normal text-[color:var(--text-muted)]">
                 · {stock.lastQuoteAt}
               </span>
             ) : null}
@@ -394,14 +394,14 @@ function StockSection({
         </div>
         {stock.gainLossFormatted ? (
           <div className="col-span-2">
-            <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
               Ganho / perda
             </dt>
             <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${gainLossColor}`}>
               <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
               <span>{stock.gainLossFormatted}</span>
               {stock.gainLossPctFormatted ? (
-                <span className="text-[11px] opacity-80">({stock.gainLossPctFormatted})</span>
+                <span className="text-[0.6875rem] opacity-80">({stock.gainLossPctFormatted})</span>
               ) : null}
             </dd>
           </div>
@@ -413,19 +413,19 @@ function StockSection({
           <RefreshCw size={14} strokeWidth={2} aria-hidden />
           Atualizar cotação
         </Button>
-        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
           <Sparkles size={10} strokeWidth={2.5} aria-hidden />
           {isPro ? "Atualização diária ativada · Pro" : "Atualização diária no plano Pro"}
         </span>
       </div>
 
       {error ? (
-        <span role="alert" className="mt-2 block text-[11px] text-[color:var(--semantic-negative)]">
+        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
           {error}
         </span>
       ) : null}
       {success ? (
-        <span className="mt-2 block text-[11px] text-[color:var(--semantic-positive)]">
+        <span className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-positive)]">
           {success}
         </span>
       ) : null}
@@ -466,7 +466,7 @@ function RefreshFipeSection({
       <div className="flex items-center justify-between gap-3">
         <div className="flex-1">
           <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Tabela FIPE</h2>
-          <p className="mt-1 text-[11px] text-[color:var(--text-muted)]">
+          <p className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">
             Código: {fipeCode}
             {fipeLastSyncedAt ? ` · última atualização ${fipeLastSyncedAt}` : ""}
           </p>
@@ -477,12 +477,12 @@ function RefreshFipeSection({
         </Button>
       </div>
       {error ? (
-        <span role="alert" className="mt-2 block text-[11px] text-[color:var(--semantic-negative)]">
+        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
           {error}
         </span>
       ) : null}
       {success ? (
-        <span className="mt-2 block text-[11px] text-[color:var(--semantic-positive)]">
+        <span className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-positive)]">
           {success}
         </span>
       ) : null}
@@ -535,14 +535,14 @@ function LinkedDebtRow({ assetId, debt }: { assetId: string; debt: LinkedDebtVie
         <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">
           {debt.label}
         </p>
-        <p className="mt-0.5 text-[11px] text-[color:var(--text-muted)]">
+        <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           Original: {debt.allocationOriginalFormatted} · Saldo no ativo:{" "}
           {debt.outstandingOnAssetFormatted}
         </p>
         {error ? (
           <span
             role="alert"
-            className="mt-1 block text-[11px] text-[color:var(--semantic-negative)]"
+            className="mt-1 block text-[0.6875rem] text-[color:var(--semantic-negative)]"
           >
             {error}
           </span>
@@ -581,7 +581,7 @@ function LinkNewDebtSection({
         )}
       </div>
       {!hasLinkedDebts && !open ? (
-        <p className="mt-2 text-[11px] text-[color:var(--text-muted)]">
+        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
           {availableDebts.length > 0
             ? "Vincule uma dívida pra rastrear quanto ainda deve neste ativo."
             : "Cadastre uma dívida primeiro pra poder vincular ao ativo."}
@@ -642,13 +642,13 @@ function LinkRow({ assetId, debt }: { assetId: string; debt: AvailableDebtView }
     <li className="flex flex-col gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3">
       <div>
         <p className="text-sm font-semibold text-[color:var(--text-primary)]">{debt.label}</p>
-        <p className="text-[11px] text-[color:var(--text-muted)]">
+        <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
           Original: {debt.originalPrincipalFormatted}
         </p>
       </div>
       <WizardMoneyField control={form.control} name="allocationCents" placeholder="R$ 0,00" />
       {error ? (
-        <span role="alert" className="text-[11px] text-[color:var(--semantic-negative)]">
+        <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
           {error}
         </span>
       ) : null}
@@ -668,9 +668,9 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Valorização</h2>
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-[12px]">
+      <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.75rem]">
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Pagou
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
@@ -678,7 +678,7 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
           </dd>
         </div>
         <div>
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Vale agora
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
@@ -686,14 +686,14 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
           </dd>
         </div>
         <div className="col-span-2">
-          <dt className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             {view.isNegative ? "Perda" : "Ganho"}
           </dt>
           <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${deltaColor}`}>
             <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
             <span>{view.deltaFormatted}</span>
             {view.deltaPctFormatted ? (
-              <span className="text-[11px] opacity-80">({view.deltaPctFormatted})</span>
+              <span className="text-[0.6875rem] opacity-80">({view.deltaPctFormatted})</span>
             ) : null}
           </dd>
         </div>
@@ -788,7 +788,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
           <DeleteAssetButton assetId={assetId} label={label} />
         </div>
       </div>
-      <p className="mt-2 text-[11px] text-[color:var(--text-muted)]">
+      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
         O ativo permanecerá no histórico, mas deixa de compor seu patrimônio atual. Para remover
         definitivamente, use o ícone de lixeira.
       </p>
@@ -822,7 +822,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
 
           {kind === "sold" ? (
             <div className="flex flex-col gap-1.5">
-              <label className="text-[12px] font-semibold text-[color:var(--text-primary)]">
+              <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
                 Por quanto vendeu?
               </label>
               <WizardMoneyField
@@ -834,7 +834,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
           ) : null}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[12px] font-semibold text-[color:var(--text-primary)]">
+            <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
               Observações (opcional)
             </label>
             <textarea
@@ -848,7 +848,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
           </div>
 
           {error ? (
-            <span role="alert" className="text-[12px] text-[color:var(--semantic-negative)]">
+            <span role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
               {error}
             </span>
           ) : null}
@@ -876,10 +876,10 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
 function DescriptionSection({ text }: { text: string }) {
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+      <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
         Descrição
       </h2>
-      <p className="mt-2 whitespace-pre-line text-[13px] text-[color:var(--text-primary)]">
+      <p className="mt-2 whitespace-pre-line text-[0.8125rem] text-[color:var(--text-primary)]">
         {text}
       </p>
     </section>
@@ -904,33 +904,33 @@ function DepreciationSection({
       : "text-[color:var(--semantic-negative)]";
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <h2 className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+      <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
         Comportamento do valor
       </h2>
       <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Tipo
           </div>
-          <div className="mt-0.5 text-[14px] font-bold text-[color:var(--text-primary)]">
+          <div className="mt-0.5 text-[0.875rem] font-bold text-[color:var(--text-primary)]">
             {view.kindLabel}
           </div>
         </div>
         <div>
-          <div className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Taxa anual
           </div>
-          <div className={`mt-0.5 text-[14px] font-bold ${rateColor}`}>
+          <div className={`mt-0.5 text-[0.875rem] font-bold ${rateColor}`}>
             {sign}
             {formatted}%
           </div>
         </div>
         {view.acquiredAtFormatted ? (
           <div>
-            <div className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
               Aquisição
             </div>
-            <div className="mt-0.5 text-[14px] font-bold text-[color:var(--text-primary)]">
+            <div className="mt-0.5 text-[0.875rem] font-bold text-[color:var(--text-primary)]">
               {view.acquiredAtFormatted}
             </div>
           </div>

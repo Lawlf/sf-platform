@@ -64,7 +64,7 @@ export function AmortizationSection({ debt, amortization }: Props) {
           <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
             Cronograma de amortização
           </h2>
-          <span className="text-[11px] text-[color:var(--text-muted)]">
+          <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
             {installments.length} parcelas
           </span>
         </div>
@@ -93,7 +93,7 @@ export function AmortizationSection({ debt, amortization }: Props) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div>
-      <div className="text-[10px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+      <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
         {label}
       </div>
       <div className="mt-0.5 text-sm font-bold tabular-nums text-[color:var(--text-primary)]">
