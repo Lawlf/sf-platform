@@ -1,81 +1,44 @@
-import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
-import { isOk } from "@/shared/errors";
+import type { Metadata } from "next";
+import type { Route } from "next";
+import Link from "next/link";
+import { Suspense } from "react";
+
+import { Skeleton } from "@/app/components/ui/skeleton";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../_components/page-shell";
 
-import { ArchiveIncomeButton } from "./_components/archive-income-button";
-import { IncomeForm } from "./_components/income-form";
+import { RendaListClient } from "./_components/renda-list.client";
 
-const FREQUENCY_LABELS: Record<string, string> = {
-  monthly: "Mensal",
-  weekly: "Semanal",
-  one_off: "Pontual",
-};
+export const metadata: Metadata = { title: "Renda" };
 
 export default async function RendaPage() {
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
-  const listed = await listIncomes({ incomes: new DrizzleIncomeRepository() }, { userId: user.id });
-  const incomes = isOk(listed) ? listed.value : [];
-
-  const active = incomes.filter((i) => i.isActive);
-  const archived = incomes.filter((i) => !i.isActive);
+  await requireUser();
 
   return (
-    <PageShell title="Renda" description="Cadastre suas fontes de renda mensais e extras.">
-      <section className="glass-light p-4">
-        <h2 className="mb-2 text-sm font-semibold opacity-80">Adicionar renda</h2>
-        <IncomeForm />
-      </section>
+    <PageShell title="Renda" description="Salário, dividendos, freelances. Suas fontes de renda.">
+      <Link
+        href={"/app/renda/nova" as Route}
+        className="focus-ring flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
+      >
+        Adicionar nova renda
+      </Link>
 
-      <section className="flex flex-col gap-2">
-        <h2 className="text-sm font-semibold opacity-80">Ativas</h2>
-        {active.length === 0 ? (
-          <p className="text-sm opacity-70">Nenhuma renda ativa.</p>
-        ) : (
-          active.map((income) => (
-            <article key={income.id} className="glass-light flex items-center justify-between p-4">
-              <div className="text-sm">
-                <p className="font-medium">{income.label}</p>
-                <p className="opacity-70">
-                  {income.amount.format()} -{" "}
-                  {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
-                </p>
-              </div>
-              <ArchiveIncomeButton incomeId={income.id} />
-            </article>
-          ))
-        )}
-      </section>
-
-      {archived.length > 0 ? (
-        <section className="flex flex-col gap-2">
-          <h2 className="text-sm font-semibold opacity-80">Arquivadas</h2>
-          {archived.map((income) => (
-            <article
-              key={income.id}
-              className="glass-light flex items-center justify-between p-4 opacity-60"
-            >
-              <div className="text-sm">
-                <p className="font-medium">{income.label}</p>
-                <p className="opacity-70">
-                  {income.amount.format()} -{" "}
-                  {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
-                </p>
-              </div>
-            </article>
-          ))}
-        </section>
-      ) : null}
+      <Suspense fallback={<IncomeListsSkeleton />}>
+        <RendaListClient />
+      </Suspense>
     </PageShell>
+  );
+}
+
+function IncomeListsSkeleton() {
+  return (
+    <section className="flex flex-col gap-2">
+      <Skeleton className="h-3 w-20 rounded-md" />
+      <div className="grid gap-2 md:grid-cols-2">
+        <Skeleton className="h-[76px] rounded-2xl" />
+        <Skeleton className="h-[76px] rounded-2xl" />
+      </div>
+    </section>
   );
 }

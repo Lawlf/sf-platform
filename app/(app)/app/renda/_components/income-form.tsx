@@ -1,18 +1,20 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/app/components/ui/button";
+import { Spinner } from "@/app/components/ui/spinner";
 
 import { MoneyInput } from "../../_components/money-input";
+import { queryKeys } from "../../_lib/query-keys";
 import { createIncomeAction } from "../_actions/create-income.action";
 
 const formSchema = z.object({
-  label: z.string().min(1, "Informe um rotulo.").max(120),
+  label: z.string().min(1, "Informe um rótulo.").max(120),
   amountCents: z.bigint().positive("Valor deve ser positivo."),
   frequency: z.enum(["monthly", "weekly", "one_off"]),
   startDate: z.string().min(1, "Informe a data inicial."),
@@ -23,8 +25,15 @@ type FormValues = z.infer<typeof formSchema>;
 
 const TODAY = new Date().toISOString().slice(0, 10);
 
+const fieldClass =
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[15px] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+
+const labelClass =
+  "mb-1.5 block text-[11px] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
+
 export function IncomeForm() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -53,74 +62,84 @@ export function IncomeForm() {
         setServerError(r.message);
         return;
       }
-      form.reset({
-        label: "",
-        amountCents: 0n as unknown as bigint,
-        frequency: "monthly",
-        startDate: TODAY,
-        endDate: null,
-      });
-      router.refresh();
+      await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
+      router.push("/app/renda");
     });
   }
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Rotulo</span>
+      <div>
+        <label className={labelClass} htmlFor="renda-label">
+          Rótulo
+        </label>
         <input
+          id="renda-label"
           {...form.register("label")}
-          placeholder="ex: Salario"
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
+          placeholder="Ex: Salário, freelance, dividendos"
+          className={fieldClass}
         />
         {form.formState.errors.label ? (
-          <span role="alert" className="text-xs text-[color:var(--color-negative)]">
+          <span role="alert" className="mt-1 text-[11px] text-[color:var(--semantic-negative)]">
             {form.formState.errors.label.message}
           </span>
         ) : null}
-      </label>
+      </div>
 
       <MoneyInput control={form.control} name="amountCents" label="Valor" required />
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Frequencia</span>
-        <select
-          {...form.register("frequency")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        >
-          <option value="monthly">Mensal</option>
-          <option value="weekly">Semanal</option>
-          <option value="one_off">Pontual</option>
-        </select>
-      </label>
+      <div className="grid gap-3 sm:grid-cols-2">
+        <div>
+          <label className={labelClass} htmlFor="renda-frequency">
+            Frequência
+          </label>
+          <select id="renda-frequency" {...form.register("frequency")} className={fieldClass}>
+            <option value="monthly">Mensal</option>
+            <option value="weekly">Semanal</option>
+            <option value="one_off">Pontual</option>
+          </select>
+        </div>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Início</span>
-        <input
-          type="date"
-          {...form.register("startDate")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-      </label>
+        <div>
+          <label className={labelClass} htmlFor="renda-start">
+            Início
+          </label>
+          <input
+            id="renda-start"
+            type="date"
+            {...form.register("startDate")}
+            className={fieldClass}
+          />
+        </div>
+      </div>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Término (opcional)</span>
-        <input
-          type="date"
-          {...form.register("endDate")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-      </label>
+      <div>
+        <label className={labelClass} htmlFor="renda-end">
+          Término (opcional)
+        </label>
+        <input id="renda-end" type="date" {...form.register("endDate")} className={fieldClass} />
+      </div>
 
       {serverError ? (
-        <span role="alert" className="text-sm text-[color:var(--color-negative)]">
+        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
           {serverError}
         </span>
       ) : null}
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Salvando..." : "Adicionar renda"}
-      </Button>
+      <button
+        type="submit"
+        disabled={pending}
+        aria-busy={pending || undefined}
+        className="focus-ring relative mt-1 flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[14px] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        <span className={pending ? "opacity-0" : "opacity-100"}>Adicionar renda</span>
+        {pending ? (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner size={18} />
+          </span>
+        ) : null}
+      </button>
     </form>
   );
 }

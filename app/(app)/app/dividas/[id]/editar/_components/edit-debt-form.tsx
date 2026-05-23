@@ -1,0 +1,397 @@
+"use client";
+
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import { useId, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+
+import { Button } from "@/app/components/ui/button";
+import type { DebtKind } from "@/domain/entities/debt.entity";
+
+import { MoneyInput } from "../../../../_components/money-input";
+import { queryKeys } from "../../../../_lib/query-keys";
+import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
+import { updateDebtAction } from "../../_actions/update-debt.action";
+
+const formSchema = z.object({
+  label: z.string().min(1, "Informe um rótulo.").max(120),
+  notes: z.string().max(1000).nullable(),
+  expectedEndDate: z.string().nullable(),
+  // Kind-specific (optional; only sent when present per kind)
+  currentBalanceCents: z.bigint().nonnegative().nullable(),
+  annualRatePct: z.number().min(0).max(1000).nullable(),
+  monthlyInstallmentCents: z.bigint().nonnegative().nullable(),
+  monthlyInsuranceCents: z.bigint().nonnegative().nullable(),
+  monthlyAdminFeeCents: z.bigint().nonnegative().nullable(),
+  creditLimitCents: z.bigint().nonnegative().nullable(),
+  currentStatementCents: z.bigint().nonnegative().nullable(),
+  statementDay: z.number().int().min(1).max(31).nullable(),
+  dueDay: z.number().int().min(1).max(31).nullable(),
+  revolvingBalanceCents: z.bigint().nonnegative().nullable(),
+  revolvingMonthlyRatePct: z.number().min(0).max(1000).nullable(),
+  bankName: z.string().max(120).nullable(),
+  monthlyRatePct: z.number().min(0).max(1000).nullable(),
+  recurringAmountCents: z.bigint().nonnegative().nullable(),
+  recurringFrequency: z.enum(["monthly", "weekly"]).nullable(),
+});
+
+type FormValues = z.infer<typeof formSchema>;
+
+interface Props {
+  debtId: string;
+  kind: DebtKind;
+  defaults: {
+    label: string;
+    notes: string | null;
+    expectedEndDate: string | null;
+    currentBalanceCents: string | null;
+    annualRatePct: number | null;
+    monthlyInstallmentCents: string | null;
+    monthlyInsuranceCents: string | null;
+    monthlyAdminFeeCents: string | null;
+    creditLimitCents: string | null;
+    currentStatementCents: string | null;
+    statementDay: number | null;
+    dueDay: number | null;
+    revolvingBalanceCents: string | null;
+    revolvingMonthlyRatePct: number | null;
+    bankName: string | null;
+    monthlyRatePct: number | null;
+    recurringAmountCents: string | null;
+    recurringFrequency: "monthly" | "weekly" | null;
+  };
+}
+
+export function EditDebtForm({ debtId, kind, defaults }: Props) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [pending, startTransition] = useTransition();
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const labelId = useId();
+  const notesId = useId();
+  const endDateId = useId();
+  const rateId = useId();
+  const bankId = useId();
+  const statementDayId = useId();
+  const dueDayId = useId();
+  const revolvingRateId = useId();
+  const overdraftRateId = useId();
+  const frequencyId = useId();
+
+  const form = useForm<FormValues>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      label: defaults.label,
+      notes: defaults.notes,
+      expectedEndDate: defaults.expectedEndDate,
+      currentBalanceCents: defaults.currentBalanceCents
+        ? BigInt(defaults.currentBalanceCents)
+        : null,
+      annualRatePct: defaults.annualRatePct,
+      monthlyInstallmentCents: defaults.monthlyInstallmentCents
+        ? BigInt(defaults.monthlyInstallmentCents)
+        : null,
+      monthlyInsuranceCents: defaults.monthlyInsuranceCents
+        ? BigInt(defaults.monthlyInsuranceCents)
+        : null,
+      monthlyAdminFeeCents: defaults.monthlyAdminFeeCents
+        ? BigInt(defaults.monthlyAdminFeeCents)
+        : null,
+      creditLimitCents: defaults.creditLimitCents ? BigInt(defaults.creditLimitCents) : null,
+      currentStatementCents: defaults.currentStatementCents
+        ? BigInt(defaults.currentStatementCents)
+        : null,
+      statementDay: defaults.statementDay,
+      dueDay: defaults.dueDay,
+      revolvingBalanceCents: defaults.revolvingBalanceCents
+        ? BigInt(defaults.revolvingBalanceCents)
+        : null,
+      revolvingMonthlyRatePct: defaults.revolvingMonthlyRatePct,
+      bankName: defaults.bankName,
+      monthlyRatePct: defaults.monthlyRatePct,
+      recurringAmountCents: defaults.recurringAmountCents
+        ? BigInt(defaults.recurringAmountCents)
+        : null,
+      recurringFrequency: defaults.recurringFrequency,
+    },
+  });
+
+  async function onSubmit(v: FormValues) {
+    setServerError(null);
+    const fd = new FormData();
+    fd.set("debtId", debtId);
+    fd.set("label", v.label);
+    fd.set("notes", v.notes ?? "");
+    fd.set("expectedEndDate", v.expectedEndDate ?? "");
+
+    if (kind === "financing" || kind === "personal_loan") {
+      if (v.currentBalanceCents != null) {
+        fd.set("currentBalanceCents", v.currentBalanceCents.toString());
+      }
+      if (v.annualRatePct != null) {
+        fd.set("annualRatePct", String(v.annualRatePct));
+      }
+    }
+    if (kind === "personal_loan" && v.monthlyInstallmentCents != null) {
+      fd.set("monthlyInstallmentCents", v.monthlyInstallmentCents.toString());
+    }
+    if (kind === "financing") {
+      fd.set("monthlyInsuranceCents", v.monthlyInsuranceCents?.toString() ?? "");
+      fd.set("monthlyAdminFeeCents", v.monthlyAdminFeeCents?.toString() ?? "");
+    }
+    if (kind === "credit_card") {
+      if (v.creditLimitCents != null) fd.set("creditLimitCents", v.creditLimitCents.toString());
+      if (v.currentStatementCents != null) {
+        fd.set("currentStatementCents", v.currentStatementCents.toString());
+      }
+      if (v.statementDay != null) fd.set("statementDay", String(v.statementDay));
+      if (v.dueDay != null) fd.set("dueDay", String(v.dueDay));
+      fd.set("revolvingBalanceCents", v.revolvingBalanceCents?.toString() ?? "");
+      fd.set(
+        "revolvingMonthlyRatePct",
+        v.revolvingMonthlyRatePct != null ? String(v.revolvingMonthlyRatePct) : "",
+      );
+    }
+    if (kind === "overdraft") {
+      if (v.currentBalanceCents != null) {
+        fd.set("currentBalanceCents", v.currentBalanceCents.toString());
+      }
+      if (v.bankName) fd.set("bankName", v.bankName);
+      if (v.monthlyRatePct != null) fd.set("monthlyRatePct", String(v.monthlyRatePct));
+    }
+    if (kind === "recurring") {
+      if (v.recurringAmountCents != null) {
+        fd.set("recurringAmountCents", v.recurringAmountCents.toString());
+      }
+      if (v.recurringFrequency) fd.set("recurringFrequency", v.recurringFrequency);
+      if (v.dueDay != null) fd.set("dueDay", String(v.dueDay));
+    }
+
+    startTransition(async () => {
+      const r = await updateDebtAction(fd);
+      if (!r.ok) {
+        setServerError(r.message);
+        return;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
+        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      ]);
+      router.push(`/app/dividas/${r.debtId}` as Route);
+    });
+  }
+
+  return (
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+        <WizardField label="Rótulo" htmlFor={labelId} error={form.formState.errors.label?.message}>
+          <input id={labelId} {...form.register("label")} className={wizardInputClass} />
+        </WizardField>
+
+        <WizardField label="Anotações" htmlFor={notesId}>
+          <textarea
+            id={notesId}
+            rows={3}
+            {...form.register("notes")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+
+        <WizardField label="Data prevista de quitação" htmlFor={endDateId}>
+          <input
+            id={endDateId}
+            type="date"
+            {...form.register("expectedEndDate")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+      </section>
+
+      {kind !== "recurring" ? (
+        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <MoneyInput
+            control={form.control}
+            name="currentBalanceCents"
+            label="Saldo devedor atual"
+            helper="Valor que ainda falta pagar."
+          />
+        </section>
+      ) : null}
+
+      {(kind === "financing" || kind === "personal_loan") && (
+        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <WizardField label="Taxa anual (a.a.)" htmlFor={rateId}>
+            <input
+              id={rateId}
+              type="number"
+              step="0.01"
+              min={0}
+              max={1000}
+              {...form.register("annualRatePct", { valueAsNumber: true })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+          {kind === "personal_loan" ? (
+            <MoneyInput
+              control={form.control}
+              name="monthlyInstallmentCents"
+              label="Parcela mensal"
+            />
+          ) : null}
+          {kind === "financing" ? (
+            <>
+              <MoneyInput
+                control={form.control}
+                name="monthlyInsuranceCents"
+                label="Seguro mensal"
+              />
+              <MoneyInput
+                control={form.control}
+                name="monthlyAdminFeeCents"
+                label="Taxa administrativa mensal"
+              />
+            </>
+          ) : null}
+        </section>
+      )}
+
+      {kind === "credit_card" ? (
+        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <MoneyInput control={form.control} name="creditLimitCents" label="Limite do cartão" />
+          <MoneyInput
+            control={form.control}
+            name="currentStatementCents"
+            label="Fatura atual"
+          />
+          <div className="grid grid-cols-2 gap-2">
+            <WizardField label="Dia de fechamento" htmlFor={statementDayId}>
+              <input
+                id={statementDayId}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={31}
+                {...form.register("statementDay", { valueAsNumber: true })}
+                className={wizardInputClass}
+              />
+            </WizardField>
+            <WizardField label="Dia de vencimento" htmlFor={dueDayId}>
+              <input
+                id={dueDayId}
+                type="number"
+                inputMode="numeric"
+                min={1}
+                max={31}
+                {...form.register("dueDay", { valueAsNumber: true })}
+                className={wizardInputClass}
+              />
+            </WizardField>
+          </div>
+          <MoneyInput
+            control={form.control}
+            name="revolvingBalanceCents"
+            label="Saldo do rotativo"
+            helper="Faturas anteriores arrastadas."
+          />
+          <WizardField label="Taxa do rotativo (a.m.)" htmlFor={revolvingRateId}>
+            <input
+              id={revolvingRateId}
+              type="number"
+              step="0.01"
+              min={0}
+              max={1000}
+              {...form.register("revolvingMonthlyRatePct", { valueAsNumber: true })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </section>
+      ) : null}
+
+      {kind === "overdraft" ? (
+        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <WizardField label="Banco" htmlFor={bankId}>
+            <input id={bankId} {...form.register("bankName")} className={wizardInputClass} />
+          </WizardField>
+          <WizardField label="Taxa mensal (a.m.)" htmlFor={overdraftRateId}>
+            <input
+              id={overdraftRateId}
+              type="number"
+              step="0.01"
+              min={0}
+              max={1000}
+              {...form.register("monthlyRatePct", { valueAsNumber: true })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </section>
+      ) : null}
+
+      {kind === "recurring" ? (
+        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <MoneyInput
+            control={form.control}
+            name="recurringAmountCents"
+            label="Valor por período"
+          />
+          <WizardField label="Frequência" htmlFor={frequencyId}>
+            <select
+              id={frequencyId}
+              {...form.register("recurringFrequency")}
+              className={wizardInputClass}
+            >
+              <option value="monthly">Mensal</option>
+              <option value="weekly">Semanal</option>
+            </select>
+          </WizardField>
+          <WizardField
+            label="Dia do pagamento (opcional)"
+            htmlFor={dueDayId}
+            helper="Dia do mês em que o pagamento cai. Usado pra avisar no calendário."
+          >
+            <input
+              id={dueDayId}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={31}
+              {...form.register("dueDay", {
+                setValueAs: (v) => {
+                  if (v === "" || v === null || v === undefined) return null;
+                  const n = Number(v);
+                  return Number.isFinite(n) ? n : null;
+                },
+              })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </section>
+      ) : null}
+
+      {serverError ? (
+        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
+          {serverError}
+        </span>
+      ) : null}
+
+      <div className="flex items-center gap-3">
+        <Button type="submit" loading={pending}>
+          Salvar alterações
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          onClick={() => router.push(`/app/dividas/${debtId}` as Route)}
+        >
+          Cancelar
+        </Button>
+      </div>
+    </form>
+  );
+}

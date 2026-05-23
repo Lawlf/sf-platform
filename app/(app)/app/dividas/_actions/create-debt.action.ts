@@ -1,17 +1,13 @@
 "use server";
 
-import type { Route } from "next";
-import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import {
   creditCardFormSchema,
   financingFormSchema,
@@ -22,17 +18,20 @@ import { isOk } from "@/shared/errors";
 
 type Kind = "financing" | "personal_loan" | "credit_card" | "overdraft";
 
-// Function never returns on success because of redirect(); the type is the error-only branch.
-export async function createDebtAction(
-  kind: Kind,
-  formData: FormData,
-): Promise<{ ok: false; message: string }> {
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
+export type CreateDebtResult = { ok: true; debtId: string } | { ok: false; message: string };
+
+function revalidateDebtPaths(debtId: string): void {
+  revalidatePath(`/app/dividas/${debtId}`);
+  revalidatePath("/app/dividas");
+  revalidatePath("/app/linha-do-tempo");
+  revalidatePath("/app/notificacoes");
+  revalidatePath("/app");
+}
+
+// Cria a dívida e retorna o id em caso de sucesso. O cliente é responsável pelo redirect
+// para permitir composição com outros server actions (ex: vincular ativo após criação).
+export async function createDebtAction(kind: Kind, formData: FormData): Promise<CreateDebtResult> {
+  const user = await requireUser();
 
   const raw = Object.fromEntries(formData.entries());
 
@@ -64,9 +63,11 @@ export async function createDebtAction(
         d.monthlyInsuranceCents !== null ? Money.fromCents(d.monthlyInsuranceCents) : null,
       monthlyAdminFee:
         d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents) : null,
+      currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
-    redirect(`/app/dividas/${r.value.id}` as Route);
+    revalidateDebtPaths(r.value.id);
+    return { ok: true, debtId: r.value.id };
   }
 
   if (kind === "personal_loan") {
@@ -88,9 +89,11 @@ export async function createDebtAction(
       annualInterestRate: annualRate.value,
       termMonths: d.termMonths,
       monthlyInstallment: Money.fromCents(d.monthlyInstallmentCents),
+      currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
-    redirect(`/app/dividas/${r.value.id}` as Route);
+    revalidateDebtPaths(r.value.id);
+    return { ok: true, debtId: r.value.id };
   }
 
   if (kind === "credit_card") {
@@ -105,6 +108,17 @@ export async function createDebtAction(
       if (!isOk(rr)) return { ok: false, message: "Taxa rotativo invalida." };
       revolvingRate = rr.value;
     }
+    const installmentPurchases = d.installmentPurchasesJson.map((p) => {
+      const monthlyCents = p.totalCents / BigInt(p.installmentsTotal);
+      return {
+        description: p.description,
+        total: Money.fromCents(p.totalCents),
+        installmentsTotal: p.installmentsTotal,
+        installmentsRemaining: p.installmentsRemaining,
+        monthlyValue: Money.fromCents(monthlyCents),
+      };
+    });
+
     const r = await registerDebt(deps, {
       userId: user.id,
       label: d.label,
@@ -119,10 +133,11 @@ export async function createDebtAction(
       revolvingBalance:
         d.revolvingBalanceCents !== null ? Money.fromCents(d.revolvingBalanceCents) : null,
       revolvingMonthlyRate: revolvingRate,
-      installmentPurchases: [],
+      installmentPurchases,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
-    redirect(`/app/dividas/${r.value.id}` as Route);
+    revalidateDebtPaths(r.value.id);
+    return { ok: true, debtId: r.value.id };
   }
 
   if (kind === "overdraft") {
@@ -145,7 +160,8 @@ export async function createDebtAction(
       monthlyRate: monthly.value,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
-    redirect(`/app/dividas/${r.value.id}` as Route);
+    revalidateDebtPaths(r.value.id);
+    return { ok: true, debtId: r.value.id };
   }
 
   return { ok: false, message: "Tipo de divida desconhecido." };

@@ -1,9 +1,6 @@
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors";
 
 import { PageShell } from "../../_components/page-shell";
@@ -11,12 +8,7 @@ import { PageShell } from "../../_components/page-shell";
 import { StrategyForm } from "./_components/strategy-form";
 
 export default async function EstrategiaPage() {
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
+  const user = await requireUser();
   const listed = await listDebts(
     { debts: new DrizzleDebtRepository() },
     { userId: user.id, status: "active" },

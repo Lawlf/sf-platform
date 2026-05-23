@@ -1,41 +1,78 @@
-import type { Route } from "next";
-import Link from "next/link";
+import type { Metadata } from "next";
+import { Suspense } from "react";
 
-import { Button } from "@/app/components/ui/button";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
+import { Skeleton } from "@/app/components/ui/skeleton";
+import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
+import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
+import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
+import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { isOk } from "@/shared/errors";
+
+import { PageShell } from "../_components/page-shell";
+
+import { PerfilAchievements } from "./_components/perfil-achievements";
+import { PerfilHero } from "./_components/perfil-hero";
+import { PerfilStats } from "./_components/perfil-stats";
+
+export const metadata: Metadata = { title: "Perfil" };
 
 export default async function PerfilPage() {
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
+  const user = await requireUser();
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-md flex-col gap-6 px-6 py-10">
-      <header>
-        <h1 className="text-2xl font-bold tracking-tight text-[color:var(--color-brand-800)]">
-          Perfil
-        </h1>
-        <p className="mt-1 text-sm opacity-80">{user.email}</p>
-      </header>
-      <nav aria-label="Configuracoes do perfil" className="flex flex-col gap-3">
-        <Button asChild variant="glass" className="justify-start">
-          <Link href={"/app/perfil/seguranca" as Route}>Seguranca (sessoes ativas)</Link>
-        </Button>
-        <Button asChild variant="glass" className="justify-start">
-          <Link href={"/app/perfil/conta" as Route}>Conta (desativar)</Link>
-        </Button>
-      </nav>
-      <form action="/api/auth/sign-out" method="post">
-        <Button type="submit" variant="ghost">
-          Sair
-        </Button>
-      </form>
-    </main>
+    <PageShell title="Perfil" description="Quem você é, como anda sua saúde financeira.">
+      <PerfilHero initialDisplayName={user.displayName ?? ""} email={user.email} />
+      <Suspense
+        fallback={
+          <div className="grid grid-cols-3 gap-2">
+            <Skeleton className="h-[100px] rounded-2xl" />
+            <Skeleton className="h-[100px] rounded-2xl" />
+            <Skeleton className="h-[100px] rounded-2xl" />
+          </div>
+        }
+      >
+        <PerfilStatsSection userId={user.id} />
+      </Suspense>
+      <PerfilAchievements />
+    </PageShell>
+  );
+}
+
+async function PerfilStatsSection({ userId }: { userId: string }) {
+  const clock = new SystemClock();
+  const debts = new DrizzleDebtRepository();
+  const snapshotR = await getDashboardSnapshot(
+    {
+      debts,
+      incomes: new DrizzleIncomeRepository(),
+      clock,
+    },
+    { userId },
+  );
+  const netWorthR = await getNetWorth(
+    {
+      assets: new DrizzleAssetRepository(),
+      allocations: new DrizzleAssetDebtAllocationRepository(),
+      debts,
+    },
+    { userId },
+  );
+  const snapshot = isOk(snapshotR) ? snapshotR.value : null;
+  const netWorth = isOk(netWorthR) ? netWorthR.value : null;
+  const totalAssetCount = netWorth
+    ? netWorth.byCategory.reduce((acc, c) => acc + c.assetCount, 0)
+    : 0;
+
+  return (
+    <PerfilStats
+      netWorthFormatted={netWorth ? netWorth.netWorth.format() : null}
+      netWorthIsNegative={netWorth ? netWorth.netWorth.toCents() < 0n : false}
+      incomeCommittedPct={snapshot ? snapshot.incomeCommittedPct : null}
+      assetCount={totalAssetCount}
+    />
   );
 }

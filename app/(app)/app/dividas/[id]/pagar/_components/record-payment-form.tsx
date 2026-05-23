@@ -1,13 +1,19 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import { useId, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
 
 import { MoneyInput } from "../../../../_components/money-input";
+import { queryKeys } from "../../../../_lib/query-keys";
+import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
+import { WizardRadioCard } from "../../../nova/_components/wizard-radio-card";
 import { recordPaymentAction } from "../_actions/record-payment.action";
 
 const formSchema = z
@@ -36,8 +42,11 @@ export function RecordPaymentForm({
   defaults,
   currentBalanceFormatted,
 }: Props) {
+  const router = useRouter();
+  const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const paidAtId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -51,6 +60,7 @@ export function RecordPaymentForm({
 
   const principal = useWatch({ control: form.control, name: "principalCents" }) ?? 0n;
   const interest = useWatch({ control: form.control, name: "interestCents" }) ?? 0n;
+  const isExtra = useWatch({ control: form.control, name: "isExtra" }) ?? false;
   const totalCents = (principal as bigint) + (interest as bigint);
 
   async function onSubmit(values: FormValues) {
@@ -64,62 +74,102 @@ export function RecordPaymentForm({
     fd.set("isExtra", values.isExtra ? "true" : "false");
     startTransition(async () => {
       const r = await recordPaymentAction(fd);
-      if (!r.ok) setServerError(r.message);
-      // success -> action redirects
+      if (!r.ok) {
+        setServerError(r.message);
+        return;
+      }
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
+        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      ]);
+      router.push(`/app/dividas/${r.debtId}` as Route);
     });
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-      <p className="text-sm opacity-80">
-        Saldo atual: <strong>{currentBalanceFormatted}</strong>
-      </p>
+    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+        <div className="flex items-baseline justify-between gap-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+            Dívida atual
+          </span>
+          <span className="text-[18px] font-extrabold text-[color:var(--text-primary)]">
+            {currentBalanceFormatted}
+          </span>
+        </div>
+      </section>
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Data do pagamento</span>
-        <input
-          type="date"
-          {...form.register("paidAt")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
+      <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+        <WizardField label="Data do pagamento" htmlFor={paidAtId}>
+          <input
+            id={paidAtId}
+            type="date"
+            {...form.register("paidAt")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+
+        <MoneyInput
+          control={form.control}
+          name="principalCents"
+          label="Parte do principal"
+          helper="Valor abatido da dívida."
+          required
         />
-      </label>
 
-      <MoneyInput
-        control={form.control}
-        name="principalCents"
-        label="Parte do principal"
-        helper="Valor abatido do saldo devedor."
-        required
-      />
-      <MoneyInput
-        control={form.control}
-        name="interestCents"
-        label="Parte de juros"
-        helper="Juros pagos neste mês."
-      />
+        <MoneyInput
+          control={form.control}
+          name="interestCents"
+          label="Parte de juros"
+          helper="Juros pagos nesse mês."
+        />
 
-      <label className="flex items-center gap-2 text-sm">
-        <input type="checkbox" {...form.register("isExtra")} />
-        <span>É um pagamento extra (alem da parcela)</span>
-      </label>
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[11px] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+            Tipo de pagamento
+          </span>
+          <div className="grid grid-cols-2 gap-2">
+            <WizardRadioCard
+              title="Parcela normal"
+              description="Pagamento agendado da dívida."
+              active={!isExtra}
+              onSelect={() => form.setValue("isExtra", false, { shouldDirty: true })}
+            />
+            <WizardRadioCard
+              title="Pagamento extra"
+              description="Amortização acima da parcela."
+              active={isExtra}
+              onSelect={() => form.setValue("isExtra", true, { shouldDirty: true })}
+            />
+          </div>
+        </div>
 
-      <p className="text-xs opacity-70">
-        Total: <strong>{formatCentsForDisplay(totalCents as bigint)}</strong>
-      </p>
+        <div className="flex items-baseline justify-between border-t border-[color:var(--border-soft)] pt-3">
+          <span className="text-[11px] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+            Total
+          </span>
+          <span className="text-[18px] font-extrabold text-[color:var(--text-primary)]">
+            {formatCentsForDisplay(totalCents as bigint)}
+          </span>
+        </div>
+      </section>
 
       {form.formState.errors.root ? (
-        <span role="alert" className="text-sm text-[color:var(--color-negative)]">
+        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
           {form.formState.errors.root.message}
         </span>
       ) : null}
       {serverError ? (
-        <span role="alert" className="text-sm text-[color:var(--color-negative)]">
+        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
           {serverError}
         </span>
       ) : null}
 
-      <Button type="submit" disabled={pending}>
-        {pending ? "Registrando..." : "Registrar pagamento"}
+      <Button type="submit" loading={pending}>
+        Registrar pagamento
       </Button>
     </form>
   );

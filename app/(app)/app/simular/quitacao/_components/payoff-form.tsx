@@ -58,7 +58,7 @@ export function PayoffForm({
           <span className="font-medium">Dívida</span>
           <select
             {...form.register("debtId")}
-            className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
+            className="rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
           >
             {debts.map((d) => (
               <option key={d.id} value={d.id}>
@@ -81,8 +81,8 @@ export function PayoffForm({
           helper="Adiciona acima da parcela todo mês."
         />
 
-        <Button type="submit" disabled={pending}>
-          {pending ? "Calculando..." : "Calcular projeção"}
+        <Button type="submit" loading={pending}>
+          Calcular projeção
         </Button>
       </form>
 
@@ -106,14 +106,14 @@ export function PayoffForm({
                 Total de juros: <strong>{result.totalInterest}</strong>
               </li>
               {result.negativeAmortization ? (
-                <li className="text-[color:var(--color-negative)]">
+                <li className="text-[color:var(--semantic-negative)]">
                   Atenção: pagamento não cobre os juros. Saldo cresce.
                 </li>
               ) : null}
             </ul>
           </section>
         ) : (
-          <p role="alert" className="text-sm text-[color:var(--color-negative)]">
+          <p role="alert" className="text-sm text-[color:var(--semantic-negative)]">
             {result.message}
           </p>
         )

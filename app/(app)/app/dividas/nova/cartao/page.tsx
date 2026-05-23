@@ -1,11 +1,10 @@
-import { PageShell } from "../../../_components/page-shell";
-
 import { CreditCardForm } from "./_components/credit-card-form";
 
-export default function CartaoPage() {
-  return (
-    <PageShell title="Novo cartão de crédito" description="Fatura, parcelamentos e saldo rotativo.">
-      <CreditCardForm />
-    </PageShell>
-  );
+interface PageProps {
+  searchParams: Promise<{ existing?: string }>;
+}
+
+export default async function CartaoPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  return <CreditCardForm existing={sp.existing === "1"} />;
 }

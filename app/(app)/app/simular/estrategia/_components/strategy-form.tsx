@@ -90,7 +90,7 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
             </label>
           ))}
           {form.formState.errors.selectedDebtIds ? (
-            <span role="alert" className="text-xs text-[color:var(--color-negative)]">
+            <span role="alert" className="text-xs text-[color:var(--semantic-negative)]">
               {form.formState.errors.selectedDebtIds.message}
             </span>
           ) : null}
@@ -104,8 +104,8 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
           helper="Quanto você pode destinar por mês para todas as dívidas."
         />
 
-        <Button type="submit" disabled={pending}>
-          {pending ? "Calculando..." : "Comparar estratégias"}
+        <Button type="submit" loading={pending}>
+          Comparar estratégias
         </Button>
       </form>
 
@@ -127,7 +127,7 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
               />
             </div>
             {interestDelta !== null && interestDelta > 0 ? (
-              <p className="glass-light p-4 text-sm text-[color:var(--color-positive)]">
+              <p className="glass-light p-4 text-sm text-[color:var(--semantic-positive)]">
                 Avalanche poupa{" "}
                 <strong>
                   {new Intl.NumberFormat("pt-BR", {
@@ -140,7 +140,7 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
             ) : null}
           </section>
         ) : (
-          <p role="alert" className="text-sm text-[color:var(--color-negative)]">
+          <p role="alert" className="text-sm text-[color:var(--semantic-negative)]">
             {result.message}
           </p>
         )

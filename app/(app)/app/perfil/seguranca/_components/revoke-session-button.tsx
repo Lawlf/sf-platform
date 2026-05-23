@@ -20,11 +20,11 @@ export function RevokeSessionButton({ publicSessionId }: { publicSessionId: stri
 
   return (
     <div className="flex flex-col items-end gap-1">
-      <Button type="button" variant="destructive" disabled={pending} onClick={onClick}>
-        {pending ? "Revogando..." : "Revogar"}
+      <Button type="button" variant="destructive" loading={pending} onClick={onClick}>
+        Revogar
       </Button>
       {error ? (
-        <span role="alert" className="text-xs text-[color:var(--color-negative)]">
+        <span role="alert" className="text-xs text-[color:var(--semantic-negative)]">
           {error}
         </span>
       ) : null}

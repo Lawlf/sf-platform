@@ -1,0 +1,38 @@
+import { formatCentsBRL } from "../../../_lib/format";
+import { type FinancingFormValues } from "../_schema";
+
+interface SummaryInputs {
+  values: FinancingFormValues;
+  totalPaidValue: string;
+  linkSummary: string;
+}
+
+export function buildFinancingSummary({
+  values,
+  totalPaidValue,
+  linkSummary,
+}: SummaryInputs): { label: string; value: string }[] {
+  if (values.scenario === "new") {
+    return [
+      { label: "Rótulo", value: values.label || "Sem rótulo" },
+      { label: "Tipo", value: "Financiamento" },
+      { label: "Valor", value: formatCentsBRL(values.principalCents) },
+      { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+      { label: "Prazo", value: `${values.termMonths} meses` },
+      { label: "Total a pagar", value: totalPaidValue },
+      { label: "Bem vinculado", value: linkSummary },
+    ];
+  }
+  return [
+    { label: "Rótulo", value: values.label || "Sem rótulo" },
+    { label: "Tipo", value: "Financiamento" },
+    { label: "Valor original", value: formatCentsBRL(values.originalPrincipalCents) },
+    { label: "Saldo devedor", value: formatCentsBRL(values.currentBalanceCents) },
+    { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+    { label: "Parcelas pagas", value: `${values.paidInstallments}` },
+    { label: "Parcelas restantes", value: `${values.remainingTerms}` },
+    { label: "Total a pagar", value: totalPaidValue },
+    { label: "Bem vinculado", value: linkSummary },
+  ];
+}
+

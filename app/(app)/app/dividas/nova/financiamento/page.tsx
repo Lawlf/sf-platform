@@ -1,11 +1,11 @@
-import { PageShell } from "../../../_components/page-shell";
-
 import { FinancingForm } from "./_components/financing-form";
 
-export default function FinanciamentoPage() {
-  return (
-    <PageShell title="Novo financiamento" description="Imóvel ou veículo com sistema Price ou SAC.">
-      <FinancingForm />
-    </PageShell>
-  );
+interface PageProps {
+  searchParams: Promise<{ existing?: string }>;
+}
+
+export default async function FinanciamentoPage({ searchParams }: PageProps) {
+  const sp = await searchParams;
+  const initialScenario = sp.existing === "1" ? "ongoing" : "new";
+  return <FinancingForm initialScenario={initialScenario} />;
 }

@@ -1,44 +1,85 @@
-import type { Route } from "next";
-import Link from "next/link";
+"use client";
 
-const KINDS = [
+import { AlertTriangle, Clock, Repeat, ShoppingBag, Wallet } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import type { ReactNode } from "react";
+
+import { KindCard } from "./kind-card";
+import { WizardShell } from "./wizard-shell";
+
+type ActionId = "comprei" | "emprestimo" | "recorrente" | "cheque-especial" | "antiga";
+
+interface ActionOption {
+  id: ActionId;
+  href: Route;
+  title: string;
+  description: string;
+  icon: ReactNode;
+}
+
+const ACTIONS: readonly ActionOption[] = [
   {
-    href: "/app/dividas/nova/financiamento" as Route,
-    title: "Financiamento",
-    desc: "Imóvel ou veículo (Price ou SAC).",
+    id: "comprei",
+    href: "/app/dividas/nova/comprei" as Route,
+    title: "Comprei algo",
+    description:
+      "Pix, débito, cartão parcelado, crediário ou financiamento. Notebook, geladeira, sofá, carro.",
+    icon: <ShoppingBag size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
+    id: "emprestimo",
     href: "/app/dividas/nova/emprestimo" as Route,
-    title: "Empréstimo pessoal",
-    desc: "Consignado ou pessoal, parcelas fixas.",
+    title: "Peguei dinheiro emprestado",
+    description:
+      "Empréstimo pessoal, consignado, dinheiro emprestado pra emergência ou pagar outra dívida. Sem compra atrelada.",
+    icon: <Wallet size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
-    href: "/app/dividas/nova/cartao" as Route,
-    title: "Cartão de crédito",
-    desc: "Fatura, parcelamento, rotativo.",
+    id: "recorrente",
+    href: "/app/dividas/nova/recorrente" as Route,
+    title: "Tenho conta que vem todo mês",
+    description: "Netflix, Spotify, academia, escola, plano de saúde.",
+    icon: <Repeat size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
+    id: "cheque-especial",
     href: "/app/dividas/nova/cheque-especial" as Route,
-    title: "Cheque especial",
-    desc: "Limite no banco com juros diários.",
+    title: "Estourei o limite da conta",
+    description: "Saldo negativo, cheque especial. Juros todo dia, o mais caro.",
+    icon: <AlertTriangle size={20} strokeWidth={1.75} aria-hidden />,
+  },
+  {
+    id: "antiga",
+    href: "/app/dividas/nova/antiga" as Route,
+    title: "Lembrei de dívida antiga",
+    description: "Empréstimo, financiamento ou cartão que já corre antes do app.",
+    icon: <Clock size={20} strokeWidth={1.75} aria-hidden />,
   },
 ] as const;
 
 export function KindPicker() {
+  const router = useRouter();
+
   return (
-    <div className="flex flex-col gap-3">
-      {KINDS.map((k) => (
-        <Link
-          key={k.href}
-          href={k.href}
-          className="glass-light flex flex-col gap-1 p-4 transition-colors hover:bg-white/70"
-        >
-          <span className="text-sm font-semibold text-[color:var(--color-brand-800)]">
-            {k.title}
-          </span>
-          <span className="text-xs opacity-70">{k.desc}</span>
-        </Link>
-      ))}
-    </div>
+    <WizardShell
+      currentStep={1}
+      title="O que aconteceu?"
+      description="Não precisa ser dívida grande. Pode ser uma compra, uma conta nova, algo antigo que esqueceu."
+      onBack={() => router.push("/app" as Route)}
+    >
+      <div role="radiogroup" aria-label="O que aconteceu" className="flex flex-col gap-2 md:gap-3.5">
+        {ACTIONS.map((action) => (
+          <KindCard
+            key={action.id}
+            icon={action.icon}
+            title={action.title}
+            description={action.description}
+            selected={false}
+            onSelect={() => router.push(action.href)}
+          />
+        ))}
+      </div>
+    </WizardShell>
   );
 }

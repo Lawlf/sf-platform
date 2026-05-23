@@ -2,12 +2,9 @@ import type { Route } from "next";
 import { notFound, redirect } from "next/navigation";
 
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -20,12 +17,7 @@ interface PageProps {
 
 export default async function PagarPage({ params }: PageProps) {
   const { id } = await params;
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
+  const user = await requireUser();
   const r = await getDebtDetail(
     { debts: new DrizzleDebtRepository(), payments: new DrizzleDebtPaymentRepository() },
     { userId: user.id, debtId: id },
@@ -43,7 +35,11 @@ export default async function PagarPage({ params }: PageProps) {
   const defaultPaidAt = new Date().toISOString().slice(0, 10);
 
   return (
-    <PageShell title={`Pagar ${debt.label}`} description="Registre um pagamento desta divida.">
+    <PageShell
+      title={`Pagar ${debt.label}`}
+      description="Registre um pagamento dessa dívida."
+      backHref={`/app/dividas/${debt.id}` as Route}
+    >
       <RecordPaymentForm
         debtId={debt.id}
         defaultPaidAt={defaultPaidAt}

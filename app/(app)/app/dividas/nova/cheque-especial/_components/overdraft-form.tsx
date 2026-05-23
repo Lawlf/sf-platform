@@ -1,15 +1,24 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState, useTransition } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import { ArrowRight } from "lucide-react";
+import type { Route } from "next";
+import { useRouter } from "next/navigation";
+import { useId, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import { Button } from "@/app/components/ui/button";
-
-import { MoneyInput } from "../../../../_components/money-input";
-import { RateInput } from "../../../../_components/rate-input";
+import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
+import { todayIso } from "../../../_lib/dates";
+import { invalidateDebtCaches } from "../../../_lib/invalidate";
+import { ComputedCard } from "../../_components/computed-card";
+import { SummaryList } from "../../_components/summary-list";
+import { WizardField, wizardInputClass } from "../../_components/wizard-field";
+import { WizardMoneyField } from "../../_components/wizard-money-field";
+import { WizardPercentField } from "../../_components/wizard-percent-field";
+import { WizardShell } from "../../_components/wizard-shell";
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rotulo.").max(120),
@@ -23,11 +32,34 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const TODAY = new Date().toISOString().slice(0, 10);
+
+type Step = 2 | 3 | 4;
+
+const STEP2_FIELDS = ["label", "bankName", "currentBalanceCents"] as const;
+
+const STEP3_FIELDS = ["monthlyRatePct", "startDate"] as const;
+
+function formatBRL(cents: bigint | null | undefined): string {
+  if (cents === null || cents === undefined) return "R$ 0,00";
+  const reais = Number(cents) / 100;
+  return reais.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+}
 
 export function OverdraftForm() {
+  const router = useRouter();
+  const queryClient = useQueryClient();
+  const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  const labelId = useId();
+  const bankId = useId();
+  const balanceId = useId();
+  const rateId = useId();
+  const startDateId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -36,110 +68,202 @@ export function OverdraftForm() {
       currentBalanceCents: 0n as unknown as bigint,
       bankName: "",
       monthlyRatePct: 0,
-      startDate: TODAY,
+      startDate: todayIso(),
       expectedEndDate: null,
       notes: null,
     },
   });
 
-  async function onSubmit(values: FormValues) {
+  const values = form.watch();
+  const errors = form.formState.errors;
+
+  // juros_mensais = saldo × taxa_mensal / 100
+  const monthlyInterestCents = useMemo(() => {
+    const balance = values.currentBalanceCents;
+    const rate = values.monthlyRatePct;
+    if (typeof balance !== "bigint" || balance <= 0n) return null;
+    if (typeof rate !== "number" || !Number.isFinite(rate) || rate <= 0) return null;
+    const balanceReais = Number(balance) / 100;
+    const interest = (balanceReais * rate) / 100;
+    if (!Number.isFinite(interest)) return null;
+    return BigInt(Math.round(interest * 100));
+  }, [values.currentBalanceCents, values.monthlyRatePct]);
+
+  async function goToStep3() {
+    const valid = await form.trigger(STEP2_FIELDS);
+    if (valid) setStep(3);
+  }
+
+  async function goToStep4() {
+    const valid = await form.trigger(STEP3_FIELDS);
+    if (valid) setStep(4);
+  }
+
+  async function handleSubmit() {
     setServerError(null);
+    const valid = await form.trigger();
+    if (!valid) return;
+    const v = form.getValues();
     const fd = new FormData();
-    fd.set("label", values.label);
-    fd.set("currentBalanceCents", values.currentBalanceCents.toString());
-    fd.set("bankName", values.bankName);
-    fd.set("monthlyRatePct", String(values.monthlyRatePct));
-    fd.set("startDate", values.startDate);
-    fd.set("expectedEndDate", values.expectedEndDate ?? "");
-    fd.set("notes", values.notes ?? "");
+    fd.set("label", v.label);
+    fd.set("currentBalanceCents", v.currentBalanceCents.toString());
+    fd.set("bankName", v.bankName);
+    fd.set("monthlyRatePct", String(v.monthlyRatePct));
+    fd.set("startDate", v.startDate);
+    fd.set("expectedEndDate", v.expectedEndDate ?? "");
+    fd.set("notes", v.notes ?? "");
     startTransition(async () => {
       const r = await createDebtAction("overdraft", fd);
-      if (!r.ok) setServerError(r.message);
+      if (!r.ok) {
+        setServerError(r.message);
+        return;
+      }
+      await invalidateDebtCaches(queryClient);
+      router.push(`/app/dividas/${r.debtId}` as Route);
     });
   }
 
+  const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
+
+  if (step === 2) {
+    return (
+      <WizardShell
+        currentStep={2}
+        totalSteps={4}
+        title="Saldo devedor"
+        description="Quanto está usando do cheque especial agora."
+        onBack={() => router.push("/app/dividas/nova" as Route)}
+        primary={{
+          label: "Continuar",
+          onClick: () => {
+            void goToStep3();
+          },
+          icon: arrowRight,
+        }}
+      >
+        <WizardField label="Rótulo" htmlFor={labelId} error={errors.label?.message}>
+          <input
+            id={labelId}
+            {...form.register("label")}
+            placeholder="Ex: Itaú"
+            className={wizardInputClass}
+          />
+        </WizardField>
+
+        <WizardField label="Banco" htmlFor={bankId} error={errors.bankName?.message}>
+          <input
+            id={bankId}
+            {...form.register("bankName")}
+            placeholder="Ex: Itaú, Bradesco, Caixa..."
+            className={wizardInputClass}
+          />
+        </WizardField>
+
+        <WizardField
+          label="Saldo devedor atual"
+          htmlFor={balanceId}
+          error={errors.currentBalanceCents?.message}
+        >
+          <WizardMoneyField
+            control={form.control}
+            name="currentBalanceCents"
+            id={balanceId}
+            placeholder="R$ 0,00"
+          />
+        </WizardField>
+      </WizardShell>
+    );
+  }
+
+  if (step === 3) {
+    return (
+      <WizardShell
+        currentStep={3}
+        totalSteps={4}
+        title="Taxa"
+        description="Taxa do banco e data de início."
+        onBack={() => setStep(2)}
+        primary={{
+          label: "Continuar",
+          onClick: () => {
+            void goToStep4();
+          },
+          icon: arrowRight,
+        }}
+      >
+        <WizardField
+          label="Taxa de juros (a.m.)"
+          htmlFor={rateId}
+          error={errors.monthlyRatePct?.message}
+          helpLink={<HowItWorksSheet topic="cheque-especial" variant="brand" />}
+        >
+          <WizardPercentField
+            control={form.control}
+            name="monthlyRatePct"
+            id={rateId}
+            step="0.01"
+            min={0}
+            max={1000}
+          />
+        </WizardField>
+
+        <WizardField label="Data de início" htmlFor={startDateId} error={errors.startDate?.message}>
+          <input
+            id={startDateId}
+            type="date"
+            {...form.register("startDate")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+      </WizardShell>
+    );
+  }
+
+  // step 4
+  const interestText = monthlyInterestCents
+    ? formatBRL(monthlyInterestCents)
+    : "Informe taxa para calcular";
+
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Rotulo</span>
-        <input
-          {...form.register("label")}
-          placeholder="ex: Cheque especial Itaú"
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-        {form.formState.errors.label ? (
-          <span role="alert" className="text-xs text-[color:var(--color-negative)]">
-            {form.formState.errors.label.message}
-          </span>
-        ) : null}
-      </label>
-
-      <MoneyInput
-        control={form.control}
-        name="currentBalanceCents"
-        label="Saldo devedor atual"
-        required
-        helper="Quanto está usando do cheque especial agora."
+    <WizardShell
+      currentStep={4}
+      totalSteps={4}
+      title="Confirme os dados"
+      description="Olha como vai ficar antes de salvar."
+      onBack={() => setStep(3)}
+      primary={{
+        label: "Salvar dívida",
+        onClick: () => {
+          void handleSubmit();
+        },
+        disabled: pending,
+        loading: pending,
+      }}
+    >
+      <ComputedCard
+        label="Juros mensais nesse saldo"
+        value={interestText}
+        sub="Considerando a taxa atual"
       />
 
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Banco</span>
-        <input
-          {...form.register("bankName")}
-          placeholder="ex: Itaú, Bradesco, Caixa..."
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-        {form.formState.errors.bankName ? (
-          <span role="alert" className="text-xs text-[color:var(--color-negative)]">
-            {form.formState.errors.bankName.message}
-          </span>
-        ) : null}
-      </label>
-
-      <RateInput
-        control={form.control}
-        name="monthlyRatePct"
-        label="Taxa mensal (% a.m.)"
-        helper="Taxa de juros mensal cobrada pelo banco."
-        required
+      <SummaryList
+        items={[
+          { label: "Rótulo", value: values.label || "Sem rótulo" },
+          { label: "Tipo", value: "Cheque especial" },
+          { label: "Banco", value: values.bankName || "Sem banco" },
+          { label: "Saldo devedor", value: formatBRL(values.currentBalanceCents) },
+          { label: "Taxa", value: `${values.monthlyRatePct}% a.m.` },
+        ]}
       />
-
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Data de início</span>
-        <input
-          type="date"
-          {...form.register("startDate")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Data prevista de término (opcional)</span>
-        <input
-          type="date"
-          {...form.register("expectedEndDate")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-      </label>
-
-      <label className="flex flex-col gap-1 text-sm">
-        <span className="font-medium">Notas (opcional)</span>
-        <textarea
-          rows={3}
-          {...form.register("notes")}
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-base outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
-        />
-      </label>
 
       {serverError ? (
-        <span role="alert" className="text-sm text-[color:var(--color-negative)]">
+        <div
+          role="alert"
+          className="mb-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[13px] text-[color:var(--semantic-negative)]"
+        >
           {serverError}
-        </span>
+        </div>
       ) : null}
-
-      <Button type="submit" disabled={pending}>
-        {pending ? "Salvando..." : "Cadastrar dívida"}
-      </Button>
-    </form>
+    </WizardShell>
   );
 }

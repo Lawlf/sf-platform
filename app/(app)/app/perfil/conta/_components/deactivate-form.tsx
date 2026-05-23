@@ -33,12 +33,12 @@ export function DeactivateForm() {
           rows={3}
           maxLength={500}
           placeholder="Conte por que esta saindo..."
-          className="rounded-lg border border-black/10 bg-white/70 px-3 py-2 text-sm outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
+          className="rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-sm outline-none focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
         />
       </label>
       <div className="flex gap-2">
-        <Button type="submit" variant="destructive" disabled={pending}>
-          {pending ? "Desativando..." : "Confirmar desativacao"}
+        <Button type="submit" variant="destructive" loading={pending}>
+          Confirmar desativacao
         </Button>
         <Button
           type="button"

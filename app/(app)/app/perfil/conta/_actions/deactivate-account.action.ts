@@ -5,19 +5,13 @@ import { redirect } from "next/navigation";
 
 import { deactivateAccount } from "@/application/use-cases/account/deactivate-account.use-case";
 import { buildClearedSessionCookie } from "@/infrastructure/auth/session-cookie";
-import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/require-user";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export async function deactivateAccountAction(formData: FormData): Promise<void> {
-  const user = await requireUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
-    hasher: new WebCryptoHasher(),
-    now: new Date(),
-  });
+  const user = await requireUser();
   const reason = (formData.get("reason")?.toString() ?? "").trim() || null;
   await deactivateAccount(
     {
