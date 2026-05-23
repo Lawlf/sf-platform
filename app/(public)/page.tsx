@@ -1,21 +1,49 @@
-import Link from "next/link";
-
-import { Button } from "@/app/components/ui/button";
+import {
+  FaqJsonLd,
+  OrganizationJsonLd,
+  SoftwareApplicationJsonLd,
+  WebSiteJsonLd,
+} from "./_components/json-ld";
+import { LandingFaq } from "./_components/landing-faq";
+import { LandingFeatures } from "./_components/landing-features";
+import { LandingFinalCta } from "./_components/landing-final-cta";
+import { LandingFooter } from "./_components/landing-footer";
+import { LandingFounder } from "./_components/landing-founder";
+import { LandingHeader } from "./_components/landing-header";
+import { LandingHero } from "./_components/landing-hero";
+import { LandingHow } from "./_components/landing-how";
+import { LandingPillars } from "./_components/landing-pillars";
+import { LandingPricing } from "./_components/landing-pricing";
+import { LandingPrivacy } from "./_components/landing-privacy";
 
 export default function HomePage() {
   return (
-    <main className="flex min-h-screen items-center justify-center px-6">
-      <section className="glass-light max-w-md p-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight text-[color:var(--color-brand-800)]">
-          Sabor Financeiro
-        </h1>
-        <p className="mt-2 text-sm opacity-80">Plataforma em construção.</p>
-        <div className="mt-6 flex justify-center">
-          <Button asChild>
-            <Link href="/api/health">Verificar status</Link>
-          </Button>
-        </div>
-      </section>
-    </main>
+    <div className="relative isolate min-h-screen bg-warm-gradient">
+      <OrganizationJsonLd />
+      <WebSiteJsonLd />
+      <SoftwareApplicationJsonLd />
+      <FaqJsonLd />
+      <div aria-hidden className="bg-blob-top-right" />
+      <div aria-hidden className="bg-blob-bottom-left" />
+      <div aria-hidden className="bg-blob-mid" />
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 -z-10 bg-grid-dots opacity-60"
+      />
+
+      <LandingHeader />
+      <main className="relative">
+        <LandingHero />
+        <LandingPillars />
+        <LandingFeatures />
+        <LandingHow />
+        <LandingPrivacy />
+        <LandingPricing />
+        <LandingFounder />
+        <LandingFaq />
+        <LandingFinalCta />
+      </main>
+      <LandingFooter />
+    </div>
   );
 }

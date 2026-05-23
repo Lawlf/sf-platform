@@ -8,9 +8,9 @@ import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-rando
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleMagicLinkTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-magic-link-token.repository";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { isErr } from "@/shared/errors";
 
 export const runtime = "nodejs";
@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
   const result = await verifyMagicLinkByToken(
     {
       users: new DrizzleUserRepository(),
-      tokens: new DrizzleMagicLinkTokenRepository(),
+      tokens: new UpstashMagicLinkTokenRepository(),
       sessions: new DrizzleSessionRepository(),
       hasher: new WebCryptoHasher(),
       random: new WebCryptoRandomGenerator(),

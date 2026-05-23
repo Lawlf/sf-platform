@@ -6,23 +6,26 @@ import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { getClientIp } from "@/infrastructure/http/client-ip";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleMagicLinkTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-magic-link-token.repository";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
+import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { verifyCodeSchema } from "@/presentation/http/validators/auth.validators";
 import { isErr } from "@/shared/errors";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-const STATUS_BY_CODE: Record<string, number> = {
-  INVALID_EMAIL: 400,
-  MAGIC_LINK_INVALID: 400,
-  MAGIC_LINK_EXPIRED: 410,
-  TOO_MANY_ATTEMPTS: 429,
-  ACCOUNT_DEACTIVATED: 403,
-};
+// Generic invalid for everything that isn't a useful user-facing distinction.
+// Avoids enumeration, rate-limit leaks, and lockout signalling.
+function genericInvalid() {
+  return NextResponse.json(
+    { code: "MAGIC_LINK_INVALID", message: "Codigo invalido ou expirado." },
+    { status: 400 },
+  );
+}
 
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
@@ -34,16 +37,38 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const forwarded = req.headers.get("x-forwarded-for") ?? "";
-  const ip = forwarded.split(",")[0]?.trim() || null;
+  const hasher = new WebCryptoHasher();
+  const ip = getClientIp(req);
   const userAgent = req.headers.get("user-agent");
+  const ipHash = await hasher.sha256Hex(ip ?? "unknown");
+  const rateLimit = new UpstashRateLimiter();
+
+  // IP bucket — 20 attempts / 15min
+  const ipBucket = await rateLimit.check(`verify-code:ip:${ipHash}`, {
+    window: "15 m",
+    max: 20,
+  });
+  if (!ipBucket.ok) {
+    console.warn("[verify-code] suppressed", { reason: "ip-bucket", ipHash });
+    return genericInvalid();
+  }
+  // Email bucket — 10 attempts / 15min
+  const emailHash = await hasher.sha256Hex(parsed.data.email.toLowerCase());
+  const emailBucket = await rateLimit.check(`verify-code:email:${emailHash}`, {
+    window: "15 m",
+    max: 10,
+  });
+  if (!emailBucket.ok) {
+    console.warn("[verify-code] suppressed", { reason: "email-bucket", emailHash });
+    return genericInvalid();
+  }
 
   const result = await verifyMagicLinkByCode(
     {
       users: new DrizzleUserRepository(),
-      tokens: new DrizzleMagicLinkTokenRepository(),
+      tokens: new UpstashMagicLinkTokenRepository(),
       sessions: new DrizzleSessionRepository(),
-      hasher: new WebCryptoHasher(),
+      hasher,
       random: new WebCryptoRandomGenerator(),
       clock: new SystemClock(),
     },
@@ -51,10 +76,11 @@ export async function POST(req: NextRequest) {
   );
 
   if (isErr(result)) {
-    return NextResponse.json(
-      { code: result.error.code, message: result.error.message },
-      { status: STATUS_BY_CODE[result.error.code] ?? 400 },
-    );
+    // Collapse all distinct codes (TOO_MANY_ATTEMPTS, MAGIC_LINK_EXPIRED,
+    // ACCOUNT_DEACTIVATED, INVALID_EMAIL) to generic invalid to prevent
+    // enumeration of account state. Log the real reason for observability.
+    console.warn("[verify-code] failed", { code: result.error.code });
+    return genericInvalid();
   }
 
   const cookieStore = await cookies();

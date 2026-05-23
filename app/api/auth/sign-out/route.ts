@@ -13,7 +13,26 @@ import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/r
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
+function isOriginAllowed(req: NextRequest, appUrl: string): boolean {
+  const origin = req.headers.get("origin");
+  if (origin) return origin === appUrl;
+  // Some browsers (older Safari) omit Origin on same-origin requests; fall back
+  // to Referer with strict host match.
+  const referer = req.headers.get("referer");
+  if (!referer) return false;
+  try {
+    return new URL(referer).origin === new URL(appUrl).origin;
+  } catch {
+    return false;
+  }
+}
+
 async function handle(req: NextRequest) {
+  const env = loadEnv();
+  if (!isOriginAllowed(req, env.NEXT_PUBLIC_APP_URL)) {
+    return NextResponse.json({ ok: false }, { status: 403 });
+  }
+
   const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (raw) {
@@ -30,7 +49,6 @@ async function handle(req: NextRequest) {
   const wantsHtml = accept.includes("text/html");
 
   if (wantsHtml) {
-    const env = loadEnv();
     const response = NextResponse.redirect(new URL("/entrar", env.NEXT_PUBLIC_APP_URL), {
       status: 303,
     });
