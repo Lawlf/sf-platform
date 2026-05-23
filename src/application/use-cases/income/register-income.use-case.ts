@@ -22,7 +22,7 @@ export async function registerIncome(
   deps: RegisterIncomeDeps,
   input: RegisterIncomeInput,
 ): Promise<Result<IncomeEntity, never>> {
-  void deps.clock.now();
+  const now = deps.clock.now();
   const entity: IncomeEntity = {
     id: crypto.randomUUID(),
     userId: input.userId,
@@ -32,6 +32,8 @@ export async function registerIncome(
     startDate: input.startDate,
     endDate: input.endDate,
     isActive: true,
+    createdAt: now,
+    deletedAt: null,
   };
   const persisted = await deps.incomes.create(entity);
   return ok(persisted);

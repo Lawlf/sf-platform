@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { FinancingDebt } from "@/domain/entities/debt.entity";
+import type { FinancingDebt, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
@@ -15,20 +15,22 @@ import { getDashboardSnapshot } from "./get-dashboard-snapshot.use-case";
 function makeDebtRepo(): DebtRepository {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForUser: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
 function makeIncomeRepo(): IncomeRepository {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForUser: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -68,6 +70,33 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
     termMonths: 60,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
+  };
+}
+
+function makeRecurring(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
+  return {
+    id: "rec-1",
+    userId: "user-1",
+    label: "Aluguel",
+    status: "active",
+    originalPrincipal: Money.fromCents(0n),
+    currentBalance: Money.fromCents(0n),
+    startDate: new Date("2026-01-01T00:00:00Z"),
+    expectedEndDate: null,
+    notes: null,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    updatedAt: new Date("2026-01-01T00:00:00Z"),
+    kind: "recurring",
+    deletedAt: null,
+    recurringFrequency: "monthly",
+    recurringAmountCents: 150_000n,
+    expenseCategory: "housing",
+    dueDay: null,
+    ...overrides,
   };
 }
 
@@ -81,6 +110,8 @@ function makeIncome(userId = "user-1"): IncomeEntity {
     startDate: new Date("2026-01-01"),
     endDate: null,
     isActive: true,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    deletedAt: null,
   };
 }
 
@@ -112,8 +143,6 @@ describe("getDashboardSnapshot", () => {
     const debts = makeDebtRepo();
     const incomes = makeIncomeRepo();
     const clock = makeClock();
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-empty" });
 
@@ -125,12 +154,31 @@ describe("getDashboardSnapshot", () => {
     }
   });
 
+  it("recurring debt enters totalMonthlyService and impacts saldo livre via netWorth", async () => {
+    const debts = makeDebtRepo();
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+
+    const income = makeIncome();
+    const housing = makeRecurring({ id: "rec-1", recurringAmountCents: 150_000n });
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([housing]);
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+
+    const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-1" });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      // totalMonthlyService = R$ 1.500,00 (150_000 cents) puramente do recurring.
+      expect(result.value.totalMonthlyService.toCents()).toBe(150_000n);
+      // netWorth = renda - serviço = 800_000 - 150_000 = 650_000.
+      expect(result.value.netWorth.toCents()).toBe(650_000n);
+    }
+  });
+
   it("propagates error from FinancialHealthService", async () => {
     const debts = makeDebtRepo();
     const incomes = makeIncomeRepo();
     const clock = makeClock();
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const stub = vi
       .spyOn(FinancialHealthService, "snapshot")

@@ -56,22 +56,31 @@ export async function signInWithOauth(
   if (!user) {
     const byEmail = await deps.users.findByEmail(profile.email);
     if (byEmail) {
-      return err(
-        new OauthAccountLinkRequiresVerification(
-          "Ja existe uma conta com este email. Entre com o magic link para vincular este provedor.",
-        ),
-      );
+      if (!profile.emailVerified || !byEmail.emailVerifiedAt) {
+        return err(
+          new OauthAccountLinkRequiresVerification(
+            "Ja existe uma conta com este email. Entre com o magic link para vincular este provedor.",
+          ),
+        );
+      }
+      user = byEmail;
+      await deps.oauthAccounts.create({
+        userId: user.id,
+        provider: profile.provider,
+        providerUserId: profile.providerUserId,
+      });
+    } else {
+      user = await deps.users.create({
+        email: profile.email,
+        emailVerified: profile.emailVerified,
+        displayName: profile.displayName,
+      });
+      await deps.oauthAccounts.create({
+        userId: user.id,
+        provider: profile.provider,
+        providerUserId: profile.providerUserId,
+      });
     }
-    user = await deps.users.create({
-      email: profile.email,
-      emailVerified: profile.emailVerified,
-      displayName: profile.displayName,
-    });
-    await deps.oauthAccounts.create({
-      userId: user.id,
-      provider: profile.provider,
-      providerUserId: profile.providerUserId,
-    });
   }
 
   if (user.deactivatedAt) {

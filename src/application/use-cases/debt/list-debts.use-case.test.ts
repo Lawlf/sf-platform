@@ -12,6 +12,7 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 

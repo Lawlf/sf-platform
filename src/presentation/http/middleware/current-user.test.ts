@@ -31,8 +31,11 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     displayName: null,
     role: "user",
     plan: "free",
+    isPro: false,
     deactivatedAt: null,
     deactivationReason: null,
+    contentDiagnosticAnswer: null,
+    contentDiagnosticAnsweredAt: null,
     createdAt: new Date("2030-01-01T00:00:00.000Z"),
     updatedAt: new Date("2030-01-01T00:00:00.000Z"),
     ...overrides,
@@ -55,6 +58,7 @@ function makeSession(overrides: Partial<SessionEntity> = {}): SessionEntity {
 function makeDeps(overrides: Partial<Deps> = {}): Deps {
   const sessions = {
     findByIdHash: vi.fn().mockResolvedValue(null),
+    findWithUserByIdHash: vi.fn().mockResolvedValue(null),
     listActiveForUser: vi.fn(),
     create: vi.fn(),
     touch: vi.fn().mockResolvedValue(undefined),
@@ -67,6 +71,8 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     create: vi.fn(),
     markEmailVerified: vi.fn(),
     deactivate: vi.fn(),
+    update: vi.fn(),
+    findAllPro: vi.fn().mockResolvedValue([]),
   };
   const hasher = { sha256Hex: vi.fn().mockResolvedValue("a".repeat(64)) };
   return { sessions, users, hasher, now: fixedNow, ...overrides } as Deps;
@@ -82,13 +88,13 @@ describe("loadCurrentUser", () => {
     const deps = makeDeps();
     const result = await loadCurrentUser(deps);
     expect(result).toBeNull();
-    expect(deps.sessions.findByIdHash).not.toHaveBeenCalled();
+    expect(deps.sessions.findWithUserByIdHash).not.toHaveBeenCalled();
   });
 
   it("returns null when the cookie has no matching session", async () => {
     cookieMock.get.mockReturnValue({ value: "raw-session" });
     const deps = makeDeps();
-    (deps.sessions.findByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
+    (deps.sessions.findWithUserByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
     const result = await loadCurrentUser(deps);
     expect(result).toBeNull();
     expect(deps.hasher.sha256Hex).toHaveBeenCalledWith("raw-session");
@@ -101,47 +107,59 @@ describe("loadCurrentUser", () => {
       expiresAt: new Date(fixedNow.getTime() - 1000),
     });
     const deps = makeDeps();
-    (deps.sessions.findByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(expired);
+    (deps.sessions.findWithUserByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      session: expired,
+      user: makeUser(),
+    });
     const result = await loadCurrentUser(deps);
     expect(result).toBeNull();
     expect(deps.sessions.delete).toHaveBeenCalledWith("a".repeat(64));
-    expect(deps.users.findById).not.toHaveBeenCalled();
     expect(deps.sessions.touch).not.toHaveBeenCalled();
   });
 
   it("returns null when the session's user is deactivated", async () => {
     cookieMock.get.mockReturnValue({ value: "raw-session" });
     const deps = makeDeps();
-    (deps.sessions.findByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeSession());
-    (deps.users.findById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
-      makeUser({ deactivatedAt: new Date("2030-05-01T00:00:00.000Z") }),
-    );
+    (deps.sessions.findWithUserByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      session: makeSession(),
+      user: makeUser({ deactivatedAt: new Date("2030-05-01T00:00:00.000Z") }),
+    });
     const result = await loadCurrentUser(deps);
     expect(result).toBeNull();
     expect(deps.sessions.touch).not.toHaveBeenCalled();
   });
 
-  it("returns null when the session's user does not exist", async () => {
+  it("returns the user and extends the session when last touch is stale", async () => {
     cookieMock.get.mockReturnValue({ value: "raw-session" });
-    const deps = makeDeps();
-    (deps.sessions.findByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeSession());
-    (deps.users.findById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
-    const result = await loadCurrentUser(deps);
-    expect(result).toBeNull();
-    expect(deps.sessions.touch).not.toHaveBeenCalled();
-  });
-
-  it("returns the user and extends the session expiration on the happy path", async () => {
-    cookieMock.get.mockReturnValue({ value: "raw-session" });
-    const session = makeSession();
+    const session = makeSession({
+      lastUsedAt: new Date(fixedNow.getTime() - 10 * 60 * 1000),
+    });
     const user = makeUser();
     const deps = makeDeps();
-    (deps.sessions.findByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(session);
-    (deps.users.findById as ReturnType<typeof vi.fn>).mockResolvedValueOnce(user);
+    (deps.sessions.findWithUserByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      session,
+      user,
+    });
     const result = await loadCurrentUser(deps);
     expect(result).toBe(user);
     expect(deps.sessions.touch).toHaveBeenCalledTimes(1);
     const expectedNewExpires = new Date(fixedNow.getTime() + 30 * 24 * 60 * 60 * 1000);
     expect(deps.sessions.touch).toHaveBeenCalledWith("a".repeat(64), expectedNewExpires, fixedNow);
+  });
+
+  it("skips touch when last_used_at is within 5 minutes", async () => {
+    cookieMock.get.mockReturnValue({ value: "raw-session" });
+    const session = makeSession({
+      lastUsedAt: new Date(fixedNow.getTime() - 60 * 1000),
+    });
+    const user = makeUser();
+    const deps = makeDeps();
+    (deps.sessions.findWithUserByIdHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce({
+      session,
+      user,
+    });
+    const result = await loadCurrentUser(deps);
+    expect(result).toBe(user);
+    expect(deps.sessions.touch).not.toHaveBeenCalled();
   });
 });

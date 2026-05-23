@@ -20,6 +20,7 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -59,6 +60,10 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
     termMonths: 60,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   };
 }
@@ -81,6 +86,10 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   };
 }
@@ -107,6 +116,10 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
     revolvingBalance: null,
     revolvingMonthlyRate: null,
     installmentPurchases: [],
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
     ...overrides,
   };
 }
@@ -128,6 +141,10 @@ function makeOverdraft(): OverdraftDebt {
     bankName: "Itau",
     monthlyRate: makeRate(2.5),
     lastChargeDate: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 

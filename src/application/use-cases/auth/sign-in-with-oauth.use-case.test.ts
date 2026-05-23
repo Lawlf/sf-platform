@@ -28,8 +28,11 @@ function makeUser(
     displayName: overrides.displayName ?? null,
     role: "user" as const,
     plan: "free" as const,
+    isPro: false,
     deactivatedAt: overrides.deactivatedAt ?? null,
     deactivationReason: null,
+    contentDiagnosticAnswer: null,
+    contentDiagnosticAnsweredAt: null,
     createdAt: new Date("2030-01-01T00:00:00.000Z"),
     updatedAt: new Date("2030-01-01T00:00:00.000Z"),
   };
@@ -69,6 +72,8 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     create: vi.fn().mockResolvedValue(makeUser()),
     markEmailVerified: vi.fn().mockResolvedValue(undefined),
     deactivate: vi.fn(),
+    update: vi.fn(),
+    findAllPro: vi.fn().mockResolvedValue([]),
   };
   const oauthAccounts = {
     findByProviderAndId: vi.fn().mockResolvedValue(null),
@@ -77,6 +82,7 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
   };
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn(),
     create: vi.fn().mockResolvedValue({
       idHash: "session-hash",
@@ -147,11 +153,48 @@ describe("signInWithOauth", () => {
     expect(deps.sessions.create).not.toHaveBeenCalled();
   });
 
-  it("no oauth account, existing user by email: returns OauthAccountLinkRequiresVerification and creates nothing", async () => {
+  it("no oauth account, existing verified user by email + profile verified: auto-links and creates session", async () => {
     const deps = makeDeps();
     (deps.users.findByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeUser());
     const result = await signInWithOauth(deps, {
-      profile: makeProfile(),
+      profile: makeProfile({ emailVerified: true }),
+      ip: null,
+      userAgent: null,
+    });
+    expect(result._tag).toBe("ok");
+    expect(deps.users.create).not.toHaveBeenCalled();
+    expect(deps.oauthAccounts.create).toHaveBeenCalledWith({
+      userId: "user-123",
+      provider: "google",
+      providerUserId: "google-12345",
+    });
+    expect(deps.sessions.create).toHaveBeenCalledTimes(1);
+  });
+
+  it("no oauth account, existing user by email but profile NOT verified: returns OauthAccountLinkRequiresVerification", async () => {
+    const deps = makeDeps();
+    (deps.users.findByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeUser());
+    const result = await signInWithOauth(deps, {
+      profile: makeProfile({ emailVerified: false }),
+      ip: null,
+      userAgent: null,
+    });
+    expect(result._tag).toBe("err");
+    if (result._tag === "err") {
+      expect(result.error).toBeInstanceOf(OauthAccountLinkRequiresVerification);
+    }
+    expect(deps.users.create).not.toHaveBeenCalled();
+    expect(deps.oauthAccounts.create).not.toHaveBeenCalled();
+    expect(deps.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it("no oauth account, existing user by email but user email NOT verified: returns OauthAccountLinkRequiresVerification", async () => {
+    const deps = makeDeps();
+    (deps.users.findByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeUser({ emailVerifiedAt: null }),
+    );
+    const result = await signInWithOauth(deps, {
+      profile: makeProfile({ emailVerified: true }),
       ip: null,
       userAgent: null,
     });

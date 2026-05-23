@@ -60,6 +60,11 @@ function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
     }
     case "overdraft":
       return null;
+    case "recurring":
+      // Compromissos recorrentes ainda não geram alertas de vencimento no
+      // dashboard. Próximo batch pode introduzir lógica específica
+      // (mensal: dia do mês).
+      return null;
   }
 }
 

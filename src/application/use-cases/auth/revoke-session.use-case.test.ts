@@ -23,6 +23,7 @@ function makeSession(overrides: Partial<SessionEntity> = {}): SessionEntity {
 function makeDeps(rows: SessionEntity[]): Deps {
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn().mockResolvedValue(rows),
     create: vi.fn(),
     touch: vi.fn(),

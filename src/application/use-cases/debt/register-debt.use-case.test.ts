@@ -15,6 +15,7 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -146,6 +147,43 @@ describe("registerDebt", () => {
       expect(arg.statementDay).toBe(5);
       expect(arg.dueDay).toBe(15);
       expect(arg.installmentPurchases).toEqual([]);
+    }
+  });
+
+  it("creates a recurring debt with currentBalance=0 and persists recurring fields", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        kind: "recurring",
+        userId: "user-r",
+        label: "Netflix",
+        recurringFrequency: "monthly",
+        recurringAmountCents: 5990n,
+        expenseCategory: "subscriptions",
+        startDate: new Date("2026-05-01"),
+        endDate: null,
+        notes: undefined,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    expect(arg.kind).toBe("recurring");
+    expect(arg.status).toBe("active");
+    expect(arg.userId).toBe("user-r");
+    // No outstanding balance for recurring; it's a cash-flow marker.
+    expect(arg.currentBalance.toCents()).toBe(0n);
+    expect(arg.originalPrincipal.toCents()).toBe(5990n);
+    expect(arg.expectedEndDate).toBeNull();
+    expect(arg.notes).toBeNull();
+    if (arg.kind === "recurring") {
+      expect(arg.recurringFrequency).toBe("monthly");
+      expect(arg.recurringAmountCents).toBe(5990n);
+      expect(arg.expenseCategory).toBe("subscriptions");
     }
   });
 

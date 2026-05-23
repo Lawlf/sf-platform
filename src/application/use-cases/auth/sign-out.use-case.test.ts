@@ -7,6 +7,7 @@ type Deps = Parameters<typeof signOut>[0];
 function makeDeps(overrides: Partial<Deps> = {}): Deps {
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn(),
     create: vi.fn(),
     touch: vi.fn(),

@@ -5,6 +5,7 @@ import { Forbidden } from "@/domain/errors";
 import { DebtNotFound, InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DistributedLock } from "@/domain/ports/services/distributed-lock.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors";
@@ -18,18 +19,29 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
 function makePaymentsRepo(): DebtPaymentRepository {
   return {
     listForDebt: vi.fn(),
+    listForUserInRange: vi.fn(),
     create: vi.fn(),
+    delete: vi.fn(),
+    deleteByDebtId: vi.fn(),
   };
 }
 
 function makeClock(now = new Date("2026-02-15T10:00:00Z")) {
   return { now: vi.fn(() => now) };
+}
+
+
+function makeLock(): DistributedLock {
+  return {
+    run: (_k, _t, fn) => fn(),
+  };
 }
 
 function makeMoney(v: number): Money {
@@ -63,6 +75,10 @@ function makeDebt(opts: { userId?: string; currentBalance?: number } = {}): Pers
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 
@@ -80,7 +96,7 @@ describe("recordPayment", () => {
     const interestPortion = makeMoney(200);
 
     const result = await recordPayment(
-      { debts, payments, clock },
+      { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
         debtId: "debt-1",
@@ -106,6 +122,7 @@ describe("recordPayment", () => {
     expect(payment.principalPortion).toBe(principalPortion);
     expect(payment.interestPortion).toBe(interestPortion);
     expect(payment.isExtra).toBe(false);
+    expect(payment.isClosingPayment).toBe(false);
   });
 
   it("returns DebtNotFound when debt does not exist", async () => {
@@ -115,7 +132,7 @@ describe("recordPayment", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
     const result = await recordPayment(
-      { debts, payments, clock },
+      { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
         debtId: "missing",
@@ -142,7 +159,7 @@ describe("recordPayment", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "owner" }));
 
     const result = await recordPayment(
-      { debts, payments, clock },
+      { debts, payments, clock, lock: makeLock() },
       {
         userId: "intruder",
         debtId: "debt-1",
@@ -169,7 +186,7 @@ describe("recordPayment", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt());
 
     const result = await recordPayment(
-      { debts, payments, clock },
+      { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
         debtId: "debt-1",
@@ -201,7 +218,7 @@ describe("recordPayment", () => {
     (payments.create as ReturnType<typeof vi.fn>).mockImplementation(async (p) => p);
 
     const result = await recordPayment(
-      { debts, payments, clock },
+      { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
         debtId: "debt-1",
@@ -217,5 +234,7 @@ describe("recordPayment", () => {
     const updated = (debts.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
     expect(updated.currentBalance.toCents()).toBe(0n);
     expect(updated.status).toBe("paid_off");
+    const payment = (payments.create as ReturnType<typeof vi.fn>).mock.calls[0]![0];
+    expect(payment.isClosingPayment).toBe(false);
   });
 });

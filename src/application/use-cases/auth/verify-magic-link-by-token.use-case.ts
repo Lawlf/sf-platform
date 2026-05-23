@@ -57,10 +57,16 @@ export async function verifyMagicLinkByToken(
     user = await deps.users.findById(token.userId);
     if (!user) return err(new MagicLinkInvalid("Link invalido."));
   } else {
-    user = await deps.users.findByEmail(token.email);
-    if (!user) {
-      user = await deps.users.create({ email: token.email, emailVerified: true });
+    const byEmail = await deps.users.findByEmail(token.email);
+    if (byEmail) {
+      // Race-guard against takeover: token was issued without a userId
+      // (no account existed at request time), but in the meantime an account
+      // was created via OAuth or another flow. Reject so an attacker who
+      // pre-requested a magic link to a victim's address cannot redeem it.
+      await deps.tokens.markUsed(tokenHash);
+      return err(new MagicLinkInvalid("Link invalido."));
     }
+    user = await deps.users.create({ email: token.email, emailVerified: true });
   }
   if (user.deactivatedAt) {
     return err(new AccountDeactivated("Conta desativada. Fale com o suporte para reativar."));

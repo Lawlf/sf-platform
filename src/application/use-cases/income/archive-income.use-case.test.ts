@@ -16,6 +16,7 @@ function makeIncomeRepo(): IncomeRepository {
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -31,6 +32,8 @@ function makeExisting(userId = "user-1"): IncomeEntity {
     startDate: new Date("2026-01-01"),
     endDate: null,
     isActive: true,
+    createdAt: new Date("2026-01-01T00:00:00Z"),
+    deletedAt: null,
   };
 }
 

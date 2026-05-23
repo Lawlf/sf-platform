@@ -14,21 +14,29 @@ export interface CurrentUserDeps {
 }
 
 const SESSION_TTL_MS = 30 * 24 * 60 * 60 * 1000;
+const TOUCH_THROTTLE_MS = 5 * 60 * 1000;
 
 export async function loadCurrentUser(deps: CurrentUserDeps): Promise<UserEntity | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(SESSION_COOKIE_NAME)?.value;
   if (!raw) return null;
+
   const idHash = await deps.hasher.sha256Hex(raw);
-  const session = await deps.sessions.findByIdHash(idHash);
-  if (!session) return null;
+  const found = await deps.sessions.findWithUserByIdHash(idHash);
+  if (!found) return null;
+
+  const { session, user } = found;
   if (session.expiresAt < deps.now) {
     await deps.sessions.delete(idHash);
     return null;
   }
-  const user = await deps.users.findById(session.userId);
-  if (!user || user.deactivatedAt) return null;
-  const newExpires = new Date(deps.now.getTime() + SESSION_TTL_MS);
-  await deps.sessions.touch(idHash, newExpires, deps.now);
+  if (user.deactivatedAt) return null;
+
+  const sinceLastTouch = deps.now.getTime() - session.lastUsedAt.getTime();
+  if (sinceLastTouch >= TOUCH_THROTTLE_MS) {
+    const newExpires = new Date(deps.now.getTime() + SESSION_TTL_MS);
+    await deps.sessions.touch(idHash, newExpires, deps.now);
+  }
+
   return user;
 }

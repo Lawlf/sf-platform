@@ -14,6 +14,7 @@ function makeIncomeRepo(): IncomeRepository {
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -30,7 +31,8 @@ function makeAmount(value = 5000): Money {
 describe("registerIncome", () => {
   it("creates an active income with generated id and persists via repository", async () => {
     const incomes = makeIncomeRepo();
-    const clock = makeClock();
+    const now = new Date("2026-01-15T10:00:00Z");
+    const clock = makeClock(now);
     const amount = makeAmount(5000);
     (incomes.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
 
@@ -55,6 +57,7 @@ describe("registerIncome", () => {
     expect(arg.frequency).toBe("monthly");
     expect(arg.endDate).toBeNull();
     expect(arg.isActive).toBe(true);
+    expect(arg.createdAt).toBe(now);
     expect(typeof arg.id).toBe("string");
     expect(arg.id.length).toBeGreaterThan(0);
   });
@@ -96,6 +99,8 @@ describe("registerIncome", () => {
       startDate: new Date("2026-01-01"),
       endDate: null,
       isActive: true,
+      createdAt: new Date("2026-01-15T10:00:00Z"),
+      deletedAt: null,
     };
     (incomes.create as ReturnType<typeof vi.fn>).mockResolvedValue(persisted);
 

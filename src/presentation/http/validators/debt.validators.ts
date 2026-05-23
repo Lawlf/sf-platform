@@ -25,7 +25,7 @@ export const financingFormSchema = z.object({
     .nullable()
     .default(null),
   principalCents: positiveBigint,
-  annualRatePct: z.coerce.number().min(0).max(1000),
+  annualRatePct: z.coerce.number().min(0).max(200),
   termMonths: z.coerce.number().int().min(1).max(600),
   amortizationMethod: z.enum(["PRICE", "SAC"]),
   monthlyInsuranceCents: z
@@ -34,6 +34,18 @@ export const financingFormSchema = z.object({
     .default(null),
   monthlyAdminFeeCents: z
     .union([nonNegativeBigint, z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
+  // Ongoing: saldo devedor atual difere do principal contratado.
+  currentBalanceCents: z
+    .union([positiveBigint, z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
+  paidInstallments: z
+    .union([
+      z.coerce.number().int().min(0).max(600),
+      z.literal("").transform(() => null),
+    ])
     .nullable()
     .default(null),
 });
@@ -48,10 +60,70 @@ export const personalLoanFormSchema = z.object({
     .nullable()
     .default(null),
   principalCents: positiveBigint,
-  annualRatePct: z.coerce.number().min(0).max(1000),
+  annualRatePct: z.coerce.number().min(0).max(200),
   termMonths: z.coerce.number().int().min(1).max(600),
   monthlyInstallmentCents: positiveBigint,
+  // Ongoing scenario: saldo devedor atual difere do principal original.
+  currentBalanceCents: z
+    .union([positiveBigint, z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
+  // Parcelas já pagas no momento do cadastro (ongoing). Para reconciliar a linha do tempo.
+  paidInstallments: z
+    .union([
+      z.coerce.number().int().min(0).max(600),
+      z.literal("").transform(() => null),
+    ])
+    .nullable()
+    .default(null),
 });
+
+export const installmentPurchaseItemSchema = z.object({
+  description: z.string().min(1).max(120),
+  totalCents: z
+    .union([
+      z.bigint().positive(),
+      z.string().transform((v, ctx) => {
+        try {
+          const b = BigInt(v);
+          if (b <= 0n) {
+            ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Total deve ser positivo." });
+            return z.NEVER;
+          }
+          return b;
+        } catch {
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Total invalido." });
+          return z.NEVER;
+        }
+      }),
+    ])
+    .pipe(z.bigint()),
+  installmentsTotal: z.coerce.number().int().min(1).max(120),
+  installmentsRemaining: z.coerce.number().int().min(0).max(120),
+});
+
+const installmentPurchasesField = z
+  .union([
+    z.literal("").transform(() => [] as z.infer<typeof installmentPurchaseItemSchema>[]),
+    z.string().transform((v, ctx) => {
+      try {
+        const parsed = JSON.parse(v);
+        const r = z.array(installmentPurchaseItemSchema).safeParse(parsed);
+        if (!r.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: r.error.issues[0]?.message ?? "Compras parceladas invalidas.",
+          });
+          return z.NEVER;
+        }
+        return r.data;
+      } catch {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Compras parceladas: JSON invalido." });
+        return z.NEVER;
+      }
+    }),
+  ])
+  .default(() => []);
 
 export const creditCardFormSchema = z.object({
   kind: z.literal("credit_card"),
@@ -74,6 +146,7 @@ export const creditCardFormSchema = z.object({
     .union([z.coerce.number().min(0).max(1000), z.literal("").transform(() => null)])
     .nullable()
     .default(null),
+  installmentPurchasesJson: installmentPurchasesField,
 });
 
 export const overdraftFormSchema = z.object({

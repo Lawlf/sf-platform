@@ -28,8 +28,11 @@ function makeUser(
     displayName: null,
     role: "user" as const,
     plan: "free" as const,
+    isPro: false,
     deactivatedAt: overrides.deactivatedAt ?? null,
     deactivationReason: null,
+    contentDiagnosticAnswer: null,
+    contentDiagnosticAnsweredAt: null,
     createdAt: new Date("2030-01-01T00:00:00.000Z"),
     updatedAt: new Date("2030-01-01T00:00:00.000Z"),
   };
@@ -64,6 +67,8 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     create: vi.fn().mockResolvedValue(makeUser()),
     markEmailVerified: vi.fn().mockResolvedValue(undefined),
     deactivate: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+    findAllPro: vi.fn().mockResolvedValue([]),
   };
   const tokens = {
     create: vi.fn(),
@@ -75,6 +80,7 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
   };
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn(),
     create: vi.fn().mockResolvedValue({
       idHash: "session-hash",
@@ -192,6 +198,24 @@ describe("verifyMagicLinkByToken", () => {
       expect(result.value.user.id).toBe("user-new");
       expect(result.value.rawSessionId).toBe("session-raw-id");
     }
+  });
+
+  it("race-guard: token without userId but existing user by email rejects (no auto-link)", async () => {
+    const deps = makeDeps();
+    (deps.tokens.findByTokenHash as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeToken({ userId: null, email: "u@e.com" }),
+    );
+    (deps.users.findByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeUser());
+    const result = await verifyMagicLinkByToken(deps, {
+      rawToken: "raw",
+      ip: null,
+      userAgent: null,
+    });
+    expect(result._tag).toBe("err");
+    if (result._tag === "err") expect(result.error).toBeInstanceOf(MagicLinkInvalid);
+    expect(deps.tokens.markUsed).toHaveBeenCalledTimes(1);
+    expect(deps.users.create).not.toHaveBeenCalled();
+    expect(deps.sessions.create).not.toHaveBeenCalled();
   });
 
   it("happy path for existing verified user does not call markEmailVerified", async () => {

@@ -71,8 +71,17 @@ export async function verifyMagicLinkByCode(
   }
   if (token.expiresAt < deps.clock.now()) return err(new MagicLinkExpired("Codigo expirado."));
 
-  if (!constantTimeEqual(input.code, token.code)) {
-    const newCount = await deps.tokens.incrementAttempts(token.tokenHash);
+  // Atomic gate: increment BEFORE comparing so concurrent verify calls cannot
+  // each pass the N-of-5 check at find time and run constantTimeEqual against
+  // the token. Each request reserves an attempt slot via DB-atomic +1.
+  const newCount = await deps.tokens.incrementAttempts(token.tokenHash);
+  if (newCount > MAX_ATTEMPTS) {
+    await deps.tokens.markUsed(token.tokenHash);
+    return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo codigo."));
+  }
+
+  const inputCodeHash = await deps.hasher.sha256Hex(input.code);
+  if (!constantTimeEqual(inputCodeHash, token.code)) {
     if (newCount >= MAX_ATTEMPTS) {
       await deps.tokens.markUsed(token.tokenHash);
       return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo codigo."));
@@ -85,10 +94,16 @@ export async function verifyMagicLinkByCode(
     user = await deps.users.findById(token.userId);
     if (!user) return err(new MagicLinkInvalid("Codigo invalido."));
   } else {
-    user = await deps.users.findByEmail(token.email);
-    if (!user) {
-      user = await deps.users.create({ email: token.email, emailVerified: true });
+    const byEmail = await deps.users.findByEmail(token.email);
+    if (byEmail) {
+      // Race-guard against takeover: token was issued without a userId
+      // (no account existed at request time), but in the meantime an account
+      // was created via OAuth or another flow. Reject so the attacker who
+      // pre-requested a magic link to a victim's address cannot redeem it.
+      await deps.tokens.markUsed(token.tokenHash);
+      return err(new MagicLinkInvalid("Codigo invalido."));
     }
+    user = await deps.users.create({ email: token.email, emailVerified: true });
   }
   if (user.deactivatedAt) {
     return err(new AccountDeactivated("Conta desativada. Fale com o suporte para reativar."));

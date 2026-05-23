@@ -16,6 +16,7 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -55,6 +56,10 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
     termMonths: 24,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 

@@ -9,6 +9,7 @@ type Deps = Parameters<typeof listSessions>[0];
 function makeDeps(rows: SessionEntity[]): Deps {
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn().mockResolvedValue(rows),
     create: vi.fn(),
     touch: vi.fn(),

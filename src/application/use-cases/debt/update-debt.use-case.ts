@@ -1,8 +1,14 @@
-import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type {
+  DebtEntity,
+  InstallmentPurchase,
+  RecurringFrequency,
+} from "@/domain/entities/debt.entity";
 import { Forbidden } from "@/domain/errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
+import type { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors";
 
 export interface UpdateDebtDeps {
@@ -13,10 +19,27 @@ export interface UpdateDebtDeps {
 export interface UpdateDebtInput {
   userId: string;
   debtId: string;
+  // Common fields editable for any kind.
   label?: string;
   notes?: string | null;
-  // For v0.1, only label/notes/expectedEndDate are user-editable post-creation.
   expectedEndDate?: Date | null;
+  // Per-kind editable fields (ignored when kind doesn't apply).
+  currentBalance?: Money;
+  annualInterestRate?: InterestRate;
+  monthlyInstallment?: Money;
+  monthlyInsurance?: Money | null;
+  monthlyAdminFee?: Money | null;
+  creditLimit?: Money;
+  currentStatement?: Money;
+  statementDay?: number;
+  dueDay?: number;
+  revolvingBalance?: Money | null;
+  revolvingMonthlyRate?: InterestRate | null;
+  installmentPurchases?: InstallmentPurchase[];
+  bankName?: string;
+  monthlyRate?: InterestRate;
+  recurringAmountCents?: bigint;
+  recurringFrequency?: RecurringFrequency;
 }
 
 export async function updateDebt(
@@ -27,13 +50,83 @@ export async function updateDebt(
   if (!existing) return err(new DebtNotFound("Divida nao encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
-  const updated: DebtEntity = {
-    ...existing,
+  const now = deps.clock.now();
+  const baseChanges = {
     ...(input.label !== undefined && { label: input.label }),
     ...(input.notes !== undefined && { notes: input.notes }),
     ...(input.expectedEndDate !== undefined && { expectedEndDate: input.expectedEndDate }),
-    updatedAt: deps.clock.now(),
+    updatedAt: now,
   };
-  const persisted = await deps.debts.update(updated);
+
+  let next: DebtEntity;
+  switch (existing.kind) {
+    case "financing":
+      next = {
+        ...existing,
+        ...baseChanges,
+        ...(input.currentBalance !== undefined && { currentBalance: input.currentBalance }),
+        ...(input.annualInterestRate !== undefined && {
+          annualInterestRate: input.annualInterestRate,
+        }),
+        ...(input.monthlyInsurance !== undefined && { monthlyInsurance: input.monthlyInsurance }),
+        ...(input.monthlyAdminFee !== undefined && { monthlyAdminFee: input.monthlyAdminFee }),
+      };
+      break;
+    case "personal_loan":
+      next = {
+        ...existing,
+        ...baseChanges,
+        ...(input.currentBalance !== undefined && { currentBalance: input.currentBalance }),
+        ...(input.annualInterestRate !== undefined && {
+          annualInterestRate: input.annualInterestRate,
+        }),
+        ...(input.monthlyInstallment !== undefined && {
+          monthlyInstallment: input.monthlyInstallment,
+        }),
+      };
+      break;
+    case "credit_card":
+      next = {
+        ...existing,
+        ...baseChanges,
+        ...(input.creditLimit !== undefined && { creditLimit: input.creditLimit }),
+        ...(input.currentStatement !== undefined && { currentStatement: input.currentStatement }),
+        ...(input.currentBalance !== undefined && { currentBalance: input.currentBalance }),
+        ...(input.statementDay !== undefined && { statementDay: input.statementDay }),
+        ...(input.dueDay !== undefined && { dueDay: input.dueDay }),
+        ...(input.revolvingBalance !== undefined && { revolvingBalance: input.revolvingBalance }),
+        ...(input.revolvingMonthlyRate !== undefined && {
+          revolvingMonthlyRate: input.revolvingMonthlyRate,
+        }),
+        ...(input.installmentPurchases !== undefined && {
+          installmentPurchases: input.installmentPurchases,
+        }),
+      };
+      break;
+    case "overdraft":
+      next = {
+        ...existing,
+        ...baseChanges,
+        ...(input.currentBalance !== undefined && { currentBalance: input.currentBalance }),
+        ...(input.bankName !== undefined && { bankName: input.bankName }),
+        ...(input.monthlyRate !== undefined && { monthlyRate: input.monthlyRate }),
+      };
+      break;
+    case "recurring":
+      next = {
+        ...existing,
+        ...baseChanges,
+        ...(input.recurringAmountCents !== undefined && {
+          recurringAmountCents: input.recurringAmountCents,
+        }),
+        ...(input.recurringFrequency !== undefined && {
+          recurringFrequency: input.recurringFrequency,
+        }),
+        ...(input.dueDay !== undefined && { dueDay: input.dueDay }),
+      };
+      break;
+  }
+
+  const persisted = await deps.debts.update(next);
   return ok(persisted);
 }

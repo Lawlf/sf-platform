@@ -14,6 +14,9 @@ type Deps = Parameters<typeof verifyMagicLinkByCode>[0];
 
 const fixedNow = new Date("2030-01-15T12:00:00.000Z");
 
+const CORRECT_CODE = "482917";
+const CORRECT_CODE_HASH = "code-hash-for-482917";
+
 function makeUser(
   overrides: Partial<{
     id: string;
@@ -29,8 +32,11 @@ function makeUser(
     displayName: null,
     role: "user" as const,
     plan: "free" as const,
+    isPro: false,
     deactivatedAt: overrides.deactivatedAt ?? null,
     deactivationReason: null,
+    contentDiagnosticAnswer: null,
+    contentDiagnosticAnsweredAt: null,
     createdAt: new Date("2030-01-01T00:00:00.000Z"),
     updatedAt: new Date("2030-01-01T00:00:00.000Z"),
   };
@@ -49,7 +55,7 @@ function makeToken(
 ) {
   return {
     tokenHash: overrides.tokenHash ?? "a".repeat(64),
-    code: overrides.code ?? "482917",
+    code: overrides.code ?? CORRECT_CODE_HASH,
     email: overrides.email ?? "u@e.com",
     userId: overrides.userId === undefined ? "user-123" : overrides.userId,
     expiresAt: overrides.expiresAt ?? new Date(fixedNow.getTime() + 5 * 60 * 1000),
@@ -66,6 +72,8 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     create: vi.fn().mockResolvedValue(makeUser()),
     markEmailVerified: vi.fn().mockResolvedValue(undefined),
     deactivate: vi.fn(),
+    update: vi.fn(),
+    findAllPro: vi.fn().mockResolvedValue([]),
   };
   const tokens = {
     create: vi.fn(),
@@ -77,6 +85,7 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
   };
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn(),
     create: vi.fn().mockResolvedValue({
       idHash: "session-hash",
@@ -91,7 +100,11 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     delete: vi.fn(),
     deleteAllForUser: vi.fn(),
   };
-  const hasher = { sha256Hex: vi.fn().mockResolvedValue("session-hash") };
+  const hasher = {
+    sha256Hex: vi.fn().mockImplementation(async (s: string) =>
+      s === CORRECT_CODE ? CORRECT_CODE_HASH : "session-hash",
+    ),
+  };
   const random = {
     urlToken: vi.fn().mockReturnValue("session-raw-id"),
     sixDigitCode: vi.fn(),
@@ -106,7 +119,7 @@ describe("verifyMagicLinkByCode", () => {
     const deps = makeDeps();
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "not-an-email",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: null,
       userAgent: null,
     });
@@ -120,7 +133,7 @@ describe("verifyMagicLinkByCode", () => {
     (deps.tokens.findActiveByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(null);
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "u@e.com",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: null,
       userAgent: null,
     });
@@ -136,7 +149,7 @@ describe("verifyMagicLinkByCode", () => {
     );
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "u@e.com",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: null,
       userAgent: null,
     });
@@ -153,7 +166,7 @@ describe("verifyMagicLinkByCode", () => {
     );
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "u@e.com",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: null,
       userAgent: null,
     });
@@ -201,13 +214,13 @@ describe("verifyMagicLinkByCode", () => {
     const deps = makeDeps();
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "u@e.com",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: "1.2.3.4",
       userAgent: "ua",
     });
     expect(result._tag).toBe("ok");
     expect(deps.tokens.markUsed).toHaveBeenCalledTimes(1);
-    expect(deps.tokens.incrementAttempts).not.toHaveBeenCalled();
+    expect(deps.tokens.incrementAttempts).toHaveBeenCalledTimes(1);
     expect(deps.sessions.create).toHaveBeenCalledWith(
       expect.objectContaining({
         userId: "user-123",
@@ -229,13 +242,32 @@ describe("verifyMagicLinkByCode", () => {
     );
     const result = await verifyMagicLinkByCode(deps, {
       emailRaw: "u@e.com",
-      code: "482917",
+      code: CORRECT_CODE,
       ip: null,
       userAgent: null,
     });
     expect(result._tag).toBe("err");
     if (result._tag === "err") expect(result.error).toBeInstanceOf(AccountDeactivated);
     expect(deps.tokens.markUsed).not.toHaveBeenCalled();
+    expect(deps.sessions.create).not.toHaveBeenCalled();
+  });
+
+  it("race-guard: token without userId but existing user by email rejects (no auto-create)", async () => {
+    const deps = makeDeps();
+    (deps.tokens.findActiveByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(
+      makeToken({ userId: null }),
+    );
+    (deps.users.findByEmail as ReturnType<typeof vi.fn>).mockResolvedValueOnce(makeUser());
+    const result = await verifyMagicLinkByCode(deps, {
+      emailRaw: "u@e.com",
+      code: CORRECT_CODE,
+      ip: null,
+      userAgent: null,
+    });
+    expect(result._tag).toBe("err");
+    if (result._tag === "err") expect(result.error).toBeInstanceOf(MagicLinkInvalid);
+    expect(deps.tokens.markUsed).toHaveBeenCalledTimes(1);
+    expect(deps.users.create).not.toHaveBeenCalled();
     expect(deps.sessions.create).not.toHaveBeenCalled();
   });
 });

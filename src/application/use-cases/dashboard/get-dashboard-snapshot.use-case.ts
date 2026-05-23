@@ -12,12 +12,23 @@ export interface GetDashboardSnapshotDeps {
   clock: Clock;
 }
 
+/**
+ * Resultado do snapshot do dashboard.
+ *
+ * Após o merge Expense -> Debt, `totalMonthlyService` cobre TODAS as saídas
+ * comprometidas no mês: parcelas de dívida tradicional + compromissos
+ * recorrentes (`recurring`). O antigo `totalMonthlyExpenses` foi removido.
+ */
+export type DashboardSnapshotResult = FinancialSnapshotEntity;
+
 export async function getDashboardSnapshot(
   deps: GetDashboardSnapshotDeps,
   input: { userId: string },
-): Promise<Result<FinancialSnapshotEntity, InvalidAmortizationParamsError>> {
-  const debts = await deps.debts.listForUser(input.userId, { status: "active" });
-  const incomes = await deps.incomes.listForUser(input.userId, { onlyActive: true });
+): Promise<Result<DashboardSnapshotResult, InvalidAmortizationParamsError>> {
+  const [debts, incomes] = await Promise.all([
+    deps.debts.listForUser(input.userId, { status: "active" }),
+    deps.incomes.listForUser(input.userId, { onlyActive: true }),
+  ]);
   const now = deps.clock.now();
   const r = FinancialHealthService.snapshot({
     userId: input.userId,

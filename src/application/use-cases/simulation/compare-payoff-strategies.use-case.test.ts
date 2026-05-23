@@ -17,6 +17,7 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
@@ -59,6 +60,10 @@ function makePersonalLoan(
     annualInterestRate: makeRate(0.24),
     termMonths: 24,
     monthlyInstallment: makeMoney(installment),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 

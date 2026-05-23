@@ -11,9 +11,12 @@ function makeDeps(): Deps {
     create: vi.fn(),
     markEmailVerified: vi.fn(),
     deactivate: vi.fn().mockResolvedValue(undefined),
+    update: vi.fn().mockResolvedValue(undefined),
+    findAllPro: vi.fn().mockResolvedValue([]),
   };
   const sessions = {
     findByIdHash: vi.fn(),
+    findWithUserByIdHash: vi.fn(),
     listActiveForUser: vi.fn(),
     create: vi.fn(),
     touch: vi.fn(),

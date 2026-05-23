@@ -22,13 +22,17 @@ function makeDebtRepo(): DebtRepository {
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
+    softDelete: vi.fn(),
   };
 }
 
 function makePaymentsRepo(): DebtPaymentRepository {
   return {
     listForDebt: vi.fn(),
+    listForUserInRange: vi.fn(),
     create: vi.fn(),
+    delete: vi.fn(),
+    deleteByDebtId: vi.fn(),
   };
 }
 
@@ -64,6 +68,10 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
     termMonths: 12,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 
@@ -89,6 +97,10 @@ function makeCreditCard(userId = "user-1"): CreditCardDebt {
     revolvingBalance: null,
     revolvingMonthlyRate: null,
     installmentPurchases: [],
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 
@@ -110,6 +122,10 @@ function makePersonalLoan(userId = "user-1"): PersonalLoanDebt {
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   };
 }
 
