@@ -33,10 +33,16 @@ export const incomes = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    // Soft delete: quando preenchido, a renda eh tratada como apagada (nao
+    // aparece em listas, dashboard, timeline). Mantemos a linha pra atender
+    // LGPD/auditoria. Diferente de `is_active`, que representa
+    // arquivar/reativar (visivel ao usuario como historico).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     userIdx: index("incomes_user_id_idx").on(table.userId),
     userActiveIdx: index("incomes_user_id_active_idx").on(table.userId, table.isActive),
+    userDeletedIdx: index("incomes_user_deleted_idx").on(table.userId, table.deletedAt),
   }),
 );
 

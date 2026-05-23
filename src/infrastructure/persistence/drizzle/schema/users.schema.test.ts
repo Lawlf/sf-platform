@@ -29,6 +29,7 @@ describe("drizzle schema", () => {
       "displayName",
       "role",
       "plan",
+      "isPro",
       "deactivatedAt",
       "deactivationReason",
       "createdAt",

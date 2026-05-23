@@ -1,0 +1,2 @@
+ALTER TABLE "notification_preferences" ADD COLUMN "promotions_enabled" boolean DEFAULT true NOT NULL;--> statement-breakpoint
+ALTER TABLE "notification_preferences" ADD COLUMN "news_enabled" boolean DEFAULT true NOT NULL;

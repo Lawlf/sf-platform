@@ -15,6 +15,7 @@ export const debtPayments = pgTable(
     principalPortionCents: bigint("principal_portion_cents", { mode: "bigint" }).notNull(),
     interestPortionCents: bigint("interest_portion_cents", { mode: "bigint" }).notNull(),
     isExtra: boolean("is_extra").notNull().default(false),
+    isClosingPayment: boolean("is_closing_payment").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

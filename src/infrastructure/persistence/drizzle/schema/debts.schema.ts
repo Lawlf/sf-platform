@@ -18,6 +18,8 @@ export const debtKind = pgEnum("debt_kind", [
   "personal_loan",
   "credit_card",
   "overdraft",
+  "recurring",
+  "one_off",
 ]);
 export const debtStatus = pgEnum("debt_status", ["active", "paid_off", "written_off"]);
 export const amortizationMethod = pgEnum("amortization_method", ["PRICE", "SAC"]);
@@ -60,16 +62,27 @@ export const debts = pgTable(
     bankName: text("bank_name"),
     overdraftMonthlyRateDecimal: text("overdraft_monthly_rate_decimal"),
     lastChargeDate: timestamp("last_charge_date", { withTimezone: true }),
+    // Recurring-specific (one_off value kept in the enum for legacy rows only)
+    recurringFrequency: text("recurring_frequency"),
+    recurringAmountCents: bigint("recurring_amount_cents", { mode: "bigint" }),
+    expenseCategory: text("expense_category"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    // Soft delete: quando preenchido, a dívida é tratada como apagada (não
+    // aparece em listas, dashboard, timeline). Sub-records vinculados
+    // (debt_payments, asset_debt_allocations) são removidos de forma hard
+    // pelo use case `deleteDebt`. Mantemos a linha pra atender LGPD/auditoria
+    // (poderemos recuperar caso necessário).
+    deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (table) => ({
     userIdx: index("debts_user_id_idx").on(table.userId),
     userStatusIdx: index("debts_user_id_status_idx").on(table.userId, table.status),
+    userDeletedIdx: index("debts_user_deleted_idx").on(table.userId, table.deletedAt),
   }),
 );
 
