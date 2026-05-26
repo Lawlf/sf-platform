@@ -1,0 +1,1 @@
+CREATE INDEX "usage_daily_rollup_day_idx" ON "usage_daily_rollup" USING btree ("day");
