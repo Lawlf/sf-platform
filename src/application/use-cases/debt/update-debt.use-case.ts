@@ -3,13 +3,13 @@ import type {
   InstallmentPurchase,
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface UpdateDebtDeps {
   debts: DebtRepository;

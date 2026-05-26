@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { AmortizationSchedule, type AmortizationInstallment } from "./amortization-schedule.vo";
 import { Money } from "./money.vo";

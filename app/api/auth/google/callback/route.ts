@@ -12,7 +12,7 @@ import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.se
 import { DrizzleOauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-oauth-account.repository";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -61,18 +61,18 @@ export async function GET(req: NextRequest) {
     { profile, ip, userAgent },
   );
 
-  const response = isErr(result)
-    ? NextResponse.redirect(new URL(`/entrar?error=${result.error.code.toLowerCase()}`, base))
-    : NextResponse.redirect(new URL("/app", base));
+  if (isErr(result)) {
+    const response = NextResponse.redirect(
+      new URL(`/entrar?error=${result.error.code.toLowerCase()}`, base),
+    );
+    response.cookies.set({ name: "sf_oauth_state", value: "", path: "/", maxAge: 0 });
+    response.cookies.set({ name: "sf_oauth_pkce", value: "", path: "/", maxAge: 0 });
+    return response;
+  }
+  const response = NextResponse.redirect(new URL("/app", base));
   response.cookies.set({ name: "sf_oauth_state", value: "", path: "/", maxAge: 0 });
   response.cookies.set({ name: "sf_oauth_pkce", value: "", path: "/", maxAge: 0 });
-
-  if (!isErr(result)) {
-    response.cookies.set(buildSessionCookie(result.value.rawSessionId));
-    void trackPlausibleEvent(
-      { name: "auth_session_started", props: { method: "google" } },
-      { ip, userAgent },
-    );
-  }
+  response.cookies.set(buildSessionCookie(result.value.rawSessionId));
+  void trackPlausibleEvent({ name: "auth_session_started", props: { method: "google" } }, { ip, userAgent });
   return response;
 }

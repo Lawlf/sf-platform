@@ -30,7 +30,7 @@ export function BottomNav() {
   const pathname = usePathname();
   return (
     <nav
-      aria-label="Navegação principal"
+      aria-label="Navegação rápida"
       className="glass-tier-2 fixed bottom-2 left-2 right-2 z-20 mx-auto flex h-[72px] max-w-md items-end justify-around px-2 py-2"
     >
       {NAV_ITEMS.map((item) => {

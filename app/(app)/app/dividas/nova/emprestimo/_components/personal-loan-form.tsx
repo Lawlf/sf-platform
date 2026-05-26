@@ -30,7 +30,6 @@ import {
   LinkAssetStepContent,
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
-import { PostSaveCalendarSheet } from "../../_components/post-save-calendar-sheet";
 import { ScenarioPicker } from "../../_components/scenario-picker";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
@@ -75,12 +74,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [savedDebtId, setSavedDebtId] = useState<string | null>(null);
-
-  function goToSavedDebt() {
-    if (!savedDebtId) return;
-    router.push(`/app/dividas/${savedDebtId}` as Route);
-  }
 
   const labelId = useId();
   const netReceivedId = useId();
@@ -441,23 +434,14 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       }
 
       await invalidateDebtCaches(queryClient);
-      setSavedDebtId(debtRes.debtId);
+      router.push(`/app/dividas/${debtRes.debtId}` as Route);
     });
   }
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
-  const calendarSheet = (
-    <PostSaveCalendarSheet
-      open={savedDebtId !== null}
-      debtId={savedDebtId}
-      onContinue={goToSavedDebt}
-    />
-  );
-
   if (step === 2) {
     return (
-      <>
       <WizardShell
         currentStep={2}
         totalSteps={6}
@@ -664,8 +648,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           </>
         )}
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
@@ -676,7 +658,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
         : undefined;
 
     return (
-      <>
       <WizardShell
         currentStep={3}
         totalSteps={6}
@@ -720,8 +701,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           </WizardField>
         ) : null}
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
@@ -735,7 +714,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
     });
 
     return (
-      <>
       <WizardShell
         currentStep={4}
         totalSteps={6}
@@ -770,8 +748,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           }}
         />
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
@@ -784,7 +760,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
         ? ((values as Extract<FormValues, { scenario: "new" }>).principalCents ?? 0n)
         : ((values as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents ?? 0n);
     return (
-      <>
       <WizardShell
         currentStep={5}
         totalSteps={6}
@@ -803,8 +778,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       >
         <LinkAssetStepContent form={form} debtPrincipalCents={debtPrincipal} enabled={step === 5} />
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
@@ -833,7 +806,6 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
   });
 
   return (
-    <>
     <WizardShell
       currentStep={6}
       totalSteps={6}
@@ -866,7 +838,5 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
         </div>
       ) : null}
     </WizardShell>
-    {calendarSheet}
-    </>
   );
 }

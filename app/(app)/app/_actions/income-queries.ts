@@ -4,7 +4,7 @@ import { listIncomes } from "@/application/use-cases/income/list-incomes.use-cas
 import type { IncomeFrequency } from "@/domain/entities/income.entity";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
 

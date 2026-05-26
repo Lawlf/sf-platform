@@ -1,7 +1,7 @@
 import { AssetNotFound } from "@/domain/errors/asset-errors";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface UnlinkAssetFromDebtDeps {
   assets: AssetRepository;

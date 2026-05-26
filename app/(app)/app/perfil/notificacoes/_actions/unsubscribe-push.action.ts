@@ -12,7 +12,7 @@ const schema = z.object({
 
 export async function unsubscribePushAction(input: {
   endpoint: string;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
+}): Promise<{ ok: true; deviceCount: number } | { ok: false; message: string }> {
   const user = await requireUser();
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
@@ -24,6 +24,7 @@ export async function unsubscribePushAction(input: {
     return { ok: false, message: "Acesso negado." };
   }
   await repo.deleteByEndpoint(parsed.data.endpoint);
+  const deviceCount = (await repo.listForUser(user.id)).length;
   revalidatePath("/app/perfil/notificacoes");
-  return { ok: true };
+  return { ok: true, deviceCount };
 }

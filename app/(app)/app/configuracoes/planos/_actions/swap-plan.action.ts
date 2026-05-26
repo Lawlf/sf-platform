@@ -8,15 +8,20 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
 import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isUserSteppedUp } from "@/presentation/http/middleware/require-user-stepup";
+import { isErr } from "@/shared/errors/result";
 
 export interface SwapPlanResult {
   ok: boolean;
+  code?: string;
   message?: string;
 }
 
 export async function swapPlanAction(targetPlanSlug: string): Promise<SwapPlanResult> {
   const user = await requireUser();
+  if (!(await isUserSteppedUp(user.id))) {
+    return { ok: false, code: "STEPUP_REQUIRED" as const, message: "Confirme sua identidade para continuar." };
+  }
   const r = await swapPlan(
     {
       subscriptions: new DrizzleSubscriptionRepository(),

@@ -5,7 +5,7 @@ import { revalidatePath } from "next/cache";
 import { archiveIncome } from "@/application/use-cases/income/archive-income.use-case";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export async function archiveIncomeAction(
   incomeId: string,

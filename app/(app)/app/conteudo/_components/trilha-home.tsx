@@ -1,4 +1,5 @@
 import type { TrilhaSpec } from "../_lib/trilhas";
+
 import { BookCard } from "./book-card";
 import { ModuleRow } from "./module-row";
 import { NextModuleHero } from "./next-module-hero";

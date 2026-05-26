@@ -32,7 +32,7 @@ export default function HomePage() {
       />
 
       <LandingHeader />
-      <main className="relative">
+      <main id="conteudo" className="relative">
         <LandingHero />
         <LandingPillars />
         <LandingFeatures />

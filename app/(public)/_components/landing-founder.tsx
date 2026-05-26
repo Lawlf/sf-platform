@@ -46,7 +46,7 @@ export function LandingFounder() {
               >
                 <span className="text-[color:var(--color-brand-400)]">R$ 297</span> uma vez. Pro pra sempre, incluindo o que ainda nem lançamos.
               </h2>
-              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/70 sm:text-lg">
+              <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
                 100 vagas, pagamento único. Quando o preço subir (vai subir
                 quando entrar ações da B3, comparativos avançados e o resto do
                 roadmap), você não paga a diferença. Acabou as vagas, acabou a
@@ -60,9 +60,9 @@ export function LandingFounder() {
                 className="sf-lift focus-ring inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-500)] px-7 py-4 text-base font-bold text-white shadow-[0_12px_30px_-8px_rgba(239,122,26,0.6)] hover:bg-[color:var(--color-brand-600)] hover:shadow-[0_18px_40px_-8px_rgba(239,122,26,0.7)]"
               >
                 Garantir minha vaga
-                <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
+                <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden />
               </Link>
-              <p className="max-w-xs text-xs leading-relaxed text-white/50 lg:text-right">
+              <p className="max-w-xs text-xs leading-relaxed text-white/70 lg:text-right">
                 100 vagas. R$ 297 uma vez. Pro pra sempre, inclui ações da B3
                 quando entrar.
               </p>

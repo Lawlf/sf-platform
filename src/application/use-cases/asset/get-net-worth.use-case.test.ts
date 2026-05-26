@@ -8,7 +8,7 @@ import type { AssetRepository } from "@/domain/ports/repositories/asset.reposito
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { getNetWorth } from "./get-net-worth.use-case";
 

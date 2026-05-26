@@ -1,8 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
-import { UserNotFound } from "@/domain/errors";
-import { isErr, isOk } from "@/shared/errors";
+import { UserNotFound } from "@/domain/errors/auth-errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import {
   DiagnosticForbiddenForFree,

@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
 import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { listNotifications } from "./list-notifications.use-case";
 

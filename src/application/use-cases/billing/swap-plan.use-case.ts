@@ -11,7 +11,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { BillingProvider } from "@/domain/ports/external/billing-provider.port";
 import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
 import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface SwapPlanDeps {
   subscriptions: SubscriptionRepository;

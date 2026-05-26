@@ -130,6 +130,11 @@ export default async function RootLayout({ children }: { children: React.ReactNo
     >
       <head>
         <ThemeScript />
+        {/* Without JS the IntersectionObserver never reveals .sf-reveal/.sf-stagger,
+            which would leave most of the page permanently at opacity:0. Force visible. */}
+        <noscript>
+          <style>{`.sf-reveal,.sf-stagger>*{opacity:1!important;transform:none!important}`}</style>
+        </noscript>
       </head>
       <body className="font-sans antialiased">
         <QueryProvider>{children}</QueryProvider>

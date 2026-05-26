@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
+
 import { NoActiveSubscriptionError } from "@/domain/errors/billing-errors";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
+
 import { reactivateSubscription } from "./reactivate-subscription.use-case";
 
 const NOW = new Date("2026-05-22T12:00:00Z");

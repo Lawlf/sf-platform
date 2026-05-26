@@ -7,7 +7,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 const schema = z.object({
   debtId: z.string().uuid(),

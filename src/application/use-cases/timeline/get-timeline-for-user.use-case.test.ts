@@ -11,7 +11,7 @@ import type { IncomeRepository } from "@/domain/ports/repositories/income.reposi
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { getTimelineForUser } from "./get-timeline-for-user.use-case";
 

@@ -3,7 +3,7 @@
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "../../../_actions/_serialize";
 

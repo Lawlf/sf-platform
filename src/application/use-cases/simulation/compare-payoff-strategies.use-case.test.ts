@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { PersonalLoanDebt } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { comparePayoffStrategies } from "./compare-payoff-strategies.use-case";
 

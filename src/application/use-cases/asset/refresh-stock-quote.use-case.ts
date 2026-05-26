@@ -11,7 +11,7 @@ import type { QuoteAdapter } from "@/domain/ports/external/quote-adapter.port";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { StockCatalogRepository } from "@/domain/ports/repositories/stock-catalog.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RefreshStockQuoteDeps {
   assets: AssetRepository;

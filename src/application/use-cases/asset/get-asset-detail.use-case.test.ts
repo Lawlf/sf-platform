@@ -12,7 +12,7 @@ import type {
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { getAssetDetail } from "./get-asset-detail.use-case";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { countUndismissed } from "./count-undismissed.use-case";
 

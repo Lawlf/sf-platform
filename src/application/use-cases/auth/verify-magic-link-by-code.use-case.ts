@@ -1,10 +1,5 @@
 import type { UserEntity } from "@/domain/entities/user.entity";
-import {
-  AccountDeactivated,
-  MagicLinkExpired,
-  MagicLinkInvalid,
-  TooManyAttempts,
-} from "@/domain/errors";
+import { AccountDeactivated, MagicLinkExpired, MagicLinkInvalid, TooManyAttempts } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { MagicLinkTokenRepository } from "@/domain/ports/repositories/magic-link-token.repository";
 import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
@@ -12,7 +7,7 @@ import type { UserRepository } from "@/domain/ports/repositories/user.repository
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import { Email, type InvalidEmailError } from "@/domain/value-objects/email.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface VerifyMagicLinkByCodeDeps {
   users: UserRepository;

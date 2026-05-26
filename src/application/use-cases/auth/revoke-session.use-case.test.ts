@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { SessionEntity } from "@/domain/entities/session.entity";
-import { Forbidden, SessionNotFound } from "@/domain/errors";
+import { Forbidden, SessionNotFound } from "@/domain/errors/auth-errors";
 
 import { revokeSession } from "./revoke-session.use-case";
 

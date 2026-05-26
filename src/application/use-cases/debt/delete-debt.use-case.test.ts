@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { PersonalLoanDebt } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
@@ -9,7 +9,7 @@ import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-pay
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 import { deleteDebt } from "./delete-debt.use-case";
 

@@ -18,9 +18,8 @@ import { getDb } from "../client";
 import {
   assetDebtAllocations,
   type AssetDebtAllocationRow,
-  type AssetRow,
-  assets,
-} from "../schema";
+} from "../schema/asset-debt-allocations.schema";
+import { type AssetRow, assets } from "../schema/assets.schema";
 
 /**
  * Normaliza o JSONB de metadata para o tipo do domínio. Em particular,

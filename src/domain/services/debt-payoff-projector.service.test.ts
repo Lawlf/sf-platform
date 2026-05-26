@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import type { FinancingDebt, OverdraftDebt } from "@/domain/entities/debt.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { PriceAmortizationService } from "./amortization/price-amortization.service";
 import { DebtPayoffProjectorService } from "./debt-payoff-projector.service";

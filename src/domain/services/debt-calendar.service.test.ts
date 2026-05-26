@@ -8,7 +8,7 @@ import type {
 } from "@/domain/entities/debt.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { PriceAmortizationService } from "./amortization/price-amortization.service";
 import { addMonthsClamped, computeInstallmentDueDates } from "./debt-calendar.service";

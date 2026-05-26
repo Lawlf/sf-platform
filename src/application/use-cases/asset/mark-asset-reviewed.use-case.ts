@@ -3,7 +3,7 @@ import { isAssetActive } from "@/domain/entities/asset.entity";
 import { AssetDeactivated, AssetNotCash, AssetNotFound } from "@/domain/errors/asset-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface MarkAssetReviewedDeps {
   assets: AssetRepository;

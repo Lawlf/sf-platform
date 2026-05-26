@@ -2,11 +2,12 @@
 
 import { z } from "zod";
 
-import { PriceAmortizationService, SacAmortizationService } from "@/domain/services/amortization";
+import { PriceAmortizationService } from "@/domain/services/amortization/price-amortization.service";
+import { SacAmortizationService } from "@/domain/services/amortization/sac-amortization.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 const inputSchema = z.object({
   principalCents: z.string().regex(/^\d+$/).max(20),

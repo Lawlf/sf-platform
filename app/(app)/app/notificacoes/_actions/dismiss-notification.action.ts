@@ -7,7 +7,7 @@ import { dismissNotification } from "@/application/use-cases/notification/dismis
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 const schema = z.object({
   notificationId: z.string().uuid(),

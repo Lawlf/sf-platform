@@ -10,7 +10,7 @@ import {
 import type { FipeClient, FipeVehicleData } from "@/domain/ports/external/fipe-client.port";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { refreshAssetFromFipe } from "./refresh-asset-from-fipe.use-case";
 

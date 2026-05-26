@@ -20,7 +20,6 @@ import {
   LinkAssetStepContent,
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
-import { PostSaveCalendarSheet } from "../../_components/post-save-calendar-sheet";
 import { ScenarioPicker } from "../../_components/scenario-picker";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
@@ -55,12 +54,6 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-  const [savedDebtId, setSavedDebtId] = useState<string | null>(null);
-
-  function goToSavedDebt() {
-    if (!savedDebtId) return;
-    router.push(`/app/dividas/${savedDebtId}` as Route);
-  }
 
   const labelId = useId();
   const termId = useId();
@@ -318,24 +311,15 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       }
 
       await invalidateDebtCaches(queryClient);
-      setSavedDebtId(debtRes.debtId);
+      router.push(`/app/dividas/${debtRes.debtId}` as Route);
     });
   }
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
-  const calendarSheet = (
-    <PostSaveCalendarSheet
-      open={savedDebtId !== null}
-      debtId={savedDebtId}
-      onContinue={goToSavedDebt}
-    />
-  );
-
   if (step === 2) {
     return (
-      <>
-        <WizardShell
+      <WizardShell
         currentStep={2}
         totalSteps={6}
         title="Valor e taxa"
@@ -506,14 +490,11 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           </>
         )}
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
   if (step === 3) {
     return (
-      <>
       <WizardShell
         currentStep={3}
         totalSteps={6}
@@ -589,15 +570,12 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           />
         </WizardField>
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
   if (step === 4) {
     const canAdvance = canAdvanceLinkAssetStep(values);
     return (
-      <>
       <WizardShell
         currentStep={4}
         totalSteps={6}
@@ -620,8 +598,6 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           enabled={step === 4}
         />
       </WizardShell>
-      {calendarSheet}
-      </>
     );
   }
 
@@ -649,7 +625,6 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   const summaryItems = buildFinancingSummary({ values, totalPaidValue, linkSummary });
 
   return (
-    <>
     <WizardShell
       currentStep={5}
       totalSteps={6}
@@ -678,7 +653,5 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
         </div>
       ) : null}
     </WizardShell>
-    {calendarSheet}
-    </>
   );
 }

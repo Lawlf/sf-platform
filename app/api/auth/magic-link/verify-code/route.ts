@@ -13,7 +13,7 @@ import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repo
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { verifyCodeSchema } from "@/presentation/http/validators/auth.validators";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -85,9 +85,6 @@ export async function POST(req: NextRequest) {
 
   const cookieStore = await cookies();
   cookieStore.set(buildSessionCookie(result.value.rawSessionId));
-  void trackPlausibleEvent(
-    { name: "auth_session_started", props: { method: "magic_link" } },
-    { ip, userAgent },
-  );
+  void trackPlausibleEvent({ name: "auth_session_started", props: { method: "magic_link" } }, { ip, userAgent });
   return NextResponse.json({ ok: true }, { status: 200 });
 }

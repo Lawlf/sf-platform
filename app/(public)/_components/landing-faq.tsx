@@ -36,6 +36,8 @@ export function LandingFaq() {
                   type="button"
                   onClick={() => setOpen(isOpen ? null : idx)}
                   aria-expanded={isOpen}
+                  aria-controls={`faq-panel-${idx}`}
+                  id={`faq-trigger-${idx}`}
                   className="flex w-full items-center justify-between gap-6 py-5 text-left transition-colors hover:bg-[color:var(--surface-3)]/40"
                 >
                   <span
@@ -45,6 +47,7 @@ export function LandingFaq() {
                     {item.q}
                   </span>
                   <span
+                    aria-hidden
                     className={cn(
                       "flex h-9 w-9 shrink-0 items-center justify-center rounded-full border transition-colors",
                       isOpen
@@ -60,6 +63,10 @@ export function LandingFaq() {
                   </span>
                 </button>
                 <div
+                  id={`faq-panel-${idx}`}
+                  role="region"
+                  aria-labelledby={`faq-trigger-${idx}`}
+                  inert={!isOpen}
                   className={cn(
                     "grid overflow-hidden transition-[grid-template-rows] duration-200 ease-out",
                     isOpen ? "grid-rows-[1fr] pb-6" : "grid-rows-[0fr]",

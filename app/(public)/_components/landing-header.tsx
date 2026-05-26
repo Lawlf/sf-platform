@@ -4,7 +4,7 @@ import { ArrowRight, Menu, X } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/app/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -20,6 +20,9 @@ const NAV = [
 export function LandingHeader() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const toggleRef = useRef<HTMLButtonElement>(null);
+  const prevOpen = useRef(false);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -35,6 +38,40 @@ export function LandingHeader() {
     };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  // Move focus into the open menu, trap Tab inside it, and restore focus to the
+  // toggle when it closes.
+  useEffect(() => {
+    if (!open) {
+      if (prevOpen.current) toggleRef.current?.focus();
+      prevOpen.current = open;
+      return;
+    }
+    prevOpen.current = open;
+    const menu = menuRef.current;
+    if (!menu) return;
+    const focusables = () =>
+      Array.from(
+        menu.querySelectorAll<HTMLElement>('a[href], button:not([disabled])'),
+      ).filter((el) => el.tabIndex !== -1);
+    focusables()[0]?.focus();
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== "Tab") return;
+      const items = focusables();
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!first || !last) return;
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
+      }
+    };
+    menu.addEventListener("keydown", onKey);
+    return () => menu.removeEventListener("keydown", onKey);
   }, [open]);
 
   const headerScrolled = scrolled || open;
@@ -72,7 +109,7 @@ export function LandingHeader() {
             </span>
           </Link>
 
-          <nav className="hidden items-center gap-7 md:flex">
+          <nav aria-label="Principal" className="hidden items-center gap-7 md:flex">
             {NAV.map((item) => (
               <Link
                 key={item.href}
@@ -102,6 +139,7 @@ export function LandingHeader() {
               <Link href="/cadastrar">Começar grátis</Link>
             </Button>
             <button
+              ref={toggleRef}
               type="button"
               onClick={() => setOpen((v) => !v)}
               aria-expanded={open}
@@ -120,6 +158,7 @@ export function LandingHeader() {
       </header>
 
       <div
+        ref={menuRef}
         id="mobile-menu"
         className={cn(
           "fixed inset-0 z-40 transition-opacity duration-200 md:hidden",
@@ -128,6 +167,7 @@ export function LandingHeader() {
             : "pointer-events-none opacity-0",
         )}
         aria-hidden={!open}
+        inert={!open}
       >
         <button
           type="button"

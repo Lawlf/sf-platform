@@ -2,7 +2,7 @@
 
 import { ArrowLeft } from "lucide-react";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 
 import { Spinner } from "@/app/components/ui/spinner";
 
@@ -44,6 +44,13 @@ export function WizardShell({
 }: WizardShellProps) {
   const router = useRouter();
   const handleBack = onBack ?? (() => router.back());
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
+  // Move focus to the new step's heading so screen-reader/keyboard users land on
+  // the fresh content instead of the now-replaced button.
+  useEffect(() => {
+    headingRef.current?.focus();
+  }, [currentStep]);
 
   return (
     <main className="relative mx-auto flex w-full max-w-md flex-col px-4 pt-4 pb-6 md:max-w-2xl lg:max-w-3xl">
@@ -73,6 +80,8 @@ export function WizardShell({
           })}
         </div>
         <span
+          role="status"
+          aria-live="polite"
           className="text-[0.6875rem] font-semibold text-[color:var(--text-primary)] opacity-60"
           aria-label={`Etapa ${currentStep} de ${totalSteps}`}
         >
@@ -84,7 +93,11 @@ export function WizardShell({
         key={currentStep}
         className="relative z-10 animate-in fade-in-0 slide-in-from-right-4 duration-300"
       >
-        <h1 className="text-[1.375rem] font-bold leading-[1.2] tracking-[-0.3px] text-[color:var(--text-primary)]">
+        <h1
+          ref={headingRef}
+          tabIndex={-1}
+          className="text-[1.375rem] font-bold leading-[1.2] tracking-[-0.3px] text-[color:var(--text-primary)] outline-none"
+        >
           {title}
         </h1>
         <p className="mb-3 mt-1.5 text-[0.8125rem] leading-[1.45] text-[color:var(--text-primary)] opacity-75">
@@ -123,7 +136,7 @@ export function WizardShell({
               </span>
               {primary.loading ? (
                 <span className="absolute inset-0 flex items-center justify-center">
-                  <Spinner size={18} />
+                  <Spinner size={18} decorative />
                 </span>
               ) : null}
             </button>

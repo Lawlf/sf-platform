@@ -5,13 +5,13 @@ import type {
   FinancingDebt,
   PersonalLoanDebt,
 } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { getDebtDetail } from "./get-debt-detail.use-case";
 

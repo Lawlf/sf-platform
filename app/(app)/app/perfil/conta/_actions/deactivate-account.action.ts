@@ -9,9 +9,17 @@ import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.se
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { isUserSteppedUp } from "@/presentation/http/middleware/require-user-stepup";
 
-export async function deactivateAccountAction(formData: FormData): Promise<void> {
+export type DeactivateAccountResult =
+  | { ok: true }
+  | { ok: false; code?: string; message?: string };
+
+export async function deactivateAccountAction(formData: FormData): Promise<DeactivateAccountResult> {
   const user = await requireUser();
+  if (!(await isUserSteppedUp(user.id))) {
+    return { ok: false, code: "STEPUP_REQUIRED" as const, message: "Confirme sua identidade para continuar." };
+  }
   const reason = (formData.get("reason")?.toString() ?? "").trim() || null;
   await deactivateAccount(
     {

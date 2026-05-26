@@ -2,7 +2,7 @@
 
 import { ArrowLeft, RefreshCcw, TriangleAlert } from "lucide-react";
 import Link from "next/link";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 export default function GlobalError({
   error,
@@ -11,8 +11,12 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     console.error(error);
+    // Move focus to the error heading so screen-reader users are told the page failed.
+    headingRef.current?.focus();
   }, [error]);
 
   return (
@@ -57,7 +61,9 @@ export default function GlobalError({
         </p>
 
         <h1
-          className="mt-3 text-[40px] font-extrabold leading-[1.02] text-[color:var(--text-primary)] sm:text-[56px] lg:text-[64px]"
+          ref={headingRef}
+          tabIndex={-1}
+          className="mt-3 text-[40px] font-extrabold leading-[1.02] text-[color:var(--text-primary)] outline-none sm:text-[56px] lg:text-[64px]"
           style={{ letterSpacing: "-0.04em" }}
         >
           Essa página não carregou.

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { InterestRate } from "./interest-rate.vo";
 

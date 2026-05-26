@@ -7,7 +7,7 @@ import { updateUserDisplayName } from "@/application/use-cases/user/update-user-
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 const schema = z.object({ displayName: z.string().min(1).max(120) });
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { IncomeCommittedService } from "./income-committed.service";
 

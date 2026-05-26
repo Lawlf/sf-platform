@@ -8,7 +8,7 @@ import type { IncomeRepository } from "@/domain/ports/repositories/income.reposi
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, isErr, isOk } from "@/shared/errors";
+import { err, isErr, isOk } from "@/shared/errors/result";
 
 import { getDashboardSnapshot } from "./get-dashboard-snapshot.use-case";
 

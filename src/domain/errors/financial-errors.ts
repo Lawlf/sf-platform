@@ -1,4 +1,4 @@
-import { DomainError } from "@/shared/errors";
+import { DomainError } from "@/shared/errors/domain-error";
 
 export class InvalidMoneyAmountError extends DomainError {
   readonly code = "INVALID_MONEY_AMOUNT" as const;

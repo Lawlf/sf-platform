@@ -6,7 +6,8 @@ import {
   computeNetWorthSnapshot,
   type NetWorthSnapshot,
 } from "@/domain/services/patrimony.service";
-import { type DomainError, ok, type Result } from "@/shared/errors";
+import { type DomainError } from "@/shared/errors/domain-error";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface GetNetWorthInput {
   userId: string;

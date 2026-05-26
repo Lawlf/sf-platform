@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeAlreadyActive, IncomeNotFound } from "@/domain/errors/financial-errors";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { reactivateIncome } from "./reactivate-income.use-case";
 

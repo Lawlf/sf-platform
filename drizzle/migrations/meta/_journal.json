@@ -183,6 +183,41 @@
       "when": 1779554894625,
       "tag": "0025_whole_wind_dancer",
       "breakpoints": true
+    },
+    {
+      "idx": 26,
+      "version": "7",
+      "when": 1779940800000,
+      "tag": "0026_colorful_yellow_claw",
+      "breakpoints": true
+    },
+    {
+      "idx": 27,
+      "version": "7",
+      "when": 1779940860000,
+      "tag": "0027_graceful_blue_blade",
+      "breakpoints": true
+    },
+    {
+      "idx": 28,
+      "version": "7",
+      "when": 1779940920000,
+      "tag": "0028_mute_romulus",
+      "breakpoints": true
+    },
+    {
+      "idx": 29,
+      "version": "7",
+      "when": 1779940980000,
+      "tag": "0029_drop_password_rename_credentials",
+      "breakpoints": true
+    },
+    {
+      "idx": 30,
+      "version": "7",
+      "when": 1779941040000,
+      "tag": "0030_app_lock_columns",
+      "breakpoints": true
     }
   ]
 }

@@ -1,5 +1,5 @@
 import type { AssetCategory } from "@/domain/entities/asset.entity";
-import { DomainError } from "@/shared/errors";
+import { DomainError } from "@/shared/errors/domain-error";
 
 export class AssetNotFound extends DomainError {
   readonly code = "ASSET_NOT_FOUND" as const;

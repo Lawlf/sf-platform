@@ -1,6 +1,6 @@
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import {
   DebtNotFound,
   InvalidAmortizationParamsError,
@@ -11,7 +11,7 @@ import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-pay
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { DistributedLock } from "@/domain/ports/services/distributed-lock.service";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RecordPaymentDeps {
   debts: DebtRepository;

@@ -57,13 +57,13 @@ export function LandingPricing() {
 
           <div
             className="mx-auto mt-8 inline-flex items-center rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1 backdrop-blur-md"
-            role="tablist"
+            role="group"
             aria-label="Ciclo de cobrança"
           >
             <button
               type="button"
-              role="tab"
-              aria-selected={billing === "monthly"}
+              aria-pressed={billing === "monthly"}
+              aria-label="Cobrança mensal"
               onClick={() => setBilling("monthly")}
               className={cn(
                 "rounded-full px-5 py-2 text-sm font-semibold transition-colors",
@@ -76,8 +76,8 @@ export function LandingPricing() {
             </button>
             <button
               type="button"
-              role="tab"
-              aria-selected={billing === "yearly"}
+              aria-pressed={billing === "yearly"}
+              aria-label="Cobrança anual, 33% mais barato"
               onClick={() => setBilling("yearly")}
               className={cn(
                 "relative rounded-full px-5 py-2 text-sm font-semibold transition-colors",
@@ -87,7 +87,10 @@ export function LandingPricing() {
               )}
             >
               Anual
-              <span className="ml-2 rounded-full bg-[color:var(--color-positive)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-positive)]">
+              <span
+                aria-hidden
+                className="ml-2 rounded-full bg-[color:var(--color-positive)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-positive)]"
+              >
                 -33%
               </span>
             </button>
@@ -219,26 +222,28 @@ function PlanCard({
         {description}
       </p>
 
-      <div className="relative z-10 mt-6 flex items-baseline gap-1.5">
-        <span
-          key={price}
-          className="sf-fade-swap text-5xl font-extrabold text-[color:var(--text-primary)] sm:text-6xl tabular-nums"
-          style={{ letterSpacing: "-0.045em" }}
-        >
-          {price}
-        </span>
-        <span className="text-sm font-semibold text-[color:var(--text-muted)]">
-          {cadence}
-        </span>
+      <div className="relative z-10" aria-live="polite">
+        <div className="mt-6 flex items-baseline gap-1.5">
+          <span
+            key={price}
+            className="sf-fade-swap text-5xl font-extrabold text-[color:var(--text-primary)] sm:text-6xl tabular-nums"
+            style={{ letterSpacing: "-0.045em" }}
+          >
+            {price}
+          </span>
+          <span className="text-sm font-semibold text-[color:var(--text-muted)]">
+            {cadence}
+          </span>
+        </div>
+        {secondary && (
+          <p
+            key={secondary}
+            className="sf-fade-swap mt-1.5 text-[13px] text-[color:var(--text-muted)]"
+          >
+            {secondary}
+          </p>
+        )}
       </div>
-      {secondary && (
-        <p
-          key={secondary}
-          className="sf-fade-swap relative z-10 mt-1.5 text-[13px] text-[color:var(--text-muted)]"
-        >
-          {secondary}
-        </p>
-      )}
 
       <Link
         href={ctaHref}

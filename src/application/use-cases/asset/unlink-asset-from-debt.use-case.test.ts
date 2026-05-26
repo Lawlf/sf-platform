@@ -5,7 +5,7 @@ import { AssetNotFound } from "@/domain/errors/asset-errors";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { unlinkAssetFromDebt } from "./unlink-asset-from-debt.use-case";
 

@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  AccountDeactivated,
-  MagicLinkAlreadyUsed,
-  MagicLinkExpired,
-  MagicLinkInvalid,
-} from "@/domain/errors";
+import { AccountDeactivated, MagicLinkAlreadyUsed, MagicLinkExpired, MagicLinkInvalid } from "@/domain/errors/auth-errors";
 
 import { verifyMagicLinkByToken } from "./verify-magic-link-by-token.use-case";
 

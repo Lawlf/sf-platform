@@ -4,7 +4,7 @@ import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { registerDebt } from "./register-debt.use-case";
 

@@ -10,7 +10,7 @@ import { loadEnv } from "@/infrastructure/config/env";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

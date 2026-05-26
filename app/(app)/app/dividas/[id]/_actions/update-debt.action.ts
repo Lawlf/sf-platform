@@ -13,7 +13,7 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { installmentPurchaseItemSchema } from "@/presentation/http/validators/debt.validators";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
 

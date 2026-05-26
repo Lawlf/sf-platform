@@ -14,7 +14,7 @@ import {
   overdraftFormSchema,
   personalLoanFormSchema,
 } from "@/presentation/http/validators/debt.validators";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 type Kind = "financing" | "personal_loan" | "credit_card" | "overdraft";
 

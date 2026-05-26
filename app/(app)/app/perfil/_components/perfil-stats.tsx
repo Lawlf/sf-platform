@@ -1,5 +1,7 @@
 import { Activity, TrendingUp, Wallet } from "lucide-react";
 
+import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
+
 export interface PerfilStatsProps {
   netWorthFormatted: string | null;
   netWorthIsNegative: boolean;
@@ -48,7 +50,7 @@ export function PerfilStats({
           Patrimônio
         </div>
         <div className={`mt-1 text-[1.25rem] font-extrabold ${nwColor}`}>
-          {netWorthFormatted ?? "R$ 0,00"}
+          <HideableValue>{netWorthFormatted ?? "R$ 0,00"}</HideableValue>
         </div>
         <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
           {assetCount} {assetCount === 1 ? "ativo" : "ativos"}

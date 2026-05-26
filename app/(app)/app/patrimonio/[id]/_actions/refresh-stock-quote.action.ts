@@ -9,7 +9,7 @@ import { BrapiQuoteAdapter } from "@/infrastructure/external/brapi/brapi-quote.a
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleStockCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-stock-catalog.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 const inputSchema = z.object({
   assetId: z.string().uuid(),

@@ -4,7 +4,7 @@ import type { FinancingDebt } from "@/domain/entities/debt.entity";
 import type { InstallmentDueDate } from "@/domain/services/debt-calendar.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import {
   buildDebtIcs,

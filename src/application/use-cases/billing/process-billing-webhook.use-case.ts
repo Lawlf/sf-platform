@@ -23,7 +23,7 @@ import {
   SUBSCRIPTION_CANCELED_SUBJECT,
   SubscriptionCanceledEmail,
 } from "@/infrastructure/email/templates/subscription-canceled.email";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 import { activatePro } from "./activate-pro.use-case";
 import { downgradeToFree } from "./downgrade-to-free.use-case";

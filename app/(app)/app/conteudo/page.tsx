@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../_components/page-shell";
+
 import { WizardScreen } from "./_components/wizard-screen";
 
 export const metadata: Metadata = { title: "Conteúdo" };

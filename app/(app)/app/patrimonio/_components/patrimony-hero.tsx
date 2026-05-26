@@ -1,5 +1,7 @@
 import { Wallet } from "lucide-react";
 
+import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
+
 export interface PatrimonyHeroProps {
   netWorthFormatted: string;
   netWorthIsNegative: boolean;
@@ -27,7 +29,7 @@ export function PatrimonyHero({
             className="mt-1 text-[2.25rem] font-extrabold leading-none"
             style={{ letterSpacing: "-0.5px", textShadow: "0 2px 8px rgba(0,0,0,0.08)" }}
           >
-            {netWorthFormatted}
+            <HideableValue>{netWorthFormatted}</HideableValue>
           </div>
         </div>
         <Wallet size={28} strokeWidth={1.5} aria-hidden className="opacity-80" />
@@ -35,13 +37,13 @@ export function PatrimonyHero({
       <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
         <div>
           <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">Ativos</div>
-          <div className="mt-0.5 font-bold">{totalAssetsFormatted}</div>
+          <div className="mt-0.5 font-bold"><HideableValue>{totalAssetsFormatted}</HideableValue></div>
         </div>
         <div>
           <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
             Dívidas
           </div>
-          <div className="mt-0.5 font-bold">{totalDebtFormatted}</div>
+          <div className="mt-0.5 font-bold"><HideableValue>{totalDebtFormatted}</HideableValue></div>
         </div>
       </div>
     </section>

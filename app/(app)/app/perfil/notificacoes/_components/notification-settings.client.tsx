@@ -1,13 +1,15 @@
 "use client";
 
-import { Bell, BellOff, Crown, Lock, Mail, Send } from "lucide-react";
+import { Bell, Crown, Lock, Mail, Send } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { Spinner } from "@/app/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
+import { PrefSection } from "../../acessibilidade/_components/pref-section";
 import { sendTestPushAction } from "../_actions/send-test-push.action";
 import { subscribePushAction } from "../_actions/subscribe-push.action";
 import { unsubscribePushAction } from "../_actions/unsubscribe-push.action";
@@ -66,9 +68,32 @@ export function NotificationSettings({
   const [pending, startTransition] = useTransition();
   const [subscribing, setSubscribing] = useState(false);
   const [testing, setTesting] = useState(false);
+  // Whether THIS browser/device already holds a push subscription. Drives which
+  // single action is offered (activate when off, deactivate when on) instead of
+  // always showing both and blindly incrementing the count.
+  const [deviceState, setDeviceState] = useState<"checking" | "active" | "inactive">("checking");
 
   const supported =
     typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
+
+  useEffect(() => {
+    if (!supported) {
+      setDeviceState("inactive");
+      return;
+    }
+    let cancelled = false;
+    navigator.serviceWorker.ready
+      .then((reg) => reg.pushManager.getSubscription())
+      .then((sub) => {
+        if (!cancelled) setDeviceState(sub ? "active" : "inactive");
+      })
+      .catch(() => {
+        if (!cancelled) setDeviceState("inactive");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [supported]);
 
   async function enablePushOnDevice() {
     if (!supported) {
@@ -106,7 +131,8 @@ export function NotificationSettings({
         toast.error(res.message);
         return;
       }
-      setDevices((d) => d + 1);
+      setDevices(res.deviceCount);
+      setDeviceState("active");
       toast.success("Notificações ativadas neste device.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";
@@ -132,7 +158,8 @@ export function NotificationSettings({
         toast.error(res.message);
         return;
       }
-      setDevices((d) => Math.max(0, d - 1));
+      setDevices(res.deviceCount);
+      setDeviceState("inactive");
       toast.success("Notificações desativadas neste device.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";
@@ -184,71 +211,68 @@ export function NotificationSettings({
   }
 
   return (
-    <div className="flex flex-col gap-4">
+    <div className="divide-y divide-[color:var(--border-soft)]">
       {/* Dispositivo: só Pro pode ativar push real. */}
       {isPro ? (
-        <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.12]">
-                {devices > 0 ? (
-                  <Bell size={20} className="text-[color:var(--color-brand-700)]" aria-hidden />
-                ) : (
-                  <BellOff size={20} className="text-[color:var(--text-secondary)]" aria-hidden />
-                )}
-              </div>
-              <div>
-                <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
-                  Este device
-                </h2>
-                <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
-                  {devices === 0
-                    ? "Nenhum device ativo. Ative pra receber avisos."
-                    : devices === 1
-                      ? "1 device ativo na sua conta."
-                      : `${devices} devices ativos na sua conta.`}
-                </p>
-              </div>
-            </div>
-          </div>
+        <PrefSection
+          eyebrow="Dispositivo"
+          title="Este device"
+          description={
+            devices === 0
+              ? "Nenhum device ativo. Ative pra receber avisos."
+              : devices === 1
+                ? "1 device ativo na sua conta."
+                : `${devices} devices ativos na sua conta.`
+          }
+        >
           {!supported ? (
             <p className="mt-4 rounded-lg bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
               Este navegador não suporta Web Push. No iPhone, instale o app na tela inicial
               (Compartilhar -&gt; Adicionar à Tela de Início) e tente de novo.
             </p>
-          ) : (
-            <div className="mt-4 flex gap-2">
-              <button
-                type="button"
-                onClick={enablePushOnDevice}
-                disabled={subscribing}
-                className="sf-lift focus-ring inline-flex h-10 flex-1 items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)] disabled:opacity-60"
-              >
-                {subscribing ? "Aguarde..." : "Ativar neste device"}
-              </button>
+          ) : deviceState === "checking" ? (
+            <p className="mt-4 text-[0.75rem] text-[color:var(--text-secondary)]">
+              Verificando este dispositivo...
+            </p>
+          ) : deviceState === "active" ? (
+            <div className="mt-4 flex items-center justify-between gap-3">
+              <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[color:var(--semantic-positive)]">
+                <Bell size={15} strokeWidth={2} aria-hidden />
+                Ativo neste dispositivo
+              </span>
               <button
                 type="button"
                 onClick={disablePushOnDevice}
                 disabled={subscribing}
+                aria-busy={subscribing}
                 className="focus-ring inline-flex h-10 items-center justify-center rounded-full border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-4 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] disabled:opacity-60"
               >
-                Desativar
+                {subscribing ? <Spinner size={16} decorative /> : "Desativar"}
               </button>
             </div>
+          ) : (
+            <button
+              type="button"
+              onClick={enablePushOnDevice}
+              disabled={subscribing}
+              aria-busy={subscribing}
+              className="sf-lift focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)] disabled:opacity-60"
+            >
+              {subscribing ? <Spinner size={16} decorative /> : "Ativar neste device"}
+            </button>
           )}
-        </section>
+        </PrefSection>
       ) : null}
 
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
-          O que você quer receber
-        </h2>
-        <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-          {isPro
+      <PrefSection
+        eyebrow="Preferências"
+        title="O que você quer receber"
+        description={
+          isPro
             ? "Cada tipo pode ser ligado individualmente. O badge mostra por onde a notificação chega."
-            : "No Free você ajusta as gerais. O resto libera no Pro. O badge mostra por onde a notificação chega."}
-        </p>
-
+            : "No Free você ajusta as gerais. O resto libera no Pro. O badge mostra por onde a notificação chega."
+        }
+      >
         <SectionGroup title="Geral">
           <PrefRow
             label="Promoções"
@@ -351,30 +375,31 @@ export function NotificationSettings({
             comingSoon={isPro}
           />
         </SectionGroup>
-      </section>
+      </PrefSection>
 
       {isPro ? (
-        <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-          <div className="flex items-center justify-between gap-4">
-            <div>
-              <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
-                Testar notificação
-              </h2>
-              <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-                Envia uma push de teste para todos seus devices ativos agora.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={sendTest}
-              disabled={testing || devices === 0}
-              className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08] px-4 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] disabled:opacity-50"
-            >
-              <Send size={14} aria-hidden />
-              {testing ? "Enviando..." : "Enviar teste"}
-            </button>
-          </div>
-        </section>
+        <PrefSection
+          eyebrow="Teste"
+          title="Testar notificação"
+          description="Envia uma push de teste para todos seus devices ativos agora."
+        >
+          <button
+            type="button"
+            onClick={sendTest}
+            disabled={testing || devices === 0}
+            aria-busy={testing}
+            className="focus-ring inline-flex h-10 items-center justify-center gap-2 rounded-full border border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08] px-4 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] disabled:opacity-50"
+          >
+            {testing ? (
+              <Spinner size={14} decorative />
+            ) : (
+              <>
+                <Send size={14} aria-hidden />
+                Enviar teste
+              </>
+            )}
+          </button>
+        </PrefSection>
       ) : null}
     </div>
   );

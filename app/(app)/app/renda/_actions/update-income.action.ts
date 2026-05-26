@@ -9,7 +9,7 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { incomeFormSchema } from "@/presentation/http/validators/income.validators";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 const updateSchema = incomeFormSchema.extend({
   incomeId: z.string().uuid("ID invalido."),

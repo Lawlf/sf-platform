@@ -1,7 +1,7 @@
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../../_components/page-shell";
 

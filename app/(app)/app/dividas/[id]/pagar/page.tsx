@@ -5,7 +5,7 @@ import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 import { PageShell } from "../../../_components/page-shell";
 

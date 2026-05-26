@@ -6,7 +6,8 @@ import type { AssetRepository } from "@/domain/ports/repositories/asset.reposito
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { assetNetWorth, outstandingDebtOnAsset } from "@/domain/services/patrimony.service";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { type DomainError, err, ok, type Result } from "@/shared/errors";
+import { type DomainError } from "@/shared/errors/domain-error";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface GetAssetDetailInput {
   userId: string;

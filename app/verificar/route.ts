@@ -11,7 +11,7 @@ import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.se
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

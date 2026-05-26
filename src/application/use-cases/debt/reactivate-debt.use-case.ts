@@ -1,9 +1,9 @@
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtAlreadyActive, DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface ReactivateDebtDeps {
   debts: DebtRepository;

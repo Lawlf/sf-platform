@@ -5,7 +5,7 @@ import { notFound } from "next/navigation";
 import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../../../_components/page-shell";
 import { EditIncomeForm } from "../../_components/edit-income-form";

@@ -13,7 +13,7 @@ import type { BillingProvider } from "@/domain/ports/external/billing-provider.p
 import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
 import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
 import type { UserRepository } from "@/domain/ports/repositories/user.repository";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export const DEFAULT_PLAN_SLUG = "pro-monthly";
 

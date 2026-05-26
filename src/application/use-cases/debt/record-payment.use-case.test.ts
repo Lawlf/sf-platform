@@ -1,14 +1,14 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { DebtEntity, PersonalLoanDebt } from "@/domain/entities/debt.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound, InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { DistributedLock } from "@/domain/ports/services/distributed-lock.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { recordPayment } from "./record-payment.use-case";
 

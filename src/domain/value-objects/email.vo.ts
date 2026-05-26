@@ -1,4 +1,4 @@
-import { DomainError } from "@/shared/errors";
+import { DomainError } from "@/shared/errors/domain-error";
 
 export class InvalidEmailError extends DomainError {
   readonly code = "INVALID_EMAIL" as const;

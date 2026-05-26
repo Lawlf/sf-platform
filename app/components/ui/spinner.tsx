@@ -4,13 +4,16 @@ export interface SpinnerProps {
   size?: number;
   className?: string;
   label?: string;
+  /** When inside an element that already announces status, hide the spinner from AT to avoid double announcements. */
+  decorative?: boolean;
 }
 
-export function Spinner({ size = 16, className, label = "Carregando" }: SpinnerProps) {
+export function Spinner({ size = 16, className, label = "Carregando", decorative }: SpinnerProps) {
   return (
     <span
-      role="status"
-      aria-label={label}
+      role={decorative ? undefined : "status"}
+      aria-label={decorative ? undefined : label}
+      aria-hidden={decorative ? true : undefined}
       className={cn("inline-block", className)}
       style={{ width: size, height: size }}
     >

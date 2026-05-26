@@ -13,7 +13,7 @@ import type { IncomeEntity, IncomeFrequency } from "@/domain/entities/income.ent
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { TimelineService } from "./timeline.service";
 

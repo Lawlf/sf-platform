@@ -54,7 +54,14 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
           <span className="ml-0.5 text-[0.875rem] font-semibold opacity-70">%</span>
         </span>
       </div>
-      <div className="commitment-track relative mt-3 h-3 overflow-hidden rounded-full">
+      <div
+        className="commitment-track relative mt-3 h-3 overflow-hidden rounded-full"
+        role="progressbar"
+        aria-valuenow={Number(display)}
+        aria-valuemin={0}
+        aria-valuemax={100}
+        aria-label={`Renda comprometida: ${display}%. ${tone.label}`}
+      >
         <div
           className="absolute inset-y-0 left-0 rounded-full"
           style={{
@@ -84,7 +91,7 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         className="mt-3 flex items-center gap-1.5 text-sm font-semibold"
         style={{ color: tone.color }}
       >
-        <span className="h-2 w-2 rounded-full" style={{ background: tone.color }} />
+        <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: tone.color }} />
         {tone.label}
       </div>
     </section>

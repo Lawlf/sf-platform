@@ -1,7 +1,10 @@
 import { getTableName } from "drizzle-orm";
 import { describe, it, expect } from "vitest";
 
-import { users, sessions, magicLinkTokens, oauthAccounts } from "./index";
+import { magicLinkTokens } from "./magic-link-tokens.schema";
+import { oauthAccounts } from "./oauth-accounts.schema";
+import { sessions } from "./sessions.schema";
+import { users } from "./users.schema";
 
 describe("drizzle schema", () => {
   it("declares users table", () => {

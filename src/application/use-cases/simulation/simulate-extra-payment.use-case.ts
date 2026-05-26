@@ -1,4 +1,4 @@
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import {
   DebtNotFound,
   type InvalidAmortizationParamsError,
@@ -7,7 +7,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { DebtPayoffProjectorService } from "@/domain/services/debt-payoff-projector.service";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, isOk, ok, type Result } from "@/shared/errors";
+import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface SimulateExtraPaymentDeps {
   debts: DebtRepository;

@@ -6,7 +6,7 @@ import { z } from "zod";
 import { revokeSession } from "@/application/use-cases/auth/revoke-session.use-case";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 const schema = z.string().regex(/^[a-f0-9]{8,64}$/);
 

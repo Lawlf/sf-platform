@@ -1,7 +1,7 @@
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import { ok, type Result } from "@/shared/errors";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface DetectNegativeBalanceDeps {
   notifications: NotificationRepository;

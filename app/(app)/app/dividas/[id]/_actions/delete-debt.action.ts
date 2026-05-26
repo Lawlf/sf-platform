@@ -8,7 +8,7 @@ import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persisten
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
 

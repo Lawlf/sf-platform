@@ -8,6 +8,8 @@ import { Fragment } from "react";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
+import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
+
 export interface TopbarProps {
   displayName: string;
   email: string;
@@ -90,6 +92,7 @@ export function Topbar({ displayName, notificationCount = 0 }: TopbarProps) {
       </nav>
 
       <div className="flex items-center gap-2">
+        <HideValuesToggle />
         <SimpleTooltip label="Ir para perfil" side="bottom">
           <Link
             href={"/app/perfil" as Route}

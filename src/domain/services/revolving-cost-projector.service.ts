@@ -1,7 +1,7 @@
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, isOk, ok, type Result } from "@/shared/errors";
+import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface RevolvingCostInput {
   currentBalance: Money;

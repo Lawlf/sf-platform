@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { NoActiveSubscriptionError } from "@/domain/errors/billing-errors";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { createSetupSession } from "./create-setup-session.use-case";
 

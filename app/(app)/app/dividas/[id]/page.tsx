@@ -3,10 +3,12 @@ import { notFound } from "next/navigation";
 
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { computeInstallmentDueDates } from "@/domain/services/debt-calendar.service";
+import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calendar-link";
+import { loadEnv } from "@/infrastructure/config/env";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 import { PageShell } from "../../_components/page-shell";
 
@@ -31,13 +33,25 @@ export default async function DebtDetailPage({ params }: PageProps) {
   );
   if (isErr(r)) notFound();
   const { debt, amortization, payments } = r.value;
-  const hasCalendarSchedule = computeInstallmentDueDates(debt, amortization).length > 0;
+  const dueDates = computeInstallmentDueDates(debt, amortization);
+  const hasCalendarSchedule = dueDates.length > 0;
+  const googleCalendarUrl = hasCalendarSchedule
+    ? buildGoogleCalendarUrl({
+        debt,
+        dueDates,
+        appUrl: loadEnv().NEXT_PUBLIC_APP_URL,
+      })
+    : null;
 
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader debt={debt} />
 
-      <ActionsSection debt={debt} hasCalendarSchedule={hasCalendarSchedule} />
+      <ActionsSection
+        debt={debt}
+        hasCalendarSchedule={hasCalendarSchedule}
+        googleCalendarUrl={googleCalendarUrl}
+      />
 
       {debt.kind === "credit_card" ? <InstallmentPurchasesSection debt={debt} /> : null}
 

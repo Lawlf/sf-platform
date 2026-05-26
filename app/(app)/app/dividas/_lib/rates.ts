@@ -1,5 +1,5 @@
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { isOk, type Result } from "@/shared/errors";
+import { isOk, type Result } from "@/shared/errors/result";
 
 // Converte percentual anual (ex: 12 = 12% a.a.) em InterestRate ou null em caso de erro.
 export function parseAnnualRatePct(pct: number): InterestRate | null {

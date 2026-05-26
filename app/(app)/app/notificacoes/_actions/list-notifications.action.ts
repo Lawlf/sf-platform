@@ -4,7 +4,7 @@ import { countUndismissed } from "@/application/use-cases/notification/count-und
 import { listNotifications } from "@/application/use-cases/notification/list-notifications.use-case";
 import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 export interface SerializedNotification {
   id: string;

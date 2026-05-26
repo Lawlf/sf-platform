@@ -7,7 +7,7 @@ import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/strip
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export async function reactivateSubscriptionAction(): Promise<{ ok: boolean; message?: string }> {
   const user = await requireUser();

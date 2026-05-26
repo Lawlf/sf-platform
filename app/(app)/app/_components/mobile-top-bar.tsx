@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
+import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
+
 export interface MobileTopBarProps {
   displayName: string;
   notificationCount?: number;
@@ -35,6 +37,7 @@ export function MobileTopBar({ displayName, notificationCount = 0 }: MobileTopBa
       </SimpleTooltip>
 
       <div className="flex items-center gap-2.5">
+        <HideValuesToggle size={22} />
         <SimpleTooltip label="Notificações" side="bottom">
           <Link
             href={"/app/notificacoes" as Route}

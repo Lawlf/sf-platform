@@ -1,6 +1,6 @@
 import type { DebtEntity, DebtStatus } from "@/domain/entities/debt.entity";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import { ok, type Result } from "@/shared/errors";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface ListDebtsDeps {
   debts: DebtRepository;

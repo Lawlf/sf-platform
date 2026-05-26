@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { PriceAmortizationService } from "./price-amortization.service";
 import { SacAmortizationService } from "./sac-amortization.service";

@@ -6,7 +6,7 @@ import { deleteIncome } from "@/application/use-cases/income/delete-income.use-c
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../_actions/_notifications";
 

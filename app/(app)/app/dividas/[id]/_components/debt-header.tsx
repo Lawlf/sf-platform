@@ -4,6 +4,8 @@ import type { ReactNode } from "react";
 import type { DebtEntity, DebtKind, DebtStatus } from "@/domain/entities/debt.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+
 const KIND_LABEL: Record<DebtKind, string> = {
   financing: "Financiamento",
   personal_loan: "Empréstimo ou crediário",
@@ -58,30 +60,33 @@ function statusBadgeClass(status: DebtStatus): string {
   return "bg-white/15 text-white/90";
 }
 
-function buildHeaderStats(debt: DebtEntity): { label: string; value: string }[] {
+function buildHeaderStats(
+  debt: DebtEntity,
+): { label: string; value: string; isCurrency?: boolean }[] {
   if (debt.kind === "recurring") {
     const freqLabel = FREQUENCY_LABEL[debt.recurringFrequency];
     const categoryLabel = EXPENSE_CATEGORY_LABEL[debt.expenseCategory ?? "other"] ?? "Outros";
     return [
-      { label: `Por ${freqLabel}`, value: Money.fromCents(debt.recurringAmountCents).format() },
       {
-        label: "Frequência",
-        value: FREQUENCY_NAME[debt.recurringFrequency],
+        label: `Por ${freqLabel}`,
+        value: Money.fromCents(debt.recurringAmountCents).format(),
+        isCurrency: true,
       },
+      { label: "Frequência", value: FREQUENCY_NAME[debt.recurringFrequency] },
       { label: "Categoria", value: categoryLabel },
       { label: "Início", value: DATE_FMT.format(debt.startDate) },
     ];
   }
   const secondary =
     debt.kind === "credit_card"
-      ? { label: "Limite", value: debt.creditLimit.format() }
+      ? { label: "Limite", value: debt.creditLimit.format(), isCurrency: true }
       : {
           label: "Previsto",
           value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "Sem previsão",
         };
   return [
-    { label: "Dívida atual", value: debt.currentBalance.format() },
-    { label: "Valor original", value: debt.originalPrincipal.format() },
+    { label: "Dívida atual", value: debt.currentBalance.format(), isCurrency: true },
+    { label: "Valor original", value: debt.originalPrincipal.format(), isCurrency: true },
     { label: "Início", value: DATE_FMT.format(debt.startDate) },
     secondary,
   ];
@@ -124,7 +129,9 @@ export function DebtHeader({ debt }: Props) {
             <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               {s.label}
             </div>
-            <div className="mt-0.5 font-bold tabular-nums">{s.value}</div>
+            <div className="mt-0.5 font-bold tabular-nums">
+              {s.isCurrency ? <HideableValue>{s.value}</HideableValue> : s.value}
+            </div>
           </div>
         ))}
       </div>

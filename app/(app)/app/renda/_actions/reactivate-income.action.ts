@@ -6,7 +6,7 @@ import { reactivateIncome } from "@/application/use-cases/income/reactivate-inco
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export async function reactivateIncomeAction(
   incomeId: string,

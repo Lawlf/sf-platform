@@ -1,6 +1,6 @@
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface AmortizationInstallment {
   readonly month: number; // 1-indexed

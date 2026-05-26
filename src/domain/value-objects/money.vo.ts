@@ -1,5 +1,5 @@
 import { InvalidMoneyAmountError } from "@/domain/errors/financial-errors";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export type Currency = "BRL";
 

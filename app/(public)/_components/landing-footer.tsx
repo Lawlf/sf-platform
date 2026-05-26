@@ -23,9 +23,9 @@ const groups = [
   {
     label: "Legal",
     links: [
-      { label: "Termos de uso", href: "#" },
-      { label: "Política de privacidade", href: "#" },
-      { label: "LGPD", href: "#" },
+      { label: "Termos de uso", href: "/termos" },
+      { label: "Política de privacidade", href: "/privacidade" },
+      { label: "LGPD", href: "/lgpd" },
     ],
   },
 ];
@@ -63,10 +63,13 @@ export function LandingFooter() {
 
           {groups.map((group) => (
             <div key={group.label}>
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--text-muted)]">
+              <h2
+                id={`footer-${group.label}`}
+                className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[color:var(--text-muted)]"
+              >
                 {group.label}
-              </p>
-              <ul className="mt-4 space-y-3">
+              </h2>
+              <ul className="mt-4 space-y-3" aria-labelledby={`footer-${group.label}`}>
                 {group.links.map((link) => (
                   <li key={`${group.label}-${link.label}`}>
                     <Link

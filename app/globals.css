@@ -50,7 +50,8 @@
     --border-strong: rgba(31, 29, 28, 0.16);
     --text-primary: #1f1d1c;
     --text-secondary: rgba(31, 29, 28, 0.72);
-    --text-muted: rgba(31, 29, 28, 0.55);
+    /* 0.64 keeps muted text >= 4.5:1 on --bg-app (#fdf8f3). Do not lower. */
+    --text-muted: rgba(31, 29, 28, 0.64);
     --semantic-positive: var(--color-positive);
     --semantic-negative: var(--color-negative);
     --semantic-warning: var(--color-warning);
@@ -73,7 +74,7 @@
     --border-strong: rgba(253, 248, 243, 0.18);
     --text-primary: #fdf8f3;
     --text-secondary: rgba(253, 248, 243, 0.78);
-    --text-muted: rgba(253, 248, 243, 0.55);
+    --text-muted: rgba(253, 248, 243, 0.64);
     --semantic-positive: #22c55e;
     --semantic-negative: #f87171;
     --semantic-warning: #facc15;

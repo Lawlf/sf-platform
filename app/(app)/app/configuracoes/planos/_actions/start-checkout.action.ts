@@ -11,7 +11,7 @@ import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export interface StartCheckoutResult {
   ok: false;

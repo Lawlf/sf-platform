@@ -6,7 +6,7 @@ import {
   PlanNotCheckoutReadyError,
   PlanNotFoundError,
 } from "@/domain/errors/billing-errors";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { createCheckoutSession } from "./create-checkout-session.use-case";
 

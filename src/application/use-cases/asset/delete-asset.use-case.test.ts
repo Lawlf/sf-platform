@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
-import { Forbidden } from "@/domain/errors";
 import { AssetNotFound } from "@/domain/errors/asset-errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { deleteAsset } from "./delete-asset.use-case";
 

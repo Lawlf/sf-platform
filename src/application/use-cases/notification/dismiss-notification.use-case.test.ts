@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { NotificationNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { dismissNotification } from "./dismiss-notification.use-case";
 

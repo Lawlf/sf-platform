@@ -1,4 +1,4 @@
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import {
   type DebtNotFound,
   InvalidAmortizationParamsError,
@@ -10,7 +10,7 @@ import {
   type PayoffComparison,
 } from "@/domain/services/payoff-strategy.service";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, isOk, ok, type Result } from "@/shared/errors";
+import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface ComparePayoffStrategiesDeps {
   debts: DebtRepository;

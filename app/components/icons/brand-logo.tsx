@@ -4,9 +4,16 @@ export interface BrandLogoProps {
   size?: number;
   glow?: boolean;
   className?: string;
+  /** Pass "" when adjacent visible text already names the brand (avoids double announcement). */
+  alt?: string;
 }
 
-export function BrandLogo({ size = 64, glow = false, className }: BrandLogoProps) {
+export function BrandLogo({
+  size = 64,
+  glow = false,
+  className,
+  alt = "Sabor Financeiro",
+}: BrandLogoProps) {
   const containerSize = size * 2;
   return (
     <span
@@ -25,7 +32,7 @@ export function BrandLogo({ size = 64, glow = false, className }: BrandLogoProps
       ) : null}
       <Image
         src="/icons/icon-512.png"
-        alt="Sabor Financeiro"
+        alt={alt}
         width={size}
         height={size}
         priority

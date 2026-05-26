@@ -11,6 +11,7 @@ import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
 
 import { HowItWorksSheet } from "./how-it-works-sheet";
+import { HideableValue } from "./money-visibility/hideable-value.client";
 
 function formatBrl(cents: bigint): string {
   const negative = cents < 0n;
@@ -95,7 +96,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
               Saldo livre do mês
             </span>
             <div className="mt-1.5 text-[1.875rem] font-extrabold leading-none text-white md:text-[2.25rem]">
-              {saldoFormatted}
+              <HideableValue>{saldoFormatted}</HideableValue>
             </div>
             {health ? (
               <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-bold text-white backdrop-blur">

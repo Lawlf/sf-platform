@@ -43,7 +43,7 @@ export async function subscribePushAction(input: {
   p256dh: string;
   auth: string;
   userAgent: string | null;
-}): Promise<{ ok: true } | { ok: false; message: string }> {
+}): Promise<{ ok: true; deviceCount: number } | { ok: false; message: string }> {
   const user = await requireUser();
   if (!user.isPro) {
     return { ok: false, message: "Notificações push são exclusivas do plano Pro." };
@@ -66,6 +66,7 @@ export async function subscribePushAction(input: {
     auth: parsed.data.auth,
     userAgent: parsed.data.userAgent ?? null,
   });
+  const deviceCount = (await repo.listForUser(user.id)).length;
   revalidatePath("/app/perfil/notificacoes");
-  return { ok: true };
+  return { ok: true, deviceCount };
 }

@@ -4,7 +4,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
-import { err, isOk, ok, type Result } from "@/shared/errors";
+import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface GetDashboardSnapshotDeps {
   debts: DebtRepository;

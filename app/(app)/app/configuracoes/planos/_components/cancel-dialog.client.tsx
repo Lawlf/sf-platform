@@ -4,6 +4,7 @@ import { AlertTriangle, XCircle } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { StepUpGate } from "@/app/(app)/app/_components/step-up/step-up-gate.client";
 import {
   Sheet,
   SheetContent,
@@ -22,9 +23,35 @@ interface Props {
 
 export function CancelDialog({ accessUntilLabel, variant = "primary" }: Props) {
   const [open, setOpen] = useState(false);
+  const [stepUpOpen, setStepUpOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
+  async function doCancel() {
+    const r = await cancelSubscriptionAction();
+    if (!r.ok && r.code === "STEPUP_REQUIRED") {
+      setStepUpOpen(true);
+      return;
+    }
+    if (r.ok) {
+      toast.success("Pro cancelado.", {
+        description: `Você mantém acesso até ${accessUntilLabel}.`,
+      });
+      setOpen(false);
+    } else {
+      toast.error("Não rolou cancelar.", {
+        description: r.message ?? "Tenta de novo em instantes.",
+      });
+    }
+  }
+
   function handleConfirm() {
+    startTransition(async () => {
+      await doCancel();
+    });
+  }
+
+  function handleStepUpConfirmed() {
+    setStepUpOpen(false);
     startTransition(async () => {
       const r = await cancelSubscriptionAction();
       if (r.ok) {
@@ -140,6 +167,13 @@ export function CancelDialog({ accessUntilLabel, variant = "primary" }: Props) {
           </div>
         </SheetContent>
       </Sheet>
+
+      <StepUpGate
+        open={stepUpOpen}
+        onOpenChange={setStepUpOpen}
+        onConfirmed={handleStepUpConfirmed}
+        title="Confirme para cancelar plano"
+      />
     </>
   );
 }

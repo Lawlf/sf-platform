@@ -5,7 +5,7 @@ import { isAssetActive } from "@/domain/entities/asset.entity";
 import { AssetAlreadyActive, AssetNotFound } from "@/domain/errors/asset-errors";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { deactivateAsset } from "./deactivate-asset.use-case";
 import { reactivateAsset } from "./reactivate-asset.use-case";

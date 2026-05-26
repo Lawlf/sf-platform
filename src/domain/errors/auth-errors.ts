@@ -1,4 +1,4 @@
-import { DomainError } from "@/shared/errors";
+import { DomainError } from "@/shared/errors/domain-error";
 
 export class MagicLinkExpired extends DomainError {
   readonly code = "MAGIC_LINK_EXPIRED" as const;

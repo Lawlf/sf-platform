@@ -6,7 +6,7 @@ import { saveDiagnosticAnswer } from "@/application/use-cases/user/save-diagnost
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 const VALID_ANSWERS: readonly ContentDiagnosticAnswer[] = ["pagar-divida", "guardar", "investir"];
 

@@ -7,7 +7,7 @@ import type {
 } from "@/domain/entities/debt.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { PayoffStrategyService } from "./payoff-strategy.service";
 

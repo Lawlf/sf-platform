@@ -6,7 +6,7 @@ import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, isOk, ok, type Result } from "@/shared/errors";
+import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 import { PriceAmortizationService } from "./amortization/price-amortization.service";
 import { SacAmortizationService } from "./amortization/sac-amortization.service";

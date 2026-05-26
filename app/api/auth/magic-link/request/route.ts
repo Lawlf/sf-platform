@@ -17,7 +17,7 @@ import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repo
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { requestMagicLinkSchema } from "@/presentation/http/validators/auth.validators";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";

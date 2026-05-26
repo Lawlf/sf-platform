@@ -7,7 +7,7 @@ import { registerDebt } from "@/application/use-cases/debt/register-debt.use-cas
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 const schema = z.object({
   label: z.string().min(1).max(120),

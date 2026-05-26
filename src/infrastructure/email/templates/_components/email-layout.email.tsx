@@ -4,7 +4,6 @@ import {
   Head,
   Hr,
   Html,
-  Img,
   Link,
   Preview,
   Section,
@@ -63,48 +62,6 @@ export function EmailLayout({ preview, appUrl, children, unsubscribeNode }: Emai
             border: `1px solid ${BORDER_SOFT}`,
           }}
         >
-          <Section
-            style={{
-              padding: "20px 24px",
-              backgroundColor: SURFACE,
-              borderBottom: `1px solid ${BORDER_SOFT}`,
-            }}
-          >
-            <Link
-              href={safeUrl}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 10,
-                textDecoration: "none",
-                color: BRAND_ORANGE_DARK,
-              }}
-            >
-              <Img
-                src={resolveLogoSrc(safeUrl)}
-                width={32}
-                height={32}
-                alt="Sabor Financeiro"
-                style={{
-                  display: "block",
-                  borderRadius: 8,
-                  border: "0",
-                }}
-              />
-              <span
-                style={{
-                  fontSize: 16,
-                  fontWeight: 700,
-                  letterSpacing: -0.3,
-                  color: BRAND_ORANGE_DARK,
-                  verticalAlign: "middle",
-                }}
-              >
-                Sabor Financeiro
-              </span>
-            </Link>
-          </Section>
-
           <Section style={{ padding: "28px 28px 24px 28px" }}>{children}</Section>
 
           <Hr style={{ margin: 0, border: 0, borderTop: `1px solid ${BORDER_SOFT}` }} />
@@ -144,18 +101,6 @@ export function EmailLayout({ preview, appUrl, children, unsubscribeNode }: Emai
       </Body>
     </Html>
   );
-}
-
-/**
- * No preview do `react-email dev` (porta 3010), o iframe não consegue carregar
- * imagens do Next dev server (`localhost:3000`) por causa do sandbox de
- * srcDoc. A solução é servir o logo do próprio react-email via pasta
- * `templates/static/`. Para qualquer outro `appUrl` (produção), usamos
- * `/icons/icon-192.png` que é o asset PWA.
- */
-function resolveLogoSrc(safeUrl: string): string {
-  if (safeUrl === "http://localhost:3000") return "/static/logo.png";
-  return `${safeUrl}/icons/icon-192.png`;
 }
 
 export const EMAIL_COLORS = {

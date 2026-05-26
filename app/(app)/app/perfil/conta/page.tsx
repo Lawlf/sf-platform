@@ -5,6 +5,7 @@ import { DrizzleOauthAccountRepository } from "@/infrastructure/persistence/driz
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
+import { PrefSection } from "../acessibilidade/_components/pref-section";
 
 import { AccountNameForm } from "./_components/account-name-form";
 import { DeactivateForm } from "./_components/deactivate-form";
@@ -23,9 +24,9 @@ export default async function ContaPage() {
       description="Sua conta na plataforma."
       backHref={"/app/configuracoes" as Route}
     >
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <h2 className="text-[1rem] font-bold text-[color:var(--text-primary)]">Identidade</h2>
-        <div className="mt-4 flex flex-col gap-4">
+      <div className="divide-y divide-[color:var(--border-soft)]">
+        <PrefSection eyebrow="Você" title="Identidade" description="Seu nome e email de acesso.">
+        <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-1.5">
             <span className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-secondary)]">
               Nome
@@ -55,28 +56,24 @@ export default async function ContaPage() {
             </p>
           </div>
         </div>
-      </section>
+        </PrefSection>
 
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <h2 className="text-[1rem] font-bold text-[color:var(--text-primary)]">Login social</h2>
-        <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Entre com sua conta Google sem precisar de link mágico no email.
-        </p>
-        <div className="mt-4">
+        <PrefSection
+          eyebrow="Acesso"
+          title="Login social"
+          description="Entre com sua conta Google sem precisar de link mágico no email."
+        >
           <GoogleLinkRow linked={googleLinked} />
-        </div>
-      </section>
+        </PrefSection>
 
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <h2 className="text-[1rem] font-bold text-[color:var(--text-primary)]">Desativar conta</h2>
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-          Sua conta será desativada imediatamente. Os dados ficam retidos conforme nossa política de
-          privacidade (LGPD). Você não poderá entrar novamente; fale com o suporte para reativar.
-        </p>
-        <div className="mt-4">
+        <PrefSection
+          eyebrow="Conta"
+          title="Desativar conta"
+          description="Sua conta será desativada imediatamente. Os dados ficam retidos conforme nossa política de privacidade (LGPD). Você não poderá entrar novamente; fale com o suporte para reativar."
+        >
           <DeactivateForm />
-        </div>
-      </section>
+        </PrefSection>
+      </div>
     </PageShell>
   );
 }

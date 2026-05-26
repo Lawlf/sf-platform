@@ -1,5 +1,5 @@
 import { InvalidInterestRateError } from "@/domain/errors/financial-errors";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export type RatePeriod = "monthly" | "annual";
 

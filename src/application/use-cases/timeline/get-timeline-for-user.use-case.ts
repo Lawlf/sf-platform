@@ -6,7 +6,8 @@ import type { IncomeRepository } from "@/domain/ports/repositories/income.reposi
 import { StoryDetectionService, type StoryCard } from "@/domain/services/story-detection.service";
 import { TimelineService, type MonthlyDataPoint } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { type DomainError, ok, type Result } from "@/shared/errors";
+import { type DomainError } from "@/shared/errors/domain-error";
+import { ok, type Result } from "@/shared/errors/result";
 
 export type TimelineRange = "3" | "6" | "12" | "24" | "all";
 export type TimelineShow = "all" | "highlights" | "with-payments";

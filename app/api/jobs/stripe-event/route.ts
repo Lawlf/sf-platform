@@ -1,8 +1,8 @@
 import type Stripe from "stripe";
 
 import { processBillingWebhook } from "@/application/use-cases/billing/process-billing-webhook.use-case";
-import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/stripe-billing.adapter";
 import { mapStripeEvent } from "@/infrastructure/billing/stripe/mappers/stripe-event.mapper";
+import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/stripe-billing.adapter";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
 import { ResendEmailService } from "@/infrastructure/email/resend-email.service";

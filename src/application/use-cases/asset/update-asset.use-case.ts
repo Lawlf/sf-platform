@@ -10,7 +10,7 @@ import {
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface UpdateAssetDeps {
   assets: AssetRepository;

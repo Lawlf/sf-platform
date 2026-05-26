@@ -8,7 +8,7 @@ import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/strip
 import { loadEnv } from "@/infrastructure/config/env";
 import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors";
+import { isErr } from "@/shared/errors/result";
 
 export async function updatePaymentMethodAction(): Promise<{ ok: false; message: string } | never> {
   const user = await requireUser();

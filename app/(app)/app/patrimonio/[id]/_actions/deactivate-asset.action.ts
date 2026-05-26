@@ -9,7 +9,7 @@ import { deactivateAsset } from "@/application/use-cases/asset/deactivate-asset.
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 const inputSchema = z.object({
   assetId: z.string().uuid(),

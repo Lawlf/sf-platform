@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 import "./globals.css";
 
@@ -11,8 +11,11 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const headingRef = useRef<HTMLHeadingElement>(null);
+
   useEffect(() => {
     console.error(error);
+    headingRef.current?.focus();
   }, [error]);
 
   return (
@@ -82,12 +85,15 @@ export default function GlobalError({
           </p>
 
           <h1
+            ref={headingRef}
+            tabIndex={-1}
             style={{
               fontSize: "56px",
               fontWeight: 800,
               lineHeight: 1.02,
               letterSpacing: "-0.04em",
               margin: 0,
+              outline: "none",
             }}
           >
             Essa página não carregou.

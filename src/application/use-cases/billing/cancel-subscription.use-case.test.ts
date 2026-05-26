@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { Subscription } from "@/domain/entities/subscription.entity";
 import { NoActiveSubscriptionError } from "@/domain/errors/billing-errors";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { cancelSubscription } from "./cancel-subscription.use-case";
 

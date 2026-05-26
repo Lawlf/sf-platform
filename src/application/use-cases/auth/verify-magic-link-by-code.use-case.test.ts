@@ -1,11 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import {
-  AccountDeactivated,
-  MagicLinkExpired,
-  MagicLinkInvalid,
-  TooManyAttempts,
-} from "@/domain/errors";
+import { AccountDeactivated, MagicLinkExpired, MagicLinkInvalid, TooManyAttempts } from "@/domain/errors/auth-errors";
 import { InvalidEmailError } from "@/domain/value-objects/email.vo";
 
 import { verifyMagicLinkByCode } from "./verify-magic-link-by-code.use-case";
@@ -271,3 +266,4 @@ describe("verifyMagicLinkByCode", () => {
     expect(deps.sessions.create).not.toHaveBeenCalled();
   });
 });
+

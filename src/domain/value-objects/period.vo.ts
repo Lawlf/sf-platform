@@ -1,5 +1,5 @@
 import { InvalidPeriodError } from "@/domain/errors/financial-errors";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
 

@@ -12,7 +12,7 @@ import {
 
 export function LandingMockDashboard() {
   return (
-    <div className="relative mx-auto w-full max-w-[340px]">
+    <div aria-hidden className="relative mx-auto w-full max-w-[340px]">
       <div
         aria-hidden
         className="absolute -inset-6 -z-10 rounded-[3.5rem]"

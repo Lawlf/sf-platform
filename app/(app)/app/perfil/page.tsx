@@ -10,22 +10,29 @@ import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/rep
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../_components/page-shell";
 
+import { AdminPanelButton } from "./_components/admin-panel-button.client";
 import { PerfilAchievements } from "./_components/perfil-achievements";
 import { PerfilHero } from "./_components/perfil-hero";
 import { PerfilStats } from "./_components/perfil-stats";
 
 export const metadata: Metadata = { title: "Perfil" };
 
-export default async function PerfilPage() {
+export default async function PerfilPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ stepup?: string }>;
+}) {
   const user = await requireUser();
+  const { stepup } = await searchParams;
 
   return (
     <PageShell title="Perfil" description="Quem você é, como anda sua saúde financeira.">
       <PerfilHero initialDisplayName={user.displayName ?? ""} email={user.email} />
+      {user.role === "admin" ? <AdminPanelButton autoOpen={stepup === "admin"} /> : null}
       <Suspense
         fallback={
           <div className="grid grid-cols-3 gap-2">

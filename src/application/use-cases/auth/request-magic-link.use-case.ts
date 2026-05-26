@@ -5,7 +5,7 @@ import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import type { RateLimiter } from "@/domain/ports/services/rate-limiter.service";
 import { Email, type InvalidEmailError } from "@/domain/value-objects/email.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RequestMagicLinkDeps {
   users: UserRepository;

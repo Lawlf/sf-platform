@@ -1,4 +1,4 @@
-import { DomainError } from "@/shared/errors";
+import { DomainError } from "@/shared/errors/domain-error";
 
 export class AlreadySubscribedError extends DomainError {
   readonly code = "ALREADY_SUBSCRIBED" as const;

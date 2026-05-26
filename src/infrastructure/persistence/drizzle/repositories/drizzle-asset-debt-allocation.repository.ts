@@ -5,7 +5,10 @@ import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/
 import { Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
-import { assetDebtAllocations, type AssetDebtAllocationRow } from "../schema";
+import {
+  assetDebtAllocations,
+  type AssetDebtAllocationRow,
+} from "../schema/asset-debt-allocations.schema";
 
 function toEntity(row: AssetDebtAllocationRow): AssetDebtAllocation {
   return {

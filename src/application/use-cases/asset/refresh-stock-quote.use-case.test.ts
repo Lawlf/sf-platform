@@ -15,7 +15,7 @@ import type {
   StockCatalogUpsertEntry,
 } from "@/domain/ports/repositories/stock-catalog.repository";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isErr, isOk } from "@/shared/errors";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { refreshStockQuote } from "./refresh-stock-quote.use-case";
 

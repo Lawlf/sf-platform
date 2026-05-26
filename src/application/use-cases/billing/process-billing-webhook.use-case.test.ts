@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { Payment } from "@/domain/entities/payment.entity";
 import type { Subscription } from "@/domain/entities/subscription.entity";
 import type { ParsedWebhookEvent } from "@/domain/ports/external/billing-provider.port";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 import { processBillingWebhook } from "./process-billing-webhook.use-case";
 

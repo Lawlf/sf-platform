@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { AccountDeactivated, OauthAccountLinkRequiresVerification } from "@/domain/errors";
+import { AccountDeactivated, OauthAccountLinkRequiresVerification } from "@/domain/errors/auth-errors";
 import type { OauthProfile } from "@/domain/ports/services/oauth-provider.service";
 
 import { signInWithOauth } from "./sign-in-with-oauth.use-case";

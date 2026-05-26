@@ -19,7 +19,7 @@ import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persisten
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors";
+import { isOk } from "@/shared/errors/result";
 
 // Categorias do wizard "Comprei algo novo". Mapeadas para AssetCategory + parâmetros
 // de depreciação. travel e education NÃO viram patrimônio (são gastos consumíveis).

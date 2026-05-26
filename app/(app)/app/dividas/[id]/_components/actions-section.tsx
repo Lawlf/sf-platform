@@ -5,16 +5,21 @@ import { Button } from "@/app/components/ui/button";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 
 import { ArchiveDebtButton } from "./archive-debt-button";
+import { CalendarActions } from "./calendar-actions";
 import { DeleteDebtButton } from "./delete-debt-button";
-import { DownloadCalendarButton } from "./download-calendar-button";
 import { ReactivateDebtButton } from "./reactivate-debt-button";
 
 interface Props {
   debt: DebtEntity;
   hasCalendarSchedule?: boolean;
+  googleCalendarUrl?: string | null;
 }
 
-export function ActionsSection({ debt, hasCalendarSchedule = false }: Props) {
+export function ActionsSection({
+  debt,
+  hasCalendarSchedule = false,
+  googleCalendarUrl = null,
+}: Props) {
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -46,7 +51,7 @@ export function ActionsSection({ debt, hasCalendarSchedule = false }: Props) {
       </div>
       {hasCalendarSchedule ? (
         <div className="mt-4 border-t border-[color:var(--border-soft)] pt-3">
-          <DownloadCalendarButton debtId={debt.id} />
+          <CalendarActions debtId={debt.id} googleCalendarUrl={googleCalendarUrl} />
         </div>
       ) : null}
       {debt.notes ? (

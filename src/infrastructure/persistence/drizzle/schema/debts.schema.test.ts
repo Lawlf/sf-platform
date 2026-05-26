@@ -1,7 +1,9 @@
 import { getTableName } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
-import { debtPayments, debts, incomes } from "./index";
+import { debtPayments } from "./debt-payments.schema";
+import { debts } from "./debts.schema";
+import { incomes } from "./incomes.schema";
 
 describe("debts + incomes + debt_payments schema", () => {
   it("declares debts table", () => {

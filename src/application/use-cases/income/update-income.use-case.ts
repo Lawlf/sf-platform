@@ -1,10 +1,10 @@
 import type { IncomeEntity, IncomeFrequency } from "@/domain/entities/income.entity";
-import { Forbidden } from "@/domain/errors";
+import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface UpdateIncomeDeps {
   incomes: IncomeRepository;

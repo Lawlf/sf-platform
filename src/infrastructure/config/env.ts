@@ -41,6 +41,9 @@ const envSchema = z.object({
   QSTASH_TOKEN: emptyToUndefined,
   QSTASH_CURRENT_SIGNING_KEY: emptyToUndefined,
   QSTASH_NEXT_SIGNING_KEY: emptyToUndefined,
+
+  // Admin step-up: 32 raw bytes, base64-encoded. Encrypts TOTP secrets at rest.
+  ADMIN_TOTP_ENC_KEY: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -124,5 +127,14 @@ export function getQStashConfig(env: Env = loadEnv()): QStashConfig | null {
     currentSigningKey: env.QSTASH_CURRENT_SIGNING_KEY,
     nextSigningKey: env.QSTASH_NEXT_SIGNING_KEY,
   };
+}
+
+export function requireAdminTotpKey(env: Env = loadEnv()): Buffer {
+  const b64 = required("ADMIN_TOTP_ENC_KEY", env.ADMIN_TOTP_ENC_KEY);
+  const key = Buffer.from(b64, "base64");
+  if (key.toString("base64") !== b64 || key.length !== 32) {
+    throw new Error("ADMIN_TOTP_ENC_KEY must be canonical base64 decoding to exactly 32 bytes");
+  }
+  return key;
 }
 

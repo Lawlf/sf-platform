@@ -1,6 +1,6 @@
 import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
 import type { UserRepository } from "@/domain/ports/repositories/user.repository";
-import { ok, type Result } from "@/shared/errors";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface DeactivateAccountDeps {
   users: UserRepository;

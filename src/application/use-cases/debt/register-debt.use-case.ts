@@ -8,7 +8,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { ok, type Result } from "@/shared/errors";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface RegisterDebtDeps {
   debts: DebtRepository;
