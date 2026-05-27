@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { GoalProgressService, type GoalMacro } from "./goal-progress.service";
+
 import type { GoalEntity } from "@/domain/entities/goal.entity";
+
+import { GoalProgressService, type GoalMacro } from "./goal-progress.service";
 
 const baseGoal = {
   id: "g1", userId: "u1", title: "t", status: "active" as const,
