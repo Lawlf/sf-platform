@@ -1,0 +1,104 @@
+import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
+import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import {
+  monthlyDebtService,
+  monthlyRateFor,
+} from "@/domain/services/financial-health.service";
+import type { GoalMacro, GoalMacroDebt } from "@/domain/services/goal-progress.service";
+import { isOk } from "@/shared/errors/result";
+
+export interface BuildGoalMacroDeps {
+  assets: AssetRepository;
+  allocations: AssetDebtAllocationRepository;
+  debts: DebtRepository;
+  incomes: IncomeRepository;
+  clock: Clock;
+}
+
+export interface BuildGoalMacroInput {
+  userId: string;
+}
+
+/**
+ * Monta o `GoalMacro` de um usuario reusando os use-cases existentes de
+ * net-worth e dashboard snapshot. Nao instancia repositorios internamente:
+ * todos os adaptadores sao recebidos via deps (injecao).
+ */
+export async function buildGoalMacro(
+  deps: BuildGoalMacroDeps,
+  input: BuildGoalMacroInput,
+): Promise<GoalMacro> {
+  const { userId } = input;
+
+  const [netWorthResult, snapshotResult, activeDebts] = await Promise.all([
+    getNetWorth(
+      { assets: deps.assets, allocations: deps.allocations, debts: deps.debts },
+      { userId },
+    ),
+    getDashboardSnapshot(
+      { debts: deps.debts, incomes: deps.incomes, clock: deps.clock },
+      { userId },
+    ),
+    deps.debts.listForUser(userId, { status: "active" }),
+  ]);
+
+  // Patrimonio: caixa + investimentos (somente categorias positivas).
+  let investedCents = 0n;
+  let cashReserveCents = 0n;
+  if (isOk(netWorthResult)) {
+    for (const cat of netWorthResult.value.byCategory) {
+      const cents = cat.netWorth.toCents();
+      if (cents <= 0n) continue;
+      if (cat.category === "cash") {
+        cashReserveCents += cents;
+        investedCents += cents;
+      } else if (cat.category === "investment") {
+        investedCents += cents;
+      }
+    }
+  }
+
+  // Saldo livre mensal e servico total.
+  let contributionCents = 0n;
+  let monthlyServiceCents = 0n;
+  if (isOk(snapshotResult)) {
+    const free = snapshotResult.value.netWorth.toCents();
+    contributionCents = free > 0n ? free : 0n;
+    monthlyServiceCents = snapshotResult.value.totalMonthlyService.toCents();
+  }
+
+  // Monta GoalMacroDebt para cada divida ativa. Dívidas onde monthlyDebtService
+  // retorna erro sao ignoradas (nao comprometem o macro).
+  const debts: GoalMacroDebt[] = [];
+  for (const debt of activeDebts) {
+    const svcResult = monthlyDebtService(debt);
+    if (!isOk(svcResult)) continue;
+
+    const monthlyReais = svcResult.value;
+    const monthlyPaymentCents = BigInt(Math.round(monthlyReais * 100));
+
+    const monthlyRate = monthlyRateFor(debt);
+    const annualRatePct = (Math.pow(1 + monthlyRate, 12) - 1) * 100;
+
+    debts.push({
+      id: debt.id,
+      originalPrincipalCents: debt.originalPrincipal.toCents(),
+      currentBalanceCents: debt.currentBalance.toCents(),
+      monthlyPaymentCents,
+      annualRatePct,
+    });
+  }
+
+  return {
+    investedCents,
+    cashReserveCents,
+    contributionCents,
+    monthlyServiceCents,
+    debts,
+  };
+}
