@@ -1,12 +1,17 @@
 import { Clock } from "lucide-react";
+import Link from "next/link";
+import type { Route } from "next";
 
 import type { ModuleSpec } from "../_lib/trilhas";
 
 export interface NextModuleHeroProps {
   module: ModuleSpec;
+  trilhaSlug: string;
+  playable: boolean;
 }
 
-export function NextModuleHero({ module }: NextModuleHeroProps) {
+export function NextModuleHero({ module, playable }: NextModuleHeroProps) {
+  const href = `/app/conteudo/trilha/${module.num}` as Route;
   return (
     <article
       className="relative overflow-hidden rounded-[22px] border border-[color:var(--color-brand-500)]/[0.22] bg-[color:var(--surface-1)] p-6 backdrop-blur-xl"
@@ -34,15 +39,24 @@ export function NextModuleHero({ module }: NextModuleHeroProps) {
       <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
         Capítulo {String(module.num).padStart(2, "0")} · {module.subtitle}
       </p>
-      <div className="mt-4 flex items-center gap-2 rounded-[12px] border border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3.5 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-        <Clock size={14} strokeWidth={2.2} aria-hidden className="text-[color:var(--color-brand-800)]" />
-        <span>
-          Em construção.{" "}
-          <strong className="font-bold text-[color:var(--color-brand-800)]">
-            Te avisamos quando chegar.
-          </strong>
-        </span>
-      </div>
+      {playable ? (
+        <Link
+          href={href}
+          className="mt-4 inline-flex items-center gap-2 rounded-full bg-[color:var(--color-brand-500)] px-5 py-2.5 text-[0.8125rem] font-bold text-white"
+        >
+          Começar módulo
+        </Link>
+      ) : (
+        <div className="mt-4 flex items-center gap-2 rounded-[12px] border border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3.5 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
+          <Clock size={14} strokeWidth={2.2} aria-hidden className="text-[color:var(--color-brand-800)]" />
+          <span>
+            Em construção.{" "}
+            <strong className="font-bold text-[color:var(--color-brand-800)]">
+              Te avisamos quando chegar.
+            </strong>
+          </span>
+        </div>
+      )}
     </article>
   );
 }

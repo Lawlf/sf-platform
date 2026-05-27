@@ -6,6 +6,7 @@ import {
   Globe,
   HelpCircle,
   KeyRound,
+  LayoutGrid,
   LogOut,
   Palette,
   ScrollText,
@@ -67,6 +68,12 @@ const SECTIONS: SettingSection[] = [
         label: "Notificações",
         description: "Avisos push de vencimento, preços e resumo macro.",
         icon: Bell,
+      },
+      {
+        href: "/app/configuracoes/acessos-rapidos" as Route,
+        label: "Acessos rápidos",
+        description: "Escolha os atalhos da sua home.",
+        icon: LayoutGrid,
       },
       {
         href: "/app/configuracoes" as Route,

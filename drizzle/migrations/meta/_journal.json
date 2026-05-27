@@ -218,6 +218,20 @@
       "when": 1779941040000,
       "tag": "0030_app_lock_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 31,
+      "version": "7",
+      "when": 1779811379813,
+      "tag": "0031_sleepy_squirrel_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 32,
+      "version": "7",
+      "when": 1779824055656,
+      "tag": "0032_glamorous_meltdown",
+      "breakpoints": true
     }
   ]
 }

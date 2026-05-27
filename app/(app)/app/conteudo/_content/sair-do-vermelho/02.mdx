@@ -1,0 +1,74 @@
+---
+num: 2
+title: "Qual dívida quitar antes"
+subtitle: "Priorização"
+depth: medium
+audio: "trilha/sair-do-vermelho/02.mp3"
+cta:
+  label: "Simular minha quitação"
+  href: "/app/simular/quitacao"
+quiz:
+  - prompt: "Sua prescrição aponta o {targetDebtLabel}. Por que atacar a dívida de maior CET primeiro?"
+    contextual: true
+    options:
+      - label: "Porque é a que mais cresce em juros, então cada real jogado nela rende mais economia"
+        correct: true
+        feedback: "Isso. Matar primeiro a dívida mais cara é o que reduz mais o total de juros que você vai pagar."
+      - label: "Porque é sempre a dívida de maior valor total"
+        correct: false
+        feedback: "Nem sempre. O que importa é o custo (CET), não o tamanho do saldo."
+      - label: "Porque dívida cara prescreve mais rápido"
+        correct: false
+        feedback: "Não é por aí. A prioridade vem do custo dela crescer, não de prazo de prescrição."
+  - prompt: "No método avalanche, o que você faz com as outras dívidas enquanto ataca a mais cara?"
+    options:
+      - label: "Paga o mínimo de cada uma para não atrasar, e joga a sobra na mais cara"
+        correct: true
+        feedback: "Exato. Mínimo nas outras evita multa, e a sobra acelera a quitação da mais cara."
+      - label: "Para de pagar todas as outras até quitar a primeira"
+        correct: false
+        feedback: "Isso geraria multa, juros de atraso e nome sujo. O mínimo nas outras é inegociável."
+---
+{/* REVISAR (dono): fontes citadas nos comentários abaixo */}
+{/*
+Fontes (maio/2026):
+- Definição e comparação avalanche x bola de neve: https://blog.nubank.com.br/metodo-avalanche-e-bola-de-neve/ , https://blu365.com.br/blog/metodo-avalanche-e-bola-de-neve/ , https://www.terra.com.br/economia/como-funcionam-os-metodos-avalanche-e-bola-de-neve-para-pagar-dividas,855a2916d1fbfe3d217425e963532461hzd6xwnk.html
+- Avalanche economiza mais juros no longo prazo; bola de neve dá motivação por vitórias rápidas: Vantage Consultoria, modalmais
+- Estratégia mista (primeira bola de neve, depois avalanche): Terra/Estado de Minas
+Obs: nenhum número de taxa cravado como fato.
+*/}
+
+Quando você tem mais de uma dívida, vem a pergunta natural. Qual eu quito primeiro?
+
+A resposta não é "tanto faz". A ordem que você escolhe pode te fazer pagar bem mais ou bem menos juros até zerar tudo. Existem dois métodos conhecidos. Vale entender os dois.
+
+## Quitar a mais cara primeiro
+
+Aqui você ordena suas dívidas pelo custo, de preferência pelo CET (aquele número que junta juros, tarifa e seguro), e ataca primeiro a de maior custo. Esse é o caminho que muita gente chama de método avalanche. A lógica é simples. A dívida mais cara é a que cresce mais rápido sozinha. Cada real que você joga nela apaga mais juros futuro do que jogaria numa dívida barata.
+
+Enquanto isso, você paga o mínimo de cada uma das outras. Só pra não atrasar, não tomar multa e não sujar o nome. Quando a mais cara é quitada, pega todo aquele dinheiro que ia pra ela e despeja na segunda mais cara. E assim por diante. O valor que ataca cada dívida vai ficando maior a cada passo, como uma avalanche.
+
+> O ponto forte desse caminho é matemático. É o método que faz você pagar menos juros no total. Se o objetivo é gastar o mínimo possível pra sair do vermelho, é por aqui.
+
+## Quitar a menor primeiro
+
+Nesse caminho (a famosa bola de neve) você ignora o custo e ordena pelo saldo. Ataca primeiro a dívida de menor valor, paga o mínimo nas outras e quita a pequena rapidinho. Depois parte pra segunda menor.
+
+A vantagem aqui não é financeira, é de cabeça. Quitar uma dívida inteira dá uma sensação de vitória que renova o ânimo. Pra quem está cansado de tantas frentes abertas, ver uma dívida sumir de vez pode ser o empurrão que mantém a pessoa no jogo.
+
+A desvantagem. Como você não atacou a mais cara primeiro, ela continuou crescendo. No fim, esse caminho tende a custar mais juros que o de atacar a mais cara.
+
+## Qual escolher
+
+Não existe método certo pra todo mundo. Existe o que funciona pra você:
+
+- Se o que te trava é o dinheiro, e você segura o foco mesmo sem vitória rápida, atacar a mais cara economiza mais.
+- Se o que te trava é a vontade de continuar, e você precisa de uma vitória logo pra não largar tudo, quitar a menor primeiro pode pesar mais a favor.
+
+Tem até quem combine os dois. Quita uma dívida pequena primeiro pra ganhar fôlego, e depois muda pra atacar a mais cara e economizar no resto.
+
+## O mínimo nas outras é inegociável
+
+Em qualquer método, a regra de ouro é a mesma. Nunca deixe de pagar o mínimo das outras dívidas enquanto ataca a escolhida. Parar de pagar as outras gera multa, juros de atraso e nome negativado, e isso desmonta o plano inteiro.
+
+A boa notícia é que você não precisa fazer essa conta de cabeça. Com as dívidas cadastradas e o custo de cada uma à vista, dá pra simular a ordem de quitação e ver, antes de decidir, quanto cada caminho economiza. Comece pela simulação e deixe os números mostrarem o caminho mais curto pra fora do vermelho.

@@ -1,6 +1,7 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Check } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -8,6 +9,14 @@ import { z } from "zod";
 import { Button } from "@/app/components/ui/button";
 
 import { MoneyInput } from "../../../_components/money-input";
+import { WizardField } from "../../../dividas/nova/_components/wizard-field";
+import {
+  ResultCard,
+  ResultError,
+  ResultHeadline,
+  ResultHighlight,
+  ResultStat,
+} from "../../_components/sim-result";
 import { runStrategyAction, type StrategyActionResult } from "../_actions/run-strategy.action";
 
 const formSchema = z.object({
@@ -18,6 +27,8 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 type DebtItem = { id: string; label: string; currentBalanceFormatted: string };
+
+const BRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 export function StrategyForm({ debts }: { debts: DebtItem[] }) {
   const [pending, startTransition] = useTransition();
@@ -39,15 +50,16 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
 
   const selected = form.watch("selectedDebtIds");
 
-  function toggle(id: string, checked: boolean) {
+  function toggle(id: string) {
     const current = form.getValues("selectedDebtIds");
-    if (checked) {
-      if (!current.includes(id)) form.setValue("selectedDebtIds", [...current, id]);
-    } else {
+    if (current.includes(id)) {
       form.setValue(
         "selectedDebtIds",
         current.filter((x) => x !== id),
+        { shouldValidate: true },
       );
+    } else {
+      form.setValue("selectedDebtIds", [...current, id], { shouldValidate: true });
     }
   }
 
@@ -73,28 +85,53 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
 
   return (
     <div className="flex flex-col gap-4">
-      <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-        <fieldset className="flex flex-col gap-2 text-sm">
-          <legend className="font-medium">Dívidas no plano</legend>
-          {debts.map((d) => (
-            <label key={d.id} className="flex items-center gap-2">
-              <input
-                type="checkbox"
-                checked={selected.includes(d.id)}
-                onChange={(e) => toggle(d.id, e.target.checked)}
-                className="h-4 w-4"
-              />
-              <span>
-                {d.label} - {d.currentBalanceFormatted}
-              </span>
-            </label>
-          ))}
-          {form.formState.errors.selectedDebtIds ? (
-            <span role="alert" className="text-xs text-[color:var(--semantic-negative)]">
-              {form.formState.errors.selectedDebtIds.message}
-            </span>
-          ) : null}
-        </fieldset>
+      <form
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="glass-light flex flex-col gap-3 p-4"
+      >
+        <WizardField
+          label="Dívidas no plano"
+          error={form.formState.errors.selectedDebtIds?.message}
+        >
+          <div className="flex flex-col gap-2">
+            {debts.map((d) => {
+              const active = selected.includes(d.id);
+              return (
+                <button
+                  key={d.id}
+                  type="button"
+                  onClick={() => toggle(d.id)}
+                  aria-pressed={active}
+                  className={`flex items-center gap-3 rounded-xl border-[1.5px] p-3 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
+                    active
+                      ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/12"
+                      : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-2)]"
+                  }`}
+                >
+                  <span
+                    aria-hidden
+                    className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] transition-colors ${
+                      active
+                        ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
+                        : "border-[color:var(--border-strong)] text-transparent"
+                    }`}
+                  >
+                    <Check size={13} strokeWidth={3} />
+                  </span>
+                  <span className="min-w-0">
+                    <span className="block truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+                      {d.label}
+                    </span>
+                    <span className="block text-[0.6875rem] text-[color:var(--text-muted)]">
+                      {d.currentBalanceFormatted}
+                    </span>
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+        </WizardField>
 
         <MoneyInput
           control={form.control}
@@ -104,7 +141,7 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
           helper="Quanto você pode destinar por mês para todas as dívidas."
         />
 
-        <Button type="submit" loading={pending}>
+        <Button type="submit" loading={pending} className="mt-3 w-full">
           Comparar estratégias
         </Button>
       </form>
@@ -112,7 +149,7 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
       {result ? (
         result.ok ? (
           <section className="flex flex-col gap-3">
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid gap-3 sm:grid-cols-2">
               <StrategyCard
                 title="Snowball"
                 subtitle="Menor saldo primeiro"
@@ -127,22 +164,14 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
               />
             </div>
             {interestDelta !== null && interestDelta > 0 ? (
-              <p className="glass-light p-4 text-sm text-[color:var(--semantic-positive)]">
-                Avalanche poupa{" "}
-                <strong>
-                  {new Intl.NumberFormat("pt-BR", {
-                    style: "currency",
-                    currency: "BRL",
-                  }).format(interestDelta)}
-                </strong>{" "}
-                em juros.
-              </p>
+              <ResultHighlight>
+                Avalanche poupa <strong>{BRL.format(interestDelta)}</strong> em juros frente à
+                Snowball.
+              </ResultHighlight>
             ) : null}
           </section>
         ) : (
-          <p role="alert" className="text-sm text-[color:var(--semantic-negative)]">
-            {result.message}
-          </p>
+          <ResultError message={result.message} />
         )
       ) : null}
     </div>
@@ -166,33 +195,24 @@ function StrategyCard({
   labelById: Map<string, string>;
 }) {
   return (
-    <div className="glass-light p-4">
-      <h3 className="text-sm font-semibold text-[color:var(--color-brand-800)]">{title}</h3>
-      <p className="mb-2 text-xs opacity-70">{subtitle}</p>
-      <ul className="flex flex-col gap-1 text-sm">
-        <li>
-          Liberdade em:{" "}
-          <strong>
-            {plan.monthsToFreedom ?? "não no horizonte"}
-            {plan.monthsToFreedom !== null ? " meses" : ""}
-          </strong>
-        </li>
-        <li>
-          Total pago: <strong>{plan.totalPaid}</strong>
-        </li>
-        <li>
-          Total de juros: <strong>{plan.totalInterest}</strong>
-        </li>
-        <li>
-          <span className="opacity-70">Ordem:</span>
-          <ol className="ml-4 mt-1 list-decimal text-xs">
-            {plan.order.map((id, idx) => (
-              <li key={`${id}-${idx}`}>{labelById.get(id) ?? id}</li>
-            ))}
-          </ol>
-        </li>
-      </ul>
-    </div>
+    <ResultCard title={title} subtitle={subtitle}>
+      <ResultHeadline
+        value={plan.monthsToFreedom !== null ? `${plan.monthsToFreedom} meses` : "Fora do horizonte"}
+        caption="Até a liberdade."
+      />
+      <ResultStat label="Total pago" value={plan.totalPaid} />
+      <ResultStat label="Total de juros" value={plan.totalInterest} />
+      <div>
+        <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+          Ordem de ataque
+        </span>
+        <ol className="mt-1 list-decimal pl-5 text-[0.75rem] text-[color:var(--text-primary)]">
+          {plan.order.map((id, idx) => (
+            <li key={`${id}-${idx}`}>{labelById.get(id) ?? id}</li>
+          ))}
+        </ol>
+      </div>
+    </ResultCard>
   );
 }
 

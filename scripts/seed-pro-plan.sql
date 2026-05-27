@@ -52,7 +52,7 @@ VALUES
     'stripe',
     'prod_UZEXwFAtduQ1QW',
     'price_1Ta67cDYFpy0PQa4NXFBKPMC',
-    31990,
+    49700,
     'BRL',
     'lifetime',
     '["historico_ilimitado", "simulacoes", "relatorios", "exportacao", "vitalicio"]'::jsonb,

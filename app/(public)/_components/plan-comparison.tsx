@@ -153,15 +153,9 @@ const GROUPS: Group[] = [
         pro: true,
       },
       {
-        feature: "Lições avançadas e cursos completos",
-        hint: "Estratégias de quitação, alocação, planejamento.",
+        feature: "Trilha guiada (novas trilhas em breve)",
+        hint: "Sair do vermelho: CET, qual dívida quitar antes, patrimônio que você esqueceu.",
         free: false,
-        pro: true,
-      },
-      {
-        feature: "Lições contextuais",
-        hint: "Aparecem com base no que você registrou.",
-        free: true,
         pro: true,
       },
     ],

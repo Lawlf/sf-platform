@@ -38,19 +38,19 @@ export function LandingFounder() {
           <div className="relative grid items-center gap-8 lg:grid-cols-[1.4fr_1fr]">
             <div>
               <p className="text-sm font-medium text-[color:var(--color-brand-300)]">
-                Pra quem quer fechar a conversa de pagamento de uma vez:
+                Edição fundador
               </p>
               <h2
                 className="mt-3 text-3xl font-extrabold leading-tight text-white sm:text-4xl lg:text-[44px]"
                 style={{ letterSpacing: "-0.035em" }}
               >
-                <span className="text-[color:var(--color-brand-400)]">R$ 297</span> uma vez. Pro pra sempre, incluindo o que ainda nem lançamos.
+                <span className="text-[color:var(--color-brand-400)]">R$ 497</span> uma vez. Pro pra sempre, no preço de hoje.
               </h2>
               <p className="mt-5 max-w-xl text-base leading-relaxed text-white/80 sm:text-lg">
-                100 vagas, pagamento único. Quando o preço subir (vai subir
-                quando entrar ações da B3, comparativos avançados e o resto do
-                roadmap), você não paga a diferença. Acabou as vagas, acabou a
-                oferta.
+                Pagamento único, sem mensalidade. A versão Pro custa R$ 19,90
+                por mês ou R$ 199 no ano, e o preço vai subir com o tempo. Aqui
+                você trava tudo agora: paga uma vez e nunca mais pensa nisso.
+                Oferta de lançamento, fica enquanto durar.
               </p>
             </div>
 
@@ -59,12 +59,11 @@ export function LandingFounder() {
                 href={"/cadastrar?plan=founder" as never}
                 className="sf-lift focus-ring inline-flex items-center justify-center gap-2 rounded-full bg-[color:var(--color-brand-500)] px-7 py-4 text-base font-bold text-white shadow-[0_12px_30px_-8px_rgba(239,122,26,0.6)] hover:bg-[color:var(--color-brand-600)] hover:shadow-[0_18px_40px_-8px_rgba(239,122,26,0.7)]"
               >
-                Garantir minha vaga
+                Quero o Pro vitalício
                 <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden />
               </Link>
               <p className="max-w-xs text-xs leading-relaxed text-white/70 lg:text-right">
-                100 vagas. R$ 297 uma vez. Pro pra sempre, inclui ações da B3
-                quando entrar.
+                Uma cobrança só. Depois disso, o Pro é seu sem pagar de novo.
               </p>
             </div>
           </div>

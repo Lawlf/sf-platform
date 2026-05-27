@@ -24,6 +24,7 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     deactivationReason: null,
     contentDiagnosticAnswer: null,
     contentDiagnosticAnsweredAt: null,
+    quickAccess: [],
     createdAt: NOW,
     updatedAt: NOW,
     ...overrides,

@@ -43,6 +43,9 @@
     --sidebar-w: 220px;
     --bg-app: #fdf8f3;
     --bg-warm: #fff8ee;
+    /* Laranja de TEXTO theme-aware: queimado no claro, mais vivo no escuro
+       (brand-800 fixo fica baixo contraste sobre fundo escuro). */
+    --brand-ink: var(--color-brand-800);
     --surface-1: rgba(255, 255, 255, 0.75);
     --surface-2: rgba(255, 255, 255, 0.7);
     --surface-3: rgba(255, 255, 255, 0.6);
@@ -67,6 +70,7 @@
     color-scheme: dark;
     --bg-app: #1f1d1c;
     --bg-warm: #221f1d;
+    --brand-ink: var(--color-brand-300);
     --surface-1: rgba(31, 29, 28, 0.65);
     --surface-2: rgba(31, 29, 28, 0.55);
     --surface-3: rgba(31, 29, 28, 0.45);

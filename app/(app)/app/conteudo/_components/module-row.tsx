@@ -1,28 +1,39 @@
-import { ChevronRight, Lock } from "lucide-react";
+import { Check, ChevronRight, Lock } from "lucide-react";
+import Link from "next/link";
+import type { Route } from "next";
 
 import type { ModuleSpec } from "../_lib/trilhas";
 
 export interface ModuleRowProps {
   module: ModuleSpec;
+  trilhaSlug: string;
   isNext: boolean;
+  unlocked: boolean;
+  completed: boolean;
 }
 
-export function ModuleRow({ module, isNext }: ModuleRowProps) {
-  const locked = !isNext && module.status !== "ready";
-  return (
+export function ModuleRow({ module, isNext, unlocked, completed }: ModuleRowProps) {
+  const href = `/app/conteudo/trilha/${module.num}` as Route;
+  const playable = unlocked || completed;
+
+  const inner = (
     <div
       className={`flex items-center gap-3 rounded-[12px] border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-3.5 backdrop-blur-sm ${
-        locked ? "opacity-60" : ""
+        playable ? "" : "opacity-60"
       }`}
     >
       <span
         className={`grid h-[22px] w-[22px] shrink-0 place-items-center rounded-full ${
-          isNext
-            ? "border-[1.5px] border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.12] text-[color:var(--color-brand-800)]"
-            : "border-[1.5px] border-dashed border-[color:var(--border-soft)] text-[color:var(--text-muted)]"
+          completed
+            ? "border-[1.5px] border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
+            : isNext
+              ? "border-[1.5px] border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.12] text-[color:var(--color-brand-800)]"
+              : "border-[1.5px] border-dashed border-[color:var(--border-soft)] text-[color:var(--text-muted)]"
         }`}
       >
-        {isNext ? (
+        {completed ? (
+          <Check size={11} strokeWidth={2.8} aria-hidden />
+        ) : playable ? (
           <ChevronRight size={11} strokeWidth={2.5} aria-hidden />
         ) : (
           <Lock size={11} strokeWidth={2.2} aria-hidden />
@@ -33,9 +44,17 @@ export function ModuleRow({ module, isNext }: ModuleRowProps) {
           {String(module.num).padStart(2, "0")}. {module.title}
         </div>
         <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-          {module.subtitle} · {isNext ? "em construção" : "em breve"}
+          {module.subtitle} · {completed ? "concluído" : playable ? "disponível" : "em breve"}
         </div>
       </div>
     </div>
+  );
+
+  return playable ? (
+    <Link href={href} className="block">
+      {inner}
+    </Link>
+  ) : (
+    inner
   );
 }

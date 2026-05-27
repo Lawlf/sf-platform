@@ -1,0 +1,1 @@
+ALTER TABLE "users" ADD COLUMN "quick_access" jsonb DEFAULT '[]'::jsonb NOT NULL;

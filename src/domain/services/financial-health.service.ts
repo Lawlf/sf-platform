@@ -123,7 +123,7 @@ function monthlyEquivalent(income: IncomeEntity, asOf: Date): number {
   }
 }
 
-function monthlyRateFor(debt: DebtEntity): number {
+export function monthlyRateFor(debt: DebtEntity): number {
   switch (debt.kind) {
     case "financing":
     case "personal_loan":
@@ -138,7 +138,7 @@ function monthlyRateFor(debt: DebtEntity): number {
   }
 }
 
-function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmortizationParamsError> {
+export function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmortizationParamsError> {
   switch (debt.kind) {
     case "financing": {
       const svcImpl =

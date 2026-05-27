@@ -37,8 +37,8 @@ const proFeatures = [
 
 export function LandingPricing() {
   const [billing, setBilling] = useState<Billing>("yearly");
-  const monthly = 14.9;
-  const yearly = 119;
+  const monthly = 19.9;
+  const yearly = 199;
   const yearlyMonthlyEquivalent = yearly / 12;
 
   return (
@@ -77,7 +77,7 @@ export function LandingPricing() {
             <button
               type="button"
               aria-pressed={billing === "yearly"}
-              aria-label="Cobrança anual, 33% mais barato"
+              aria-label="Cobrança anual, 2 meses grátis"
               onClick={() => setBilling("yearly")}
               className={cn(
                 "relative rounded-full px-5 py-2 text-sm font-semibold transition-colors",
@@ -91,7 +91,7 @@ export function LandingPricing() {
                 aria-hidden
                 className="ml-2 rounded-full bg-[color:var(--color-positive)]/15 px-2 py-0.5 text-[10px] font-bold uppercase tracking-wider text-[color:var(--color-positive)]"
               >
-                -33%
+                2 meses grátis
               </span>
             </button>
           </div>
@@ -144,6 +144,10 @@ export function LandingPricing() {
           <p className="text-sm text-[color:var(--text-muted)]">
             Sem fidelidade. Sem multa. Cancela e volta pro Free sempre que
             quiser.
+          </p>
+          <p className="max-w-md text-sm font-medium text-[color:var(--text-secondary)]">
+            Educação financeira de verdade. A gente te mostra o caminho, não
+            vende fórmula mágica nem dá palpite de ação.
           </p>
         </RevealOnScroll>
       </div>

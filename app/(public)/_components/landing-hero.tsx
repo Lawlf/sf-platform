@@ -16,14 +16,6 @@ export function LandingHero() {
             className="relative z-10 lg:col-start-1 lg:row-start-1"
             threshold={0}
           >
-            <div className="inline-flex items-center gap-2 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-1 text-[12px] font-medium text-[color:var(--text-secondary)] backdrop-blur">
-              <span
-                aria-hidden
-                className="sf-pulse-soft inline-block h-1.5 w-1.5 rounded-full bg-[color:var(--color-positive)]"
-              />
-              Você sabe quanto deve. Quase nunca sabe quanto custa.
-            </div>
-
             <h1
               className="mt-5 text-[40px] font-extrabold leading-[1.02] text-[color:var(--text-primary)] sm:text-[56px] lg:text-[64px]"
               style={{ letterSpacing: "-0.04em" }}

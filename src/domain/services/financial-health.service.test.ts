@@ -1,12 +1,12 @@
 import { describe, expect, it } from "vitest";
 
-import type { FinancingDebt, OverdraftDebt } from "@/domain/entities/debt.entity";
+import type { FinancingDebt, OverdraftDebt, PersonalLoanDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { FinancialHealthService } from "./financial-health.service";
+import { FinancialHealthService, monthlyDebtService, monthlyRateFor } from "./financial-health.service";
 
 function moneyOf(n: number): Money {
   const r = Money.from(n);
@@ -223,5 +223,43 @@ describe("FinancialHealthService", () => {
       const expectedMonthly = (0.004074 * 10_000 + 0.1 * 10_000) / 20_000;
       expect(r.value.cetWeightedAverage.toMonthly().toDecimal()).toBeCloseTo(expectedMonthly, 4);
     }
+  });
+});
+
+function personalLoanDebt(over: Partial<PersonalLoanDebt> = {}): PersonalLoanDebt {
+  return {
+    id: "pl-1",
+    userId: "u1",
+    label: "Emprestimo pessoal",
+    kind: "personal_loan",
+    status: "active",
+    originalPrincipal: moneyOf(10_000),
+    currentBalance: moneyOf(8_000),
+    startDate: new Date("2024-01-01"),
+    expectedEndDate: null,
+    notes: null,
+    createdAt: new Date("2024-01-01"),
+    updatedAt: new Date("2024-01-01"),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
+    annualInterestRate: rateAnnual(0.12),
+    termMonths: 24,
+    monthlyInstallment: moneyOf(500),
+    ...over,
+  } as PersonalLoanDebt;
+}
+
+describe("debt mappers (exported for prescription engine)", () => {
+  it("monthlyRateFor returns the monthly decimal rate for a personal loan", () => {
+    // toMonthly() uses compound conversion: (1 + annual)^(1/12) - 1
+    // (1.12)^(1/12) - 1 ~ 0.009489
+    expect(monthlyRateFor(personalLoanDebt())).toBeCloseTo(0.009489, 5);
+  });
+
+  it("monthlyDebtService returns the monthly installment in reais for a personal loan", () => {
+    const r = monthlyDebtService(personalLoanDebt());
+    expect(isOk(r) && r.value).toBe(500);
   });
 });

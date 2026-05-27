@@ -1,31 +1,39 @@
 import type { TrilhaSpec } from "../_lib/trilhas";
 
+import { computeTrilhaProgress } from "../_lib/progress";
 import { BookCard } from "./book-card";
 import { ModuleRow } from "./module-row";
 import { NextModuleHero } from "./next-module-hero";
 import { RhythmGrid } from "./rhythm-grid";
+import { SfxMuteToggle } from "./sfx-mute-toggle.client";
 
 export interface TrilhaHomeProps {
   trilha: TrilhaSpec;
+  completedNums: number[];
+  suggestedHere?: boolean;
 }
 
-export function TrilhaHome({ trilha }: TrilhaHomeProps) {
-  const nextModule = trilha.modules.find((m) => m.status !== "queued") ?? trilha.modules[0];
+export function TrilhaHome({ trilha, completedNums, suggestedHere }: TrilhaHomeProps) {
+  const progress = computeTrilhaProgress(trilha.modules, completedNums);
+  const nextModule =
+    trilha.modules.find((m) => m.num === progress.nextNum) ?? trilha.modules[0];
   if (!nextModule) {
     throw new Error(`Trilha ${trilha.slug} has no modules`);
   }
-  const totalReady = trilha.modules.filter((m) => m.status === "ready").length;
   const firstBook = trilha.books[0];
 
   return (
     <div className="flex flex-col gap-7">
       <header>
-        <div className="mb-2 inline-flex items-center gap-1.5 text-[0.65625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
-          <span
-            className="block h-[1.5px] w-3.5 rounded-full"
-            style={{ background: "linear-gradient(90deg, #f28e25, transparent)" }}
-          />
-          Sua trilha
+        <div className="mb-2 flex items-center justify-between">
+          <div className="inline-flex items-center gap-1.5 text-[0.65625rem] font-bold uppercase tracking-[0.08em] text-[color:var(--color-brand-800)]">
+            <span
+              className="block h-[1.5px] w-3.5 rounded-full"
+              style={{ background: "linear-gradient(90deg, #f28e25, transparent)" }}
+            />
+            Sua trilha
+          </div>
+          <SfxMuteToggle />
         </div>
         <h1 className="font-serif text-[1.875rem] font-bold leading-[1.05] tracking-[-0.025em] text-[color:var(--text-primary)] md:text-[2.625rem]">
           {renderTitleWithEmphasis(trilha.title, trilha.emphasis)}
@@ -35,24 +43,35 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
             <div
               className="h-full rounded-full"
               style={{
-                width: `${(totalReady / trilha.modules.length) * 100}%`,
+                width: `${progress.totalReady === 0 ? 0 : (progress.completedCount / progress.totalReady) * 100}%`,
                 background: "linear-gradient(90deg, #f28e25, #ef7a1a)",
               }}
             />
           </div>
           <span className="text-[0.6875rem] font-bold tabular-nums text-[color:var(--text-secondary)]">
-            {totalReady} / {trilha.modules.length}
+            {progress.completedCount} / {progress.totalReady}
           </span>
         </div>
       </header>
 
-      <NextModuleHero module={nextModule} />
+      {suggestedHere ? (
+        <p className="rounded-[12px] border border-[color:var(--color-brand-500)]/[0.3] bg-[color:var(--color-brand-500)]/[0.06] px-3.5 py-2.5 text-[0.75rem] leading-[1.45] text-[color:var(--text-secondary)]">
+          Pelo seu momento financeiro, essa trilha faz sentido agora.{" "}
+          <strong className="font-semibold text-[color:var(--color-brand-800)]">Sugestão, não obrigação.</strong>
+        </p>
+      ) : null}
+
+      <NextModuleHero
+        module={nextModule}
+        trilhaSlug={trilha.slug}
+        playable={progress.unlocked[nextModule.num] ?? false}
+      />
 
       <section>
         <div className="mb-3 px-1 text-[0.6875rem] font-bold uppercase tracking-[0.08em] text-[color:var(--text-secondary)]">
           Seu ritmo
         </div>
-        <RhythmGrid modulesRead={0} />
+        <RhythmGrid modulesRead={progress.completedCount} />
       </section>
 
       {firstBook ? (
@@ -70,7 +89,14 @@ export function TrilhaHome({ trilha }: TrilhaHomeProps) {
         </div>
         <div className="flex flex-col gap-2">
           {trilha.modules.map((m) => (
-            <ModuleRow key={m.num} module={m} isNext={m.num === nextModule.num} />
+            <ModuleRow
+              key={m.num}
+              module={m}
+              trilhaSlug={trilha.slug}
+              isNext={m.num === progress.nextNum}
+              unlocked={progress.unlocked[m.num] ?? false}
+              completed={progress.completed[m.num] ?? false}
+            />
           ))}
         </div>
       </section>

@@ -19,6 +19,7 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     deactivationReason: row.deactivationReason,
     contentDiagnosticAnswer: row.contentDiagnosticAnswer,
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
+    quickAccess: (row.quickAccess as string[] | null) ?? [],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -83,6 +84,7 @@ export class DrizzleUserRepository implements UserRepository {
         deactivationReason: user.deactivationReason,
         contentDiagnosticAnswer: user.contentDiagnosticAnswer,
         contentDiagnosticAnsweredAt: user.contentDiagnosticAnsweredAt,
+        quickAccess: user.quickAccess,
         updatedAt: user.updatedAt,
       })
       .where(eq(users.id, user.id));

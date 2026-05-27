@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, index, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, jsonb, pgEnum, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 export const userRole = pgEnum("user_role", ["user", "admin"]);
 export const userPlan = pgEnum("user_plan", ["free", "pro"]);
@@ -25,6 +25,9 @@ export const users = pgTable(
     contentDiagnosticAnsweredAt: timestamp("content_diagnostic_answered_at", {
       withTimezone: true,
     }),
+    quickAccess: jsonb("quick_access")
+      .notNull()
+      .default(sql`'[]'::jsonb`),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

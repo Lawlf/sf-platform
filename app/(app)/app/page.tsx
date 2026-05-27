@@ -9,11 +9,12 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
-import { CtaRow } from "./_components/cta-row";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MaisCard } from "./_components/mais-card";
+import { NextStepCard } from "./_components/next-step-card";
 import { PageShell } from "./_components/page-shell";
+import { QuickAccessRow } from "./_components/quick-access-row";
 
 interface MaisItem {
   href: Route;
@@ -68,8 +69,14 @@ export default async function DashboardPage() {
           </Suspense>
         </div>
 
+        <div className="min-w-0 md:col-span-2">
+          <QuickAccessRow />
+        </div>
+
         <div className="md:col-span-2">
-          <CtaRow />
+          <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
+            <NextStepCard />
+          </Suspense>
         </div>
 
         <div className="md:col-span-2">

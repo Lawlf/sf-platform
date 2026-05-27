@@ -26,6 +26,8 @@ function isActive(pathname: string, item: BarItem): boolean {
 
 export function ImmersiveBottomBar() {
   const pathname = usePathname();
+  // Na view de leitura do módulo, a barra do módulo substitui a nav.
+  if (/^\/app\/conteudo\/trilha\/[^/]+$/.test(pathname)) return null;
   return (
     <nav
       aria-label="Navegação do conteúdo"

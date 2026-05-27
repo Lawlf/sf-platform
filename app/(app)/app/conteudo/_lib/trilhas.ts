@@ -38,19 +38,19 @@ export const TRILHAS: readonly TrilhaSpec[] = [
         num: 1,
         title: "Quanto você realmente paga",
         subtitle: "CET ponderado",
-        status: "building",
+        status: "ready",
       },
       {
         num: 2,
         title: "Qual dívida quitar antes",
         subtitle: "Priorização",
-        status: "queued",
+        status: "ready",
       },
       {
         num: 3,
         title: "O que tem valor que você esqueceu",
         subtitle: "Patrimônio invisível",
-        status: "queued",
+        status: "ready",
       },
     ],
     books: [

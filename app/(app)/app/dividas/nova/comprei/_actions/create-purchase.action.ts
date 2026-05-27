@@ -23,7 +23,7 @@ import { isOk } from "@/shared/errors/result";
 
 // Categorias do wizard "Comprei algo novo". Mapeadas para AssetCategory + parâmetros
 // de depreciação. travel e education NÃO viram patrimônio (são gastos consumíveis).
-export const PURCHASE_CATEGORY = [
+const PURCHASE_CATEGORY = [
   "electronics",
   "furniture",
   "vehicle",
@@ -33,7 +33,7 @@ export const PURCHASE_CATEGORY = [
 ] as const;
 export type PurchaseCategory = (typeof PURCHASE_CATEGORY)[number];
 
-export const PAYMENT_METHOD = ["cash", "credit_card", "loan", "financing"] as const;
+const PAYMENT_METHOD = ["cash", "credit_card", "loan", "financing"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHOD)[number];
 
 // Comportamento explícito do valor do item. O usuário escolhe no Step 3 do
@@ -41,7 +41,7 @@ export type PaymentMethod = (typeof PAYMENT_METHOD)[number];
 //   depreciating → kind=depreciating, rate=+annualRatePct
 //   appreciating → kind=appreciating, rate=-annualRatePct (convenção da entity)
 //   stable       → kind=stable, rate=0
-export const VALUE_BEHAVIOR = ["depreciating", "appreciating", "stable"] as const;
+const VALUE_BEHAVIOR = ["depreciating", "appreciating", "stable"] as const;
 export type ValueBehavior = (typeof VALUE_BEHAVIOR)[number];
 
 // Dados opcionais para criação inline de um cartão novo no Step 3. Se omitidos

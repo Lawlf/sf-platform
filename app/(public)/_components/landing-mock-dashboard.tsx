@@ -1,12 +1,17 @@
 import {
+  ArrowRight,
   BookOpen,
+  Calculator,
   ChevronRight,
   Coins,
   HomeIcon,
   LineChart,
+  Plus,
   PlusCircle,
   ShoppingBag,
+  Target,
   TrendingUp,
+  User,
   Wallet,
 } from "lucide-react";
 
@@ -68,10 +73,10 @@ export function LandingMockDashboard() {
           <div className="flex flex-1 flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-[color:var(--border-soft)] px-3 py-2">
               <div className="flex items-center gap-2 rounded-full bg-[color:var(--color-brand-500)]/[0.12] py-1 pl-1 pr-3 text-[11px] font-semibold text-[color:var(--color-brand-800)]">
-                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[10px] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
-                  AF
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
+                  <User size={13} strokeWidth={2.25} aria-hidden />
                 </span>
-                <span>Arthur</span>
+                <span>Você</span>
               </div>
               <div className="flex items-center gap-1.5">
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--surface-1)] text-[color:var(--text-primary)]">
@@ -89,7 +94,7 @@ export function LandingMockDashboard() {
                   className="text-[14px] font-extrabold text-[color:var(--text-primary)]"
                   style={{ letterSpacing: "-0.02em" }}
                 >
-                  Bom dia, Arthur
+                  Bom dia, você
                 </h3>
                 <p className="text-[10px] text-[color:var(--text-secondary)]">
                   Aqui está sua situação agora.
@@ -129,11 +134,48 @@ export function LandingMockDashboard() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-3 gap-1.5">
-                <MockQuickAction icon={ShoppingBag} label="Compra, conta ou dívida" />
-                <MockQuickAction icon={TrendingUp} label="Nova renda" />
-                <MockQuickAction icon={Coins} label="Novo ativo" />
+              <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
+                Acessos rápidos
+              </p>
+              <div className="relative -mr-3 overflow-hidden">
+                <div className="flex gap-3 pb-0.5 pr-3">
+                  <MockQuickCircle icon={ShoppingBag} label="Dívida" add />
+                  <MockQuickCircle icon={TrendingUp} label="Renda" add />
+                  <MockQuickCircle icon={Coins} label="Ativo" add />
+                  <MockQuickCircle icon={Target} label="Quitação" />
+                  <MockQuickCircle icon={Plus} label="Extra" />
+                  <MockQuickCircle icon={Calculator} label="Regra 3" />
+                </div>
+                <span
+                  aria-hidden
+                  className="pointer-events-none absolute inset-y-0 right-0 w-10 bg-gradient-to-l from-[color:var(--bg-app)] to-transparent"
+                />
               </div>
+
+              <section
+                className="relative overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/25 bg-[color:var(--surface-1)] px-4 py-3 backdrop-blur-xl"
+                style={{
+                  backgroundImage:
+                    "radial-gradient(circle at 100% 0%, rgba(242,142,37,0.14), transparent 60%)",
+                }}
+              >
+                <span className="text-[8.5px] font-semibold uppercase tracking-[0.06em] text-[color:var(--color-brand-800)]">
+                  O movimento do mês
+                </span>
+                <p
+                  className="mt-1 text-[11px] font-bold leading-tight text-[color:var(--text-primary)]"
+                  style={{ letterSpacing: "-0.01em" }}
+                >
+                  Quite o cartão antes do financiamento.
+                </p>
+                <p className="mt-0.5 text-[9px] text-[color:var(--text-secondary)]">
+                  Você economiza cerca de R$ 312 em juros.
+                </p>
+                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-0.5 text-[8.5px] font-bold text-[color:var(--color-brand-800)]">
+                  Ver meu movimento
+                  <ArrowRight size={9} strokeWidth={2.5} aria-hidden />
+                </span>
+              </section>
 
               <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
                 Sua saúde financeira
@@ -199,9 +241,9 @@ export function LandingMockDashboard() {
                 subtitle="Trajetória mês a mês."
               />
               <MockLink
-                icon={TrendingUp}
-                title="Análises e mercado"
-                subtitle="Selic, CDI, CET das suas dívidas."
+                icon={BookOpen}
+                title="Conteúdo"
+                subtitle="Trilha de aprendizado no seu ritmo."
               />
               <div aria-hidden className="h-[72px]" />
             </div>
@@ -213,10 +255,10 @@ export function LandingMockDashboard() {
                 style={{ boxShadow: "var(--shadow-glass-strong)" }}
               >
                 <MockNavItem icon={HomeIcon} label="Início" active />
-                <MockNavItem icon={Wallet} label="Dívidas" />
+                <MockNavItem icon={TrendingUp} label="Renda" />
                 <MockNavFab icon={PlusCircle} label="Simular" />
+                <MockNavItem icon={Wallet} label="Dívidas" />
                 <MockNavItem icon={Coins} label="Patrim." />
-                <MockNavItem icon={BookOpen} label="Conteúdo" />
               </nav>
             </div>
 
@@ -249,19 +291,26 @@ export function LandingMockDashboard() {
   );
 }
 
-function MockQuickAction({
+function MockQuickCircle({
   icon: Icon,
   label,
+  add = false,
 }: {
   icon: typeof ShoppingBag;
   label: string;
+  add?: boolean;
 }) {
   return (
-    <div className="flex flex-col items-start gap-1.5 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-2 backdrop-blur">
-      <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-        <Icon size={12} strokeWidth={1.75} aria-hidden />
+    <div className="flex w-[42px] shrink-0 flex-col items-center gap-1">
+      <span className="relative flex h-11 w-11 items-center justify-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+        <Icon size={18} strokeWidth={1.75} aria-hidden />
+        {add ? (
+          <span className="absolute -bottom-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white ring-2 ring-[color:var(--bg-app)]">
+            <Plus size={9} strokeWidth={3.5} aria-hidden />
+          </span>
+        ) : null}
       </span>
-      <span className="text-[9.5px] font-bold leading-tight text-[color:var(--text-primary)]">
+      <span className="text-center text-[8px] font-semibold leading-tight text-[color:var(--text-primary)]">
         {label}
       </span>
     </div>

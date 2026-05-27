@@ -22,6 +22,7 @@ const cspDirectives: Record<string, string[]> = {
   ],
   "style-src": ["'self'", "'unsafe-inline'"],
   "img-src": ["'self'", "data:", "blob:", "https:"],
+  "media-src": ["'self'", "https://*.supabase.co"],
   "font-src": ["'self'", "data:"],
   "connect-src": [
     "'self'",
@@ -47,6 +48,9 @@ const baseConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    "/app/conteudo/trilha/[moduleNum]": ["./app/(app)/app/conteudo/_content/**/*.mdx"],
+  },
   async headers() {
     return [
       {

@@ -86,46 +86,46 @@ export function LandingHeader() {
             : "border-b border-transparent bg-[color:var(--bg-app)]/40 backdrop-blur-[6px]",
         )}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <div className="mx-auto flex h-[72px] max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link
             href="/"
-            className="focus-ring flex items-center gap-2.5 rounded-full"
+            className="focus-ring flex items-center gap-3 rounded-full"
             aria-label="Sabor Financeiro"
             onClick={() => setOpen(false)}
           >
             <Image
               src="/icons/icon-192.png"
               alt=""
-              width={36}
-              height={36}
-              className="h-9 w-9 rounded-full object-contain"
+              width={44}
+              height={44}
+              className="h-11 w-11 rounded-full object-contain"
               priority
             />
             <span
-              className="text-[15px] font-extrabold tracking-tight text-[color:var(--text-primary)]"
+              className="text-[17px] font-extrabold tracking-tight text-[color:var(--text-primary)]"
               style={{ letterSpacing: "-0.02em" }}
             >
               Sabor Financeiro
             </span>
           </Link>
 
-          <nav aria-label="Principal" className="hidden items-center gap-7 md:flex">
+          <nav aria-label="Principal" className="hidden items-center gap-8 md:flex">
             {NAV.map((item) => (
               <Link
                 key={item.href}
                 href={item.href as Route}
-                className="focus-ring rounded-md text-sm font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+                className="focus-ring rounded-md text-[15px] font-medium text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
               >
                 {item.label}
               </Link>
             ))}
           </nav>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2.5">
             <Button
               asChild
               variant="ghost"
-              size="sm"
+              size="default"
               className="hidden sm:inline-flex"
             >
               <Link href="/entrar">Entrar</Link>
@@ -133,7 +133,7 @@ export function LandingHeader() {
             <Button
               asChild
               variant="brand"
-              size="sm"
+              size="default"
               className="sf-lift hidden md:inline-flex"
             >
               <Link href="/cadastrar">Começar grátis</Link>
@@ -145,12 +145,12 @@ export function LandingHeader() {
               aria-expanded={open}
               aria-controls="mobile-menu"
               aria-label={open ? "Fechar menu" : "Abrir menu"}
-              className="focus-ring inline-flex h-10 w-10 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-primary)] md:hidden"
+              className="focus-ring inline-flex h-11 w-11 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-primary)] md:hidden"
             >
               {open ? (
-                <X className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                <X className="h-5 w-5" strokeWidth={2.25} aria-hidden />
               ) : (
-                <Menu className="h-4 w-4" strokeWidth={2.25} aria-hidden />
+                <Menu className="h-5 w-5" strokeWidth={2.25} aria-hidden />
               )}
             </button>
           </div>

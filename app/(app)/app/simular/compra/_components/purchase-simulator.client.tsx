@@ -11,6 +11,7 @@ import { PurchaseSimulationService } from "@/domain/services/purchase-simulation
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { SimSlider } from "../../_components/sim-slider";
 import { savePurchaseAction } from "../_actions/save-purchase.action";
 
 const DEFAULT_AMOUNT_CENTS = 800_000n; // R$ 8.000,00
@@ -123,8 +124,7 @@ export function PurchaseSimulatorClient() {
         <div className="flex flex-col gap-3">
           <MoneyInput control={form.control} name="amountCents" label="Valor da compra" required />
 
-          <SliderField
-            id="months"
+          <SimSlider
             label="Horizonte"
             value={months}
             min={3}
@@ -134,8 +134,7 @@ export function PurchaseSimulatorClient() {
             onChange={setMonths}
           />
 
-          <SliderField
-            id="dep"
+          <SimSlider
             label="Depreciação anual esperada"
             value={depRate}
             min={0}
@@ -145,8 +144,7 @@ export function PurchaseSimulatorClient() {
             onChange={setDepRate}
           />
 
-          <SliderField
-            id="opp"
+          <SimSlider
             label="Rendimento alternativo (CDI)"
             value={oppRate}
             min={6}
@@ -384,54 +382,6 @@ function normalizeCents(value: unknown): bigint {
     }
   }
   return 0n;
-}
-
-interface SliderFieldProps {
-  id: string;
-  label: string;
-  value: number;
-  min: number;
-  max: number;
-  step: number;
-  displayValue: string;
-  onChange: (v: number) => void;
-}
-
-function SliderField({
-  id,
-  label,
-  value,
-  min,
-  max,
-  step,
-  displayValue,
-  onChange,
-}: SliderFieldProps) {
-  return (
-    <div className="flex flex-col gap-1.5">
-      <div className="flex items-center justify-between">
-        <label
-          htmlFor={id}
-          className="text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-        >
-          {label}
-        </label>
-        <span className="text-[0.75rem] font-bold text-[color:var(--color-brand-800)]">
-          {displayValue}
-        </span>
-      </div>
-      <input
-        id={id}
-        type="range"
-        min={min}
-        max={max}
-        step={step}
-        value={value}
-        onChange={(e) => onChange(parseFloat(e.target.value))}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-[color:var(--surface-2)] accent-[color:var(--color-brand-500)]"
-      />
-    </div>
-  );
 }
 
 interface ScenarioCardProps {
