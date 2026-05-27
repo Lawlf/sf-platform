@@ -232,6 +232,13 @@
       "when": 1779824055656,
       "tag": "0032_glamorous_meltdown",
       "breakpoints": true
+    },
+    {
+      "idx": 33,
+      "version": "7",
+      "when": 1779909705921,
+      "tag": "0033_handy_valkyrie",
+      "breakpoints": true
     }
   ]
 }
