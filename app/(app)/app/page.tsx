@@ -10,6 +10,7 @@ import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
+import { HomeGoalCard } from "./_components/home-goal-card";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MaisCard } from "./_components/mais-card";
 import { NextStepCard } from "./_components/next-step-card";
@@ -76,6 +77,12 @@ export default async function DashboardPage() {
         <div className="md:col-span-2">
           <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
             <NextStepCard />
+          </Suspense>
+        </div>
+
+        <div className="md:col-span-2">
+          <Suspense fallback={<Skeleton className="h-[88px] rounded-2xl" />}>
+            <HomeGoalCard />
           </Suspense>
         </div>
 
