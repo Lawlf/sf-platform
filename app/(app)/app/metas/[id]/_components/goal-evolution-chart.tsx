@@ -29,7 +29,7 @@ export function GoalEvolutionChart({ snapshots }: GoalEvolutionChartProps) {
   if (sorted.length === 0) {
     return (
       <p className="text-center text-[0.8125rem] text-[color:var(--text-muted)]">
-        Nenhum dado de evolucao ainda.
+        Nenhum dado de evolução ainda.
       </p>
     );
   }
@@ -48,7 +48,7 @@ export function GoalEvolutionChart({ snapshots }: GoalEvolutionChartProps) {
           </span>
         </div>
         <p className="text-center text-[0.75rem] text-[color:var(--text-muted)]">
-          A curva enche a cada mes.
+          A curva enche a cada mês.
         </p>
       </div>
     );
@@ -87,7 +87,7 @@ export function GoalEvolutionChart({ snapshots }: GoalEvolutionChartProps) {
     <div className="w-full overflow-hidden">
       <svg
         viewBox={`0 0 ${VIEW_W} ${VIEW_H}`}
-        aria-label="Curva de evolucao da meta"
+        aria-label="Curva de evolução da meta"
         className="w-full"
         style={{ height: "auto" }}
       >

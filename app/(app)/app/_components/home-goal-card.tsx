@@ -81,7 +81,7 @@ export async function HomeGoalCard() {
       <div className="flex items-baseline justify-between gap-2 text-[0.75rem]">
         <span className="text-[color:var(--text-secondary)]">
           {progress.reached ? (
-            <span className="font-semibold text-[color:var(--semantic-positive)]">Concluida</span>
+            <span className="font-semibold text-[color:var(--semantic-positive)]">Concluída</span>
           ) : (
             <>
               Faltam{" "}
@@ -94,11 +94,11 @@ export async function HomeGoalCard() {
         {etaLocked ? (
           <span className="flex items-center gap-1 text-[color:var(--text-muted)]">
             <Lock size={12} strokeWidth={2.25} aria-hidden />
-            Projecao no Pro
+            Projeção no Pro
           </span>
         ) : progress.etaMonths !== null ? (
           <span className="text-[color:var(--text-secondary)]">
-            Previsao{" "}
+            Previsão{" "}
             <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
               {formatEtaDate(progress.etaMonths)}
             </span>

@@ -51,3 +51,7 @@ test-results/
 playwright-report/
 playwright/.cache/
 .superpowers/
+
+# me
+/mockups
+/narration

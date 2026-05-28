@@ -40,7 +40,7 @@ export function GoalList({ goals, isPro }: GoalListProps) {
               Nenhuma meta ainda
             </h3>
             <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-              Defina onde voce quer chegar e acompanhe seu progresso.
+              Defina onde você quer chegar e acompanhe seu progresso.
             </p>
           </div>
         </section>
@@ -70,7 +70,7 @@ export function GoalList({ goals, isPro }: GoalListProps) {
           </div>
           <ProLockRow
             label="Segunda meta"
-            subText="Adicione mais objetivos simultaneos no Pro."
+            subText="Adicione mais objetivos simultâneos no Pro."
           />
           <ProLockRow
             label="Terceira meta"
@@ -82,7 +82,7 @@ export function GoalList({ goals, isPro }: GoalListProps) {
       {completedGoals.length > 0 ? (
         <div className="flex flex-col gap-2">
           <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Concluidas
+            Concluídas
           </h3>
           {completedGoals.map((g) => (
             <GoalCard key={g.goal.id} data={g} />

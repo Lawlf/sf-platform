@@ -49,12 +49,12 @@ export default async function NovaMetaPage() {
                   Recurso Pro
                 </div>
                 <div className="text-[0.9375rem] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
-                  Multiplas metas simultaneas
+                  Múltiplas metas simultâneas
                 </div>
               </div>
             </div>
             <p className="mb-4 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
-              No plano gratuito voce pode ter uma meta ativa por vez. Faca upgrade para o Pro e
+              No plano gratuito você pode ter uma meta ativa por vez. Faça upgrade para o Pro e
               acompanhe todos os seus objetivos em paralelo.
             </p>
             <Link

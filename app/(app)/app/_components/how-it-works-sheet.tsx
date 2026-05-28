@@ -244,32 +244,32 @@ const TOPICS = {
       "Faça você mesmo: preço à vista = preço cheio x (1 - desconto). Valor presente do parcelado = soma de cada parcela ÷ (1 + i)^k, com i = taxa mensal do seu investimento e k o número do mês. Se o à vista custa menos que esse valor presente, pague à vista; senão, parcele e invista o dinheiro.",
   },
   "meta-quitar": {
-    title: "Meta de quitacao de divida",
+    title: "Meta de quitação de dívida",
     tag: "Meta",
-    body: "Acompanha o quanto do saldo de uma divida ja foi eliminado em relacao ao valor original. O progresso sobe a cada mes que voce paga parcelas ou faz amortizacoes extras. A previsao de quitacao usa a projecao da parcela atual sobre o saldo restante, descontando os juros do caminho.",
+    body: "Acompanha o quanto do saldo de uma dívida já foi eliminado em relação ao valor original. O progresso sobe a cada mês que você paga parcelas ou faz amortizações extras. A previsão de quitação usa a projeção da parcela atual sobre o saldo restante, descontando os juros do caminho.",
     technical:
-      "Progresso = (saldo inicial - saldo atual) / saldo inicial. ETA em meses: resolva saldo x (1 + i)^n - parcela x ((1 + i)^n - 1) / i = 0 para n, com i = taxa mensal e parcela = valor corrente. Se a parcela for menor que os juros do mes, o saldo cresce e o horizonte e indefinido.",
+      "Progresso = (saldo inicial - saldo atual) / saldo inicial. ETA em meses: resolva saldo x (1 + i)^n - parcela x ((1 + i)^n - 1) / i = 0 para n, com i = taxa mensal e parcela = valor corrente. Se a parcela for menor que os juros do mês, o saldo cresce e o horizonte é indefinido.",
   },
   "meta-reserva": {
-    title: "Meta de reserva de emergencia",
+    title: "Meta de reserva de emergência",
     tag: "Meta",
-    body: "Mede quantos meses de custo fixo a sua reserva atual cobre em relacao ao alvo que voce definiu. O progresso avanca conforme voce deposita na reserva com seu saldo livre mensal. A previsao de conclusao e calculada pelo ritmo do seu aporte.",
+    body: "Mede quantos meses de custo fixo a sua reserva atual cobre em relação ao alvo que você definiu. O progresso avança conforme você deposita na reserva com seu saldo livre mensal. A previsão de conclusão é calculada pelo ritmo do seu aporte.",
     technical:
-      "Alvo em centavos = custo fixo mensal x meses de meta. Progresso = reserva atual / alvo. ETA = (alvo - reserva atual) / aporte mensal (saldo livre). Rendimento da reserva e ignorado de proposito pra ser conservador; inclui-lo aceleraria marginalmente o prazo.",
+      "Alvo em centavos = custo fixo mensal x meses de meta. Progresso = reserva atual / alvo. ETA = (alvo - reserva atual) / aporte mensal (saldo livre). Rendimento da reserva é ignorado de propósito pra ser conservador; incluí-lo aceleraria marginalmente o prazo.",
   },
   "meta-juntar": {
-    title: "Meta de poupanca (juntar um valor)",
+    title: "Meta de poupança (juntar um valor)",
     tag: "Meta",
-    body: "Acompanha o acumulo em direcao a um valor especifico, como entrada de imovel ou viagem. O saldo pode crescer por aportes manuais ou por uma reserva vinculada. A previsao leva em conta juros compostos sobre o saldo existente mais os aportes futuros.",
+    body: "Acompanha o acúmulo em direção a um valor específico, como entrada de imóvel ou viagem. O saldo pode crescer por aportes manuais ou por uma reserva vinculada. A previsão leva em conta juros compostos sobre o saldo existente mais os aportes futuros.",
     technical:
-      "Progresso = saved / target. ETA: resolva target = saved x (1 + i)^n + aporte x ((1 + i)^n - 1) / i para n, com i = taxa mensal real e aporte = saldo livre. Se nao ha aporte e o saldo ja esta abaixo do alvo sem crescimento projetado, o horizonte e indefinido.",
+      "Progresso = saved / target. ETA: resolva target = saved x (1 + i)^n + aporte x ((1 + i)^n - 1) / i para n, com i = taxa mensal real e aporte = saldo livre. Se não há aporte e o saldo já está abaixo do alvo sem crescimento projetado, o horizonte é indefinido.",
   },
   "meta-independencia": {
-    title: "Meta de independencia financeira",
+    title: "Meta de independência financeira",
     tag: "Meta",
-    body: "Aponta a distancia entre seu patrimonio investido atual e o patrimonio-alvo calculado pela regra dos 4%, que garante renda passiva vitalicia cobrindo seu custo de vida. O progresso sobe conforme seu patrimonio cresce. A previsao projeta acumulacao com aportes e juros compostos.",
+    body: "Aponta a distância entre seu patrimônio investido atual e o patrimônio-alvo calculado pela regra dos 4%, que garante renda passiva vitalícia cobrindo seu custo de vida. O progresso sobe conforme seu patrimônio cresce. A previsão projeta acumulação com aportes e juros compostos.",
     technical:
-      "Alvo = custo anual / 0,04 (regra dos 4%). Progresso = patrimonio atual / alvo. ETA: resolva alvo = atual x (1 + i)^n + aporte x ((1 + i)^n - 1) / i para n, com i = (1 + taxa real anual)^(1/12) - 1. Taxa real de referencia: 4% a.a. acima da inflacao (CDI historico).",
+      "Alvo = custo anual / 0,04 (regra dos 4%). Progresso = patrimônio atual / alvo. ETA: resolva alvo = atual x (1 + i)^n + aporte x ((1 + i)^n - 1) / i para n, com i = (1 + taxa real anual)^(1/12) - 1. Taxa real de referência: 4% a.a. acima da inflação (CDI histórico).",
   },
 } as const;
 

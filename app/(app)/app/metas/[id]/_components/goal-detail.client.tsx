@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Lock, Trash2 } from "lucide-react";
+import { Archive, Crown, Lock, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -85,11 +85,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* ETA hero */}
-      <EtaHero
-        etaLocked={etaLocked}
-        etaMonths={progress.etaMonths}
-        reached={progress.reached}
-      />
+      <EtaHero etaLocked={etaLocked} etaMonths={progress.etaMonths} reached={progress.reached} />
 
       {/* Progress card */}
       <ResultCard title="Progresso">
@@ -97,7 +93,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
           <span className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
             {pct.toFixed(0)}%
           </span>
-          <span className="text-[0.75rem] text-[color:var(--text-muted)]">concluido</span>
+          <span className="text-[0.75rem] text-[color:var(--text-muted)]">concluído</span>
         </div>
         <div className="h-[9px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
           <div
@@ -109,15 +105,13 @@ export function GoalDetail({ detail }: GoalDetailProps) {
             aria-valuemax={100}
           />
         </div>
-        <ResultStat label="Ja juntou / pago" value={brl(progress.currentCents)} />
+        <ResultStat label="Já juntou/pagou" value={brl(progress.currentCents)} />
         <ResultStat label="Alvo total" value={brl(progress.targetCents)} />
-        {!progress.reached && (
-          <ResultStat label="Falta" value={brl(String(remainingCents))} />
-        )}
+        {!progress.reached && <ResultStat label="Falta" value={brl(String(remainingCents))} />}
       </ResultCard>
 
       {/* Evolution chart */}
-      <ResultCard title="Evolucao" subtitle="Saldo mensal registrado">
+      <ResultCard title="Evolução" subtitle="Saldo mensal registrado">
         <GoalEvolutionChart snapshots={snapshots} />
       </ResultCard>
 
@@ -128,21 +122,20 @@ export function GoalDetail({ detail }: GoalDetailProps) {
         </div>
       ) : null}
 
-      {/* Actions */}
-      <div className="flex flex-col gap-2 pt-2">
+      {/* Actions: secundárias e discretas, padrão size sm ghost */}
+      <div className="flex items-center justify-end gap-1 border-t border-[color:var(--border-soft)] pt-3">
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="outline" className="w-full gap-2" disabled={archiving}>
+            <Button type="button" size="sm" variant="ghost" className="gap-1.5" disabled={archiving}>
               <Archive size={14} strokeWidth={2} aria-hidden />
-              Arquivar meta
+              Arquivar
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Arquivar meta?</AlertDialogTitle>
               <AlertDialogDescription>
-                A meta sera arquivada e deixara de aparecer na lista principal. Voce pode reativa-la
-                depois.
+                A meta será arquivada e deixará de aparecer na lista principal. Você pode reativá-la depois.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -159,17 +152,23 @@ export function GoalDetail({ detail }: GoalDetailProps) {
 
         <AlertDialog>
           <AlertDialogTrigger asChild>
-            <Button variant="ghost" className="w-full gap-2 text-[color:var(--semantic-negative)]" disabled={deleting}>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              className="gap-1.5 text-[color:var(--semantic-negative)] hover:text-[color:var(--semantic-negative)]"
+              disabled={deleting}
+            >
               <Trash2 size={14} strokeWidth={2} aria-hidden />
-              Excluir meta
+              Excluir
             </Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Excluir meta?</AlertDialogTitle>
               <AlertDialogDescription>
-                Esta acao nao pode ser desfeita. Todos os dados de progresso e historico desta meta
-                serao removidos permanentemente.
+                Esta ação não pode ser desfeita. Todos os dados de progresso e histórico desta meta
+                serão removidos permanentemente.
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
@@ -196,11 +195,11 @@ function EtaHero({
     return (
       <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
         <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
-          Situacao
+          Situação
         </span>
         <div className="mt-1 text-[1.625rem] font-extrabold leading-tight">Meta atingida</div>
         <p className="mt-2 text-[0.75rem] font-medium text-white/85">
-          Parabens! Voce chegou ao alvo desta meta.
+          Parabéns! Você chegou ao alvo desta meta.
         </p>
       </section>
     );
@@ -209,25 +208,22 @@ function EtaHero({
   if (etaLocked) {
     return (
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--text-muted)]">
-              Previsao
-            </span>
-            <div className="mt-1 flex items-center gap-2 text-[1.25rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
-              <Lock size={18} strokeWidth={2} aria-hidden />
-              Projecao no Pro
-            </div>
-            <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
-              Faca upgrade para ver a data prevista de conclusao desta meta.
-            </p>
-          </div>
+        <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--text-muted)]">
+          Previsão
+        </span>
+        <div className="mt-1 flex items-center gap-2 text-[1.25rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
+          <Lock size={18} strokeWidth={2} className="text-[color:var(--text-muted)]" aria-hidden />
+          Projeção no Pro
         </div>
+        <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
+          Veja a data prevista de conclusão desta meta no plano Pro.
+        </p>
         <Link
           href={"/app/configuracoes/planos" as Route}
-          className="focus-ring mt-3 inline-flex items-center gap-1.5 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-1.5 text-[0.75rem] font-bold text-white"
+          className="focus-ring mt-3 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
         >
           Se tornar Pro
+          <Crown size={12} strokeWidth={2.25} aria-hidden />
         </Link>
       </section>
     );
@@ -237,13 +233,13 @@ function EtaHero({
     return (
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--text-muted)]">
-          Previsao
+          Previsão
         </span>
         <div className="mt-1 text-[1.375rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
           Fora do horizonte
         </div>
         <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Com os numeros atuais, o alvo nao e atingido em horizonte projetavel. Aumente o aporte ou
+          Com os números atuais, o alvo não é atingido num horizonte projetável. Aumente o aporte ou
           revise o alvo.
         </p>
       </section>
@@ -253,13 +249,13 @@ function EtaHero({
   return (
     <section className="rounded-2xl bg-[linear-gradient(135deg,#ef7a1a,#f28e25)] p-4 text-white shadow-[0_14px_32px_rgba(239,122,26,0.30)]">
       <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
-        Previsao de conclusao
+        Previsão de conclusão
       </span>
       <div className="mt-1 text-[1.625rem] font-extrabold leading-tight">
         {etaDateLabel(etaMonths)}
       </div>
       <p className="mt-2 text-[0.75rem] font-medium text-white/85">
-        Em {etaMonths} {etaMonths === 1 ? "mes" : "meses"} pelo ritmo atual.
+        Em {etaMonths} {etaMonths === 1 ? "mês" : "meses"} pelo ritmo atual.
       </p>
     </section>
   );

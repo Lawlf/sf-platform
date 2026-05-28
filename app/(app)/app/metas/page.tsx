@@ -14,7 +14,7 @@ export default async function MetasPage() {
   const goals = await fetchGoalsWithProgress();
 
   return (
-    <PageShell title="Metas" description="Onde voce quer chegar.">
+    <PageShell title="Metas" description="Onde você quer chegar.">
       <GoalList goals={goals} isPro={user.isPro} />
     </PageShell>
   );

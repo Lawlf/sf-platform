@@ -111,10 +111,10 @@ function DebtPayoffStep({
         <div className="flex flex-col gap-3">
           {debts.length === 0 ? (
             <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">
-              Voce nao tem dividas ativas cadastradas. Cadastre uma divida primeiro.
+              Você não tem dívidas ativas cadastradas. Cadastre uma dívida primeiro.
             </p>
           ) : (
-            <WizardField label="Divida" htmlFor={selectId}>
+            <WizardField label="Dívida" htmlFor={selectId}>
               <select
                 id={selectId}
                 className={wizardInputClass}
@@ -129,7 +129,7 @@ function DebtPayoffStep({
               </select>
             </WizardField>
           )}
-          <WizardField label="Titulo da meta" htmlFor={titleId} helper="Como voce quer chamar essa meta.">
+          <WizardField label="Título da meta" htmlFor={titleId} helper="Como você quer chamar essa meta.">
             <input
               id={titleId}
               type="text"
@@ -174,9 +174,9 @@ function EmergencyFundStep({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <section className="glass-light p-4">
-        <SectionHeading>Reserva de emergencia</SectionHeading>
+        <SectionHeading>Reserva de emergência</SectionHeading>
         <div className="flex flex-col gap-3">
-          <WizardField label="Titulo da meta" htmlFor={titleId}>
+          <WizardField label="Título da meta" htmlFor={titleId}>
             <input
               id={titleId}
               type="text"
@@ -190,11 +190,11 @@ function EmergencyFundStep({
             min={1}
             max={24}
             step={1}
-            displayValue={`${targetMonths} ${targetMonths === 1 ? "mes" : "meses"}`}
+            displayValue={`${targetMonths} ${targetMonths === 1 ? "mês" : "meses"}`}
             onChange={(v) => form.setValue("targetMonths", v)}
           />
           <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-            O valor alvo sera calculado com base nos seus custos mensais cadastrados.
+            O valor alvo será calculado com base nos seus custos mensais cadastrados.
           </p>
         </div>
       </section>
@@ -241,7 +241,7 @@ function SavingsStep({
       <section className="glass-light p-4">
         <SectionHeading>Juntar um valor</SectionHeading>
         <div className="flex flex-col gap-3">
-          <WizardField label="Titulo da meta" htmlFor={titleId}>
+          <WizardField label="Título da meta" htmlFor={titleId}>
             <input
               id={titleId}
               type="text"
@@ -255,7 +255,7 @@ function SavingsStep({
             name="targetCents"
             label="Valor alvo"
             required
-            helper="Quanto voce quer ter guardado."
+            helper="Quanto você quer ter guardado."
           />
           <WizardField label="Prazo (opcional)" htmlFor={deadlineId} helper="Deixe em branco para sem prazo definido.">
             <input
@@ -278,7 +278,7 @@ function SavingsStep({
               />
               <WizardRadioCard
                 title="Manual"
-                description="Voce informa quanto ja guardou."
+                description="Você informa quanto já guardou."
                 active={fundingMode === "manual"}
                 onSelect={() => form.setValue("fundingMode", "manual")}
               />
@@ -287,7 +287,7 @@ function SavingsStep({
           {fundingMode === "linked" ? (
             assets.length === 0 ? (
               <p className="text-[0.6875rem] text-[color:var(--text-secondary)]">
-                Voce nao tem reservas ou investimentos cadastrados para vincular.
+                Você não tem reservas ou investimentos cadastrados para vincular.
               </p>
             ) : (
               <WizardField label="Ativo vinculado" htmlFor={assetSelectId}>
@@ -308,8 +308,8 @@ function SavingsStep({
             <MoneyInput
               control={form.control}
               name="manualSavedCents"
-              label="Ja guardei"
-              helper="Quanto voce ja tem separado para essa meta."
+              label="Já guardei"
+              helper="Quanto você já tem separado para essa meta."
             />
           )}
         </div>
@@ -337,7 +337,7 @@ function FinancialIndependenceStep({
 }) {
   const form = useForm<FinancialIndependenceForm>({
     defaultValues: {
-      title: "Independencia financeira",
+      title: "Independência financeira",
       monthlyCostCents: BigInt(prefill.incomeCents),
       realReturnPct: 4,
     },
@@ -348,9 +348,9 @@ function FinancialIndependenceStep({
   return (
     <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <section className="glass-light p-4">
-        <SectionHeading>Independencia financeira</SectionHeading>
+        <SectionHeading>Independência financeira</SectionHeading>
         <div className="flex flex-col gap-3">
-          <WizardField label="Titulo da meta" htmlFor={titleId}>
+          <WizardField label="Título da meta" htmlFor={titleId}>
             <input
               id={titleId}
               type="text"
@@ -363,7 +363,7 @@ function FinancialIndependenceStep({
             name="monthlyCostCents"
             label="Custo de vida mensal"
             required
-            helper="Quanto voce precisa por mes para viver sem trabalhar. Puxado da sua renda."
+            helper="Quanto você precisa por mês para viver sem trabalhar. Puxado da sua renda."
           />
           <SimSlider
             label="Rendimento real esperado"
@@ -375,8 +375,8 @@ function FinancialIndependenceStep({
             onChange={(v) => form.setValue("realReturnPct", v)}
           />
           <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Rendimento real = rendimento nominal descontada a inflacao. 4% e uma referencia
-            conservadora para renda passiva sustentavel.
+            Rendimento real = rendimento nominal descontado da inflação. 4% é uma referência
+            conservadora para renda passiva sustentável.
           </p>
         </div>
       </section>
@@ -405,10 +405,10 @@ function ErrorAlert({ message }: { message: string }) {
 // ---- Main component --------------------------------------------------------
 
 const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[] = [
-  { type: "debt_payoff", title: "Quitar uma divida", description: "Elimine um passivo do seu patrimônio." },
-  { type: "emergency_fund", title: "Reserva de emergencia", description: "Meses de custo de vida guardados." },
+  { type: "debt_payoff", title: "Quitar uma dívida", description: "Elimine um passivo do seu patrimônio." },
+  { type: "emergency_fund", title: "Reserva de emergência", description: "Meses de custo de vida guardados." },
   { type: "savings", title: "Juntar um valor", description: "Viagem, entrada, projeto, qualquer meta." },
-  { type: "financial_independence", title: "Independencia", description: "Viver de renda passiva." },
+  { type: "financial_independence", title: "Independência", description: "Viver de renda passiva." },
 ];
 
 export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
@@ -483,7 +483,7 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
     return (
       <div className="flex flex-col gap-4">
         <section className="glass-light p-4">
-          <SectionHeading>Qual e o seu objetivo?</SectionHeading>
+          <SectionHeading>Qual é o seu objetivo?</SectionHeading>
           <div className="grid grid-cols-2 gap-2">
             {GOAL_TYPES.map((g) => (
               <WizardRadioCard

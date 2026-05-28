@@ -25,10 +25,10 @@ const TYPE_ICON = {
 } as const;
 
 const TYPE_LABEL: Record<string, string> = {
-  debt_payoff: "Quitacao de divida",
-  emergency_fund: "Reserva de emergencia",
-  savings: "Poupanca",
-  financial_independence: "Independencia financeira",
+  debt_payoff: "Quitação de dívida",
+  emergency_fund: "Reserva de emergência",
+  savings: "Poupança",
+  financial_independence: "Independência financeira",
 };
 
 interface GoalCardProps {
@@ -90,7 +90,7 @@ export function GoalCard({ data }: GoalCardProps) {
       <div className="flex items-baseline justify-between gap-2 text-[0.75rem]">
         <span className="text-[color:var(--text-secondary)]">
           {isReached ? (
-            <span className="font-semibold text-[color:var(--semantic-positive)]">Concluida</span>
+            <span className="font-semibold text-[color:var(--semantic-positive)]">Concluída</span>
           ) : (
             <>
               Faltam{" "}
@@ -103,11 +103,11 @@ export function GoalCard({ data }: GoalCardProps) {
         {etaLocked ? (
           <span className="flex items-center gap-1 text-[color:var(--text-muted)]">
             <Lock size={12} strokeWidth={2.25} aria-hidden />
-            Projecao no Pro
+            Projeção no Pro
           </span>
         ) : progress.etaMonths !== null ? (
           <span className="text-[color:var(--text-secondary)]">
-            Previsao{" "}
+            Previsão{" "}
             <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
               {formatEtaDate(progress.etaMonths)}
             </span>

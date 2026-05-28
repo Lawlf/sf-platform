@@ -187,17 +187,19 @@ export default async function ConfiguracoesPlanosPage({ searchParams }: PageProp
         </Section>
       )}
 
-      <Section
-        label="Faturas"
-        action={canRefreshPayments ? <RefreshPaymentsButton /> : undefined}
-      >
-        <PaymentHistoryList
-          payments={payments}
-          page={safePage}
-          pageCount={pageCount}
-          totalCount={totalPayments}
-        />
-      </Section>
+      {totalPayments > 0 && (
+        <Section
+          label="Faturas"
+          action={canRefreshPayments ? <RefreshPaymentsButton /> : undefined}
+        >
+          <PaymentHistoryList
+            payments={payments}
+            page={safePage}
+            pageCount={pageCount}
+            totalCount={totalPayments}
+          />
+        </Section>
+      )}
 
       {showCancel && sub && (
         <Section label="Cancelamento">
