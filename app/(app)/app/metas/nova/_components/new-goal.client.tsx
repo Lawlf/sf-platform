@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -11,6 +11,7 @@ import { Button } from "@/app/components/ui/button";
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { simSelectClass } from "../../../simular/_components/sim-result";
 import { SimSlider } from "../../../simular/_components/sim-slider";
 import type { SimPrefill } from "../../../simular/_lib/sim-prefill";
 import { createGoalAction } from "../../_actions/goal-actions";
@@ -107,7 +108,7 @@ function DebtPayoffStep({
       className="flex flex-col gap-4"
     >
       <section className="glass-light p-4">
-        <SectionHeading>Quitar divida</SectionHeading>
+        <SectionHeading>Quitar dívida</SectionHeading>
         <div className="flex flex-col gap-3">
           {debts.length === 0 ? (
             <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">
@@ -115,18 +116,26 @@ function DebtPayoffStep({
             </p>
           ) : (
             <WizardField label="Dívida" htmlFor={selectId}>
-              <select
-                id={selectId}
-                className={wizardInputClass}
-                value={selectedDebtId}
-                onChange={(e) => handleDebtChange(e.target.value)}
-              >
-                {debts.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.label} ({brl(d.balanceCents)})
-                  </option>
-                ))}
-              </select>
+              <div className="relative">
+                <select
+                  id={selectId}
+                  className={simSelectClass}
+                  value={selectedDebtId}
+                  onChange={(e) => handleDebtChange(e.target.value)}
+                >
+                  {debts.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {d.label} ({brl(d.balanceCents)})
+                    </option>
+                  ))}
+                </select>
+                <ChevronDown
+                  size={18}
+                  strokeWidth={2}
+                  aria-hidden
+                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
+                />
+              </div>
             </WizardField>
           )}
           <WizardField label="Título da meta" htmlFor={titleId} helper="Como você quer chamar essa meta.">
@@ -166,7 +175,7 @@ function EmergencyFundStep({
   error: string | null;
 }) {
   const form = useForm<EmergencyFundForm>({
-    defaultValues: { title: "Reserva de emergencia", targetMonths: 6 },
+    defaultValues: { title: "Reserva de emergência", targetMonths: 6 },
   });
   const targetMonths = useWatch({ control: form.control, name: "targetMonths" }) ?? 6;
   const titleId = useId();
@@ -291,17 +300,25 @@ function SavingsStep({
               </p>
             ) : (
               <WizardField label="Ativo vinculado" htmlFor={assetSelectId}>
-                <select
-                  id={assetSelectId}
-                  className={wizardInputClass}
-                  {...form.register("linkedAssetId")}
-                >
-                  {assets.map((a) => (
-                    <option key={a.id} value={a.id}>
-                      {a.label} ({brl(a.valueCents)})
-                    </option>
-                  ))}
-                </select>
+                <div className="relative">
+                  <select
+                    id={assetSelectId}
+                    className={simSelectClass}
+                    {...form.register("linkedAssetId")}
+                  >
+                    {assets.map((a) => (
+                      <option key={a.id} value={a.id}>
+                        {a.label} ({brl(a.valueCents)})
+                      </option>
+                    ))}
+                  </select>
+                  <ChevronDown
+                    size={18}
+                    strokeWidth={2}
+                    aria-hidden
+                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
+                  />
+                </div>
               </WizardField>
             )
           ) : (
