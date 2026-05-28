@@ -407,7 +407,7 @@ function ErrorAlert({ message }: { message: string }) {
 const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[] = [
   { type: "debt_payoff", title: "Quitar uma divida", description: "Elimine um passivo do seu patrimônio." },
   { type: "emergency_fund", title: "Reserva de emergencia", description: "Meses de custo de vida guardados." },
-  { type: "savings", title: "Juntar um valor", description: "Viagem, entrada, projeto — qualquer meta." },
+  { type: "savings", title: "Juntar um valor", description: "Viagem, entrada, projeto, qualquer meta." },
   { type: "financial_independence", title: "Independencia", description: "Viver de renda passiva." },
 ];
 

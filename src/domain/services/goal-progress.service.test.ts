@@ -63,4 +63,19 @@ describe("GoalProgressService.compute", () => {
     expect(r.needsAttention).toBe(true);
     expect(r.etaMonths).toBeNull();
   });
+
+  it("savings linked: progresso vem de manualSavedCents independente de fundingMode", () => {
+    const goal: GoalEntity = {
+      ...baseGoal,
+      type: "savings",
+      fundingMode: "linked",
+      manualSavedCents: 20_000_00n,
+      targetCents: 50_000_00n,
+    };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(Number(r.currentCents)).toBe(20_000_00);
+    expect(Number(r.targetCents)).toBe(50_000_00);
+    expect(r.pct).toBeCloseTo(0.4, 3);
+    expect(r.reached).toBe(false);
+  });
 });

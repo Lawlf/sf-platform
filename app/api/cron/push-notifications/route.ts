@@ -63,7 +63,7 @@ export async function GET(request: Request) {
   const debtResult = await dispatchDebtDueNotifications(deps);
 
   const today = new Date();
-  const isFirstOfMonth = today.getDate() === 1;
+  const isFirstOfMonth = today.getUTCDate() === 1;
 
   let summaryResult = { pushesSent: 0 };
   let snapshotResult = { snapshotsWritten: 0, reached: [] as { goalId: string; userId: string; title: string }[] };
