@@ -50,6 +50,10 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!open) return;
+    // Bring the step's target into view before measuring. The smooth scroll fires
+    // scroll events that re-run measure(), so the spotlight tracks to its final spot.
+    const el = step ? document.querySelector(step.target) : null;
+    if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
     measure();
     const onChange = () => measure();
     window.addEventListener("resize", onChange);
@@ -58,7 +62,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       window.removeEventListener("resize", onChange);
       window.removeEventListener("scroll", onChange, true);
     };
-  }, [open, measure]);
+  }, [open, step, measure]);
 
   function finish() {
     setOpen(false);
