@@ -7,8 +7,10 @@ import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
+import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
+import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
@@ -53,9 +55,10 @@ export default async function DashboardPage() {
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
 
-  const [initialMonthDetail, initialMaintenancePrompts] = await Promise.all([
+  const [initialMonthDetail, initialMaintenancePrompts, onboardingState] = await Promise.all([
     fetchMonthDetail({ monthIso }),
     fetchMaintenancePrompts(),
+    fetchOnboardingState(),
   ]);
 
   return (
@@ -64,6 +67,10 @@ export default async function DashboardPage() {
       description="Aqui está sua situação agora."
     >
       <div className="grid gap-4 md:grid-cols-2">
+        <div className="md:col-span-2">
+          <OnboardingChecklistCard checklist={onboardingState.checklist} />
+        </div>
+
         <div className="md:col-span-2">
           <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
             <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
