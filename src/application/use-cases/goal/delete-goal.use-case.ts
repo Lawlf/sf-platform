@@ -18,7 +18,7 @@ export async function deleteGoal(
 ): Promise<DeleteGoalResult> {
   const existing = await goals.findById(goalId);
   if (!existing || existing.userId !== userId) {
-    return { ok: false, message: "Meta nao encontrada." };
+    return { ok: false, message: "Meta não encontrada." };
   }
 
   await goals.softDelete(goalId);

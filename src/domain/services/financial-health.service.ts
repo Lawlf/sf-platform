@@ -38,7 +38,7 @@ export class FinancialHealthService {
     );
     const totalIncomeR = Money.from(totalIncomeNumber);
     if (!isOk(totalIncomeR)) {
-      return err(new InvalidAmortizationParamsError("Total de renda invalido."));
+      return err(new InvalidAmortizationParamsError("Total de renda inválido."));
     }
     const totalIncome = totalIncomeR.value;
 
@@ -48,7 +48,7 @@ export class FinancialHealthService {
     );
     const totalDebtBalanceR = Money.from(totalDebtBalanceNumber);
     if (!isOk(totalDebtBalanceR)) {
-      return err(new InvalidAmortizationParamsError("Total de divida invalido."));
+      return err(new InvalidAmortizationParamsError("Total de dívida inválido."));
     }
     const totalDebtBalance = totalDebtBalanceR.value;
 
@@ -67,7 +67,7 @@ export class FinancialHealthService {
 
     const totalMonthlyServiceR = Money.from(totalMonthlyServiceNumber);
     if (!isOk(totalMonthlyServiceR)) {
-      return err(new InvalidAmortizationParamsError("Servico mensal da divida invalido."));
+      return err(new InvalidAmortizationParamsError("Serviço mensal da dívida inválido."));
     }
     const totalMonthlyService = totalMonthlyServiceR.value;
 
@@ -80,13 +80,13 @@ export class FinancialHealthService {
       weightedRateDenominator > 0 ? weightedRateNumerator / weightedRateDenominator : 0;
     const cetRateR = InterestRate.fromMonthly(weightedMonthlyRate);
     if (!isOk(cetRateR)) {
-      return err(new InvalidAmortizationParamsError("CET ponderada invalida."));
+      return err(new InvalidAmortizationParamsError("CET ponderada inválida."));
     }
 
     const netWorthNumber = totalIncomeNumber - totalMonthlyServiceNumber;
     const netWorthR = Money.from(netWorthNumber);
     if (!isOk(netWorthR)) {
-      return err(new InvalidAmortizationParamsError("Net worth invalido."));
+      return err(new InvalidAmortizationParamsError("Net worth inválido."));
     }
 
     return ok({

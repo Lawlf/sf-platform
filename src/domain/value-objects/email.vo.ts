@@ -14,7 +14,7 @@ export class Email {
       return { ok: false, error: new InvalidEmailError("Email muito longo.") };
     const at = trimmed.indexOf("@");
     if (at < 1 || at === trimmed.length - 1) {
-      return { ok: false, error: new InvalidEmailError("Email invalido.") };
+      return { ok: false, error: new InvalidEmailError("Email inválido.") };
     }
     return { ok: true, value: new Email(trimmed) };
   }

@@ -54,10 +54,10 @@ export class PayoffStrategyService {
     input: PayoffStrategyInput,
   ): Result<PayoffComparison, InvalidAmortizationParamsError> {
     if (input.debts.length === 0) {
-      return err(new InvalidAmortizationParamsError("Lista de dividas vazia."));
+      return err(new InvalidAmortizationParamsError("Lista de dívidas vazia."));
     }
     if (!input.monthlyBudget.isPositive() && !input.monthlyBudget.isZero()) {
-      return err(new InvalidAmortizationParamsError("Orcamento mensal nao pode ser negativo."));
+      return err(new InvalidAmortizationParamsError("Orçamento mensal não pode ser negativo."));
     }
 
     const cap = Math.min(input.maxMonths ?? DEFAULT_MAX_MONTHS, HARD_CAP_MONTHS);

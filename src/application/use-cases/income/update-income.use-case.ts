@@ -26,7 +26,7 @@ export async function updateIncome(
   input: UpdateIncomeInput,
 ): Promise<Result<IncomeEntity, IncomeNotFound | Forbidden>> {
   const existing = await deps.incomes.findById(input.incomeId);
-  if (!existing) return err(new IncomeNotFound("Renda nao encontrada."));
+  if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   void deps.clock.now();

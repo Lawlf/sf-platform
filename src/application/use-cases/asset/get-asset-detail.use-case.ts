@@ -42,7 +42,7 @@ export async function getAssetDetail(
   input: GetAssetDetailInput,
 ): Promise<Result<GetAssetDetailOutput, DomainError>> {
   const withAllocs = await deps.assets.findByIdWithAllocations(input.assetId, input.userId);
-  if (!withAllocs) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!withAllocs) return err(new AssetNotFound("Ativo não encontrado."));
 
   const { asset, allocations } = withAllocs;
 

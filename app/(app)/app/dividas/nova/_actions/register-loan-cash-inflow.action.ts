@@ -56,7 +56,7 @@ export async function registerLoanCashInflow(
     }
     const asset = await deps.assets.findById(input.existingCashAssetId, input.userId);
     if (!asset) {
-      return { ok: false, message: "Conta nao encontrada." };
+      return { ok: false, message: "Conta não encontrada." };
     }
     const nextValueCents = asset.currentValue.toCents() + input.principalCents;
     const updateResult = await updateAsset(
@@ -115,7 +115,7 @@ const actionSchema = z
   .object({
     debtId: z.string().uuid(),
     cashTarget: z.enum(["existing", "new", "spent"]),
-    principalCents: z.string().regex(/^\d+$/, "Principal invalido."),
+    principalCents: z.string().regex(/^\d+$/, "Principal inválido."),
     existingCashAssetId: z.string().uuid().optional(),
     newCashAssetName: z.string().min(1).max(120).optional(),
     newCashAssetCurrentBalanceCents: z.string().regex(/^\d+$/).optional(),

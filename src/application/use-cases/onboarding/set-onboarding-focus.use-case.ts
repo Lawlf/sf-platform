@@ -20,7 +20,7 @@ export async function setOnboardingFocus(
   input: SetOnboardingFocusInput,
 ): Promise<Result<void, DomainError>> {
   const user = await deps.users.findById(input.userId);
-  if (!user) return err(new UserNotFound("Usuario nao encontrado."));
+  if (!user) return err(new UserNotFound("Usuário não encontrado."));
   const now = deps.clock.now();
   await deps.users.update({
     ...user,

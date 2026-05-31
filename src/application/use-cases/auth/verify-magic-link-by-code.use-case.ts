@@ -59,12 +59,12 @@ export async function verifyMagicLinkByCode(
   const email = emailResult.value;
 
   const token = await deps.tokens.findActiveByEmail(email.toString());
-  if (!token) return err(new MagicLinkInvalid("Codigo invalido ou expirado."));
+  if (!token) return err(new MagicLinkInvalid("Código inválido ou expirado."));
   if (token.attemptCount >= MAX_ATTEMPTS) {
     await deps.tokens.markUsed(token.tokenHash);
-    return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo codigo."));
+    return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo código."));
   }
-  if (token.expiresAt < deps.clock.now()) return err(new MagicLinkExpired("Codigo expirado."));
+  if (token.expiresAt < deps.clock.now()) return err(new MagicLinkExpired("Código expirado."));
 
   // Atomic gate: increment BEFORE comparing so concurrent verify calls cannot
   // each pass the N-of-5 check at find time and run constantTimeEqual against
@@ -72,22 +72,22 @@ export async function verifyMagicLinkByCode(
   const newCount = await deps.tokens.incrementAttempts(token.tokenHash);
   if (newCount > MAX_ATTEMPTS) {
     await deps.tokens.markUsed(token.tokenHash);
-    return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo codigo."));
+    return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo código."));
   }
 
   const inputCodeHash = await deps.hasher.sha256Hex(input.code);
   if (!constantTimeEqual(inputCodeHash, token.code)) {
     if (newCount >= MAX_ATTEMPTS) {
       await deps.tokens.markUsed(token.tokenHash);
-      return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo codigo."));
+      return err(new TooManyAttempts("Limite de tentativas atingido. Solicite um novo código."));
     }
-    return err(new MagicLinkInvalid("Codigo invalido."));
+    return err(new MagicLinkInvalid("Código inválido."));
   }
 
   let user: UserEntity | null = null;
   if (token.userId) {
     user = await deps.users.findById(token.userId);
-    if (!user) return err(new MagicLinkInvalid("Codigo invalido."));
+    if (!user) return err(new MagicLinkInvalid("Código inválido."));
   } else {
     const byEmail = await deps.users.findByEmail(token.email);
     if (byEmail) {
@@ -96,7 +96,7 @@ export async function verifyMagicLinkByCode(
       // was created via OAuth or another flow. Reject so the attacker who
       // pre-requested a magic link to a victim's address cannot redeem it.
       await deps.tokens.markUsed(token.tokenHash);
-      return err(new MagicLinkInvalid("Codigo invalido."));
+      return err(new MagicLinkInvalid("Código inválido."));
     }
     user = await deps.users.create({ email: token.email, emailVerified: true });
   }

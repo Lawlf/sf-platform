@@ -7,13 +7,13 @@ const bigintFromString = z
     try {
       return BigInt(v);
     } catch {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Numero invalido." });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Número inválido." });
       return z.NEVER;
     }
   });
 
 const positiveBigint = bigintFromString.refine((v) => v > 0n, "Deve ser positivo.");
-const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Nao pode ser negativo.");
+const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Não pode ser negativo.");
 
 export const financingFormSchema = z.object({
   kind: z.literal("financing"),
@@ -92,7 +92,7 @@ export const installmentPurchaseItemSchema = z.object({
           }
           return b;
         } catch {
-          ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Total invalido." });
+          ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Total inválido." });
           return z.NEVER;
         }
       }),
@@ -112,13 +112,13 @@ const installmentPurchasesField = z
         if (!r.success) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            message: r.error.issues[0]?.message ?? "Compras parceladas invalidas.",
+            message: r.error.issues[0]?.message ?? "Compras parceladas inválidas.",
           });
           return z.NEVER;
         }
         return r.data;
       } catch {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Compras parceladas: JSON invalido." });
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Compras parceladas: JSON inválido." });
         return z.NEVER;
       }
     }),

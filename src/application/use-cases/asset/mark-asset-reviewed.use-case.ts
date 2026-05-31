@@ -27,9 +27,9 @@ export async function markAssetReviewed(
   input: MarkAssetReviewedInput,
 ): Promise<Result<AssetEntity, MarkAssetReviewedError>> {
   const existing = await deps.assets.findById(input.assetId, input.userId);
-  if (!existing) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
-    return err(new AssetDeactivated("Ativo desativado nao pode ser revisado."));
+    return err(new AssetDeactivated("Ativo desativado não pode ser revisado."));
   }
   if (!existing.metadata || existing.metadata.kind !== "cash") {
     return err(new AssetNotCash());

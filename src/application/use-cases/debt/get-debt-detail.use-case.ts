@@ -30,7 +30,7 @@ export async function getDebtDetail(
   input: GetDebtDetailInput,
 ): Promise<Result<GetDebtDetailOutput, DebtNotFound | Forbidden>> {
   const debt = await deps.debts.findById(input.debtId);
-  if (!debt) return err(new DebtNotFound("Divida nao encontrada."));
+  if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
   if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   let amortization: AmortizationSchedule | null = null;

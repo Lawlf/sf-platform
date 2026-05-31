@@ -35,7 +35,7 @@ export async function simulateExtraPayment(
   Result<ExtraPaymentComparison, DebtNotFound | Forbidden | InvalidAmortizationParamsError>
 > {
   const debt = await deps.debts.findById(input.debtId);
-  if (!debt) return err(new DebtNotFound("Divida nao encontrada."));
+  if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
   if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   const baseline = DebtPayoffProjectorService.project({

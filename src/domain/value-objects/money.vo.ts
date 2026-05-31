@@ -25,18 +25,18 @@ export class Money {
     }
     if (typeof input === "number") {
       if (!Number.isFinite(input)) {
-        return err(new InvalidMoneyAmountError("Valor monetario invalido."));
+        return err(new InvalidMoneyAmountError("Valor monetário inválido."));
       }
       return ok(new Money(numberToCents(input), currency));
     }
     if (typeof input === "string") {
       const parsed = parseStringAmount(input);
       if (parsed === null) {
-        return err(new InvalidMoneyAmountError(`Nao foi possivel ler valor monetario: ${input}`));
+        return err(new InvalidMoneyAmountError(`Não foi possível ler valor monetário: ${input}`));
       }
       return ok(new Money(parsed, currency));
     }
-    return err(new InvalidMoneyAmountError("Tipo de valor monetario nao suportado."));
+    return err(new InvalidMoneyAmountError("Tipo de valor monetário não suportado."));
   }
 
   static fromCents(cents: bigint, currency: Currency = "BRL"): Money {

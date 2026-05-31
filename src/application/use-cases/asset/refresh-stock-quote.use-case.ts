@@ -55,9 +55,9 @@ export async function refreshStockQuote(
   input: RefreshStockQuoteInput,
 ): Promise<Result<RefreshStockQuoteOutput, RefreshStockQuoteError>> {
   const asset = await deps.assets.findById(input.assetId, input.userId);
-  if (!asset) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
-    return err(new AssetDeactivated("Ativo desativado nao pode atualizar cotacao."));
+    return err(new AssetDeactivated("Ativo desativado não pode atualizar cotação."));
   }
 
   if (

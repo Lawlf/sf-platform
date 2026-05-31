@@ -40,7 +40,7 @@ export async function createGoal(
     if (active >= 1) {
       return {
         ok: false,
-        message: "No plano Free voce mantem 1 meta ativa. O Pro libera varias.",
+        message: "No plano Free você mantém 1 meta ativa. O Pro libera várias.",
       };
     }
   }

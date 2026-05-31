@@ -10,14 +10,14 @@ export class Period {
   ) {}
 
   static from(start: Date, end?: Date | null): Result<Period, InvalidPeriodError> {
-    if (!isValidDate(start)) return err(new InvalidPeriodError("Data inicial invalida."));
+    if (!isValidDate(start)) return err(new InvalidPeriodError("Data inicial inválida."));
     const startTs = start.getTime();
     let endTs: number | null = null;
     if (end !== undefined && end !== null) {
-      if (!isValidDate(end)) return err(new InvalidPeriodError("Data final invalida."));
+      if (!isValidDate(end)) return err(new InvalidPeriodError("Data final inválida."));
       endTs = end.getTime();
       if (endTs < startTs) {
-        return err(new InvalidPeriodError("Data final anterior a data inicial."));
+        return err(new InvalidPeriodError("Data final anterior à data inicial."));
       }
     }
     return ok(new Period(startTs, endTs));

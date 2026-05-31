@@ -39,16 +39,16 @@ export async function updateAsset(
   input: UpdateAssetInput,
 ): Promise<Result<AssetEntity, UpdateAssetError>> {
   const existing = await deps.assets.findById(input.assetId, input.userId);
-  if (!existing) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
-    return err(new AssetDeactivated("Ativo esta desativado e nao pode ser editado."));
+    return err(new AssetDeactivated("Ativo está desativado e não pode ser editado."));
   }
 
   let nextLabel = existing.label;
   if (input.label !== undefined) {
     const trimmed = input.label.trim();
     if (trimmed.length === 0 || trimmed.length > 120) {
-      return err(new InvalidAssetLabel("Rotulo do ativo deve ter entre 1 e 120 caracteres."));
+      return err(new InvalidAssetLabel("Rótulo do ativo deve ter entre 1 e 120 caracteres."));
     }
     nextLabel = trimmed;
   }
@@ -56,7 +56,7 @@ export async function updateAsset(
   let nextValue = existing.currentValue;
   if (input.currentValueCents !== undefined) {
     if (input.currentValueCents < 0n) {
-      return err(new InvalidAssetValue("Valor do ativo nao pode ser negativo."));
+      return err(new InvalidAssetValue("Valor do ativo não pode ser negativo."));
     }
     nextValue = Money.fromCents(input.currentValueCents);
   }

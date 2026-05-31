@@ -18,12 +18,12 @@ export async function archiveGoal(
 ): Promise<ArchiveGoalResult> {
   const existing = await goals.findById(goalId);
   if (!existing || existing.userId !== userId) {
-    return { ok: false, message: "Meta nao encontrada." };
+    return { ok: false, message: "Meta não encontrada." };
   }
 
   const updated = await goals.update(goalId, { status: "archived" });
   if (!updated) {
-    return { ok: false, message: "Meta nao encontrada." };
+    return { ok: false, message: "Meta não encontrada." };
   }
 
   return { ok: true, goal: updated };

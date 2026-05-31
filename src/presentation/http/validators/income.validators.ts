@@ -1,10 +1,10 @@
 import { z } from "zod";
 
 export const incomeFormSchema = z.object({
-  label: z.string().min(1, "Informe um rotulo.").max(120),
+  label: z.string().min(1, "Informe um rótulo.").max(120),
   amountCents: z.coerce.bigint().positive("Valor deve ser positivo."),
   frequency: z.enum(["monthly", "weekly", "one_off"]),
-  startDate: z.coerce.date({ message: "Data inicial invalida." }),
+  startDate: z.coerce.date({ message: "Data inicial inválida." }),
   endDate: z
     .union([z.coerce.date(), z.literal("").transform(() => null)])
     .nullable()
