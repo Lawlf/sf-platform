@@ -101,7 +101,11 @@ export default async function DashboardPage() {
             Sua saúde financeira
           </h2>
           <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
-            <CommitmentSectionClient monthIso={monthIso} initialData={initialMonthDetail} />
+            <CommitmentSectionClient
+              monthIso={monthIso}
+              initialData={initialMonthDetail}
+              hasDebt={onboardingState.checklist.hasDebt}
+            />
           </Suspense>
         </div>
 
