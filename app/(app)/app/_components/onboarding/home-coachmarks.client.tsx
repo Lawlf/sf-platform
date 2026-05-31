@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { dismissHomeTourAction } from "../../_actions/onboarding";
 
-import { COACHMARK_STEPS, clampIndex } from "./coachmark-steps";
+import { COACHMARK_STEPS, type CoachmarkStep } from "./coachmark-steps";
 
 interface Rect {
   top: number;
@@ -17,13 +17,52 @@ interface TooltipPos {
   top: number;
 }
 
+// So' vale destacar um passo cujo alvo existe na tela E tem altura > 0. Cards que
+// retornam null (ex: HomeGoalCard sem meta) deixam o wrapper com altura 0 -> o passo
+// e' removido da sequencia (nao aparece nem conta no "X de N").
+function visibleSteps(): CoachmarkStep[] {
+  return COACHMARK_STEPS.filter((s) => {
+    const el = document.querySelector(s.target);
+    return !!el && el.getBoundingClientRect().height > 0;
+  });
+}
+
 export function HomeCoachmarks({ active }: { active: boolean }) {
   const [open, setOpen] = useState(active);
+  const [steps, setSteps] = useState<CoachmarkStep[]>([]);
+  const [ready, setReady] = useState(false);
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [pos, setPos] = useState<TooltipPos | null>(null);
 
-  const step = COACHMARK_STEPS[index];
+  const step = steps[index];
+
+  function finish() {
+    setOpen(false);
+    void dismissHomeTourAction();
+  }
+
+  // Compute the visible steps once when the tour opens (after a frame so layout and
+  // Suspense content have settled). If nothing is visible, end immediately.
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+    const raf = requestAnimationFrame(() => {
+      if (cancelled) return;
+      const vs = visibleSteps();
+      setSteps(vs);
+      setIndex(0);
+      setReady(true);
+      if (vs.length === 0) {
+        setOpen(false);
+        void dismissHomeTourAction();
+      }
+    });
+    return () => {
+      cancelled = true;
+      cancelAnimationFrame(raf);
+    };
+  }, [open]);
 
   const measure = useCallback(() => {
     if (!step) return;
@@ -34,11 +73,9 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       return;
     }
     const r = el.getBoundingClientRect();
-    const newRect: Rect = { top: r.top, left: r.left, width: r.width, height: r.height };
-    setRect(newRect);
+    setRect({ top: r.top, left: r.left, width: r.width, height: r.height });
     // Compute tooltip vertical position inside the effect so render never touches window.
-    // Prefer placing below the spotlight; if there is no room, place above it so the
-    // card never overlaps the highlighted element.
+    // Prefer placing below the spotlight; if there is no room, place above it.
     const EST_TOOLTIP_H = 210;
     const spaceBelow = window.innerHeight - (r.top + r.height);
     const tooltipTop =
@@ -49,10 +86,10 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
   }, [step]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !step) return;
     // Bring the step's target into view before measuring. The smooth scroll fires
     // scroll events that re-run measure(), so the spotlight tracks to its final spot.
-    const el = step ? document.querySelector(step.target) : null;
+    const el = document.querySelector(step.target);
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
     measure();
     const onChange = () => measure();
@@ -64,14 +101,10 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
     };
   }, [open, step, measure]);
 
-  function finish() {
-    setOpen(false);
-    void dismissHomeTourAction();
-  }
+  if (!open || !ready || !step) return null;
 
-  if (!open || !step) return null;
-
-  const isLast = index === COACHMARK_STEPS.length - 1;
+  const total = steps.length;
+  const isLast = index === total - 1;
   const pad = 8;
 
   return (
@@ -93,7 +126,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
         <div className="absolute inset-0 bg-[rgba(15,12,10,0.66)]" />
       )}
 
-      {/* Tooltip card. Positioned below the target when there is room, else near top.
+      {/* Tooltip card. Positioned below the target when there is room, else above.
           The `top` value comes from state (computed in measure()), never from window directly. */}
       <div
         className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl"
@@ -115,7 +148,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
             {index > 0 ? (
               <button
                 type="button"
-                onClick={() => setIndex((i) => clampIndex(i - 1))}
+                onClick={() => setIndex((i) => Math.max(0, i - 1))}
                 className="rounded-lg px-3 py-1.5 text-sm"
               >
                 Voltar
@@ -123,7 +156,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
             ) : null}
             <button
               type="button"
-              onClick={() => (isLast ? finish() : setIndex((i) => clampIndex(i + 1)))}
+              onClick={() => (isLast ? finish() : setIndex((i) => Math.min(total - 1, i + 1)))}
               className="rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-sm font-semibold text-white"
             >
               {isLast ? "Entendi" : "Próximo"}
@@ -131,7 +164,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           </div>
         </div>
         <p className="mt-2 text-center text-[0.6875rem] text-[color:var(--text-muted)]">
-          {index + 1} de {COACHMARK_STEPS.length}
+          {index + 1} de {total}
         </p>
       </div>
     </div>
