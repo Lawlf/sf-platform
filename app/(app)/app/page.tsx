@@ -10,6 +10,7 @@ import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
+import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
 import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
@@ -67,6 +68,8 @@ export default async function DashboardPage() {
       description="Aqui está sua situação agora."
     >
       <div className="grid gap-4 md:grid-cols-2">
+        <HomeCoachmarks active={onboardingState.wizardSeen && !onboardingState.tourDismissed} />
+
         <div className="md:col-span-2">
           <OnboardingChecklistCard checklist={onboardingState.checklist} />
         </div>
@@ -77,23 +80,23 @@ export default async function DashboardPage() {
           </Suspense>
         </div>
 
-        <div className="min-w-0 md:col-span-2">
+        <div className="min-w-0 md:col-span-2" data-tour="quick-access">
           <QuickAccessRow />
         </div>
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2" data-tour="next-step">
           <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
             <NextStepCard />
           </Suspense>
         </div>
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2" data-tour="goals">
           <Suspense fallback={<Skeleton className="h-[88px] rounded-2xl" />}>
             <HomeGoalCard />
           </Suspense>
         </div>
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2" data-tour="health">
           <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Sua saúde financeira
           </h2>
