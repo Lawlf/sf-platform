@@ -17,6 +17,8 @@ import { FocusStep } from "./steps/focus-step.client";
 import { IncomeStep } from "./steps/income-step.client";
 import { DebtStep } from "./steps/debt-step.client";
 import { ResultPrescription } from "./steps/result-prescription.client";
+import { GoalStep } from "./steps/goal-step.client";
+import { ResultGoal } from "./steps/result-goal.client";
 
 export function OnboardingWizardClient({
   initialFocus,
@@ -95,6 +97,17 @@ export function OnboardingWizardClient({
   if (current === "result-prescription") {
     return (
       <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
+    );
+  }
+
+  if (current === "goal") {
+    return (
+      <GoalStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkipAll={finishWizard} />
+    );
+  }
+  if (current === "result-goal") {
+    return (
+      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
     );
   }
 
