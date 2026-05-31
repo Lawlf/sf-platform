@@ -108,6 +108,11 @@ export function GoalDetail({ detail }: GoalDetailProps) {
         <ResultStat label="Já juntou/pagou" value={brl(progress.currentCents)} />
         <ResultStat label="Alvo total" value={brl(progress.targetCents)} />
         {!progress.reached && <ResultStat label="Falta" value={brl(String(remainingCents))} />}
+        {goal.type === "emergency_fund" && goal.monthlyCostCents === null && (
+          <p className="mt-1 text-[0.7rem] text-[color:var(--text-muted)]">
+            Reserva estimada com base em ~75% da sua renda mensal.
+          </p>
+        )}
       </ResultCard>
 
       {/* Evolution chart */}

@@ -60,6 +60,11 @@ export function ResultGoal({
                 ? `No ritmo atual, cerca de ${first.progress.etaMonths} meses para concluir.`
                 : "Acompanhe o progresso no início."}
           </p>
+          {first.goal.type === "emergency_fund" && first.goal.monthlyCostCents === null && (
+            <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
+              Estimamos seu custo de vida em ~75% da sua renda para dimensionar a reserva. Você ajusta isso depois.
+            </p>
+          )}
         </div>
       ) : (
         <p className="text-sm text-[color:var(--text-secondary)]">Sua meta foi criada. Veja no início.</p>
