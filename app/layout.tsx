@@ -4,6 +4,8 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import "./globals.css";
+import { AnalyticsConsentBanner } from "@/app/components/analytics-consent-banner";
+import { PostHogProvider } from "@/app/components/providers/posthog-provider";
 import { QueryProvider } from "@/app/components/providers/query-provider";
 import { Toaster } from "@/app/components/ui/sonner";
 import { getA11yPrefs } from "@/theme/a11y-cookie";
@@ -137,7 +139,10 @@ export default async function RootLayout({ children }: { children: React.ReactNo
         </noscript>
       </head>
       <body className="font-sans antialiased">
-        <QueryProvider>{children}</QueryProvider>
+        <PostHogProvider>
+          <QueryProvider>{children}</QueryProvider>
+          <AnalyticsConsentBanner />
+        </PostHogProvider>
         <Toaster richColors closeButton position="top-right" />
         <Analytics />
         <SpeedInsights />

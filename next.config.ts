@@ -19,6 +19,8 @@ const cspDirectives: Record<string, string[]> = {
     ...(isProd ? [] : ["'unsafe-eval'"]),
     "https://va.vercel-scripts.com",
     "https://vercel.live",
+    // PostHog toolbar bundle (eventos seguem via reverse proxy /ingest).
+    "https://us-assets.i.posthog.com",
   ],
   "style-src": ["'self'", "'unsafe-inline'"],
   "img-src": ["'self'", "data:", "blob:", "https:"],
@@ -30,6 +32,10 @@ const cspDirectives: Record<string, string[]> = {
     "https://vitals.vercel-insights.com",
     "https://vercel.live",
     "wss://ws-us3.pusher.com",
+    // PostHog toolbar autentica/conecta no app host (não passa pelo proxy).
+    "https://us.posthog.com",
+    "https://us.i.posthog.com",
+    "https://us-assets.i.posthog.com",
   ],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'self'"],
@@ -48,8 +54,22 @@ const baseConfig: NextConfig = {
   reactStrictMode: true,
   typedRoutes: true,
   poweredByHeader: false,
+  // PostHog precisa que /ingest não sofra redirect de trailing slash.
+  skipTrailingSlashRedirect: true,
   outputFileTracingIncludes: {
     "/app/conteudo/trilha/[moduleNum]": ["./app/(app)/app/conteudo/_content/**/*.mdx"],
+  },
+  async rewrites() {
+    return [
+      {
+        source: "/ingest/static/:path*",
+        destination: "https://us-assets.i.posthog.com/static/:path*",
+      },
+      {
+        source: "/ingest/:path*",
+        destination: "https://us.i.posthog.com/:path*",
+      },
+    ];
   },
   async headers() {
     return [
