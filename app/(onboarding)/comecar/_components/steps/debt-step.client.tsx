@@ -1,19 +1,37 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useTransition } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
+import { z } from "zod";
 
+import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { createDebtAction } from "@/app/(app)/app/dividas/_actions/create-debt.action";
+
+const fieldClass =
+  "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
+const labelClass =
+  "mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
+
+const schema = z.object({
+  label: z.string().min(1, "Informe um nome."),
+  creditLimitCents: z.bigint().positive("Informe o limite."),
+  currentStatementCents: z.bigint().positive("Informe a fatura atual."),
+  ratePct: z.string().refine(
+    (v) => {
+      const n = Number(v.replace(",", "."));
+      return Number.isFinite(n) && n > 0;
+    },
+    "Informe a taxa do rotativo (% ao mês).",
+  ),
+});
+type FormValues = z.infer<typeof schema>;
 
 function todayIso(): string {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
-function toCents(reais: string): bigint | null {
-  const v = Number(reais.replace(/\./g, "").replace(",", "."));
-  if (!Number.isFinite(v) || v < 0) return null;
-  return BigInt(Math.round(v * 100));
 }
 
 export function DebtStep({
@@ -29,31 +47,25 @@ export function DebtStep({
   onBack: () => void;
   onSkipAll: () => void;
 }) {
-  const [label, setLabel] = useState("Cartão de crédito");
-  const [statement, setStatement] = useState("");
-  const [limit, setLimit] = useState("");
-  const [ratePct, setRatePct] = useState("");
   const [saving, startSaving] = useTransition();
+  const form = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: {
+      label: "Cartão de crédito",
+      creditLimitCents: 0n as unknown as bigint,
+      currentStatementCents: 0n as unknown as bigint,
+      ratePct: "",
+    },
+  });
 
-  function submit() {
-    const statementCents = toCents(statement);
-    const limitCents = toCents(limit);
-    const rate = Number(ratePct.replace(",", "."));
-    if (statementCents === null || limitCents === null) {
-      toast.error("Informe valores válidos.");
-      return;
-    }
-    if (!Number.isFinite(rate) || rate <= 0) {
-      toast.error("Informe a taxa do rotativo (% ao mês).");
-      return;
-    }
+  function onSubmit(values: FormValues) {
+    const rate = Number(values.ratePct.replace(",", "."));
     startSaving(async () => {
       const fd = new FormData();
-      fd.set("label", label.trim() || "Cartão");
-      // creditCardFormSchema uses positiveBigint (string -> BigInt transform)
-      fd.set("creditLimitCents", limitCents.toString());
-      // nonNegativeBigint for currentStatementCents
-      fd.set("currentStatementCents", statementCents.toString());
+      fd.set("label", values.label.trim());
+      // creditCardFormSchema: positiveBigint / nonNegativeBigint transforms (string -> BigInt)
+      fd.set("creditLimitCents", values.creditLimitCents.toString());
+      fd.set("currentStatementCents", values.currentStatementCents.toString());
       // z.coerce.number().int().min(1).max(31)
       fd.set("statementDay", "1");
       fd.set("dueDay", "10");
@@ -76,26 +88,42 @@ export function DebtStep({
       title="Sua maior dívida"
       description="Comece pelo cartão. Só o essencial para calcular seu próximo passo."
       onBack={onBack}
-      primary={{ label: "Ver meu próximo passo", onClick: submit, loading: saving }}
+      primary={{ label: "Ver meu próximo passo", onClick: form.handleSubmit(onSubmit), loading: saving }}
       secondary={{ label: "Pular por agora", onClick: onSkipAll }}
     >
       <div className="flex flex-col gap-4">
-        <label className="flex flex-col gap-1 text-sm font-semibold">
-          Nome
-          <input value={label} onChange={(e) => setLabel(e.target.value)} className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-semibold">
-          Fatura atual (R$)
-          <input inputMode="decimal" value={statement} onChange={(e) => setStatement(e.target.value)} placeholder="2000,00" className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-semibold">
-          Limite (R$)
-          <input inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="5000,00" className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
-        </label>
-        <label className="flex flex-col gap-1 text-sm font-semibold">
-          Juros do rotativo (% ao mês)
-          <input inputMode="decimal" value={ratePct} onChange={(e) => setRatePct(e.target.value)} placeholder="14,5" className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
-        </label>
+        <div>
+          <label className={labelClass} htmlFor="onb-debt-label">
+            Nome
+          </label>
+          <input id="onb-debt-label" {...form.register("label")} className={fieldClass} />
+          {form.formState.errors.label ? (
+            <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
+              {form.formState.errors.label.message}
+            </span>
+          ) : null}
+        </div>
+
+        <MoneyInput control={form.control} name="currentStatementCents" label="Fatura atual" required />
+        <MoneyInput control={form.control} name="creditLimitCents" label="Limite" required />
+
+        <div>
+          <label className={labelClass} htmlFor="onb-debt-rate">
+            Juros do rotativo (% ao mês)
+          </label>
+          <input
+            id="onb-debt-rate"
+            inputMode="decimal"
+            placeholder="14,5"
+            {...form.register("ratePct")}
+            className={fieldClass}
+          />
+          {form.formState.errors.ratePct ? (
+            <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
+              {form.formState.errors.ratePct.message}
+            </span>
+          ) : null}
+        </div>
       </div>
     </WizardShell>
   );
