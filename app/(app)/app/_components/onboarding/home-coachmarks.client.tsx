@@ -113,7 +113,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           not measurable, fall back to a plain dimming overlay. */}
       {rect ? (
         <div
-          className="pointer-events-none absolute rounded-xl transition-all"
+          className="pointer-events-none absolute rounded-xl transition-all duration-500 ease-out"
           style={{
             top: rect.top - pad,
             left: rect.left - pad,
@@ -129,7 +129,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       {/* Tooltip card. Positioned below the target when there is room, else above.
           The `top` value comes from state (computed in measure()), never from window directly. */}
       <div
-        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl"
+        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl transition-[top] duration-500 ease-out"
         style={{
           top: pos ? pos.top : 120,
         }}
