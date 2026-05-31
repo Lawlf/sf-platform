@@ -9,8 +9,8 @@ describe("checklist-items", () => {
   it("returns the four items in order with done flags", () => {
     const items = buildChecklistItems({ ...EMPTY, hasIncome: true });
     expect(items.map((i) => i.key)).toEqual(["income", "debt", "asset", "goal"]);
-    expect(items[0].done).toBe(true);
-    expect(items[1].done).toBe(false);
+    expect(items[0]!.done).toBe(true);
+    expect(items[1]!.done).toBe(false);
     expect(items.every((i) => typeof i.label === "string" && i.href.startsWith("/app/"))).toBe(true);
   });
 
