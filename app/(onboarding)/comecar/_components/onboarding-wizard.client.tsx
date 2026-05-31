@@ -15,6 +15,8 @@ import {
 } from "../_lib/wizard-machine";
 import { FocusStep } from "./steps/focus-step.client";
 import { IncomeStep } from "./steps/income-step.client";
+import { DebtStep } from "./steps/debt-step.client";
+import { ResultPrescription } from "./steps/result-prescription.client";
 
 export function OnboardingWizardClient({
   initialFocus,
@@ -82,6 +84,17 @@ export function OnboardingWizardClient({
         onBack={goBack}
         onSkipAll={finishWizard}
       />
+    );
+  }
+
+  if (current === "debt") {
+    return (
+      <DebtStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkipAll={finishWizard} />
+    );
+  }
+  if (current === "result-prescription") {
+    return (
+      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
     );
   }
 
