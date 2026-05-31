@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { toast } from "sonner";
 
 import type { WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { markWizardSeenAction } from "@/app/(app)/app/_actions/onboarding";
@@ -37,7 +38,11 @@ export function OnboardingWizardClient({
 
   function finishWizard() {
     startFinish(async () => {
-      await markWizardSeenAction();
+      const res = await markWizardSeenAction();
+      if (!res.ok) {
+        toast.error("Nao foi possivel concluir agora. Tente de novo.");
+        return;
+      }
       router.push("/app");
     });
   }
