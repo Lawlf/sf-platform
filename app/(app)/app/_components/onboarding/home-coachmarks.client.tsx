@@ -34,6 +34,9 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [pos, setPos] = useState<TooltipPos | null>(null);
+  // Liga as transicoes de posicao so' DEPOIS da entrada, para o spotlight aparecer
+  // com fade no lugar (nao deslizando do topo). Movimentos entre passos animam.
+  const [entered, setEntered] = useState(false);
 
   const step = steps[index];
 
@@ -63,6 +66,15 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       cancelAnimationFrame(raf);
     };
   }, [open]);
+
+  // Depois que os passos estao prontos e o primeiro paint aconteceu, liga as
+  // transicoes de posicao (movimento entre passos). Antes disso fica desligado
+  // para a entrada ser um fade no lugar, sem slide.
+  useEffect(() => {
+    if (!ready) return;
+    const raf = requestAnimationFrame(() => setEntered(true));
+    return () => cancelAnimationFrame(raf);
+  }, [ready]);
 
   const measure = useCallback(() => {
     if (!step) return;
@@ -117,7 +129,9 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           not measurable, fall back to a plain dimming overlay. */}
       {rect ? (
         <div
-          className="pointer-events-none absolute rounded-xl transition-all duration-500 ease-out"
+          className={`pointer-events-none absolute rounded-xl animate-in fade-in ${
+            entered ? "transition-all duration-500 ease-out" : ""
+          }`}
           style={{
             top: rect.top - pad,
             left: rect.left - pad,
@@ -135,7 +149,9 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           transition-[top] then glides it between steps. */}
       {pos ? (
       <div
-        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl transition-[top] duration-500 ease-out animate-in fade-in zoom-in-95"
+        className={`absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl animate-in fade-in zoom-in-95 ${
+          entered ? "transition-[top] duration-500 ease-out" : ""
+        }`}
         style={{
           top: pos.top,
         }}
