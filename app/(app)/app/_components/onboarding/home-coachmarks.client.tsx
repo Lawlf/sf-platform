@@ -37,7 +37,14 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
     const newRect: Rect = { top: r.top, left: r.left, width: r.width, height: r.height };
     setRect(newRect);
     // Compute tooltip vertical position inside the effect so render never touches window.
-    const tooltipTop = Math.min(r.top + r.height + 16, window.innerHeight - 200);
+    // Prefer placing below the spotlight; if there is no room, place above it so the
+    // card never overlaps the highlighted element.
+    const EST_TOOLTIP_H = 210;
+    const spaceBelow = window.innerHeight - (r.top + r.height);
+    const tooltipTop =
+      spaceBelow >= EST_TOOLTIP_H + 24
+        ? r.top + r.height + 16
+        : Math.max(16, r.top - EST_TOOLTIP_H - 16);
     setPos({ top: tooltipTop });
   }, [step]);
 
@@ -85,15 +92,19 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       {/* Tooltip card. Positioned below the target when there is room, else near top.
           The `top` value comes from state (computed in measure()), never from window directly. */}
       <div
-        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 shadow-xl"
+        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl"
         style={{
           top: pos ? pos.top : 120,
         }}
       >
         <p className="text-sm font-semibold">{step.title}</p>
-        <p className="mt-1 text-sm opacity-75">{step.body}</p>
+        <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{step.body}</p>
         <div className="mt-4 flex items-center justify-between">
-          <button type="button" onClick={finish} className="text-xs opacity-60 hover:opacity-100">
+          <button
+            type="button"
+            onClick={finish}
+            className="text-xs text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
+          >
             Pular
           </button>
           <div className="flex items-center gap-2">
@@ -115,7 +126,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
             </button>
           </div>
         </div>
-        <p className="mt-2 text-center text-[0.6875rem] opacity-50">
+        <p className="mt-2 text-center text-[0.6875rem] text-[color:var(--text-muted)]">
           {index + 1} de {COACHMARK_STEPS.length}
         </p>
       </div>
