@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { AlertTriangle, ArrowLeft, ChevronDown } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -442,6 +442,11 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
     setSubmitError(null);
   }
 
+  function handleBack() {
+    setStep(1);
+    setSubmitError(null);
+  }
+
   async function handleCreate(input: Parameters<typeof createGoalAction>[0]) {
     setLoading(true);
     setSubmitError(null);
@@ -517,29 +522,17 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
     );
   }
 
-  if (goalType === "debt_payoff") {
-    return (
+  const stepContent =
+    goalType === "debt_payoff" ? (
       <DebtPayoffStep
         debts={debts}
         onSubmit={handleDebtPayoff}
         loading={loading}
         error={submitError}
       />
-    );
-  }
-
-  if (goalType === "emergency_fund") {
-    return (
-      <EmergencyFundStep
-        onSubmit={handleEmergencyFund}
-        loading={loading}
-        error={submitError}
-      />
-    );
-  }
-
-  if (goalType === "savings") {
-    return (
+    ) : goalType === "emergency_fund" ? (
+      <EmergencyFundStep onSubmit={handleEmergencyFund} loading={loading} error={submitError} />
+    ) : goalType === "savings" ? (
       <SavingsStep
         prefill={prefill}
         assets={assets}
@@ -547,19 +540,28 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
         loading={loading}
         error={submitError}
       />
-    );
-  }
-
-  if (goalType === "financial_independence") {
-    return (
+    ) : goalType === "financial_independence" ? (
       <FinancialIndependenceStep
         prefill={prefill}
         onSubmit={handleFinancialIndependence}
         loading={loading}
         error={submitError}
       />
-    );
-  }
+    ) : null;
 
-  return null;
+  if (!stepContent) return null;
+
+  return (
+    <div className="flex flex-col gap-3">
+      <button
+        type="button"
+        onClick={handleBack}
+        className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg px-1 py-1 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+      >
+        <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+        Trocar tipo de meta
+      </button>
+      {stepContent}
+    </div>
+  );
 }

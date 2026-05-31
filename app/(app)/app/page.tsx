@@ -1,4 +1,4 @@
-import { BookOpen, LineChart, type LucideIcon } from "lucide-react";
+import { LineChart, type LucideIcon, Target } from "lucide-react";
 import type { Route } from "next";
 import { Suspense } from "react";
 
@@ -26,16 +26,16 @@ interface MaisItem {
 
 const MAIS_ITEMS: MaisItem[] = [
   {
+    href: "/app/metas" as Route,
+    icon: Target,
+    title: "Metas",
+    description: "Defina objetivos e acompanhe o progresso mês a mês.",
+  },
+  {
     href: "/app/linha-do-tempo" as Route,
     icon: LineChart,
     title: "Linha do tempo",
     description: "Sua trajetória mês a mês: renda, dívidas, patrimônio.",
-  },
-  {
-    href: "/app/conteudo" as Route,
-    icon: BookOpen,
-    title: "Conteúdo",
-    description: "Trilha de aprendizado no seu ritmo.",
   },
 ];
 

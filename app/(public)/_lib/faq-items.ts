@@ -6,11 +6,11 @@ export interface FaqItem {
 export const faqItems: FaqItem[] = [
   {
     q: "Posso usar grátis pra sempre?",
-    a: "Sim. Todo o essencial é grátis: dívidas e renda ilimitadas, painel completo, todos os simuladores. Pro entra quando você quer mais: histórico completo da linha do tempo, ações da B3 e criptomoedas somando no patrimônio, avisos de vencimento e de preço, comparativos avançados de financiamento e empréstimo, e cursos completos.",
+    a: "Sim. Todo o essencial é grátis: dívidas e renda ilimitadas, painel completo, todos os simuladores. Pro entra quando você quer mais: histórico completo da linha do tempo, ações da B3 e criptomoedas somando no patrimônio, avisos de vencimento e de preço, comparativos avançados de financiamento e empréstimo.",
   },
   {
     q: "Vocês acessam minha conta do banco?",
-    a: "Não acessa. Você lança renda e dívida manualmente, no ritmo que faz sentido. O trabalho do app é virar isso em trajetória e plano de saída, não em planilha de extrato.",
+    a: "Não acessamos. Você lança renda e dívida manualmente, no ritmo que faz sentido. O trabalho do app é virar isso em trajetória e plano de saída, não em planilha de extrato.",
   },
   {
     q: "É seguro? Onde ficam meus dados?",

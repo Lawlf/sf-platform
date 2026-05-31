@@ -1,4 +1,4 @@
-export const DEFAULT_QUICK_ACCESS: string[] = ["add_debt", "add_income", "add_asset"];
+export const DEFAULT_QUICK_ACCESS: string[] = ["add_debt", "add_income", "add_asset", "metas"];
 export const MAX_QUICK_ACCESS = 8;
 
 export function normalizeQuickAccess(keys: string[], allowedKeys: string[], max: number): string[] {

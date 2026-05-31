@@ -32,7 +32,6 @@ const proFeatures = [
   "Avisos de vencimento direto na central do app",
   "Acompanhe ações da B3 e criptomoedas: você diz o que tem, a gente puxa o preço e soma no patrimônio (com valorização e desvalorização automática)",
   "Avisos de preço e oportunidade dos seus ativos",
-  "Lições avançadas e cursos completos",
 ];
 
 export function LandingPricing() {
@@ -49,7 +48,10 @@ export function LandingPricing() {
             className="text-4xl font-extrabold text-[color:var(--text-primary)] sm:text-5xl"
             style={{ letterSpacing: "-0.035em" }}
           >
-            Grátis pra sempre. R$ 19,90 quando quiser histórico.
+            <span className="mb-3 block text-2xl font-bold text-[color:var(--text-secondary)] sm:text-3xl">
+              Grátis pra sempre.
+            </span>
+            R$ 19,90 só quando quiser histórico.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--text-secondary)] sm:text-lg">
             Se até aqui fez sentido, o resto da decisão é só preço.
@@ -125,7 +127,7 @@ export function LandingPricing() {
                     .replace(".", ",")} por mês)`
                 : "Cobrado mensalmente. Cancele quando quiser."
             }
-            description="Histórico completo, ações e criptomoedas no patrimônio, avisos no app, comparativos avançados e cursos."
+            description="Histórico completo, ações e criptomoedas no patrimônio, avisos no app, comparativos avançados."
             ctaLabel="Começar com o Pro"
             ctaHref={`/cadastrar?plan=pro&billing=${billing}` as Route}
             ctaVariant="brand"
@@ -142,12 +144,11 @@ export function LandingPricing() {
             <ArrowRight className="h-4 w-4" strokeWidth={2.5} aria-hidden />
           </Link>
           <p className="text-sm text-[color:var(--text-muted)]">
-            Sem fidelidade. Sem multa. Cancela e volta pro Free sempre que
-            quiser.
+            Sem fidelidade. Sem multa. Cancela e volta pro Free sempre que quiser.
           </p>
           <p className="max-w-md text-sm font-medium text-[color:var(--text-secondary)]">
-            Educação financeira de verdade. A gente te mostra o caminho, não
-            vende fórmula mágica nem dá palpite de ação.
+            Educação financeira de verdade. A gente te mostra o caminho, não vende fórmula mágica
+            nem dá palpite de ação.
           </p>
         </RevealOnScroll>
       </div>
@@ -199,8 +200,7 @@ function PlanCard({
           aria-hidden
           className="pointer-events-none absolute -right-24 -top-24 h-64 w-64 rounded-full"
           style={{
-            background:
-              "radial-gradient(circle, rgba(242,142,37,0.28), transparent 70%)",
+            background: "radial-gradient(circle, rgba(242,142,37,0.28), transparent 70%)",
             filter: "blur(8px)",
           }}
         />
@@ -235,9 +235,7 @@ function PlanCard({
           >
             {price}
           </span>
-          <span className="text-sm font-semibold text-[color:var(--text-muted)]">
-            {cadence}
-          </span>
+          <span className="text-sm font-semibold text-[color:var(--text-muted)]">{cadence}</span>
         </div>
         {secondary && (
           <p
@@ -283,7 +281,6 @@ function PlanCard({
           </li>
         ))}
       </ul>
-
     </article>
   );
 }

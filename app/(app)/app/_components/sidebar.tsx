@@ -1,13 +1,13 @@
 "use client";
 
 import {
-  BookOpen,
   Coins,
   HomeIcon,
   LineChart,
   PanelRightClose,
   PanelRightOpen,
   PlusCircle,
+  Target,
   TrendingUp,
   Wallet,
 } from "lucide-react";
@@ -33,9 +33,9 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
   { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
   { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
+  { href: "/app/metas" as Route, label: "Metas", icon: Target },
   { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", icon: LineChart },
   { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle },
-  { href: "/app/conteudo" as Route, label: "Conteúdo", icon: BookOpen },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {
