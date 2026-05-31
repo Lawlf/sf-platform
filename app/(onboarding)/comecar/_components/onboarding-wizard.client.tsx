@@ -14,6 +14,7 @@ import {
   type WizardStepId,
 } from "../_lib/wizard-machine";
 import { FocusStep } from "./steps/focus-step.client";
+import { IncomeStep } from "./steps/income-step.client";
 
 export function OnboardingWizardClient({
   initialFocus,
@@ -68,6 +69,18 @@ export function OnboardingWizardClient({
         onChosen={onFocusChosen}
         onSkipAll={finishWizard}
         finishing={finishing}
+      />
+    );
+  }
+
+  if (current === "income") {
+    return (
+      <IncomeStep
+        stepNumber={stepNumber}
+        totalSteps={steps.length}
+        onDone={advance}
+        onBack={goBack}
+        onSkipAll={finishWizard}
       />
     );
   }
