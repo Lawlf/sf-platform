@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { fetchPrescription } from "@/app/(app)/app/_actions/prescription-queries";
+import { Spinner } from "@/app/components/ui/spinner";
 
 // fetchPrescription returns PrescriptionViewPayload | null
 // PrescriptionViewPayload: { isPro, hasPlan, state, prescription, teaser }
@@ -45,7 +46,7 @@ export function ResultPrescription({
       primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
-        <p className="text-sm opacity-70">Calculando...</p>
+        <div className="flex justify-center py-6"><Spinner size={24} /></div>
       ) : data && data.hasPlan && data.prescription ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="text-sm opacity-70">Seu plano deste mês está pronto. Veja os detalhes no início.</p>

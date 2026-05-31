@@ -14,6 +14,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
 
 import {
   beginPasskeyStepUpAction,
@@ -67,7 +68,7 @@ export function AdminPanelButton({ autoOpen = false }: { autoOpen?: boolean }) {
           </SheetHeader>
 
           {!factors ? (
-            <p className="text-sm text-[color:var(--text-muted)]">Carregando…</p>
+            <div className="flex justify-center py-4"><Spinner size={20} /></div>
           ) : (
             <div className="flex flex-col gap-4">
               {factors.hasPasskey ? (

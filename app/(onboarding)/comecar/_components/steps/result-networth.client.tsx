@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { fetchNetWorth } from "@/app/(app)/app/_actions/asset-queries";
+import { Spinner } from "@/app/components/ui/spinner";
 
 type Snapshot = Awaited<ReturnType<typeof fetchNetWorth>>;
 
@@ -43,7 +44,7 @@ export function ResultNetWorth({
       primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
-        <p className="text-sm opacity-70">Calculando...</p>
+        <div className="flex justify-center py-6"><Spinner size={24} /></div>
       ) : snap ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="font-semibold">

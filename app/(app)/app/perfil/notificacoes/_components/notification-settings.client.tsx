@@ -231,9 +231,7 @@ export function NotificationSettings({
               (Compartilhar -&gt; Adicionar à Tela de Início) e tente de novo.
             </p>
           ) : deviceState === "checking" ? (
-            <p className="mt-4 text-[0.75rem] text-[color:var(--text-secondary)]">
-              Verificando este dispositivo...
-            </p>
+            <div className="mt-4 flex justify-center py-2"><Spinner size={18} /></div>
           ) : deviceState === "active" ? (
             <div className="mt-4 flex items-center justify-between gap-3">
               <span className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[color:var(--semantic-positive)]">

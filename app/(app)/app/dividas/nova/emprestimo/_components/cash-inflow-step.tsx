@@ -1,9 +1,9 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 
 import { type CashAssetForLoanPayload } from "../../_actions/list-cash-assets-for-loan.action";
+import { Spinner } from "@/app/components/ui/spinner";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardRadioCard } from "../../_components/wizard-radio-card";
@@ -68,10 +68,7 @@ export function CashInflowStep({
   return (
     <>
       {loadingCashAssets ? (
-        <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-70">
-          <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
-          Carregando contas...
-        </div>
+        <div className="flex justify-center py-4"><Spinner size={20} /></div>
       ) : hasAssets ? (
         <>
           <WizardField label="Escolha uma opção" htmlFor={cashInflowFieldId}>

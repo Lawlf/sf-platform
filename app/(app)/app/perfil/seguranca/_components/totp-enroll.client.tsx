@@ -3,6 +3,8 @@
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { Spinner } from "@/app/components/ui/spinner";
+
 import { beginTotpEnrollAction, confirmTotpEnrollAction } from "../_actions/enroll";
 
 type Phase = "idle" | "pending-confirm";
@@ -57,7 +59,7 @@ export function TotpEnroll() {
         disabled={pending}
         className="focus-ring self-start rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2 text-[0.875rem] font-semibold text-[color:var(--text-primary)] hover:bg-[color:var(--surface-2)] disabled:opacity-60"
       >
-        {pending ? "Gerando..." : "Configurar TOTP"}
+        {pending ? <Spinner size={16} decorative /> : "Configurar TOTP"}
       </button>
     );
   }
@@ -108,7 +110,7 @@ export function TotpEnroll() {
             disabled={pending || code.length !== 6}
             className="focus-ring rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2 text-[0.875rem] font-bold text-white disabled:opacity-60"
           >
-            {pending ? "Verificando..." : "Ativar TOTP"}
+            {pending ? <Spinner size={16} decorative /> : "Ativar TOTP"}
           </button>
           <button
             type="button"

@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { fetchGoalsWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
+import { Spinner } from "@/app/components/ui/spinner";
 
 type Goals = Awaited<ReturnType<typeof fetchGoalsWithProgress>>;
 
@@ -45,7 +46,7 @@ export function ResultGoal({
       primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
-        <p className="text-sm opacity-70">Carregando...</p>
+        <div className="flex justify-center py-6"><Spinner size={24} /></div>
       ) : first ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="font-semibold">{first.goal.title}</p>
