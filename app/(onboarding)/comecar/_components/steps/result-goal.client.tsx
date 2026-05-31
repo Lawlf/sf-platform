@@ -42,7 +42,7 @@ export function ResultGoal({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="Sua meta está criada"
-      description="Acompanhe o progresso e a previsão no início."
+      description="Sua reserva começa agora. Acompanhe o progresso no início."
       primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
@@ -50,15 +50,19 @@ export function ResultGoal({
       ) : first ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="font-semibold">{first.goal.title}</p>
-          <p className="mt-1 text-sm opacity-70">
+          <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
             Progresso: {first.progress.pct}%
-            {first.progress.etaMonths !== null
-              ? ` - estimativa de ${first.progress.etaMonths} meses para concluir.`
-              : " - cadastre quanto guarda por mês para ver a previsão."}
+          </p>
+          <p className="mt-3 text-[0.75rem] text-[color:var(--text-muted)]">
+            {first.etaLocked
+              ? "No Pro: a previsão de quando você conclui."
+              : first.progress.etaMonths !== null
+                ? `No ritmo atual, cerca de ${first.progress.etaMonths} meses para concluir.`
+                : "Acompanhe o progresso no início."}
           </p>
         </div>
       ) : (
-        <p className="text-sm opacity-70">Sua meta foi criada. Veja no início.</p>
+        <p className="text-sm text-[color:var(--text-secondary)]">Sua meta foi criada. Veja no início.</p>
       )}
     </WizardShell>
   );

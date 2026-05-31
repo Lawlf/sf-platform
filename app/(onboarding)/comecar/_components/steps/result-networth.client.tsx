@@ -47,16 +47,17 @@ export function ResultNetWorth({
         <div className="flex justify-center py-6"><Spinner size={24} /></div>
       ) : snap ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="font-semibold">
-            {snap.netWorthIsNegative ? "Patrimônio negativo" : "Patrimônio"}
+          <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            Patrimônio líquido
           </p>
-          <p className="mt-1 text-sm opacity-70">
-            {snap.netWorth.formatted} líquido. Veja o detalhe no início.
+          <p className="mt-1 text-[2rem] font-extrabold leading-none">{snap.netWorth.formatted}</p>
+          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
+            Ativos: {snap.totalAssets.formatted}
           </p>
         </div>
       ) : (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="text-sm opacity-70">Seu patrimônio está montado. Veja o detalhe no início.</p>
+          <p className="text-sm text-[color:var(--text-secondary)]">Seu patrimônio está montado. Veja o detalhe no início.</p>
         </div>
       )}
     </WizardShell>

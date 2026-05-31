@@ -74,7 +74,7 @@ export default async function DashboardPage() {
           <OnboardingChecklistCard checklist={onboardingState.checklist} />
         </div>
 
-        <div className="md:col-span-2">
+        <div className="md:col-span-2" data-tour="hero">
           <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
             <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
           </Suspense>

@@ -4,7 +4,18 @@ export interface CoachmarkStep {
   body: string;
 }
 
+// Ordem segue a posicao visual na home (topo para baixo) para o scroll fluir natural.
 export const COACHMARK_STEPS: CoachmarkStep[] = [
+  {
+    target: '[data-tour="hero"]',
+    title: "Sua foto do mês",
+    body: "Quanto entra, quanto sai e o que sobra, tudo num lugar só.",
+  },
+  {
+    target: '[data-tour="quick-access"]',
+    title: "Acessos rápidos",
+    body: "Atalhos para o que você mais usa. Dá para personalizar no Pro.",
+  },
   {
     target: '[data-tour="next-step"]',
     title: "Seu próximo passo",
@@ -14,11 +25,6 @@ export const COACHMARK_STEPS: CoachmarkStep[] = [
     target: '[data-tour="goals"]',
     title: "Suas metas",
     body: "Acompanhe o progresso e a previsão de quando você chega lá.",
-  },
-  {
-    target: '[data-tour="quick-access"]',
-    title: "Acessos rápidos",
-    body: "Atalhos para o que você mais usa. Dá para personalizar no Pro.",
   },
   {
     target: '[data-tour="health"]',
