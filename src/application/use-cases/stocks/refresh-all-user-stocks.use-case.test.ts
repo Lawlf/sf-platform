@@ -39,6 +39,8 @@ function makeUserRepo(pro: UserEntity[]): UserRepository {
     findByEmail: vi.fn(),
     create: vi.fn(),
     markEmailVerified: vi.fn(),
+    markOnboardingWizardSeen: vi.fn(),
+    markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn(),
     update: vi.fn(),
     findAllPro: vi.fn(async () => pro),

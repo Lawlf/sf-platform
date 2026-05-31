@@ -37,6 +37,8 @@ function makeDeps(user: UserEntity | null): Deps {
     findByEmail: vi.fn(),
     create: vi.fn(),
     markEmailVerified: vi.fn(),
+    markOnboardingWizardSeen: vi.fn(),
+    markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn(),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),

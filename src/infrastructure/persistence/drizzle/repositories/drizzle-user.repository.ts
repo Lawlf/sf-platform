@@ -65,6 +65,20 @@ export class DrizzleUserRepository implements UserRepository {
     await getDb().update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, id));
   }
 
+  async markOnboardingWizardSeen(id: string): Promise<void> {
+    await getDb()
+      .update(users)
+      .set({ onboardingWizardSeenAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
+  async markHomeTourDismissed(id: string): Promise<void> {
+    await getDb()
+      .update(users)
+      .set({ homeTourDismissedAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
   async deactivate(id: string, reason: string | null): Promise<void> {
     await getDb()
       .update(users)
