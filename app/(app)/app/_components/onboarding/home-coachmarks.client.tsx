@@ -108,7 +108,11 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
   const pad = 8;
 
   return (
-    <div className="fixed inset-0 z-[100]" role="dialog" aria-label="Tour da tela inicial">
+    <div
+      className="fixed inset-0 z-[100] animate-in fade-in duration-300"
+      role="dialog"
+      aria-label="Tour da tela inicial"
+    >
       {/* Spotlight: a hole over the target via a large box-shadow. If the target is
           not measurable, fall back to a plain dimming overlay. */}
       {rect ? (
@@ -126,12 +130,14 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
         <div className="absolute inset-0 bg-[rgba(15,12,10,0.66)]" />
       )}
 
-      {/* Tooltip card. Positioned below the target when there is room, else above.
-          The `top` value comes from state (computed in measure()), never from window directly. */}
+      {/* Tooltip card. Rendered only once its position is known, so it appears in
+          place (fade + zoom, modal-style) instead of sliding in from the top. The
+          transition-[top] then glides it between steps. */}
+      {pos ? (
       <div
-        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl transition-[top] duration-500 ease-out"
+        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl transition-[top] duration-500 ease-out animate-in fade-in zoom-in-95"
         style={{
-          top: pos ? pos.top : 120,
+          top: pos.top,
         }}
       >
         <p className="text-sm font-semibold">{step.title}</p>
@@ -167,6 +173,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           {index + 1} de {total}
         </p>
       </div>
+      ) : null}
     </div>
   );
 }
