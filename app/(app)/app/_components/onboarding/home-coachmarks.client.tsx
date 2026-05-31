@@ -34,9 +34,6 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [pos, setPos] = useState<TooltipPos | null>(null);
-  // Liga as transicoes de posicao so' DEPOIS da entrada, para o spotlight aparecer
-  // com fade no lugar (nao deslizando do topo). Movimentos entre passos animam.
-  const [entered, setEntered] = useState(false);
 
   const step = steps[index];
 
@@ -67,15 +64,6 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
     };
   }, [open]);
 
-  // Depois que os passos estao prontos e o primeiro paint aconteceu, liga as
-  // transicoes de posicao (movimento entre passos). Antes disso fica desligado
-  // para a entrada ser um fade no lugar, sem slide.
-  useEffect(() => {
-    if (!ready) return;
-    const raf = requestAnimationFrame(() => setEntered(true));
-    return () => cancelAnimationFrame(raf);
-  }, [ready]);
-
   const measure = useCallback(() => {
     if (!step) return;
     const el = document.querySelector(step.target);
@@ -99,15 +87,22 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
 
   useEffect(() => {
     if (!open || !step) return;
-    // Bring the step's target into view before measuring. The smooth scroll fires
-    // scroll events that re-run measure(), so the spotlight tracks to its final spot.
     const el = document.querySelector(step.target);
     if (el) el.scrollIntoView({ block: "center", behavior: "smooth" });
-    measure();
+    // Track the target frame-by-frame so the spotlight stays glued to it through the
+    // smooth scroll (no transition lag, lands exact). Stop once the scroll settles.
+    let raf = requestAnimationFrame(function tick() {
+      measure();
+      raf = requestAnimationFrame(tick);
+    });
+    const stopTracking = setTimeout(() => cancelAnimationFrame(raf), 800);
+    // Keep following later manual scroll/resize after the tracking window ends.
     const onChange = () => measure();
     window.addEventListener("resize", onChange);
     window.addEventListener("scroll", onChange, true);
     return () => {
+      cancelAnimationFrame(raf);
+      clearTimeout(stopTracking);
       window.removeEventListener("resize", onChange);
       window.removeEventListener("scroll", onChange, true);
     };
@@ -129,9 +124,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           not measurable, fall back to a plain dimming overlay. */}
       {rect ? (
         <div
-          className={`pointer-events-none absolute rounded-xl animate-in fade-in ${
-            entered ? "transition-all duration-500 ease-out" : ""
-          }`}
+          className="pointer-events-none absolute rounded-xl animate-in fade-in"
           style={{
             top: rect.top - pad,
             left: rect.left - pad,
@@ -149,9 +142,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
           transition-[top] then glides it between steps. */}
       {pos ? (
       <div
-        className={`absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl animate-in fade-in zoom-in-95 ${
-          entered ? "transition-[top] duration-500 ease-out" : ""
-        }`}
+        className="absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl animate-in fade-in zoom-in-95"
         style={{
           top: pos.top,
         }}
