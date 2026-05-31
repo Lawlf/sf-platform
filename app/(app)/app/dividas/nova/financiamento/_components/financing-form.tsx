@@ -620,8 +620,12 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
         : `1ª parcela · ${previewTerm} meses · ${systemLabel}`
       : `por ${previewTerm} meses · ${systemLabel}`;
 
-  const totalPaidValue =
-    preview && preview !== "pending" && preview.ok ? preview.totalPaidFormatted : "...";
+  const totalPaidValue: ReactNode =
+    preview && preview !== "pending" && preview.ok ? (
+      preview.totalPaidFormatted
+    ) : (
+      <Spinner size={16} decorative />
+    );
 
   const linkSummary = buildLinkSummary(values);
   const summaryItems = buildFinancingSummary({ values, totalPaidValue, linkSummary });
