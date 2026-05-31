@@ -32,7 +32,7 @@ export function AssetStep({
   function submit() {
     const currentValueCents = toCents(value);
     if (currentValueCents === null) {
-      toast.error("Informe um valor valido.");
+      toast.error("Informe um valor válido.");
       return;
     }
     startSaving(async () => {
@@ -57,10 +57,10 @@ export function AssetStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="O que voce ja tem"
-      description="Seu dinheiro guardado ou um bem. So um item ja monta sua foto."
+      title="O que você já tem"
+      description="Seu dinheiro guardado ou um bem. Só um item já monta sua foto."
       onBack={onBack}
-      primary={{ label: "Ver meu patrimonio", onClick: submit, loading: saving }}
+      primary={{ label: "Ver meu patrimônio", onClick: submit, loading: saving }}
       secondary={{ label: "Pular por agora", onClick: onSkipAll }}
     >
       <div className="flex flex-col gap-4">

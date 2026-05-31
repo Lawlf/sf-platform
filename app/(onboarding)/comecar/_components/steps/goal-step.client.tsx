@@ -31,7 +31,7 @@ export function GoalStep({
     startSaving(async () => {
       const res = await createGoalAction({
         type: "emergency_fund",
-        title: "Reserva de emergencia",
+        title: "Reserva de emergência",
         targetMonths,
       });
       if (!res.ok) {
@@ -46,8 +46,8 @@ export function GoalStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Sua reserva de emergencia"
-      description="Quantos meses de gastos voce quer ter guardado? O padrao e 6."
+      title="Sua reserva de emergência"
+      description="Quantos meses de gastos você quer ter guardado? O padrão é 6."
       onBack={onBack}
       primary={{ label: "Criar minha meta", onClick: submit, loading: saving }}
       secondary={{ label: "Pular por agora", onClick: onSkipAll }}

@@ -39,23 +39,23 @@ export function ResultNetWorth({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="Sua foto financeira"
-      description="Esse e seu patrimonio liquido agora. Ele cresce conforme voce cadastra."
-      primary={{ label: "Ir para o inicio", onClick: onFinish, loading: finishing }}
+      description="Esse é seu patrimônio líquido agora. Ele cresce conforme você cadastra."
+      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <p className="text-sm opacity-70">Calculando...</p>
       ) : snap ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="font-semibold">
-            {snap.netWorthIsNegative ? "Patrimonio negativo" : "Patrimonio"}
+            {snap.netWorthIsNegative ? "Patrimônio negativo" : "Patrimônio"}
           </p>
           <p className="mt-1 text-sm opacity-70">
-            {snap.netWorth.formatted} liquido. Veja o detalhe no inicio.
+            {snap.netWorth.formatted} líquido. Veja o detalhe no início.
           </p>
         </div>
       ) : (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="text-sm opacity-70">Seu patrimonio esta montado. Veja o detalhe no inicio.</p>
+          <p className="text-sm opacity-70">Seu patrimônio está montado. Veja o detalhe no início.</p>
         </div>
       )}
     </WizardShell>

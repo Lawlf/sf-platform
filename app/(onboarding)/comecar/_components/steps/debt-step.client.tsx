@@ -29,7 +29,7 @@ export function DebtStep({
   onBack: () => void;
   onSkipAll: () => void;
 }) {
-  const [label, setLabel] = useState("Cartao de credito");
+  const [label, setLabel] = useState("Cartão de crédito");
   const [statement, setStatement] = useState("");
   const [limit, setLimit] = useState("");
   const [ratePct, setRatePct] = useState("");
@@ -40,16 +40,16 @@ export function DebtStep({
     const limitCents = toCents(limit);
     const rate = Number(ratePct.replace(",", "."));
     if (statementCents === null || limitCents === null) {
-      toast.error("Informe valores validos.");
+      toast.error("Informe valores válidos.");
       return;
     }
     if (!Number.isFinite(rate) || rate <= 0) {
-      toast.error("Informe a taxa do rotativo (% ao mes).");
+      toast.error("Informe a taxa do rotativo (% ao mês).");
       return;
     }
     startSaving(async () => {
       const fd = new FormData();
-      fd.set("label", label.trim() || "Cartao");
+      fd.set("label", label.trim() || "Cartão");
       // creditCardFormSchema uses positiveBigint (string -> BigInt transform)
       fd.set("creditLimitCents", limitCents.toString());
       // nonNegativeBigint for currentStatementCents
@@ -73,10 +73,10 @@ export function DebtStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Sua maior divida"
-      description="Comece pelo cartao. So o essencial para calcular seu proximo passo."
+      title="Sua maior dívida"
+      description="Comece pelo cartão. Só o essencial para calcular seu próximo passo."
       onBack={onBack}
-      primary={{ label: "Ver meu proximo passo", onClick: submit, loading: saving }}
+      primary={{ label: "Ver meu próximo passo", onClick: submit, loading: saving }}
       secondary={{ label: "Pular por agora", onClick: onSkipAll }}
     >
       <div className="flex flex-col gap-4">
@@ -93,7 +93,7 @@ export function DebtStep({
           <input inputMode="decimal" value={limit} onChange={(e) => setLimit(e.target.value)} placeholder="5000,00" className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
         </label>
         <label className="flex flex-col gap-1 text-sm font-semibold">
-          Juros do rotativo (% ao mes)
+          Juros do rotativo (% ao mês)
           <input inputMode="decimal" value={ratePct} onChange={(e) => setRatePct(e.target.value)} placeholder="14,5" className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal" />
         </label>
       </div>

@@ -25,14 +25,14 @@ export function IncomeStep({
   onBack: () => void;
   onSkipAll: () => void;
 }) {
-  const [label, setLabel] = useState("Salario");
+  const [label, setLabel] = useState("Salário");
   const [reais, setReais] = useState("");
   const [saving, startSaving] = useTransition();
 
   function submit() {
     const value = Number(reais.replace(/\./g, "").replace(",", "."));
     if (!Number.isFinite(value) || value <= 0) {
-      toast.error("Informe um valor de renda valido.");
+      toast.error("Informe um valor de renda válido.");
       return;
     }
     const amountCents = BigInt(Math.round(value * 100));
@@ -55,8 +55,8 @@ export function IncomeStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Quanto entra por mes?"
-      description="Sua renda mensal liquida aproximada. So um numero ja ajuda."
+      title="Quanto entra por mês?"
+      description="Sua renda mensal líquida aproximada. Só um número já ajuda."
       onBack={onBack}
       primary={{ label: "Continuar", onClick: submit, loading: saving, disabled: reais.trim() === "" }}
       secondary={{ label: "Pular por agora", onClick: onSkipAll }}

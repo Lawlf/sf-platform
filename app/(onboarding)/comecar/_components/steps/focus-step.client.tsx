@@ -8,9 +8,9 @@ import { setOnboardingFocusAction } from "@/app/(app)/app/_actions/onboarding";
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 
 const OPTIONS: { value: ContentDiagnosticAnswer; title: string; sub: string; Icon: typeof Wallet }[] = [
-  { value: "pagar-divida", title: "Estou afogado em dividas", sub: "Quero saber qual quitar primeiro.", Icon: Wallet },
+  { value: "pagar-divida", title: "Estou afogado em dívidas", sub: "Quero saber qual quitar primeiro.", Icon: Wallet },
   { value: "guardar", title: "Quero me organizar e guardar", sub: "Montar minha reserva com um alvo.", Icon: PiggyBank },
-  { value: "investir", title: "Quero crescer meu patrimonio", sub: "Ver minha foto financeira completa.", Icon: TrendingUp },
+  { value: "investir", title: "Quero crescer meu patrimônio", sub: "Ver minha foto financeira completa.", Icon: TrendingUp },
 ];
 
 export function FocusStep({
@@ -44,8 +44,8 @@ export function FocusStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Por onde comecamos?"
-      description="Escolha o que mais pesa agora. Da para mudar depois."
+      title="Por onde começamos?"
+      description="Escolha o que mais pesa agora. Dá para mudar depois."
       primary={{
         label: "Continuar",
         onClick: confirm,

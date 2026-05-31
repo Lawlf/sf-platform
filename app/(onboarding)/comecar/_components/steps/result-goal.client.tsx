@@ -40,9 +40,9 @@ export function ResultGoal({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Sua meta esta criada"
-      description="Acompanhe o progresso e a previsao no inicio."
-      primary={{ label: "Ir para o inicio", onClick: onFinish, loading: finishing }}
+      title="Sua meta está criada"
+      description="Acompanhe o progresso e a previsão no início."
+      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <p className="text-sm opacity-70">Carregando...</p>
@@ -53,11 +53,11 @@ export function ResultGoal({
             Progresso: {first.progress.pct}%
             {first.progress.etaMonths !== null
               ? ` - estimativa de ${first.progress.etaMonths} meses para concluir.`
-              : " - cadastre quanto guarda por mes para ver a previsao."}
+              : " - cadastre quanto guarda por mês para ver a previsão."}
           </p>
         </div>
       ) : (
-        <p className="text-sm opacity-70">Sua meta foi criada. Veja no inicio.</p>
+        <p className="text-sm opacity-70">Sua meta foi criada. Veja no início.</p>
       )}
     </WizardShell>
   );

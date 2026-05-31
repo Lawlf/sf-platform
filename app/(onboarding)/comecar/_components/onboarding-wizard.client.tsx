@@ -40,7 +40,7 @@ export function OnboardingWizardClient({
     startFinish(async () => {
       const res = await markWizardSeenAction();
       if (!res.ok) {
-        toast.error("Nao foi possivel concluir agora. Tente de novo.");
+        toast.error("Não foi possível concluir agora. Tente de novo.");
         return;
       }
       router.push("/app");

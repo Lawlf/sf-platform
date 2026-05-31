@@ -40,19 +40,19 @@ export function ResultPrescription({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Seu proximo passo"
-      description="Com base no que voce cadastrou, esse e o movimento certo agora."
-      primary={{ label: "Ir para o inicio", onClick: onFinish, loading: finishing }}
+      title="Seu próximo passo"
+      description="Com base no que você cadastrou, esse é o movimento certo agora."
+      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <p className="text-sm opacity-70">Calculando...</p>
       ) : data && data.hasPlan && data.prescription ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="text-sm opacity-70">Seu plano deste mes esta pronto. Veja os detalhes no inicio.</p>
+          <p className="text-sm opacity-70">Seu plano deste mês está pronto. Veja os detalhes no início.</p>
         </div>
       ) : (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="text-sm opacity-70">Otimo comeco. No inicio voce vai ver seu movimento do mes.</p>
+          <p className="text-sm opacity-70">Ótimo começo. No início você vai ver seu movimento do mês.</p>
         </div>
       )}
     </WizardShell>
