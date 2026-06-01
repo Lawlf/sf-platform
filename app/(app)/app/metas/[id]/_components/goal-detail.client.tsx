@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Crown, Lock, Trash2 } from "lucide-react";
+import { Archive, Crown, Lock, Pencil, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -129,6 +129,13 @@ export function GoalDetail({ detail }: GoalDetailProps) {
 
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
       <div className="flex items-center justify-end gap-1 border-t border-[color:var(--border-soft)] pt-3">
+        <Link
+          href={`/app/metas/${goal.id}/editar` as Route}
+          className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+        >
+          <Pencil size={14} strokeWidth={2} aria-hidden />
+          Editar
+        </Link>
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button type="button" size="sm" variant="ghost" className="gap-1.5" disabled={archiving}>
