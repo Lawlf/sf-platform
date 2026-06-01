@@ -2,6 +2,7 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { Button } from "@/app/components/ui/button";
+import { buildGoalSeedQuery } from "@/app/(app)/app/simular/_lib/goal-seed";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 
@@ -40,6 +41,13 @@ export function ActionsSection({
               </Button>
               <Button asChild size="sm" variant="outline">
                 <Link href={`/app/dividas/${debt.id}/historico` as Route}>Histórico mensal</Link>
+              </Button>
+              <Button asChild size="sm" variant="outline">
+                <Link
+                  href={`/app/metas/nova?${buildGoalSeedQuery({ type: "debt_payoff", debtId: debt.id })}` as Route}
+                >
+                  Criar meta de quitação
+                </Link>
               </Button>
               <ArchiveDebtButton debtId={debt.id} label={debt.label} />
               <DeleteDebtButton debtId={debt.id} label={debt.label} />
