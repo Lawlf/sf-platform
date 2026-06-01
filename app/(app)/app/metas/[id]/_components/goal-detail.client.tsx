@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, BookOpen, Crown, Lock, Pencil, Trash2 } from "lucide-react";
+import { Archive, Crown, Lock, Pencil, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -136,26 +136,29 @@ export function GoalDetail({ detail }: GoalDetailProps) {
       ) : null}
 
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
-      <div className="flex items-center justify-end gap-1 border-t border-[color:var(--border-soft)] pt-3">
-        {(() => {
-          const simRoute = SIM_ROUTE[goal.type];
-          return simRoute ? (
-            <Link
-              href={simRoute}
-              className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
-            >
-              <BookOpen size={14} strokeWidth={2} aria-hidden />
-              Explorar no simulador
+      <div className="flex flex-col gap-2 border-t border-[color:var(--border-soft)] pt-3">
+        {/* Acoes primarias: Editar + Simular, largura igual, sem quebra de linha */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button asChild variant="outline" size="sm" className="w-full justify-center gap-1.5">
+            <Link href={`/app/metas/${goal.id}/editar` as Route}>
+              <Pencil size={14} strokeWidth={2} aria-hidden />
+              Editar
             </Link>
-          ) : null;
-        })()}
-        <Link
-          href={`/app/metas/${goal.id}/editar` as Route}
-          className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
-        >
-          <Pencil size={14} strokeWidth={2} aria-hidden />
-          Editar
-        </Link>
+          </Button>
+          {(() => {
+            const simRoute = SIM_ROUTE[goal.type];
+            return simRoute ? (
+              <Button asChild variant="outline" size="sm" className="w-full justify-center gap-1.5">
+                <Link href={simRoute}>
+                  <SlidersHorizontal size={14} strokeWidth={2} aria-hidden />
+                  Simular
+                </Link>
+              </Button>
+            ) : null;
+          })()}
+        </div>
+        {/* Lifecycle / destrutivo: discreto, abaixo das primarias */}
+        <div className="flex items-center justify-end gap-1">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button type="button" size="sm" variant="ghost" className="gap-1.5" disabled={archiving}>
@@ -209,6 +212,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     </div>
   );
