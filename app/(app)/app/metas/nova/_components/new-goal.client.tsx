@@ -13,6 +13,7 @@ import { WizardField, wizardInputClass } from "../../../dividas/nova/_components
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
 import { simSelectClass } from "../../../simular/_components/sim-result";
 import { SimSlider } from "../../../simular/_components/sim-slider";
+import type { GoalSeed } from "../../../simular/_lib/goal-seed";
 import type { SimPrefill } from "../../../simular/_lib/sim-prefill";
 import { createGoalAction } from "../../_actions/goal-actions";
 
@@ -33,6 +34,7 @@ interface NewGoalProps {
   prefill: SimPrefill;
   debts: DebtOption[];
   assets: AssetOption[];
+  seed?: GoalSeed | null;
 }
 
 type GoalTypeChoice = "debt_payoff" | "emergency_fund" | "savings" | "financial_independence";
@@ -45,6 +47,7 @@ interface DebtPayoffForm {
 interface EmergencyFundForm {
   title: string;
   targetMonths: number;
+  monthlyCostCents: bigint | null;
 }
 
 interface SavingsForm {
@@ -79,17 +82,26 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
 
 function DebtPayoffStep({
   debts,
+  seed,
   onSubmit,
   loading,
   error,
 }: {
   debts: DebtOption[];
+  seed?: GoalSeed | null;
   onSubmit: (data: DebtPayoffForm) => void;
   loading: boolean;
   error: string | null;
 }) {
+  const seededDebt =
+    seed?.type === "debt_payoff" && debts.some((d) => d.id === seed.debtId)
+      ? debts.find((d) => d.id === seed.debtId)
+      : undefined;
   const form = useForm<DebtPayoffForm>({
-    defaultValues: { linkedDebtId: debts[0]?.id ?? "", title: debts[0]?.label ?? "" },
+    defaultValues: {
+      linkedDebtId: seededDebt ? seededDebt.id : (debts[0]?.id ?? ""),
+      title: seededDebt ? (seededDebt.label ?? "") : (debts[0]?.label ?? ""),
+    },
   });
   const selectedDebtId = useWatch({ control: form.control, name: "linkedDebtId" });
   const selectId = useId();
@@ -166,16 +178,23 @@ function DebtPayoffStep({
 // ---- EmergencyFund step ----------------------------------------------------
 
 function EmergencyFundStep({
+  seed,
   onSubmit,
   loading,
   error,
 }: {
+  seed?: GoalSeed | null;
   onSubmit: (data: EmergencyFundForm) => void;
   loading: boolean;
   error: string | null;
 }) {
   const form = useForm<EmergencyFundForm>({
-    defaultValues: { title: "Reserva de emergência", targetMonths: 6 },
+    defaultValues: {
+      title: "Reserva de emergência",
+      targetMonths: seed?.type === "emergency_fund" ? seed.targetMonths : 6,
+      monthlyCostCents:
+        seed?.type === "emergency_fund" ? BigInt(seed.monthlyCostCents) : null,
+    },
   });
   const targetMonths = useWatch({ control: form.control, name: "targetMonths" }) ?? 6;
   const titleId = useId();
@@ -220,12 +239,14 @@ function EmergencyFundStep({
 function SavingsStep({
   prefill,
   assets,
+  seed,
   onSubmit,
   loading,
   error,
 }: {
   prefill: SimPrefill;
   assets: AssetOption[];
+  seed?: GoalSeed | null;
   onSubmit: (data: SavingsForm) => void;
   loading: boolean;
   error: string | null;
@@ -233,11 +254,13 @@ function SavingsStep({
   const form = useForm<SavingsForm>({
     defaultValues: {
       title: "",
-      targetCents: 0n as unknown as bigint,
-      deadlineIso: "",
+      targetCents:
+        seed?.type === "savings" ? BigInt(seed.targetCents) : (0n as unknown as bigint),
+      deadlineIso: seed?.type === "savings" ? (seed.deadlineIso ?? "") : "",
       fundingMode: "manual",
       linkedAssetId: assets[0]?.id ?? "",
-      manualSavedCents: BigInt(prefill.cashReserveCents),
+      manualSavedCents:
+        seed?.type === "savings" ? BigInt(seed.savedCents) : BigInt(prefill.cashReserveCents),
     },
   });
   const fundingMode = useWatch({ control: form.control, name: "fundingMode" });
@@ -343,11 +366,13 @@ function SavingsStep({
 
 function FinancialIndependenceStep({
   prefill,
+  seed,
   onSubmit,
   loading,
   error,
 }: {
   prefill: SimPrefill;
+  seed?: GoalSeed | null;
   onSubmit: (data: FinancialIndependenceForm) => void;
   loading: boolean;
   error: string | null;
@@ -355,8 +380,11 @@ function FinancialIndependenceStep({
   const form = useForm<FinancialIndependenceForm>({
     defaultValues: {
       title: "Independência financeira",
-      monthlyCostCents: BigInt(prefill.incomeCents),
-      realReturnPct: 4,
+      monthlyCostCents:
+        seed?.type === "financial_independence"
+          ? BigInt(seed.monthlyCostCents)
+          : BigInt(prefill.incomeCents),
+      realReturnPct: seed?.type === "financial_independence" ? seed.realReturnPct : 4,
     },
   });
   const realReturnPct = useWatch({ control: form.control, name: "realReturnPct" }) ?? 4;
@@ -428,10 +456,10 @@ const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[]
   { type: "financial_independence", title: "Independência", description: "Viver de renda passiva." },
 ];
 
-export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
+export function NewGoal({ prefill, debts, assets, seed }: NewGoalProps) {
   const router = useRouter();
-  const [step, setStep] = useState<1 | 2>(1);
-  const [goalType, setGoalType] = useState<GoalTypeChoice | null>(null);
+  const [step, setStep] = useState<1 | 2>(seed?.type ? 2 : 1);
+  const [goalType, setGoalType] = useState<GoalTypeChoice | null>(seed?.type ?? null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
@@ -474,6 +502,8 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
       type: "emergency_fund",
       title: data.title,
       targetMonths: data.targetMonths,
+      monthlyCostCents:
+        data.monthlyCostCents !== null ? data.monthlyCostCents.toString() : null,
     });
   }
 
@@ -522,20 +552,23 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
     );
   }
 
+  const resolvedSeed = seed ?? null;
   const stepContent =
     goalType === "debt_payoff" ? (
       <DebtPayoffStep
         debts={debts}
+        seed={resolvedSeed}
         onSubmit={handleDebtPayoff}
         loading={loading}
         error={submitError}
       />
     ) : goalType === "emergency_fund" ? (
-      <EmergencyFundStep onSubmit={handleEmergencyFund} loading={loading} error={submitError} />
+      <EmergencyFundStep seed={resolvedSeed} onSubmit={handleEmergencyFund} loading={loading} error={submitError} />
     ) : goalType === "savings" ? (
       <SavingsStep
         prefill={prefill}
         assets={assets}
+        seed={resolvedSeed}
         onSubmit={handleSavings}
         loading={loading}
         error={submitError}
@@ -543,6 +576,7 @@ export function NewGoal({ prefill, debts, assets }: NewGoalProps) {
     ) : goalType === "financial_independence" ? (
       <FinancialIndependenceStep
         prefill={prefill}
+        seed={resolvedSeed}
         onSubmit={handleFinancialIndependence}
         loading={loading}
         error={submitError}
