@@ -28,7 +28,7 @@ export function ActionsSection({
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Ações</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {debt.status === "active" ? (
             <>
               {debt.kind !== "recurring" ? (
