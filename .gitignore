@@ -55,3 +55,9 @@ playwright/.cache/
 # me
 /mockups
 /narration
+
+# dev scratch (nao versionar)
+docs/superpowers/
+mockup-login-code.html
+nestjs-architecture-template.md
+ESTRATEGIA-RECEITA.md
