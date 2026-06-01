@@ -22,4 +22,24 @@ describe("createGoal", () => {
     const r = await createGoal({ goals: repoWith(3) }, { userId: "u1", isPro: true, input: { type: "savings", title: "x", targetCents: 100n, fundingMode: "manual", manualSavedCents: 0n } as CreateGoalInput });
     expect(r.ok).toBe(true);
   });
+  it("emergency_fund persiste monthlyCostCents quando informado (vindo do simulador)", async () => {
+    const r = await createGoal(
+      { goals: repoWith(0) },
+      {
+        userId: "u1",
+        isPro: true,
+        input: {
+          type: "emergency_fund",
+          title: "Reserva",
+          targetMonths: 6,
+          monthlyCostCents: 300000n,
+        } as CreateGoalInput,
+      },
+    );
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.goal.monthlyCostCents).toBe(300000n);
+      expect(r.goal.targetMonths).toBe(6);
+    }
+  });
 });
