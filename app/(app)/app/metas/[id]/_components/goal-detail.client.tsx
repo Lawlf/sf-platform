@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Crown, Lock, Pencil, Trash2 } from "lucide-react";
+import { Archive, BookOpen, Crown, Lock, Pencil, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,7 @@ import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
 
 import { GoalEvolutionChart } from "./goal-evolution-chart";
+import { NextMoveAfterGoal } from "./next-move-after-goal.client";
 
 interface GoalDetailProps {
   detail: SerializedGoalDetail;
@@ -49,6 +50,13 @@ const TOPIC_BY_TYPE: Record<string, HowItWorksTopic> = {
   emergency_fund: "meta-reserva",
   savings: "meta-juntar",
   financial_independence: "meta-independencia",
+};
+
+const SIM_ROUTE: Record<string, Route> = {
+  emergency_fund: "/app/simular/reserva" as Route,
+  savings: "/app/simular/meta" as Route,
+  financial_independence: "/app/simular/independencia" as Route,
+  debt_payoff: "/app/simular/quitacao" as Route,
 };
 
 export function GoalDetail({ detail }: GoalDetailProps) {
@@ -129,6 +137,18 @@ export function GoalDetail({ detail }: GoalDetailProps) {
 
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
       <div className="flex items-center justify-end gap-1 border-t border-[color:var(--border-soft)] pt-3">
+        {(() => {
+          const simRoute = SIM_ROUTE[goal.type];
+          return simRoute ? (
+            <Link
+              href={simRoute}
+              className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+            >
+              <BookOpen size={14} strokeWidth={2} aria-hidden />
+              Explorar no simulador
+            </Link>
+          ) : null;
+        })()}
         <Link
           href={`/app/metas/${goal.id}/editar` as Route}
           className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
@@ -213,6 +233,9 @@ function EtaHero({
         <p className="mt-2 text-[0.75rem] font-medium text-white/85">
           Parabéns! Você chegou ao alvo desta meta.
         </p>
+        <div className="mt-3">
+          <NextMoveAfterGoal />
+        </div>
       </section>
     );
   }
