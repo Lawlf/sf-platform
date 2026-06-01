@@ -1,0 +1,1 @@
+ALTER TABLE "notification_preferences" ADD COLUMN "debt_due_days_before" smallint DEFAULT 3 NOT NULL;

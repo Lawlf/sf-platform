@@ -24,7 +24,7 @@ export const dynamic = "force-dynamic";
 
 /**
  * Cron unificado de push notifications.
- * - Sempre: dispara debt due digest pra usuários Pro com dívidas ativas.
+ * - Sempre: avisa Pro sobre parcelas a vencer dentro da antecedência escolhida.
  * - Dia 1 do mês: dispara resumo mensal.
  *
  * Vercel Cron chama com `Authorization: Bearer $CRON_SECRET`.
@@ -58,6 +58,7 @@ export async function GET(request: Request) {
     pushSubscriptions: new DrizzlePushSubscriptionRepository(),
     preferences: new DrizzleNotificationPreferencesRepository(),
     pushService: getWebPushService(),
+    clock: new SystemClock(),
   };
 
   const debtResult = await dispatchDebtDueNotifications(deps);

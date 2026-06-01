@@ -4,11 +4,28 @@ import { notFound } from "next/navigation";
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { computeInstallmentDueDates } from "@/domain/services/debt-calendar.service";
 import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calendar-link";
+import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 import { loadEnv } from "@/infrastructure/config/env";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
+
+// Mapeia a antecedência do aviso de vencimento (0/1/3/7 dias) pro alarme do
+// .ics. 0 = no dia = sem alarme antecipado.
+function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
+  switch (days) {
+    case 0:
+      return "none";
+    case 7:
+      return "7d";
+    case 3:
+      return "3d";
+    default:
+      return "1d";
+  }
+}
 
 import { PageShell } from "../../_components/page-shell";
 
@@ -43,6 +60,11 @@ export default async function DebtDetailPage({ params }: PageProps) {
       })
     : null;
 
+  const prefs = hasCalendarSchedule
+    ? await new DrizzleNotificationPreferencesRepository().findForUser(user.id)
+    : null;
+  const defaultAlarm = alarmFromDaysBefore(prefs?.debtDueDaysBefore);
+
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader debt={debt} />
@@ -51,6 +73,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
         debt={debt}
         hasCalendarSchedule={hasCalendarSchedule}
         googleCalendarUrl={googleCalendarUrl}
+        defaultAlarm={defaultAlarm}
       />
 
       {debt.kind === "credit_card" ? <InstallmentPurchasesSection debt={debt} /> : null}

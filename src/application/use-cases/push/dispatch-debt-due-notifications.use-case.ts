@@ -1,5 +1,10 @@
+import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcoming-due-dates.use-case";
+import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
+import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import { Money } from "@/domain/value-objects/money.vo";
+import { isOk } from "@/shared/errors/result";
 
 import type { SendPushToUserDeps } from "./send-push-to-user.use-case";
 import { sendPushToUser } from "./send-push-to-user.use-case";
@@ -7,6 +12,7 @@ import { sendPushToUser } from "./send-push-to-user.use-case";
 export interface DispatchDebtDueDeps extends SendPushToUserDeps {
   users: UserRepository;
   debts: DebtRepository;
+  clock: Clock;
 }
 
 export interface DispatchDebtDueResult {
@@ -15,13 +21,14 @@ export interface DispatchDebtDueResult {
 }
 
 /**
- * Cron diário (manhã). Pra cada usuário Pro com dívidas ativas, dispara
- * um digest "Você tem N dívidas em aberto somando R$ X". Respeita prefs:
- * pushEnabled (master) + debtDueEnabled (tipo).
+ * Cron diário (manhã). Pra cada usuário Pro com `debtDueEnabled`, computa a
+ * próxima parcela de cada dívida ativa e dispara um aviso quando faltam
+ * exatamente `debtDueDaysBefore` dias pro vencimento. Várias parcelas na mesma
+ * janela viram um único push (batch). Respeita o master `pushEnabled`.
  *
- * MVP simplificado: notifica por presença de dívidas, não por proximidade
- * de vencimento de parcela específica. Iteração futura: cron checa
- * próxima parcela de cada debt e notifica X dias antes.
+ * Dedup natural: como só um dia do calendário casa com a antecedência e o cron
+ * roda 1x/dia, cada parcela é avisada uma única vez. Não precisa de marca
+ * persistida.
  */
 export async function dispatchDebtDueNotifications(
   deps: DispatchDebtDueDeps,
@@ -30,29 +37,37 @@ export async function dispatchDebtDueNotifications(
   let pushesSent = 0;
   let usersTargeted = 0;
 
-  for (const user of proUsers) {
-    const debts = await deps.debts.listForUser(user.id);
-    const active = debts.filter((d) => d.status === "active" && d.deletedAt === null);
-    if (active.length === 0) continue;
+  // Comparações de vencimento são por dia de calendário: normalizamos "agora"
+  // pro início do dia local, pra que uma parcela que vence hoje conte como 0
+  // dias (e não role pro mês seguinte na lógica de próximo vencimento).
+  const today = startOfLocalDay(deps.clock.now());
+  const dayClock: Clock = { now: () => today };
 
-    const totalCents = active.reduce(
-      (sum, d) => sum + d.currentBalance.toCents(),
-      BigInt(0),
+  for (const user of proUsers) {
+    const prefs = await deps.preferences.findForUser(user.id);
+    // Otimização: pula cedo quem desligou o master ou o tipo. O sendPushToUser
+    // também checa, mas evitamos computar vencimentos à toa.
+    if (prefs && (!prefs.pushEnabled || !prefs.debtDueEnabled)) continue;
+    const daysBefore = prefs?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT;
+
+    const duesResult = await getUpcomingDueDates(
+      { debts: deps.debts, clock: dayClock },
+      { userId: user.id, horizonDays: daysBefore + 1 },
     );
-    const totalFormatted = formatBrl(totalCents);
-    const body =
-      active.length === 1
-        ? `Você tem 1 dívida em aberto: ${totalFormatted}.`
-        : `Você tem ${active.length} dívidas em aberto somando ${totalFormatted}.`;
+    const dues = isOk(duesResult) ? duesResult.value : [];
+    const matching = dues.filter(
+      (d) => calendarDaysBetween(today, startOfLocalDay(d.dueDate)) === daysBefore,
+    );
+    if (matching.length === 0) continue;
 
     const result = await sendPushToUser(deps, {
       userId: user.id,
       kind: "debtDueEnabled",
       payload: {
-        title: "Resumo das suas dívidas",
-        body,
+        title: "Vencimento de dívida",
+        body: buildBody(matching, daysBefore),
         url: "/app/dividas",
-        tag: "debt-due-digest",
+        tag: "debt-due-reminder",
       },
     });
     if (!result.skipped) {
@@ -64,7 +79,43 @@ export async function dispatchDebtDueNotifications(
   return { usersTargeted, pushesSent };
 }
 
-function formatBrl(cents: bigint): string {
-  const value = Number(cents) / 100;
-  return value.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+interface DueLike {
+  label: string;
+  amount: Money | null;
+}
+
+function buildBody(matching: ReadonlyArray<DueLike>, daysBefore: number): string {
+  const when = whenLabel(daysBefore);
+  if (matching.length === 1) {
+    const due = matching[0]!;
+    const amount = due.amount ? ` (${due.amount.format()})` : "";
+    return `${due.label} vence ${when}${amount}.`;
+  }
+
+  const allKnown = matching.every((m) => m.amount !== null);
+  let suffix = "";
+  if (allKnown) {
+    const totalCents = matching.reduce(
+      (sum, m) => sum + (m.amount?.toCents() ?? BigInt(0)),
+      BigInt(0),
+    );
+    suffix = `, somando ${Money.fromCents(totalCents).format()}`;
+  }
+  return `${matching.length} parcelas vencem ${when}${suffix}.`;
+}
+
+function whenLabel(daysBefore: number): string {
+  if (daysBefore <= 0) return "hoje";
+  if (daysBefore === 1) return "amanhã";
+  return `em ${daysBefore} dias`;
+}
+
+function startOfLocalDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
+}
+
+function calendarDaysBetween(from: Date, to: Date): number {
+  const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const b = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.round((b - a) / 86400000);
 }

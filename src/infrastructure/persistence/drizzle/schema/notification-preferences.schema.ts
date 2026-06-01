@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { boolean, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { boolean, pgTable, smallint, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { users } from "./users.schema";
 
@@ -9,6 +9,8 @@ export const notificationPreferences = pgTable("notification_preferences", {
     .references(() => users.id, { onDelete: "cascade" }),
   pushEnabled: boolean("push_enabled").notNull().default(true),
   debtDueEnabled: boolean("debt_due_enabled").notNull().default(true),
+  // Antecedência do aviso de vencimento (dias). 0 = no dia. Default 3.
+  debtDueDaysBefore: smallint("debt_due_days_before").notNull().default(3),
   assetPriceEnabled: boolean("asset_price_enabled").notNull().default(true),
   monthlySummaryEnabled: boolean("monthly_summary_enabled").notNull().default(true),
   // Notificações básicas disponíveis pra qualquer plano (Free + Pro).

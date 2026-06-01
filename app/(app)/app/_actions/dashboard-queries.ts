@@ -1,7 +1,6 @@
 "use server";
 
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
-import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcoming-due-dates.use-case";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
@@ -38,27 +37,4 @@ export async function fetchDashboardSnapshot(): Promise<DashboardSnapshotPayload
     totalDebtBalance: serializeMoney(s.totalDebtBalance),
     totalMonthlyDebtService: serializeMoney(s.totalMonthlyService),
   };
-}
-
-export interface UpcomingDuePayload {
-  debtId: string;
-  label: string;
-  dueDateIso: string;
-  amount: SerializedMoney | null;
-}
-
-export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
-  const user = await getCurrentUser();
-  if (!user) return [];
-  const r = await getUpcomingDueDates(
-    { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
-    { userId: user.id, horizonDays: 30 },
-  );
-  const list = isOk(r) ? r.value : [];
-  return list.map((d) => ({
-    debtId: d.debtId,
-    label: d.label,
-    dueDateIso: d.dueDate.toISOString(),
-    amount: d.amount ? serializeMoney(d.amount) : null,
-  }));
 }

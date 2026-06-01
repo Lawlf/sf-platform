@@ -11,7 +11,6 @@ export async function invalidateAssetCaches(queryClient: QueryClient): Promise<v
     queryClient.invalidateQueries({ queryKey: queryKeys.assetsWithAllocations }),
     queryClient.invalidateQueries({ queryKey: queryKeys.netWorth }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.upcomingDues }),
     // Asset edits podem afetar alocações de dívida.
     queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") }),
     queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),

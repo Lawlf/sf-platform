@@ -1,5 +1,6 @@
 import type { Metadata, Route } from "next";
 
+import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
 import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -27,6 +28,7 @@ export default async function NotificacoesPage() {
     pushEnabled: true,
     emailEnabled: true,
     debtDueEnabled: true,
+    debtDueDaysBefore: DEBT_DUE_DAYS_BEFORE_DEFAULT,
     assetPriceEnabled: true,
     monthlySummaryEnabled: true,
     promotionsEnabled: true,

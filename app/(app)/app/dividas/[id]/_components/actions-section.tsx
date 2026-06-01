@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/app/components/ui/button";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 
 import { ArchiveDebtButton } from "./archive-debt-button";
 import { CalendarActions } from "./calendar-actions";
@@ -13,12 +14,14 @@ interface Props {
   debt: DebtEntity;
   hasCalendarSchedule?: boolean;
   googleCalendarUrl?: string | null;
+  defaultAlarm?: AlarmOffset;
 }
 
 export function ActionsSection({
   debt,
   hasCalendarSchedule = false,
   googleCalendarUrl = null,
+  defaultAlarm = "1d",
 }: Props) {
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
@@ -51,7 +54,11 @@ export function ActionsSection({
       </div>
       {hasCalendarSchedule ? (
         <div className="mt-4 border-t border-[color:var(--border-soft)] pt-3">
-          <CalendarActions debtId={debt.id} googleCalendarUrl={googleCalendarUrl} />
+          <CalendarActions
+            debtId={debt.id}
+            googleCalendarUrl={googleCalendarUrl}
+            defaultAlarm={defaultAlarm}
+          />
         </div>
       ) : null}
       {debt.notes ? (

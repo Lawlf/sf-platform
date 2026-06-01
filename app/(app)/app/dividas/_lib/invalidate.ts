@@ -17,7 +17,6 @@ export async function invalidateDebtCaches(queryClient: QueryClient): Promise<vo
     queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),
     queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
-    queryClient.invalidateQueries({ queryKey: queryKeys.upcomingDues }),
     queryClient.invalidateQueries({ queryKey: queryKeys.netWorth }),
   ]);
 }

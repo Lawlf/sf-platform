@@ -1,11 +1,8 @@
 import { Bell } from "lucide-react";
 import type { Metadata } from "next";
-import { Suspense } from "react";
 
-import { Skeleton } from "@/app/components/ui/skeleton";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { NextDueSectionClient } from "../_components/next-due-section.client";
 import { PageShell } from "../_components/page-shell";
 
 import { fetchNotifications } from "./_actions/list-notifications.action";
@@ -22,9 +19,6 @@ export default async function NotificacoesPage() {
   return (
     <PageShell title="Notificações" description="Avisos do sistema.">
       <div className="flex flex-col gap-4">
-        <Suspense fallback={<Skeleton className="h-[80px] rounded-2xl" />}>
-          <NextDueSectionClient />
-        </Suspense>
         {active.length === 0 && dismissed.length === 0 ? (
           <EmptyState />
         ) : (

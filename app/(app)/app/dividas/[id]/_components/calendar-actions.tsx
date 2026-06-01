@@ -23,10 +23,13 @@ const ALARM_OPTIONS: Array<{ value: AlarmOffset; label: string }> = [
 interface Props {
   debtId: string;
   googleCalendarUrl: string | null;
+  // Antecedência inicial do alarme, alinhada com a preferência de aviso de
+  // vencimento do usuário (setor de dívidas). Cai em "1d" quando ausente.
+  defaultAlarm?: AlarmOffset;
 }
 
-export function CalendarActions({ debtId, googleCalendarUrl }: Props) {
-  const [alarm, setAlarm] = useState<AlarmOffset>("1d");
+export function CalendarActions({ debtId, googleCalendarUrl, defaultAlarm = "1d" }: Props) {
+  const [alarm, setAlarm] = useState<AlarmOffset>(defaultAlarm);
   const icsHref = `/app/dividas/${debtId}/calendario.ics?alarm=${alarm}`;
 
   return (
