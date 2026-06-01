@@ -192,15 +192,20 @@ function EmergencyFundStep({
     defaultValues: {
       title: "Reserva de emergência",
       targetMonths: seed?.type === "emergency_fund" ? seed.targetMonths : 6,
-      monthlyCostCents:
-        seed?.type === "emergency_fund" ? BigInt(seed.monthlyCostCents) : null,
+      monthlyCostCents: null,
     },
   });
   const targetMonths = useWatch({ control: form.control, name: "targetMonths" }) ?? 6;
   const titleId = useId();
+  // O custo so' vem do simulador (nao ha input no form), entao injetamos direto do seed
+  // no submit em vez de depender do tracking do react-hook-form para um campo sem input.
+  const seededCost = seed?.type === "emergency_fund" ? BigInt(seed.monthlyCostCents) : null;
 
   return (
-    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
+    <form
+      onSubmit={form.handleSubmit((data) => onSubmit({ ...data, monthlyCostCents: seededCost }))}
+      className="flex flex-col gap-4"
+    >
       <section className="glass-light p-4">
         <SectionHeading>Reserva de emergência</SectionHeading>
         <div className="flex flex-col gap-3">
