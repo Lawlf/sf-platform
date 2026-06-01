@@ -1,6 +1,13 @@
 export type GoalSeed =
   | { type: "emergency_fund"; targetMonths: number; monthlyCostCents: string }
-  | { type: "savings"; targetCents: string; savedCents: string; deadlineIso: string | null }
+  | {
+      type: "savings";
+      targetCents: string;
+      savedCents: string;
+      deadlineIso: string | null;
+      fundingMode?: "linked" | "manual";
+      linkedAssetId?: string;
+    }
   | { type: "financial_independence"; monthlyCostCents: string; realReturnPct: number }
   | { type: "debt_payoff"; debtId: string };
 
@@ -40,6 +47,8 @@ export function buildGoalSeedQuery(seed: GoalSeed): string {
       p.set("targetCents", seed.targetCents);
       p.set("savedCents", seed.savedCents);
       if (seed.deadlineIso) p.set("deadlineIso", seed.deadlineIso);
+      if (seed.fundingMode) p.set("fundingMode", seed.fundingMode);
+      if (seed.linkedAssetId) p.set("assetId", seed.linkedAssetId);
       break;
     case "financial_independence":
       p.set("costCents", seed.monthlyCostCents);
@@ -68,7 +77,15 @@ export function parseGoalSeed(sp: SearchParamsLike): GoalSeed | null {
     const saved = centsOrNull(first(sp.savedCents)) ?? "0";
     const deadline = first(sp.deadlineIso);
     const deadlineIso = deadline && /^\d{4}-\d{2}-\d{2}$/.test(deadline) ? deadline : null;
-    return { type, targetCents: target, savedCents: saved, deadlineIso };
+    const fm = first(sp.fundingMode);
+    const fundingMode = fm === "linked" || fm === "manual" ? fm : undefined;
+    const assetId = first(sp.assetId) ?? undefined;
+    const base = { type, targetCents: target, savedCents: saved, deadlineIso } as const;
+    return {
+      ...base,
+      ...(fundingMode ? { fundingMode } : {}),
+      ...(fundingMode === "linked" && assetId ? { linkedAssetId: assetId } : {}),
+    };
   }
   if (type === "financial_independence") {
     const cost = centsOrNull(first(sp.costCents));

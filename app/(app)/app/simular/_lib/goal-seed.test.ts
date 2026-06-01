@@ -68,3 +68,35 @@ describe("parseGoalSeed", () => {
     });
   });
 });
+
+describe("goal-seed savings linked (ativo)", () => {
+  it("build inclui fundingMode + assetId", () => {
+    expect(
+      buildGoalSeedQuery({
+        type: "savings",
+        targetCents: "0",
+        savedCents: "0",
+        deadlineIso: null,
+        fundingMode: "linked",
+        linkedAssetId: "a1",
+      }),
+    ).toBe("from=sim&type=savings&targetCents=0&savedCents=0&fundingMode=linked&assetId=a1");
+  });
+  it("parse le fundingMode + assetId quando presentes", () => {
+    expect(
+      parseGoalSeed({ from: "sim", type: "savings", targetCents: "0", fundingMode: "linked", assetId: "a1" }),
+    ).toEqual({
+      type: "savings",
+      targetCents: "0",
+      savedCents: "0",
+      deadlineIso: null,
+      fundingMode: "linked",
+      linkedAssetId: "a1",
+    });
+  });
+  it("savings sem fundingMode/assetId continua valido (campos ausentes)", () => {
+    const r = parseGoalSeed({ from: "sim", type: "savings", targetCents: "4000000" });
+    expect(r).toMatchObject({ type: "savings", targetCents: "4000000" });
+    expect((r as { fundingMode?: string }).fundingMode).toBeUndefined();
+  });
+});
