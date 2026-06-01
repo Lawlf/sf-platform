@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
@@ -749,11 +750,13 @@ interface DeactivateFormValues {
 
 function DeactivateSection({ assetId, label }: { assetId: string; label: string }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<DeactivationKind>("sold");
   const [notes, setNotes] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [soldNudge, setSoldNudge] = useState<bigint | null>(null);
 
   const form = useForm<DeactivateFormValues>({
     defaultValues: { salePriceCents: 0n as unknown as bigint },
@@ -769,12 +772,14 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
   function onConfirm() {
     setError(null);
     let salePriceCents: string | null = null;
+    let salePriceBigInt: bigint | null = null;
     if (kind === "sold") {
       const sp = form.getValues("salePriceCents");
       if (typeof sp !== "bigint" || sp <= 0n) {
         setError("Informe por quanto vendeu.");
         return;
       }
+      salePriceBigInt = sp;
       salePriceCents = sp.toString();
     }
     const trimmedNotes = notes.trim();
@@ -790,7 +795,12 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
         return;
       }
       await invalidateAssetCaches(queryClient);
-      // on success the action redirects to /app/patrimonio
+      setOpen(false);
+      if (kind === "sold" && salePriceBigInt !== null && salePriceBigInt > 0n) {
+        setSoldNudge(salePriceBigInt);
+        return;
+      }
+      router.push("/app/patrimonio" as Route);
     });
   }
 
@@ -892,6 +902,48 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
               Confirmar desativação
             </Button>
           </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={soldNudge !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSoldNudge(null);
+            router.push("/app/patrimonio" as Route);
+          }
+        }}
+      >
+        <SheetContent side="bottom" className="flex flex-col gap-3">
+          <SheetHeader>
+            <SheetTitle>Você liberou {formatCentsToBRL(soldNudge ?? 0n)}</SheetTitle>
+            <SheetDescription>O que fazer com esse dinheiro agora?</SheetDescription>
+          </SheetHeader>
+          <Link
+            href={"/app/dividas" as Route}
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Quitar uma dívida
+          </Link>
+          <Link
+            href={
+              `/app/metas/nova?${buildGoalSeedQuery({
+                type: "savings",
+                targetCents: (soldNudge ?? 0n).toString(),
+                savedCents: (soldNudge ?? 0n).toString(),
+                deadlineIso: null,
+              })}` as Route
+            }
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Guardar esse valor
+          </Link>
+          <Link
+            href={"/app/simular/juros-compostos" as Route}
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Investir
+          </Link>
         </SheetContent>
       </Sheet>
     </section>
