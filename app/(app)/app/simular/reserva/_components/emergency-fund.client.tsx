@@ -12,6 +12,7 @@ import {
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 
 const DEFAULT_TARGET_MONTHS = 6;
 
@@ -163,6 +164,13 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
           ) : null}
         </ResultCard>
       </section>
+      <SimToGoalCta
+        seed={{
+          type: "emergency_fund",
+          targetMonths,
+          monthlyCostCents: monthlyCost.toString(),
+        }}
+      />
     </div>
   );
 }

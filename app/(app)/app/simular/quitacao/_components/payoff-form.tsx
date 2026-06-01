@@ -17,6 +17,7 @@ import {
   ResultStat,
   simSelectClass,
 } from "../../_components/sim-result";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 import { runPayoffAction, type PayoffActionResult } from "../_actions/run-payoff.action";
 
 const formSchema = z.object({
@@ -105,26 +106,32 @@ export function PayoffForm({
 
       {result ? (
         result.ok ? (
-          <ResultCard title="Resultado">
-            <ResultHeadline
-              value={
-                result.payoffMonth !== null ? `${result.payoffMonth} meses` : "Fora do horizonte"
-              }
-              tone={result.negativeAmortization ? "negative" : "positive"}
-              caption={
-                result.payoffDate
-                  ? `Data prevista: ${DATE_FMT.format(new Date(result.payoffDate))}.`
-                  : undefined
-              }
-            />
-            <ResultStat label="Total pago" value={result.totalPaid} />
-            <ResultStat label="Total de juros" value={result.totalInterest} />
-            {result.negativeAmortization ? (
-              <p className="text-[0.75rem] font-semibold text-[color:var(--semantic-negative)]">
-                Atenção: o pagamento não cobre os juros. O saldo cresce e a dívida não termina.
-              </p>
-            ) : null}
-          </ResultCard>
+          <>
+            <ResultCard title="Resultado">
+              <ResultHeadline
+                value={
+                  result.payoffMonth !== null ? `${result.payoffMonth} meses` : "Fora do horizonte"
+                }
+                tone={result.negativeAmortization ? "negative" : "positive"}
+                caption={
+                  result.payoffDate
+                    ? `Data prevista: ${DATE_FMT.format(new Date(result.payoffDate))}.`
+                    : undefined
+                }
+              />
+              <ResultStat label="Total pago" value={result.totalPaid} />
+              <ResultStat label="Total de juros" value={result.totalInterest} />
+              {result.negativeAmortization ? (
+                <p className="text-[0.75rem] font-semibold text-[color:var(--semantic-negative)]">
+                  Atenção: o pagamento não cobre os juros. O saldo cresce e a dívida não termina.
+                </p>
+              ) : null}
+            </ResultCard>
+            {(() => {
+              const debtId = form.getValues("debtId");
+              return debtId ? <SimToGoalCta seed={{ type: "debt_payoff", debtId }} /> : null;
+            })()}
+          </>
         ) : (
           <ResultError message={result.message} />
         )
