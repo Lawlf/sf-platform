@@ -26,6 +26,7 @@ import {
 } from "@/app/components/ui/sheet";
 
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
+import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 import { WizardMoneyField } from "../../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
@@ -222,6 +223,30 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         availableDebts={props.availableDebts}
         hasLinkedDebts={props.linkedDebts.length > 0}
       />
+
+      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Metas vinculadas</h2>
+          <Link
+            href={
+              `/app/metas/nova?${buildGoalSeedQuery({
+                type: "savings",
+                targetCents: "0",
+                savedCents: "0",
+                deadlineIso: null,
+                fundingMode: "linked",
+                linkedAssetId: props.assetId,
+              })}` as Route
+            }
+            className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+          >
+            Criar meta com este bem
+          </Link>
+        </div>
+        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
+          Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
+        </p>
+      </section>
 
       <DeactivateSection assetId={props.assetId} label={props.label} />
     </div>

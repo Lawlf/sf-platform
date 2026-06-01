@@ -290,10 +290,16 @@ function SavingsStep({
         : (seed?.type === "savings" ? (seed.deadlineIso ?? "") : ""),
       fundingMode: existingGoal
         ? ((existingGoal.fundingMode as "linked" | "manual" | null) ?? "manual")
-        : "manual",
+        : (seed?.type === "savings" && seed.fundingMode ? seed.fundingMode : "manual"),
       linkedAssetId: existingGoal
         ? (existingGoal.linkedAssetId ?? assets[0]?.id ?? "")
-        : (assets[0]?.id ?? ""),
+        : (() => {
+            const seedAsset =
+              seed?.type === "savings" && seed.linkedAssetId
+                ? assets.find((a) => a.id === seed.linkedAssetId)?.id
+                : undefined;
+            return seedAsset ?? assets[0]?.id ?? "";
+          })(),
       manualSavedCents: existingGoal
         ? BigInt(existingGoal.manualSavedCents ?? "0")
         : (seed?.type === "savings" ? BigInt(seed.savedCents) : BigInt(prefill.cashReserveCents)),
