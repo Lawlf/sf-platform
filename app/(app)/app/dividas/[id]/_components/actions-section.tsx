@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import { Button } from "@/app/components/ui/button";
 import { buildGoalSeedQuery } from "@/app/(app)/app/simular/_lib/goal-seed";
+import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 
@@ -16,6 +17,7 @@ interface Props {
   hasCalendarSchedule?: boolean;
   googleCalendarUrl?: string | null;
   defaultAlarm?: AlarmOffset;
+  linkedGoals?: SerializedGoalWithProgress[];
 }
 
 export function ActionsSection({
@@ -23,7 +25,12 @@ export function ActionsSection({
   hasCalendarSchedule = false,
   googleCalendarUrl = null,
   defaultAlarm = "1d",
+  linkedGoals = [],
 }: Props) {
+  const payoffGoal = linkedGoals.find(
+    (g) => g.goal.type === "debt_payoff" && g.goal.status === "active",
+  );
+  const hasPayoffGoal = payoffGoal !== undefined;
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -42,13 +49,21 @@ export function ActionsSection({
               <Button asChild size="sm" variant="outline">
                 <Link href={`/app/dividas/${debt.id}/historico` as Route}>Histórico mensal</Link>
               </Button>
-              <Button asChild size="sm" variant="outline">
-                <Link
-                  href={`/app/metas/nova?${buildGoalSeedQuery({ type: "debt_payoff", debtId: debt.id })}` as Route}
-                >
-                  Criar meta de quitação
-                </Link>
-              </Button>
+              {hasPayoffGoal ? (
+                <Button asChild size="sm" variant="outline">
+                  <Link href={`/app/metas/${payoffGoal.goal.id}` as Route}>
+                    Ver meta de quitação
+                  </Link>
+                </Button>
+              ) : (
+                <Button asChild size="sm" variant="outline">
+                  <Link
+                    href={`/app/metas/nova?${buildGoalSeedQuery({ type: "debt_payoff", debtId: debt.id })}` as Route}
+                  >
+                    Criar meta de quitação
+                  </Link>
+                </Button>
+              )}
               <ArchiveDebtButton debtId={debt.id} label={debt.label} />
               <DeleteDebtButton debtId={debt.id} label={debt.label} />
             </>

@@ -27,6 +27,8 @@ function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
   }
 }
 
+import { fetchGoalsLinkedToDebt } from "@/app/(app)/app/metas/_actions/goal-queries";
+
 import { PageShell } from "../../_components/page-shell";
 
 import { ActionsSection } from "./_components/actions-section";
@@ -65,6 +67,8 @@ export default async function DebtDetailPage({ params }: PageProps) {
     : null;
   const defaultAlarm = alarmFromDaysBefore(prefs?.debtDueDaysBefore);
 
+  const linkedGoals = await fetchGoalsLinkedToDebt(id);
+
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader debt={debt} />
@@ -74,6 +78,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
         hasCalendarSchedule={hasCalendarSchedule}
         googleCalendarUrl={googleCalendarUrl}
         defaultAlarm={defaultAlarm}
+        linkedGoals={linkedGoals}
       />
 
       {debt.kind === "credit_card" ? <InstallmentPurchasesSection debt={debt} /> : null}
