@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { fetchPrescription } from "../_actions/prescription-queries";
 
+import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
 import { presentMove } from "./prescription-copy";
 
@@ -135,6 +136,18 @@ export async function NextStepCard() {
       </p>
       <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">{dominant.impact}</p>
       <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">{dominant.reason}</p>
+      {(() => {
+        const cta = moveCtaFor({ type: p.dominant.type, targetDebtId: p.dominant.targetDebtId ?? null });
+        return cta ? (
+          <Link
+            href={cta.href as Route}
+            className="mt-3 inline-flex items-center gap-1.5 text-sm font-semibold text-[color:var(--color-brand-800)] hover:text-[color:var(--color-brand-700)] hover:underline"
+          >
+            {cta.label}
+            <ArrowRight size={16} aria-hidden />
+          </Link>
+        ) : null;
+      })()}
       <div className="mt-3">
         <VerMais items={more} />
       </div>
