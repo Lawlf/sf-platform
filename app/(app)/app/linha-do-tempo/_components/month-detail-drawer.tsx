@@ -2,6 +2,8 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Calendar, Repeat, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import {
   Sheet,
@@ -146,24 +148,25 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
         ) : (
           <ul className="flex flex-col gap-2">
             {data.payments.map((p) => (
-              <li
-                key={p.id}
-                className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3 backdrop-blur-xl"
-              >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-negative)]/[0.12] text-[color:var(--semantic-negative)]">
-                  <TrendingDown size={16} strokeWidth={1.75} aria-hidden />
-                </span>
-                <div className="min-w-0 flex-1">
-                  <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
-                    {p.debtLabel}
+              <li key={p.id}>
+                <Link href={`/app/dividas/${p.debtId}` as Route} className="block hover:opacity-80">
+                  <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3 backdrop-blur-xl">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-negative)]/[0.12] text-[color:var(--semantic-negative)]">
+                      <TrendingDown size={16} strokeWidth={1.75} aria-hidden />
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+                        {p.debtLabel}
+                      </div>
+                      <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                        Pago em {p.paidAtLabel}
+                      </div>
+                    </div>
+                    <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-negative)]">
+                      {p.amount.formatted}
+                    </span>
                   </div>
-                  <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
-                    Pago em {p.paidAtLabel}
-                  </div>
-                </div>
-                <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-negative)]">
-                  {p.amount.formatted}
-                </span>
+                </Link>
               </li>
             ))}
           </ul>
@@ -188,24 +191,25 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
                     ? Repeat
                     : TrendingUp;
               return (
-                <li
-                  key={inc.id}
-                  className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3 backdrop-blur-xl"
-                >
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-positive)]/[0.12] text-[color:var(--semantic-positive)]">
-                    <Icon size={16} strokeWidth={1.75} aria-hidden />
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
-                      {inc.label}
+                <li key={inc.id}>
+                  <Link href={"/app/renda" as Route} className="block hover:opacity-80">
+                    <div className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3 backdrop-blur-xl">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-positive)]/[0.12] text-[color:var(--semantic-positive)]">
+                        <Icon size={16} strokeWidth={1.75} aria-hidden />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+                          {inc.label}
+                        </div>
+                        <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                          {FREQUENCY_LABELS[inc.frequency]}
+                        </div>
+                      </div>
+                      <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-positive)]">
+                        {inc.amount.formatted}
+                      </span>
                     </div>
-                    <div className="text-[0.6875rem] text-[color:var(--text-muted)]">
-                      {FREQUENCY_LABELS[inc.frequency]}
-                    </div>
-                  </div>
-                  <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-positive)]">
-                    {inc.amount.formatted}
-                  </span>
+                  </Link>
                 </li>
               );
             })}
