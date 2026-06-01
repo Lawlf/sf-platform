@@ -26,6 +26,7 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 
+import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
 import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
@@ -116,6 +117,8 @@ export interface AssetDetailViewProps {
     ratePctYear: number;
     acquiredAtFormatted: string | null;
   } | null;
+  /** Metas vinculadas a este ativo. */
+  linkedGoals: SerializedGoalWithProgress[];
 }
 
 function formatCentsToBRL(cents: bigint): string {
@@ -244,9 +247,25 @@ export function AssetDetailView(props: AssetDetailViewProps) {
             Criar meta com este bem
           </Link>
         </div>
-        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
-          Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
-        </p>
+        {props.linkedGoals.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {props.linkedGoals.map((g) => (
+              <li key={g.goal.id}>
+                <Link
+                  href={`/app/metas/${g.goal.id}` as Route}
+                  className="flex items-center justify-between rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.8125rem] hover:bg-[color:var(--surface-1)]"
+                >
+                  <span className="font-medium text-[color:var(--text-primary)]">{g.goal.title}</span>
+                  <span className="text-[color:var(--text-muted)]">{g.progress.pct}%</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
+            Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
+          </p>
+        )}
       </section>
 
       <DeactivateSection assetId={props.assetId} label={props.label} />
