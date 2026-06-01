@@ -1,3 +1,6 @@
+import type { Route } from "next";
+import Link from "next/link";
+
 import { HowItWorksSheet } from "./how-it-works-sheet";
 
 export interface CommitmentCardProps {
@@ -94,6 +97,14 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: tone.color }} />
         {tone.label}
       </div>
+      {zone === "attention" || zone === "critical" ? (
+        <Link
+          href={"/app/simular/quitacao" as Route}
+          className="mt-2 inline-flex text-xs font-semibold text-[color:var(--color-brand-700)] hover:underline"
+        >
+          Simular como reduzir
+        </Link>
+      ) : null}
     </section>
   );
 }

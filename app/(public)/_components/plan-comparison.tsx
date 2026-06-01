@@ -144,23 +144,6 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    label: "Conteúdo educacional",
-    rows: [
-      {
-        feature: "Lições básicas",
-        hint: "Juros, parcela, CET, rotativo, Price vs SAC.",
-        free: true,
-        pro: true,
-      },
-      {
-        feature: "Trilha guiada (novas trilhas em breve)",
-        hint: "Sair do vermelho: CET, qual dívida quitar antes, patrimônio que você esqueceu.",
-        free: false,
-        pro: true,
-      },
-    ],
-  },
-  {
     label: "Exportação e privacidade",
     rows: [
       {

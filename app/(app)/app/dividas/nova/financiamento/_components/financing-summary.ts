@@ -1,9 +1,12 @@
+import { type ReactNode } from "react";
+
 import { formatCentsBRL } from "../../../_lib/format";
+import { type SummaryItem } from "../../_components/summary-list";
 import { type FinancingFormValues } from "../_schema";
 
 interface SummaryInputs {
   values: FinancingFormValues;
-  totalPaidValue: string;
+  totalPaidValue: ReactNode;
   linkSummary: string;
 }
 
@@ -11,7 +14,7 @@ export function buildFinancingSummary({
   values,
   totalPaidValue,
   linkSummary,
-}: SummaryInputs): { label: string; value: string }[] {
+}: SummaryInputs): SummaryItem[] {
   if (values.scenario === "new") {
     return [
       { label: "Rótulo", value: values.label || "Sem rótulo" },

@@ -19,6 +19,8 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     deactivationReason: row.deactivationReason,
     contentDiagnosticAnswer: row.contentDiagnosticAnswer,
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
+    onboardingWizardSeenAt: row.onboardingWizardSeenAt,
+    homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -63,6 +65,20 @@ export class DrizzleUserRepository implements UserRepository {
     await getDb().update(users).set({ emailVerifiedAt: new Date() }).where(eq(users.id, id));
   }
 
+  async markOnboardingWizardSeen(id: string): Promise<void> {
+    await getDb()
+      .update(users)
+      .set({ onboardingWizardSeenAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
+  async markHomeTourDismissed(id: string): Promise<void> {
+    await getDb()
+      .update(users)
+      .set({ homeTourDismissedAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
   async deactivate(id: string, reason: string | null): Promise<void> {
     await getDb()
       .update(users)
@@ -84,6 +100,8 @@ export class DrizzleUserRepository implements UserRepository {
         deactivationReason: user.deactivationReason,
         contentDiagnosticAnswer: user.contentDiagnosticAnswer,
         contentDiagnosticAnsweredAt: user.contentDiagnosticAnsweredAt,
+        onboardingWizardSeenAt: user.onboardingWizardSeenAt,
+        homeTourDismissedAt: user.homeTourDismissedAt,
         quickAccess: user.quickAccess,
         updatedAt: user.updatedAt,
       })

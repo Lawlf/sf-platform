@@ -2,6 +2,7 @@
 
 import { getGoalDetail } from "@/application/use-cases/goal/get-goal-detail.use-case";
 import { listGoalsWithProgress } from "@/application/use-cases/goal/list-goals-with-progress.use-case";
+import { filterByLinkedAsset, filterByLinkedDebt } from "./linked-goals";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
@@ -132,6 +133,18 @@ export async function fetchGoalsWithProgress(): Promise<
     progress: serializeProgress(progress),
     etaLocked,
   }));
+}
+
+export async function fetchGoalsLinkedToDebt(
+  debtId: string,
+): Promise<SerializedGoalWithProgress[]> {
+  return filterByLinkedDebt(await fetchGoalsWithProgress(), debtId);
+}
+
+export async function fetchGoalsLinkedToAsset(
+  assetId: string,
+): Promise<SerializedGoalWithProgress[]> {
+  return filterByLinkedAsset(await fetchGoalsWithProgress(), assetId);
 }
 
 export async function fetchGoalDetail(

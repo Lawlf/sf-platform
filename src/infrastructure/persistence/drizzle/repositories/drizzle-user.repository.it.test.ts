@@ -63,4 +63,20 @@ describe("DrizzleUserRepository (integration)", () => {
     expect(after?.deactivatedAt).toBeInstanceOf(Date);
     expect(after?.deactivationReason).toBe("user_request");
   });
+
+  it("marks onboarding wizard seen and home tour dismissed", async () => {
+    const created = await repo.create({
+      email: "it-test-onb@saborfinanceiro.com.br",
+      emailVerified: true,
+    });
+    expect(created.onboardingWizardSeenAt).toBeNull();
+    expect(created.homeTourDismissedAt).toBeNull();
+
+    await repo.markOnboardingWizardSeen(created.id);
+    await repo.markHomeTourDismissed(created.id);
+
+    const after = await repo.findById(created.id);
+    expect(after?.onboardingWizardSeenAt).toBeInstanceOf(Date);
+    expect(after?.homeTourDismissedAt).toBeInstanceOf(Date);
+  });
 });

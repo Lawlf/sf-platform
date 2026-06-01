@@ -6,8 +6,10 @@ import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
+import type { ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
+import { Spinner } from "@/app/components/ui/spinner";
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
@@ -602,9 +604,9 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   }
 
   // step 5
-  const installmentText =
+  const installmentText: ReactNode =
     preview === "pending" || preview === null
-      ? "Calculando..."
+      ? <Spinner size={20} decorative />
       : preview.ok
         ? preview.firstInstallmentFormatted
         : "Não foi possível calcular";
@@ -618,8 +620,12 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
         : `1ª parcela · ${previewTerm} meses · ${systemLabel}`
       : `por ${previewTerm} meses · ${systemLabel}`;
 
-  const totalPaidValue =
-    preview && preview !== "pending" && preview.ok ? preview.totalPaidFormatted : "...";
+  const totalPaidValue: ReactNode =
+    preview && preview !== "pending" && preview.ok ? (
+      preview.totalPaidFormatted
+    ) : (
+      <Spinner size={16} decorative />
+    );
 
   const linkSummary = buildLinkSummary(values);
   const summaryItems = buildFinancingSummary({ values, totalPaidValue, linkSummary });

@@ -17,6 +17,7 @@ const macro: GoalMacro = {
   cashReserveCents: 12_000_00n,
   contributionCents: 1_000_00n,
   monthlyServiceCents: 2_000_00n,
+  monthlyIncomeCents: 8_000_00n,
   debts: [
     { id: "d1", originalPrincipalCents: 30_000_00n, currentBalanceCents: 18_000_00n, monthlyPaymentCents: 1_000_00n, annualRatePct: 12 },
   ],
@@ -33,12 +34,23 @@ describe("GoalProgressService.compute", () => {
     expect(r.etaMonths).not.toBeNull();
   });
 
-  it("emergency_fund: reservas vs custo x meses", () => {
+  it("emergency_fund: sem custo explicito usa 75% da renda (6_000_00 x 6 = 36_000_00)", () => {
+    // macro.monthlyIncomeCents = 8_000_00, sem monthlyCostCents na meta
+    // custo estimado = 8_000_00 * 3 / 4 = 6_000_00; target = 6_000_00 * 6 = 36_000_00
     const goal: GoalEntity = { ...baseGoal, type: "emergency_fund", targetMonths: 6 };
     const r = GoalProgressService.compute(goal, macro);
-    expect(Number(r.targetCents)).toBe(12_000_00);
+    expect(Number(r.targetCents)).toBe(36_000_00);
     expect(Number(r.currentCents)).toBe(12_000_00);
-    expect(r.reached).toBe(true);
+    expect(r.reached).toBe(false);
+  });
+
+  it("emergency_fund: com monthlyCostCents explicito usa o valor informado (3_000_00 x 6 = 18_000_00)", () => {
+    // custo explicito na meta: 3_000_00; target = 3_000_00 * 6 = 18_000_00
+    const goal: GoalEntity = { ...baseGoal, type: "emergency_fund", targetMonths: 6, monthlyCostCents: 3_000_00n };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(Number(r.targetCents)).toBe(18_000_00);
+    expect(Number(r.currentCents)).toBe(12_000_00);
+    expect(r.reached).toBe(false);
   });
 
   it("savings manual: progresso vs alvo, ETA por projecao", () => {

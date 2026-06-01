@@ -36,6 +36,8 @@ function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
     deactivationReason: row.deactivationReason,
     contentDiagnosticAnswer: row.contentDiagnosticAnswer,
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
+    onboardingWizardSeenAt: row.onboardingWizardSeenAt,
+    homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

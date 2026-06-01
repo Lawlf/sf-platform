@@ -25,7 +25,7 @@ const formSchema = z.object({
   currentBalanceCents: z.bigint().positive("Saldo deve ser positivo."),
   bankName: z.string().min(1, "Informe o banco.").max(120),
   monthlyRatePct: z.number().min(0).max(1000),
-  startDate: z.string().min(1, "Informe a data de inicio."),
+  startDate: z.string().min(1, "Informe a data de início."),
   expectedEndDate: z.string().nullable().optional(),
   notes: z.string().optional().nullable(),
 });

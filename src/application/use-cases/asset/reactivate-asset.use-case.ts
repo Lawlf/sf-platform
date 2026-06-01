@@ -22,9 +22,9 @@ export async function reactivateAsset(
   input: ReactivateAssetInput,
 ): Promise<Result<AssetEntity, ReactivateAssetError>> {
   const existing = await deps.assets.findById(input.assetId, input.userId);
-  if (!existing) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (isAssetActive(existing)) {
-    return err(new AssetAlreadyActive("Ativo ja esta ativo."));
+    return err(new AssetAlreadyActive("Ativo já está ativo."));
   }
 
   const now = deps.clock.now();

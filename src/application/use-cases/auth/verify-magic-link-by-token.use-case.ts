@@ -43,14 +43,14 @@ export async function verifyMagicLinkByToken(
 ): Promise<Result<VerifyMagicLinkByTokenSuccess, VerifyMagicLinkByTokenError>> {
   const tokenHash = await deps.hasher.sha256Hex(input.rawToken);
   const token = await deps.tokens.findByTokenHash(tokenHash);
-  if (!token) return err(new MagicLinkInvalid("Link invalido ou expirado."));
-  if (token.usedAt) return err(new MagicLinkAlreadyUsed("Link ja foi utilizado."));
+  if (!token) return err(new MagicLinkInvalid("Link inválido ou expirado."));
+  if (token.usedAt) return err(new MagicLinkAlreadyUsed("Link já foi utilizado."));
   if (token.expiresAt < deps.clock.now()) return err(new MagicLinkExpired("Link expirado."));
 
   let user: UserEntity | null = null;
   if (token.userId) {
     user = await deps.users.findById(token.userId);
-    if (!user) return err(new MagicLinkInvalid("Link invalido."));
+    if (!user) return err(new MagicLinkInvalid("Link inválido."));
   } else {
     const byEmail = await deps.users.findByEmail(token.email);
     if (byEmail) {
@@ -59,7 +59,7 @@ export async function verifyMagicLinkByToken(
       // was created via OAuth or another flow. Reject so an attacker who
       // pre-requested a magic link to a victim's address cannot redeem it.
       await deps.tokens.markUsed(tokenHash);
-      return err(new MagicLinkInvalid("Link invalido."));
+      return err(new MagicLinkInvalid("Link inválido."));
     }
     user = await deps.users.create({ email: token.email, emailVerified: true });
   }

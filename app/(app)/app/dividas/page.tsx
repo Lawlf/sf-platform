@@ -5,10 +5,14 @@ import Link from "next/link";
 import { Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
+import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
+import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import type { DebtStatusFilter } from "../_actions/debt-queries";
 import { PageShell } from "../_components/page-shell";
 
+import { DebtDueReminderCard } from "./_components/debt-due-reminder.client";
 import { DividasFilterPills } from "./_components/dividas-filter-pills";
 import { DividasListClient } from "./_components/dividas-list.client";
 
@@ -25,6 +29,9 @@ export default async function DividasPage({ searchParams }: PageProps) {
       ? sp.status
       : "active";
 
+  const user = await requireUser();
+  const prefs = await new DrizzleNotificationPreferencesRepository().findForUser(user.id);
+
   return (
     <PageShell title="Dívidas" description="Acompanhe e simule a quitação das suas dívidas.">
       <Link
@@ -40,6 +47,12 @@ export default async function DividasPage({ searchParams }: PageProps) {
       <Suspense key={statusFilter} fallback={<DividasListSkeleton />}>
         <DividasListClient statusFilter={statusFilter} />
       </Suspense>
+
+      <DebtDueReminderCard
+        isPro={user.isPro}
+        initialEnabled={prefs?.debtDueEnabled ?? true}
+        initialDaysBefore={prefs?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT}
+      />
     </PageShell>
   );
 }

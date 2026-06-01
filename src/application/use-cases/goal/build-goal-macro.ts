@@ -63,13 +63,15 @@ export async function buildGoalMacro(
     }
   }
 
-  // Saldo livre mensal e servico total.
+  // Saldo livre mensal, servico total e renda total.
   let contributionCents = 0n;
   let monthlyServiceCents = 0n;
+  let monthlyIncomeCents = 0n;
   if (isOk(snapshotResult)) {
     const free = snapshotResult.value.netWorth.toCents();
     contributionCents = free > 0n ? free : 0n;
     monthlyServiceCents = snapshotResult.value.totalMonthlyService.toCents();
+    monthlyIncomeCents = snapshotResult.value.totalIncome.toCents();
   }
 
   // Monta GoalMacroDebt para cada divida ativa. Dívidas onde monthlyDebtService
@@ -99,6 +101,7 @@ export async function buildGoalMacro(
     cashReserveCents,
     contributionCents,
     monthlyServiceCents,
+    monthlyIncomeCents,
     debts,
   };
 }

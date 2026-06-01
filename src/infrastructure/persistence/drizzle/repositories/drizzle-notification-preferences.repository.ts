@@ -15,6 +15,7 @@ function toEntity(row: NotificationPreferenceRow): NotificationPreferencesEntity
     pushEnabled: row.pushEnabled,
     emailEnabled: row.emailEnabled,
     debtDueEnabled: row.debtDueEnabled,
+    debtDueDaysBefore: row.debtDueDaysBefore,
     assetPriceEnabled: row.assetPriceEnabled,
     monthlySummaryEnabled: row.monthlySummaryEnabled,
     promotionsEnabled: row.promotionsEnabled,
@@ -41,6 +42,7 @@ export class DrizzleNotificationPreferencesRepository
     pushEnabled: boolean;
     emailEnabled: boolean;
     debtDueEnabled: boolean;
+    debtDueDaysBefore: number;
     assetPriceEnabled: boolean;
     monthlySummaryEnabled: boolean;
     promotionsEnabled: boolean;
@@ -54,6 +56,7 @@ export class DrizzleNotificationPreferencesRepository
         pushEnabled: input.pushEnabled,
         emailEnabled: input.emailEnabled,
         debtDueEnabled: input.debtDueEnabled,
+        debtDueDaysBefore: input.debtDueDaysBefore,
         assetPriceEnabled: input.assetPriceEnabled,
         monthlySummaryEnabled: input.monthlySummaryEnabled,
         promotionsEnabled: input.promotionsEnabled,
@@ -66,6 +69,7 @@ export class DrizzleNotificationPreferencesRepository
           pushEnabled: input.pushEnabled,
           emailEnabled: input.emailEnabled,
           debtDueEnabled: input.debtDueEnabled,
+          debtDueDaysBefore: input.debtDueDaysBefore,
           assetPriceEnabled: input.assetPriceEnabled,
           monthlySummaryEnabled: input.monthlySummaryEnabled,
           promotionsEnabled: input.promotionsEnabled,

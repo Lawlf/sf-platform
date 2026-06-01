@@ -51,9 +51,9 @@ export async function deactivateAsset(
   input: DeactivateAssetInput,
 ): Promise<Result<AssetEntity, DeactivateAssetError>> {
   const existing = await deps.assets.findById(input.assetId, input.userId);
-  if (!existing) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
-    return err(new AssetAlreadyDeactivated("Ativo ja esta desativado."));
+    return err(new AssetAlreadyDeactivated("Ativo já está desativado."));
   }
 
   // Validate optional free-text notes.

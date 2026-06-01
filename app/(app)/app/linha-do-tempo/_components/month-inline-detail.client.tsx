@@ -2,6 +2,8 @@
 
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { Suspense } from "react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import type { ExpenseCategory } from "@/domain/entities/debt.entity";
 
@@ -180,59 +182,71 @@ function EmptyRow({ text }: { text: string }) {
 
 function IncomeRow({ row }: { row: SerializedIncomeRow }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
-          {row.label}
-        </span>
-        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
-          {FREQUENCY_LABELS[row.frequency]}
-        </span>
-      </div>
-      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-positive)]">
-        +{row.amount.formatted}
-      </span>
+    <li>
+      <Link href={"/app/renda" as Route} className="block hover:opacity-80">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+              {row.label}
+            </span>
+            <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
+              {FREQUENCY_LABELS[row.frequency]}
+            </span>
+          </div>
+          <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-positive)]">
+            +{row.amount.formatted}
+          </span>
+        </div>
+      </Link>
     </li>
   );
 }
 
 function ExpenseRow({ row }: { row: SerializedExpenseRow }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
-      <div className="flex min-w-0 flex-col">
-        <span className="flex items-center gap-2">
-          <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-[2px] text-[0.625rem] font-bold text-[color:var(--color-brand-800)]">
-            {CATEGORY_LABELS[row.category]}
+    <li>
+      <Link href={`/app/dividas/${row.id}` as Route} className="block hover:opacity-80">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
+          <div className="flex min-w-0 flex-col">
+            <span className="flex items-center gap-2">
+              <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-[2px] text-[0.625rem] font-bold text-[color:var(--color-brand-800)]">
+                {CATEGORY_LABELS[row.category]}
+              </span>
+              <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+                {row.label}
+              </span>
+            </span>
+            <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
+              {FREQUENCY_LABELS[row.frequency]}
+            </span>
+          </div>
+          <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
+            −{row.amount.formatted}
           </span>
-          <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
-            {row.label}
-          </span>
-        </span>
-        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
-          {FREQUENCY_LABELS[row.frequency]}
-        </span>
-      </div>
-      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-        −{row.amount.formatted}
-      </span>
+        </div>
+      </Link>
     </li>
   );
 }
 
 function PaymentRow({ row, monthLabel }: { row: SerializedPaymentRow; monthLabel: string }) {
   return (
-    <li className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
-      <div className="flex min-w-0 flex-col">
-        <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
-          {row.debtLabel}
-        </span>
-        <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
-          Pagamento de {monthLabel}
-        </span>
-      </div>
-      <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-        −{row.amount.formatted}
-      </span>
+    <li>
+      <Link href={`/app/dividas/${row.debtId}` as Route} className="block hover:opacity-80">
+        <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate text-[0.8125rem] font-bold text-[color:var(--text-primary)]">
+              {row.debtLabel}
+            </span>
+            <span className="mt-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)]">
+              Pagamento de {monthLabel}
+            </span>
+          </div>
+          <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
+            −{row.amount.formatted}
+          </span>
+        </div>
+      </Link>
     </li>
   );
 }

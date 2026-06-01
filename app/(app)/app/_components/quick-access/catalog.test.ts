@@ -7,7 +7,7 @@ describe("catalog", () => {
     expect(CATALOG_KEYS).toEqual([
       "add_debt", "add_income", "add_asset",
       "sim_quitacao", "sim_extra", "sim_estrategia", "sim_compra", "sim_hub",
-      "timeline", "conteudo", "dividas", "renda", "patrimonio", "comprei", "notificacoes",
+      "metas", "timeline", "dividas", "renda", "patrimonio", "comprei", "notificacoes",
     ]);
   });
   it("every catalog icon name exists in the icon map", () => {

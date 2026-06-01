@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
+import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
 import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -33,17 +34,21 @@ export async function updateNotificationPreferencesAction(input: {
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const repo = new DrizzleNotificationPreferencesRepository();
+  const existing = await repo.findForUser(user.id);
+  // A antecedência do aviso ("quando avisar") é configurada no setor de
+  // dívidas, não aqui. Preservamos o valor atual em qualquer upsert desta tela.
+  const debtDueDaysBefore = existing?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT;
 
   // Plano Free mexe nos toggles básicos (promoções, novidades, newsletter) e
   // no master de email. Tipos Pro + master de push ficam congelados nos
   // valores atuais enquanto o usuário não assina.
   if (!user.isPro) {
-    const existing = await repo.findForUser(user.id);
     await repo.upsert({
       userId: user.id,
       pushEnabled: existing?.pushEnabled ?? true,
       emailEnabled: parsed.data.emailEnabled,
       debtDueEnabled: existing?.debtDueEnabled ?? true,
+      debtDueDaysBefore,
       assetPriceEnabled: existing?.assetPriceEnabled ?? true,
       monthlySummaryEnabled: existing?.monthlySummaryEnabled ?? true,
       promotionsEnabled: parsed.data.promotionsEnabled,
@@ -59,6 +64,7 @@ export async function updateNotificationPreferencesAction(input: {
     pushEnabled: parsed.data.pushEnabled,
     emailEnabled: parsed.data.emailEnabled,
     debtDueEnabled: parsed.data.debtDueEnabled,
+    debtDueDaysBefore,
     assetPriceEnabled: parsed.data.assetPriceEnabled,
     monthlySummaryEnabled: parsed.data.monthlySummaryEnabled,
     promotionsEnabled: parsed.data.promotionsEnabled,

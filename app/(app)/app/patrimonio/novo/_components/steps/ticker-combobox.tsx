@@ -3,6 +3,8 @@
 import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
+import { Spinner } from "@/app/components/ui/spinner";
+
 import {
   searchStockCatalogAction,
   type StockCatalogSearchResult,
@@ -117,9 +119,7 @@ export function TickerCombobox({
           className="absolute z-30 mt-1 max-h-72 w-full overflow-auto rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1 shadow-lg backdrop-blur-md"
         >
           {loading ? (
-            <div className="px-3 py-2 text-[0.75rem] text-[color:var(--text-secondary)]">
-              Buscando...
-            </div>
+            <div className="flex justify-center py-3"><Spinner size={16} /></div>
           ) : results.length > 0 ? (
             <>
               {results.map((r) => {

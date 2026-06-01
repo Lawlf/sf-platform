@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { useId } from "react";
 import { Controller, type FieldValues, type UseFormReturn } from "react-hook-form";
 
@@ -10,6 +9,7 @@ import {
   type ActiveAssetPayload,
 } from "../_actions/list-active-assets.action";
 
+import { Spinner } from "@/app/components/ui/spinner";
 import { WizardField, wizardInputClass } from "./wizard-field";
 import { WizardMoneyField } from "./wizard-money-field";
 import { WizardRadioCard } from "./wizard-radio-card";
@@ -148,10 +148,7 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
       {choice === "existing" ? (
         <div className="flex flex-col gap-2">
           {isLoading ? (
-            <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-70">
-              <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
-              Carregando bens...
-            </div>
+            <div className="flex justify-center py-4"><Spinner size={20} /></div>
           ) : !assets || assets.length === 0 ? (
             <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] text-[color:var(--text-primary)] opacity-75">
               Nenhum bem ativo encontrado. Escolha &quot;Cadastrar novo&quot; acima ou volte depois.

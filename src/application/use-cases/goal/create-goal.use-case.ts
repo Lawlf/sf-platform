@@ -40,7 +40,20 @@ export async function createGoal(
     if (active >= 1) {
       return {
         ok: false,
-        message: "No plano Free voce mantem 1 meta ativa. O Pro libera varias.",
+        message: "No plano Free você mantém 1 meta ativa. O Pro libera várias.",
+      };
+    }
+  }
+
+  if (input.type === "debt_payoff" && input.linkedDebtId) {
+    const active = await goals.listForUser(userId, { status: "active" });
+    const dup = active.some(
+      (g) => g.type === "debt_payoff" && g.linkedDebtId === input.linkedDebtId,
+    );
+    if (dup) {
+      return {
+        ok: false,
+        message: "Esta dívida já tem uma meta de quitação ativa.",
       };
     }
   }
@@ -84,7 +97,11 @@ function normalizeFields(input: CreateGoalInput): Omit<
       return { ...base, linkedDebtId: input.linkedDebtId ?? null };
 
     case "emergency_fund":
-      return { ...base, targetMonths: input.targetMonths ?? null };
+      return {
+        ...base,
+        targetMonths: input.targetMonths ?? null,
+        monthlyCostCents: input.monthlyCostCents ?? null,
+      };
 
     case "savings":
       return {

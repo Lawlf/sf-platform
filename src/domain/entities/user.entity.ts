@@ -14,6 +14,8 @@ export interface UserEntity {
   deactivationReason: string | null;
   contentDiagnosticAnswer: ContentDiagnosticAnswer | null;
   contentDiagnosticAnsweredAt: Date | null;
+  onboardingWizardSeenAt: Date | null;
+  homeTourDismissedAt: Date | null;
   quickAccess: string[];
   createdAt: Date;
   updatedAt: Date;

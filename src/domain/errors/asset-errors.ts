@@ -76,7 +76,7 @@ export class AllocationExceedsPrincipal extends DomainError {
 export class AssetFipeNotApplicable extends DomainError {
   readonly code = "ASSET_FIPE_NOT_APPLICABLE" as const;
 
-  constructor(message = "Ativo nao e veiculo ou nao possui codigo FIPE configurado.") {
+  constructor(message = "Ativo não é veículo ou não possui código FIPE configurado.") {
     super(message);
   }
 }
@@ -94,7 +94,7 @@ export class AssetFipeRefreshFailed extends DomainError {
 export class AssetNotStock extends DomainError {
   readonly code = "ASSET_NOT_STOCK" as const;
 
-  constructor(message = "Esse ativo nao e uma acao.") {
+  constructor(message = "Esse ativo não é uma ação.") {
     super(message);
   }
 }
@@ -102,7 +102,7 @@ export class AssetNotStock extends DomainError {
 export class QuoteUnavailable extends DomainError {
   readonly code = "QUOTE_UNAVAILABLE" as const;
 
-  constructor(message = "Nao foi possivel buscar a cotacao no momento.") {
+  constructor(message = "Não foi possível buscar a cotação no momento.") {
     super(message);
   }
 }

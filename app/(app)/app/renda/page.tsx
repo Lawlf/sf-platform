@@ -24,6 +24,15 @@ export default async function RendaPage() {
         Adicionar nova renda
       </Link>
 
+      <div className="flex justify-end">
+        <Link
+          href={"/app/simular/salario-clt" as Route}
+          className="inline-flex items-center gap-1.5 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] hover:underline"
+        >
+          Simular salário líquido
+        </Link>
+      </div>
+
       <Suspense fallback={<IncomeListsSkeleton />}>
         <RendaListClient />
       </Suspense>

@@ -30,7 +30,7 @@ export async function deleteIncome(
   input: DeleteIncomeInput,
 ): Promise<Result<void, IncomeNotFound | Forbidden>> {
   const existing = await deps.incomes.findById(input.incomeId);
-  if (!existing) return err(new IncomeNotFound("Renda nao encontrada."));
+  if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   await deps.incomes.softDelete(input.incomeId, deps.clock.now());

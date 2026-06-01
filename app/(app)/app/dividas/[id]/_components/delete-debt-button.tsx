@@ -49,7 +49,6 @@ export function DeleteDebtButton({ debtId, label }: DeleteDebtButtonProps) {
         queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
         queryClient.invalidateQueries({ queryKey: queryKeys.debts("written_off") }),
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
-        queryClient.invalidateQueries({ queryKey: queryKeys.upcomingDues }),
         queryClient.invalidateQueries({ queryKey: queryKeys.netWorth }),
         queryClient.invalidateQueries({ queryKey: queryKeys.assetsWithAllocations }),
         queryClient.invalidateQueries({ queryKey: ["timeline"] }),

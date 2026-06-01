@@ -10,6 +10,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../../_components/page-shell";
+import { parseGoalSeed } from "../../simular/_lib/goal-seed";
 import { loadSimPrefill } from "../../simular/_lib/sim-prefill";
 import { fetchGoalsWithProgress } from "../_actions/goal-queries";
 
@@ -17,7 +18,13 @@ import { NewGoal } from "./_components/new-goal.client";
 
 export const metadata: Metadata = { title: "Nova meta" };
 
-export default async function NovaMetaPage() {
+export default async function NovaMetaPage({
+  searchParams,
+}: {
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
+}) {
+  const sp = await searchParams;
+  const seed = parseGoalSeed(sp);
   const user = await requireUser();
 
   // Free plan: block if already has >= 1 active goal
@@ -101,7 +108,7 @@ export default async function NovaMetaPage() {
 
   return (
     <PageShell title="Nova meta" backHref={"/app/metas" as Route}>
-      <NewGoal prefill={prefill} debts={debtList} assets={assetList} />
+      <NewGoal prefill={prefill} debts={debtList} assets={assetList} seed={seed} />
     </PageShell>
   );
 }

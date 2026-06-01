@@ -1,6 +1,5 @@
 import {
   ArrowRight,
-  BookOpen,
   Calculator,
   ChevronRight,
   Coins,
@@ -29,8 +28,9 @@ export function LandingMockDashboard() {
       />
 
       <div
-        className="relative aspect-[9/21.5] rounded-[3rem] p-[8px]"
+        className="relative rounded-[3rem] p-[8px]"
         style={{
+          aspectRatio: "9 / 18.8",
           background: "linear-gradient(160deg, #2a2725 0%, #1a1816 60%, #2a2725 100%)",
           boxShadow:
             "0 50px 90px -25px rgba(31,29,28,0.55), 0 0 0 1px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08)",
@@ -232,6 +232,43 @@ export function LandingMockDashboard() {
               </section>
 
               <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
+                Sua meta
+              </p>
+
+              <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 backdrop-blur-xl">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="flex items-center gap-1.5 text-[10px] font-bold text-[color:var(--text-primary)]">
+                    <span className="flex h-5 w-5 items-center justify-center rounded-md bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+                      <Target size={11} strokeWidth={2} aria-hidden />
+                    </span>
+                    Reserva de emergência
+                  </span>
+                  <span
+                    className="text-[12px] font-extrabold tabular-nums text-[color:var(--text-primary)]"
+                    style={{ letterSpacing: "-0.02em" }}
+                  >
+                    68%
+                  </span>
+                </div>
+                <div className="mt-2 h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+                  <div
+                    className="h-full rounded-full bg-[color:var(--color-brand-500)]"
+                    style={{ width: "68%" }}
+                  />
+                </div>
+                <div className="mt-1.5 flex items-center justify-between text-[9px]">
+                  <span className="text-[color:var(--text-secondary)]">
+                    Faltam{" "}
+                    <span className="font-semibold text-[color:var(--text-primary)]">R$ 3.200</span>
+                  </span>
+                  <span className="text-[color:var(--text-secondary)]">
+                    Previsão{" "}
+                    <span className="font-semibold text-[color:var(--text-primary)]">mar. 2027</span>
+                  </span>
+                </div>
+              </section>
+
+              <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
                 Mais
               </p>
 
@@ -239,11 +276,6 @@ export function LandingMockDashboard() {
                 icon={LineChart}
                 title="Linha do tempo"
                 subtitle="Trajetória mês a mês."
-              />
-              <MockLink
-                icon={BookOpen}
-                title="Conteúdo"
-                subtitle="Trilha de aprendizado no seu ritmo."
               />
               <div aria-hidden className="h-[72px]" />
             </div>

@@ -26,7 +26,7 @@ export class CetCalculatorService {
       return err(new InvalidAmortizationParamsError("principal deve ser positivo."));
     }
     if (params.installments.some((m) => m.isNegative())) {
-      return err(new InvalidAmortizationParamsError("Parcelas nao podem ser negativas."));
+      return err(new InvalidAmortizationParamsError("Parcelas não podem ser negativas."));
     }
 
     const installments = params.installments.map((m) => m.toNumber());
@@ -36,7 +36,7 @@ export class CetCalculatorService {
     if (net <= 0) {
       return err(
         new InvalidAmortizationParamsError(
-          "Principal liquido (descontadas taxas) deve ser positivo.",
+          "Principal líquido (descontadas taxas) deve ser positivo.",
         ),
       );
     }
@@ -63,19 +63,19 @@ export class CetCalculatorService {
       if (Math.abs(f) < tol) {
         const final = InterestRate.fromMonthly(r);
         if (!isOk(final)) {
-          return err(new InvalidAmortizationParamsError("CET convergiu para taxa invalida."));
+          return err(new InvalidAmortizationParamsError("CET convergiu para taxa inválida."));
         }
         return ok(final.value);
       }
       if (Math.abs(fPrime) < MIN_DERIVATIVE) {
         return err(
-          new InvalidAmortizationParamsError("CET: derivada zero, nao foi possivel convergir."),
+          new InvalidAmortizationParamsError("CET: derivada zero, não foi possível convergir."),
         );
       }
       r = r - f / fPrime;
       if (r <= MIN_RATE) r = MIN_RATE;
       if (!Number.isFinite(r)) {
-        return err(new InvalidAmortizationParamsError("CET: iteracao produziu valor nao finito."));
+        return err(new InvalidAmortizationParamsError("CET: iteração produziu valor não finito."));
       }
     }
 

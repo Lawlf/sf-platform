@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
@@ -25,7 +26,9 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 
+import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
+import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 import { WizardMoneyField } from "../../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
@@ -114,6 +117,8 @@ export interface AssetDetailViewProps {
     ratePctYear: number;
     acquiredAtFormatted: string | null;
   } | null;
+  /** Metas vinculadas a este ativo. */
+  linkedGoals: SerializedGoalWithProgress[];
 }
 
 function formatCentsToBRL(cents: bigint): string {
@@ -222,6 +227,46 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         availableDebts={props.availableDebts}
         hasLinkedDebts={props.linkedDebts.length > 0}
       />
+
+      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Metas vinculadas</h2>
+          <Link
+            href={
+              `/app/metas/nova?${buildGoalSeedQuery({
+                type: "savings",
+                targetCents: "0",
+                savedCents: "0",
+                deadlineIso: null,
+                fundingMode: "linked",
+                linkedAssetId: props.assetId,
+              })}` as Route
+            }
+            className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+          >
+            Criar meta com este bem
+          </Link>
+        </div>
+        {props.linkedGoals.length > 0 ? (
+          <ul className="mt-3 flex flex-col gap-2">
+            {props.linkedGoals.map((g) => (
+              <li key={g.goal.id}>
+                <Link
+                  href={`/app/metas/${g.goal.id}` as Route}
+                  className="flex items-center justify-between rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.8125rem] hover:bg-[color:var(--surface-1)]"
+                >
+                  <span className="font-medium text-[color:var(--text-primary)]">{g.goal.title}</span>
+                  <span className="text-[color:var(--text-muted)]">{g.progress.pct}%</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
+            Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
+          </p>
+        )}
+      </section>
 
       <DeactivateSection assetId={props.assetId} label={props.label} />
     </div>
@@ -724,11 +769,13 @@ interface DeactivateFormValues {
 
 function DeactivateSection({ assetId, label }: { assetId: string; label: string }) {
   const queryClient = useQueryClient();
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<DeactivationKind>("sold");
   const [notes, setNotes] = useState("");
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
+  const [soldNudge, setSoldNudge] = useState<bigint | null>(null);
 
   const form = useForm<DeactivateFormValues>({
     defaultValues: { salePriceCents: 0n as unknown as bigint },
@@ -744,12 +791,14 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
   function onConfirm() {
     setError(null);
     let salePriceCents: string | null = null;
+    let salePriceBigInt: bigint | null = null;
     if (kind === "sold") {
       const sp = form.getValues("salePriceCents");
       if (typeof sp !== "bigint" || sp <= 0n) {
         setError("Informe por quanto vendeu.");
         return;
       }
+      salePriceBigInt = sp;
       salePriceCents = sp.toString();
     }
     const trimmedNotes = notes.trim();
@@ -765,7 +814,12 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
         return;
       }
       await invalidateAssetCaches(queryClient);
-      // on success the action redirects to /app/patrimonio
+      setOpen(false);
+      if (kind === "sold" && salePriceBigInt !== null && salePriceBigInt > 0n) {
+        setSoldNudge(salePriceBigInt);
+        return;
+      }
+      router.push("/app/patrimonio" as Route);
     });
   }
 
@@ -867,6 +921,48 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
               Confirmar desativação
             </Button>
           </div>
+        </SheetContent>
+      </Sheet>
+
+      <Sheet
+        open={soldNudge !== null}
+        onOpenChange={(o) => {
+          if (!o) {
+            setSoldNudge(null);
+            router.push("/app/patrimonio" as Route);
+          }
+        }}
+      >
+        <SheetContent side="bottom" className="flex flex-col gap-3">
+          <SheetHeader>
+            <SheetTitle>Você liberou {formatCentsToBRL(soldNudge ?? 0n)}</SheetTitle>
+            <SheetDescription>O que fazer com esse dinheiro agora?</SheetDescription>
+          </SheetHeader>
+          <Link
+            href={"/app/dividas" as Route}
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Quitar uma dívida
+          </Link>
+          <Link
+            href={
+              `/app/metas/nova?${buildGoalSeedQuery({
+                type: "savings",
+                targetCents: (soldNudge ?? 0n).toString(),
+                savedCents: (soldNudge ?? 0n).toString(),
+                deadlineIso: null,
+              })}` as Route
+            }
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Guardar esse valor
+          </Link>
+          <Link
+            href={"/app/simular/juros-compostos" as Route}
+            className="focus-ring inline-flex h-10 w-full items-center justify-center rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+          >
+            Investir
+          </Link>
         </SheetContent>
       </Sheet>
     </section>

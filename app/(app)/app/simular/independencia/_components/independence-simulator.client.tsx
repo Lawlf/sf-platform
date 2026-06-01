@@ -9,6 +9,7 @@ import { FinancialIndependenceService } from "@/domain/services/financial-indepe
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 
 const DEFAULT_REAL_RETURN = 4; // % a.a. acima da inflação (CDI real histórico ~4-5%).
 
@@ -125,6 +126,15 @@ export function IndependenceSimulatorClient({ prefill }: PrefillProps) {
           <ResultStat label="Rendeu sozinho" value={brl(result.totalGrowthCents)} />
         </ResultCard>
       </section>
+      {cost > 0n ? (
+        <SimToGoalCta
+          seed={{
+            type: "financial_independence",
+            monthlyCostCents: cost.toString(),
+            realReturnPct,
+          }}
+        />
+      ) : null}
     </div>
   );
 }

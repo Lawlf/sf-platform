@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
+import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
@@ -173,6 +174,8 @@ export default async function AssetDetailPage({ params }: PageProps) {
     };
   }
 
+  const linkedGoals = await fetchGoalsLinkedToAsset(id);
+
   // Description (apenas para categoria "other" com metadata.description).
   let description: string | null = null;
   if (
@@ -225,6 +228,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
         isPro={user.isPro}
         description={description}
         depreciation={depreciation}
+        linkedGoals={linkedGoals}
       />
     </PageShell>
   );

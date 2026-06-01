@@ -32,7 +32,7 @@ function generatePrice(
   }
   const i = params.annualRate.toMonthly().toDecimal();
   if (i < 0) {
-    return err(new InvalidAmortizationParamsError("Taxa mensal nao pode ser negativa."));
+    return err(new InvalidAmortizationParamsError("Taxa mensal não pode ser negativa."));
   }
   const n = params.termMonths;
   const P = params.principal.toNumber();

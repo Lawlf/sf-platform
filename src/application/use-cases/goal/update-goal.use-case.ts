@@ -23,12 +23,12 @@ export async function updateGoal(
 ): Promise<UpdateGoalResult> {
   const existing = await goals.findById(goalId);
   if (!existing || existing.userId !== userId) {
-    return { ok: false, message: "Meta nao encontrada." };
+    return { ok: false, message: "Meta não encontrada." };
   }
 
   const updated = await goals.update(goalId, patch);
   if (!updated) {
-    return { ok: false, message: "Meta nao encontrada." };
+    return { ok: false, message: "Meta não encontrada." };
   }
 
   return { ok: true, goal: updated };

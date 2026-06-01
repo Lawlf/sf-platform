@@ -32,11 +32,11 @@ export async function comparePayoffStrategies(
   if (input.debtIds.length > 0) {
     selected = allActive.filter((d) => input.debtIds.includes(d.id));
     if (selected.length !== input.debtIds.length) {
-      return err(new Forbidden("Divida invalida na selecao."));
+      return err(new Forbidden("Dívida inválida na seleção."));
     }
   }
   if (selected.length === 0) {
-    return err(new InvalidAmortizationParamsError("Selecione ao menos uma divida ativa."));
+    return err(new InvalidAmortizationParamsError("Selecione ao menos uma dívida ativa."));
   }
   const r = PayoffStrategyService.compare({
     debts: selected,

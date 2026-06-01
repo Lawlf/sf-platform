@@ -1,12 +1,12 @@
 import { z } from "zod";
 
 export const requestMagicLinkSchema = z.object({
-  email: z.string().email("Email invalido.").max(320),
+  email: z.string().email("Email inválido.").max(320),
 });
 
 export const verifyCodeSchema = z.object({
-  email: z.string().email("Email invalido.").max(320),
-  code: z.string().regex(/^\d{6}$/, "Codigo deve ter 6 digitos."),
+  email: z.string().email("Email inválido.").max(320),
+  code: z.string().regex(/^\d{6}$/, "Código deve ter 6 dígitos."),
 });
 
 export type RequestMagicLinkBody = z.infer<typeof requestMagicLinkSchema>;

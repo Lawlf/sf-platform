@@ -19,9 +19,9 @@ export async function reactivateIncome(
   input: ReactivateIncomeInput,
 ): Promise<Result<void, IncomeNotFound | Forbidden | IncomeAlreadyActive>> {
   const existing = await deps.incomes.findById(input.incomeId);
-  if (!existing) return err(new IncomeNotFound("Renda nao encontrada."));
+  if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
-  if (existing.isActive) return err(new IncomeAlreadyActive("Renda ja esta ativa."));
+  if (existing.isActive) return err(new IncomeAlreadyActive("Renda já está ativa."));
   if (deps.clock) {
     void deps.clock.now();
   }

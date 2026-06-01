@@ -239,6 +239,20 @@
       "when": 1779909705921,
       "tag": "0033_handy_valkyrie",
       "breakpoints": true
+    },
+    {
+      "idx": 34,
+      "version": "7",
+      "when": 1780188017685,
+      "tag": "0034_sparkling_songbird",
+      "breakpoints": true
+    },
+    {
+      "idx": 35,
+      "version": "7",
+      "when": 1780246810262,
+      "tag": "0035_lucky_mojo",
+      "breakpoints": true
     }
   ]
 }

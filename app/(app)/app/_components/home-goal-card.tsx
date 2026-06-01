@@ -1,4 +1,4 @@
-import { Lock, Target } from "lucide-react";
+import { Lock } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -22,25 +22,7 @@ export async function HomeGoalCard() {
   const primary = goals.find((g) => g.goal.status === "active");
 
   if (!primary) {
-    return (
-      <Link
-        href={"/app/metas/nova" as Route}
-        className="focus-ring flex items-center gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] py-[14px] backdrop-blur-xl transition-colors hover:bg-[color:var(--surface-2)]"
-        style={{ boxShadow: "0 4px 16px -4px rgba(31,29,28,0.06)" }}
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]">
-          <Target size={16} strokeWidth={1.75} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <p className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-            Defina uma meta
-          </p>
-          <p className="mt-0.5 text-[0.75rem] text-[color:var(--text-muted)]">
-            Escolha um objetivo e acompanhe seu progresso aqui.
-          </p>
-        </div>
-      </Link>
-    );
+    return null;
   }
 
   const { goal, progress, etaLocked } = primary;

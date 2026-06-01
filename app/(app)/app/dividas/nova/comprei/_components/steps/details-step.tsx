@@ -1,7 +1,6 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Loader2 } from "lucide-react";
 import { useId } from "react";
 import {
   type Control,
@@ -10,6 +9,7 @@ import {
   type UseFormWatch,
 } from "react-hook-form";
 
+import { Spinner } from "@/app/components/ui/spinner";
 import { WizardField, wizardInputClass } from "../../../_components/wizard-field";
 import { WizardMoneyField } from "../../../_components/wizard-money-field";
 import { WizardRadioCard } from "../../../_components/wizard-radio-card";
@@ -89,10 +89,7 @@ export function DetailsStep({
         </div>
 
         {loadingCash ? (
-          <div className="mt-3 flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] opacity-70">
-            <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
-            Carregando contas...
-          </div>
+          <div className="mt-3 flex justify-center py-4"><Spinner size={20} /></div>
         ) : hasCash ? (
           <div className="mt-3">
             <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
@@ -212,10 +209,7 @@ export function DetailsStep({
         ) : null}
 
         {loadingCards ? (
-          <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-3 text-[0.8125rem] opacity-70">
-            <Loader2 size={14} strokeWidth={2} className="animate-spin" aria-hidden />
-            Carregando cartões...
-          </div>
+          <div className="flex justify-center py-4"><Spinner size={20} /></div>
         ) : cards.length > 0 ? (
           <WizardField label="Em qual cartão?">
             <div className="flex flex-col gap-2">

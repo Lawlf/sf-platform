@@ -21,7 +21,7 @@ export async function archiveDebt(
 ): Promise<Result<void, DebtNotFound | Forbidden>> {
   return deps.lock.run(`debt:${input.debtId}`, 5_000, async () => {
     const existing = await deps.debts.findById(input.debtId);
-    if (!existing) return err(new DebtNotFound("Divida nao encontrada."));
+    if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
     if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
     if (existing.status !== "active") {

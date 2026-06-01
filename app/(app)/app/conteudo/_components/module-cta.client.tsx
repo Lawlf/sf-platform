@@ -6,6 +6,8 @@ import type { Route } from "next";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
+import { Spinner } from "@/app/components/ui/spinner";
+
 import { PayoffForm } from "../../simular/quitacao/_components/payoff-form";
 import { fetchPayoffDebts, type PayoffDebt } from "../_actions/payoff-debts.action";
 
@@ -79,7 +81,7 @@ function PayoffCta({ label }: { label: string }) {
         </div>
 
         {debts === null ? (
-          <p className="py-6 text-center text-[0.8125rem] text-[color:var(--text-muted)]">Carregando...</p>
+          <div className="flex justify-center py-6"><Spinner size={20} /></div>
         ) : debts.length === 0 ? (
           <p className="py-4 text-[0.8125rem] leading-[1.5] text-[color:var(--text-secondary)]">
             Cadastre uma dívida ativa para simular a quitação.

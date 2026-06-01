@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { TooltipProvider } from "@/app/components/ui/tooltip";
@@ -21,6 +22,10 @@ export const metadata: Metadata = {
 
 export default async function AppLayout({ children }: { children: ReactNode }) {
   const user = await requireUser();
+
+  if (user.onboardingWizardSeenAt === null) {
+    redirect("/comecar");
+  }
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;
   const notificationCount = await fetchUndismissedNotificationsCount();

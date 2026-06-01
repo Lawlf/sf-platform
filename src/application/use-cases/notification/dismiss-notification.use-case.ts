@@ -24,7 +24,7 @@ export async function dismissNotification(
   input: DismissNotificationInput,
 ): Promise<Result<void, NotificationNotFound | Forbidden>> {
   const existing = await deps.notifications.findById(input.notificationId);
-  if (!existing) return err(new NotificationNotFound("Notificacao nao encontrada."));
+  if (!existing) return err(new NotificationNotFound("Notificação não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
   if (existing.dismissedAt !== null) {
     return ok(undefined);

@@ -1,6 +1,6 @@
 "use client";
 
-import { Archive, Crown, Lock, Trash2 } from "lucide-react";
+import { Archive, Crown, Lock, Pencil, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -26,6 +26,7 @@ import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
 
 import { GoalEvolutionChart } from "./goal-evolution-chart";
+import { NextMoveAfterGoal } from "./next-move-after-goal.client";
 
 interface GoalDetailProps {
   detail: SerializedGoalDetail;
@@ -49,6 +50,13 @@ const TOPIC_BY_TYPE: Record<string, HowItWorksTopic> = {
   emergency_fund: "meta-reserva",
   savings: "meta-juntar",
   financial_independence: "meta-independencia",
+};
+
+const SIM_ROUTE: Record<string, Route> = {
+  emergency_fund: "/app/simular/reserva" as Route,
+  savings: "/app/simular/meta" as Route,
+  financial_independence: "/app/simular/independencia" as Route,
+  debt_payoff: "/app/simular/quitacao" as Route,
 };
 
 export function GoalDetail({ detail }: GoalDetailProps) {
@@ -108,6 +116,11 @@ export function GoalDetail({ detail }: GoalDetailProps) {
         <ResultStat label="Já juntou/pagou" value={brl(progress.currentCents)} />
         <ResultStat label="Alvo total" value={brl(progress.targetCents)} />
         {!progress.reached && <ResultStat label="Falta" value={brl(String(remainingCents))} />}
+        {goal.type === "emergency_fund" && goal.monthlyCostCents === null && (
+          <p className="mt-1 text-[0.7rem] text-[color:var(--text-muted)]">
+            Reserva estimada com base em ~75% da sua renda mensal.
+          </p>
+        )}
       </ResultCard>
 
       {/* Evolution chart */}
@@ -123,7 +136,29 @@ export function GoalDetail({ detail }: GoalDetailProps) {
       ) : null}
 
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
-      <div className="flex items-center justify-end gap-1 border-t border-[color:var(--border-soft)] pt-3">
+      <div className="flex flex-col gap-2 border-t border-[color:var(--border-soft)] pt-3">
+        {/* Acoes primarias: Editar + Simular, largura igual, sem quebra de linha */}
+        <div className="grid grid-cols-2 gap-2">
+          <Button asChild variant="outline" size="sm" className="w-full justify-center gap-1.5">
+            <Link href={`/app/metas/${goal.id}/editar` as Route}>
+              <Pencil size={14} strokeWidth={2} aria-hidden />
+              Editar
+            </Link>
+          </Button>
+          {(() => {
+            const simRoute = SIM_ROUTE[goal.type];
+            return simRoute ? (
+              <Button asChild variant="outline" size="sm" className="w-full justify-center gap-1.5">
+                <Link href={simRoute}>
+                  <SlidersHorizontal size={14} strokeWidth={2} aria-hidden />
+                  Simular
+                </Link>
+              </Button>
+            ) : null;
+          })()}
+        </div>
+        {/* Lifecycle / destrutivo: discreto, abaixo das primarias */}
+        <div className="flex items-center justify-end gap-1">
         <AlertDialog>
           <AlertDialogTrigger asChild>
             <Button type="button" size="sm" variant="ghost" className="gap-1.5" disabled={archiving}>
@@ -177,6 +212,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        </div>
       </div>
     </div>
   );
@@ -201,6 +237,9 @@ function EtaHero({
         <p className="mt-2 text-[0.75rem] font-medium text-white/85">
           Parabéns! Você chegou ao alvo desta meta.
         </p>
+        <div className="mt-3">
+          <NextMoveAfterGoal />
+        </div>
       </section>
     );
   }

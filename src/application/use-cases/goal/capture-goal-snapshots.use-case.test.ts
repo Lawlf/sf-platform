@@ -38,6 +38,7 @@ function makeMinimalMacro(): GoalMacro {
     cashReserveCents: 0n,
     contributionCents: 0n,
     monthlyServiceCents: 0n,
+    monthlyIncomeCents: 0n,
     debts: [],
   };
 }

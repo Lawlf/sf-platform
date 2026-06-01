@@ -7,6 +7,7 @@ export interface NotificationPreferencesRepository {
     pushEnabled: boolean;
     emailEnabled: boolean;
     debtDueEnabled: boolean;
+    debtDueDaysBefore: number;
     assetPriceEnabled: boolean;
     monthlySummaryEnabled: boolean;
     promotionsEnabled: boolean;

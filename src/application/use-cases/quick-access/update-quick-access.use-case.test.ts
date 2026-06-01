@@ -11,6 +11,7 @@ function user(): UserEntity {
     id: "u1", email: "a@b.com", emailVerifiedAt: NOW, displayName: "A",
     role: "user", plan: "pro", isPro: true, deactivatedAt: null, deactivationReason: null,
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null,
+    onboardingWizardSeenAt: null, homeTourDismissedAt: null,
     createdAt: NOW, updatedAt: NOW, quickAccess: [],
   };
 }

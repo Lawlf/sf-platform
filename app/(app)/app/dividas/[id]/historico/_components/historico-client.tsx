@@ -3,6 +3,8 @@
 import { CalendarRange, Plus, Trash2, X } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 
+import { Spinner } from "@/app/components/ui/spinner";
+
 import {
   addOverrideAction,
   addPeriodAction,
@@ -440,7 +442,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                 disabled={pending}
                 className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
               >
-                {pending ? "Salvando..." : "Salvar faixa"}
+                {pending ? <Spinner size={16} decorative /> : "Salvar faixa"}
               </button>
             </div>
           </form>
@@ -489,7 +491,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                 disabled={pending}
                 className="focus-ring mt-2 rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] disabled:opacity-50"
               >
-                {pending ? "Salvando..." : "Salvar ajuste"}
+                {pending ? <Spinner size={16} decorative /> : "Salvar ajuste"}
               </button>
             </div>
           </form>

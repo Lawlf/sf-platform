@@ -44,19 +44,19 @@ export async function linkAssetToDebt(
   input: LinkAssetToDebtInput,
 ): Promise<Result<AssetDebtAllocation, LinkAssetToDebtError>> {
   if (input.allocationOriginalCents <= 0n) {
-    return err(new InvalidAllocation("Alocacao deve ser maior que zero."));
+    return err(new InvalidAllocation("Alocação deve ser maior que zero."));
   }
 
   const asset = await deps.assets.findById(input.assetId, input.userId);
-  if (!asset) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
-    return err(new AssetDeactivated("Ativo desativado nao pode ser vinculado a dividas."));
+    return err(new AssetDeactivated("Ativo desativado não pode ser vinculado a dívidas."));
   }
 
   const debt = await deps.debts.findById(input.debtId);
-  if (!debt) return err(new DebtNotFound("Divida nao encontrada."));
+  if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
   if (debt.userId !== input.userId) {
-    return err(new Forbidden("Acesso negado a divida informada."));
+    return err(new Forbidden("Acesso negado à dívida informada."));
   }
   if (debt.status !== "active") {
     return err(new DebtNotActive(input.debtId));

@@ -35,7 +35,7 @@ export async function deleteDebt(
   input: DeleteDebtInput,
 ): Promise<Result<void, DebtNotFound | Forbidden>> {
   const existing = await deps.debts.findById(input.debtId);
-  if (!existing) return err(new DebtNotFound("Divida nao encontrada."));
+  if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   await deps.payments.deleteByDebtId(input.debtId);

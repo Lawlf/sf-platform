@@ -29,18 +29,18 @@ export class DebtPayoffProjectorService {
       return err(new InvalidAmortizationParamsError("maxMonths deve ser inteiro >= 1."));
     }
     if (!input.monthlyPayment.isPositive() && !input.monthlyPayment.isZero()) {
-      return err(new InvalidAmortizationParamsError("monthlyPayment nao pode ser negativo."));
+      return err(new InvalidAmortizationParamsError("monthlyPayment não pode ser negativo."));
     }
     if (input.extraPayment && input.extraPayment.isNegative()) {
-      return err(new InvalidAmortizationParamsError("extraPayment nao pode ser negativo."));
+      return err(new InvalidAmortizationParamsError("extraPayment não pode ser negativo."));
     }
     if (!input.debt.currentBalance.isPositive()) {
-      return err(new InvalidAmortizationParamsError("Saldo atual da divida deve ser positivo."));
+      return err(new InvalidAmortizationParamsError("Saldo atual da dívida deve ser positivo."));
     }
 
     const monthlyRate = monthlyRateFor(input.debt);
     if (!Number.isFinite(monthlyRate) || monthlyRate < 0) {
-      return err(new InvalidAmortizationParamsError("Taxa mensal invalida para a divida."));
+      return err(new InvalidAmortizationParamsError("Taxa mensal inválida para a dívida."));
     }
 
     const monthlyPayment = input.monthlyPayment.toNumber();

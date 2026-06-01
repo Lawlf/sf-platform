@@ -23,12 +23,12 @@ export class RevolvingCostProjectorService {
       return err(new InvalidAmortizationParamsError("monthsAhead deve ser inteiro >= 0."));
     }
     if (input.currentBalance.isNegative()) {
-      return err(new InvalidAmortizationParamsError("currentBalance nao pode ser negativo."));
+      return err(new InvalidAmortizationParamsError("currentBalance não pode ser negativo."));
     }
 
     const r = input.monthlyRate.toDecimal();
     if (!Number.isFinite(r) || r < 0) {
-      return err(new InvalidAmortizationParamsError("Taxa mensal invalida."));
+      return err(new InvalidAmortizationParamsError("Taxa mensal inválida."));
     }
 
     if (input.monthsAhead === 0) {

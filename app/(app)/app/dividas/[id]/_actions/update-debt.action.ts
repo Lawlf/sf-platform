@@ -24,13 +24,13 @@ const bigintFromString = z
     try {
       return BigInt(v);
     } catch {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Numero invalido." });
+      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Número inválido." });
       return z.NEVER;
     }
   });
 
 const positiveBigint = bigintFromString.refine((v) => v > 0n, "Deve ser positivo.");
-const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Nao pode ser negativo.");
+const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Não pode ser negativo.");
 
 const optionalMoney = z
   .union([nonNegativeBigint, z.literal("").transform(() => null)])
@@ -181,7 +181,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
         };
       });
     } catch {
-      return { ok: false, message: "Compras parceladas: JSON invalido." };
+      return { ok: false, message: "Compras parceladas: JSON inválido." };
     }
   }
 

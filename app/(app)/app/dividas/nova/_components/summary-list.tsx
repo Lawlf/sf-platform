@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
+
 export interface SummaryItem {
   label: string;
-  value: string;
+  value: ReactNode;
 }
 
 export interface SummaryListProps {
@@ -20,7 +22,7 @@ export function SummaryList({ items }: SummaryListProps) {
           <span className="shrink-0 text-[color:var(--text-primary)] opacity-70">{item.label}</span>
           <span
             className="min-w-0 max-w-[65%] truncate text-right font-bold text-[color:var(--text-primary)]"
-            title={item.value}
+            title={typeof item.value === "string" ? item.value : undefined}
           >
             {item.value}
           </span>

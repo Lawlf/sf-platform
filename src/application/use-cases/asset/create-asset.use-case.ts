@@ -79,14 +79,14 @@ export async function createAsset(
 ): Promise<Result<AssetEntity, CreateAssetError>> {
   const label = input.label.trim();
   if (label.length === 0 || label.length > 120) {
-    return err(new InvalidAssetLabel("Rotulo do ativo deve ter entre 1 e 120 caracteres."));
+    return err(new InvalidAssetLabel("Rótulo do ativo deve ter entre 1 e 120 caracteres."));
   }
   if (input.currentValueCents < 0n) {
-    return err(new InvalidAssetValue("Valor do ativo nao pode ser negativo."));
+    return err(new InvalidAssetValue("Valor do ativo não pode ser negativo."));
   }
   if (input.purchasePriceCents !== undefined && input.purchasePriceCents !== null) {
     if (input.purchasePriceCents < 0n) {
-      return err(new InvalidAssetValue("Preço de compra nao pode ser negativo."));
+      return err(new InvalidAssetValue("Preço de compra não pode ser negativo."));
     }
   }
 
@@ -97,12 +97,12 @@ export async function createAsset(
   // Validate each allocation against its debt and cumulative budget.
   for (const alloc of input.allocations) {
     if (alloc.allocationOriginalCents <= 0n) {
-      return err(new InvalidAllocation("Alocacao deve ser maior que zero."));
+      return err(new InvalidAllocation("Alocação deve ser maior que zero."));
     }
     const debt = await deps.debts.findById(alloc.debtId);
-    if (!debt) return err(new DebtNotFound(`Divida ${alloc.debtId} nao encontrada.`));
+    if (!debt) return err(new DebtNotFound(`Dívida ${alloc.debtId} não encontrada.`));
     if (debt.userId !== input.userId) {
-      return err(new Forbidden("Acesso negado a divida informada."));
+      return err(new Forbidden("Acesso negado à dívida informada."));
     }
     if (debt.status !== "active") {
       return err(new DebtNotActive(alloc.debtId));

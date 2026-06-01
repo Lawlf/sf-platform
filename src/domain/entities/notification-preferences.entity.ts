@@ -10,12 +10,28 @@ export interface NotificationPreferencesEntity {
   // Toggles por tipo de notificação. Canais usados por cada tipo são
   // definidos no código (NOTIFICATION_KIND_CHANNELS abaixo).
   debtDueEnabled: boolean;
+  // Antecedência (em dias) do aviso de vencimento de dívida. 0 = no dia.
+  // Valores válidos em DEBT_DUE_DAYS_BEFORE_OPTIONS.
+  debtDueDaysBefore: number;
   assetPriceEnabled: boolean;
   monthlySummaryEnabled: boolean;
   promotionsEnabled: boolean;
   newsEnabled: boolean;
   newsletterEnabled: boolean;
   updatedAt: Date;
+}
+
+// Opções de antecedência oferecidas pro aviso de vencimento. 0 = "no dia".
+export const DEBT_DUE_DAYS_BEFORE_OPTIONS: ReadonlyArray<number> = [0, 1, 3, 7];
+
+export const DEBT_DUE_DAYS_BEFORE_DEFAULT = 3;
+
+// Normaliza um valor arbitrário pra uma das opções válidas, caindo no default
+// quando fora da lista. Usado na action e na desserialização.
+export function normalizeDebtDueDaysBefore(value: number): number {
+  return DEBT_DUE_DAYS_BEFORE_OPTIONS.includes(value)
+    ? value
+    : DEBT_DUE_DAYS_BEFORE_DEFAULT;
 }
 
 export type NotificationKindKey =

@@ -9,6 +9,8 @@ export interface UserRepository {
     displayName?: string | null;
   }): Promise<UserEntity>;
   markEmailVerified(id: string): Promise<void>;
+  markOnboardingWizardSeen(id: string): Promise<void>;
+  markHomeTourDismissed(id: string): Promise<void>;
   deactivate(id: string, reason: string | null): Promise<void>;
   update(user: UserEntity): Promise<void>;
   /**

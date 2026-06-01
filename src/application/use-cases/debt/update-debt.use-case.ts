@@ -47,7 +47,7 @@ export async function updateDebt(
   input: UpdateDebtInput,
 ): Promise<Result<DebtEntity, DebtNotFound | Forbidden>> {
   const existing = await deps.debts.findById(input.debtId);
-  if (!existing) return err(new DebtNotFound("Divida nao encontrada."));
+  if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
   if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
 
   const now = deps.clock.now();

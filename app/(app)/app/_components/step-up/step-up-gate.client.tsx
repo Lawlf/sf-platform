@@ -6,6 +6,7 @@ import { PasskeyChallenge } from "@/app/components/auth/passkey-challenge.client
 import { TotpChallenge } from "@/app/components/auth/totp-challenge.client";
 import { Button } from "@/app/components/ui/button";
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
 
 import { beginStepUpPasskeyAction, confirmStepUpPasskeyAction, getStepUpFactorsAction, stepUpPinAction, stepUpTotpAction } from "./step-up.actions";
 
@@ -22,7 +23,7 @@ export function StepUpGate({ open, onOpenChange, onConfirmed, title = "Confirme 
           <SheetTitle>{title}</SheetTitle>
           <SheetDescription>Esta ação é sensível. Confirme com passkey, código ou PIN.</SheetDescription>
         </SheetHeader>
-        {!factors ? <p className="text-sm text-[color:var(--text-muted)]">Carregando…</p> : (
+        {!factors ? <div className="flex justify-center py-4"><Spinner size={20} /></div> : (
           <div className="flex flex-col gap-4">
             {factors.hasPasskey ? <PasskeyChallenge begin={beginStepUpPasskeyAction} confirm={confirmStepUpPasskeyAction} onSuccess={onConfirmed} /> : null}
             {factors.hasTotp ? <TotpChallenge onSubmit={stepUpTotpAction} onSuccess={onConfirmed} /> : null}

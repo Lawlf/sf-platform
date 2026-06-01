@@ -42,9 +42,9 @@ export async function refreshAssetFromFipe(
   input: RefreshAssetFromFipeInput,
 ): Promise<Result<RefreshAssetFromFipeOutput, RefreshAssetFromFipeError>> {
   const asset = await deps.assets.findById(input.assetId, input.userId);
-  if (!asset) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
-    return err(new AssetDeactivated("Ativo desativado nao pode ser atualizado via FIPE."));
+    return err(new AssetDeactivated("Ativo desativado não pode ser atualizado via FIPE."));
   }
   if (asset.category !== "vehicle" || !asset.fipeCode) {
     return err(new AssetFipeNotApplicable());

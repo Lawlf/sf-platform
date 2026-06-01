@@ -66,7 +66,7 @@ export function QuickAccessEditor({ isPro, initialKeys, catalog }: Props) {
   };
 
   return (
-    <div className={isPro ? "" : "opacity-60"}>
+    <div>
       {!isPro ? (
         <div className="mb-5 flex items-center justify-between gap-2 rounded-[14px] border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.08] px-4 py-3">
           <span className="flex items-center gap-2 text-[0.8125rem] text-[color:var(--text-secondary)]">
@@ -83,6 +83,7 @@ export function QuickAccessEditor({ isPro, initialKeys, catalog }: Props) {
         </div>
       ) : null}
 
+      <div className={isPro ? "" : "opacity-60"}>
       <div className="mb-2 flex items-center gap-2">
         <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
           Seus atalhos
@@ -177,6 +178,7 @@ export function QuickAccessEditor({ isPro, initialKeys, catalog }: Props) {
           </div>
         );
       })}
+      </div>
     </div>
   );
 }

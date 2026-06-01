@@ -27,7 +27,7 @@ export async function unlinkAssetFromDebt(
   input: UnlinkAssetFromDebtInput,
 ): Promise<Result<void, UnlinkAssetFromDebtError>> {
   const asset = await deps.assets.findById(input.assetId, input.userId);
-  if (!asset) return err(new AssetNotFound("Ativo nao encontrado."));
+  if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
 
   await deps.allocations.delete(input.assetId, input.debtId);
   return ok(undefined);

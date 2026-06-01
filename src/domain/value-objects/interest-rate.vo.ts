@@ -24,10 +24,10 @@ export class InterestRate {
     period: RatePeriod,
   ): Result<InterestRate, InvalidInterestRateError> {
     if (!Number.isFinite(value)) {
-      return err(new InvalidInterestRateError("Taxa deve ser um numero finito."));
+      return err(new InvalidInterestRateError("Taxa deve ser um número finito."));
     }
     if (value <= -1) {
-      return err(new InvalidInterestRateError("Taxa nao pode ser menor ou igual a -100%."));
+      return err(new InvalidInterestRateError("Taxa não pode ser menor ou igual a -100%."));
     }
     return ok(new InterestRate(value, period));
   }

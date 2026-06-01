@@ -16,6 +16,7 @@ export interface GoalMacro {
   cashReserveCents: bigint;
   contributionCents: bigint;
   monthlyServiceCents: bigint;
+  monthlyIncomeCents: bigint;
   debts: GoalMacroDebt[];
 }
 
@@ -30,6 +31,11 @@ export interface GoalProgress {
 
 const MAX_MONTHS = 1200;
 const DEFAULT_SAVINGS_RATE_PCT = 8;
+
+// Custo de vida estimado quando o usuario nao informou um custo: 75% da renda
+// mensal (a reserva cobre o custo de vida, nao a renda bruta). Bigint exato: x3/4.
+const RESERVE_COST_NUM = 3n;
+const RESERVE_COST_DEN = 4n;
 
 export class GoalProgressService {
   static compute(goal: GoalEntity, macro: GoalMacro): GoalProgress {
@@ -65,8 +71,10 @@ function debtPayoff(goal: GoalEntity, macro: GoalMacro): GoalProgress {
 
 function emergencyFund(goal: GoalEntity, macro: GoalMacro): GoalProgress {
   const months = goal.targetMonths ?? 6;
+  const monthlyCostCents =
+    goal.monthlyCostCents ?? (macro.monthlyIncomeCents * RESERVE_COST_NUM) / RESERVE_COST_DEN;
   const r = EmergencyFundService.simulate({
-    monthlyCostCents: macro.monthlyServiceCents,
+    monthlyCostCents,
     currentReserveCents: macro.cashReserveCents,
     targetMonths: months,
     monthlyContributionCents: macro.contributionCents,

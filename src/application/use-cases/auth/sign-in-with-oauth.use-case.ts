@@ -59,7 +59,7 @@ export async function signInWithOauth(
       if (!profile.emailVerified || !byEmail.emailVerifiedAt) {
         return err(
           new OauthAccountLinkRequiresVerification(
-            "Ja existe uma conta com este email. Entre com o magic link para vincular este provedor.",
+            "Já existe uma conta com este email. Entre com o magic link para vincular este provedor.",
           ),
         );
       }
