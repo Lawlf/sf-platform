@@ -45,6 +45,19 @@ export async function createGoal(
     }
   }
 
+  if (input.type === "debt_payoff" && input.linkedDebtId) {
+    const active = await goals.listForUser(userId, { status: "active" });
+    const dup = active.some(
+      (g) => g.type === "debt_payoff" && g.linkedDebtId === input.linkedDebtId,
+    );
+    if (dup) {
+      return {
+        ok: false,
+        message: "Esta dívida já tem uma meta de quitação ativa.",
+      };
+    }
+  }
+
   const normalized = normalizeFields(input);
 
   const goal = await goals.create({
