@@ -2,7 +2,7 @@ import { z } from "zod";
 
 const bigintFromString = z
   .string()
-  .min(1, "Campo obrigatorio.")
+  .min(1, "Campo obrigatório.")
   .transform((v, ctx) => {
     try {
       return BigInt(v);

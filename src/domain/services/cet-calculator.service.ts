@@ -79,6 +79,6 @@ export class CetCalculatorService {
       }
     }
 
-    return err(new InvalidAmortizationParamsError(`CET nao convergiu em ${maxIter} iteracoes.`));
+    return err(new InvalidAmortizationParamsError(`CET não convergiu em ${maxIter} iterações.`));
   }
 }

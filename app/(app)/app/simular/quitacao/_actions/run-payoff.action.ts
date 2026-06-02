@@ -30,7 +30,7 @@ export async function runPayoffAction(formData: FormData): Promise<PayoffActionR
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success)
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
 
   const r = await projectDebtPayoff(
     { debts: new DrizzleDebtRepository(), clock: new SystemClock() },

@@ -30,7 +30,7 @@ export function validateCashInflowStep(input: {
   existingCashAssetId: string | null;
   newCashAssetName: string | null | undefined;
 }): string | null {
-  if (input.cashTarget === null) return "Escolha uma opcao para o dinheiro recebido.";
+  if (input.cashTarget === null) return "Escolha uma opção para o dinheiro recebido.";
   if (input.cashTarget === "existing" && !input.existingCashAssetId) {
     return "Escolha a conta onde o dinheiro caiu.";
   }

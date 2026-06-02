@@ -19,7 +19,7 @@ export async function dismissNotificationAction(input: {
   const user = await requireUser();
   const parsed = schema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const result = await dismissNotification(
     {

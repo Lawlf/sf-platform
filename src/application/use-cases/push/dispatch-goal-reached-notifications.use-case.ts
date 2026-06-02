@@ -37,8 +37,8 @@ export async function dispatchGoalReachedNotifications(
       userId: goal.userId,
       kind: "monthlySummaryEnabled",
       payload: {
-        title: "Voce bateu sua meta",
-        body: `"${goal.title}" foi concluida. Parabens!`,
+        title: "Você bateu sua meta",
+        body: `"${goal.title}" foi concluída. Parabéns!`,
         url: "/app/metas",
         tag: `goal-reached-${goal.goalId}`,
       },

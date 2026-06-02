@@ -72,7 +72,7 @@ function makeInstallment(
   const intm = Money.from(interest);
   const bm = Money.from(remainingBalance);
   if (!isOk(im) || !isOk(pm) || !isOk(intm) || !isOk(bm)) {
-    return err(new InvalidAmortizationParamsError(`Valor monetario invalido na parcela ${month}.`));
+    return err(new InvalidAmortizationParamsError(`Valor monetário inválido na parcela ${month}.`));
   }
   return ok({
     month,

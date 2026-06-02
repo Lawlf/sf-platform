@@ -12,7 +12,7 @@ import { incomeFormSchema } from "@/presentation/http/validators/income.validato
 import { isErr, isOk } from "@/shared/errors/result";
 
 const updateSchema = incomeFormSchema.extend({
-  incomeId: z.string().uuid("ID invalido."),
+  incomeId: z.string().uuid("ID inválido."),
 });
 
 export async function updateIncomeAction(
@@ -23,7 +23,7 @@ export async function updateIncomeAction(
   const raw = Object.fromEntries(formData.entries());
   const parsed = updateSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados invalidos." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const data = parsed.data;
   const amount = Money.fromCents(BigInt(data.amountCents));

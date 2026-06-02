@@ -18,7 +18,7 @@ export type MarkReviewedResult = { ok: true } | { ok: false; message: string };
 export async function markReviewedAction(assetId: string): Promise<MarkReviewedResult> {
   const parsed = inputSchema.safeParse({ assetId });
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados invalidos." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
 
   const user = await requireUser();

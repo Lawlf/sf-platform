@@ -54,7 +54,7 @@ export class DebtNotActive extends DomainError {
   readonly debtId: string;
 
   constructor(debtId: string) {
-    super(`Divida ${debtId} nao esta ativa.`);
+    super(`Dívida ${debtId} não está ativa.`);
     this.debtId = debtId;
   }
 }
@@ -66,7 +66,7 @@ export class AllocationExceedsPrincipal extends DomainError {
 
   constructor(debtId: string, availableCents: bigint) {
     super(
-      `Alocacao excede o principal disponivel da divida ${debtId}. Disponivel: ${availableCents} centavos.`,
+      `Alocação excede o principal disponível da dívida ${debtId}. Disponível: ${availableCents} centavos.`,
     );
     this.debtId = debtId;
     this.availableCents = availableCents;
@@ -110,7 +110,7 @@ export class QuoteUnavailable extends DomainError {
 export class AssetNotCash extends DomainError {
   readonly code = "ASSET_NOT_CASH" as const;
 
-  constructor(message = "Acao disponivel apenas para reservas em dinheiro.") {
+  constructor(message = "Ação disponível apenas para reservas em dinheiro.") {
     super(message);
   }
 }

@@ -50,7 +50,7 @@ export async function createRecurringDebtAction(
     notes: formData.get("notes") || undefined,
     dueDay: formData.get("dueDay"),
   });
-  if (!parsed.success) return { ok: false, message: "Dados invalidos." };
+  if (!parsed.success) return { ok: false, message: "Dados inválidos." };
 
   const user = await requireUser();
   const r = await registerDebt(

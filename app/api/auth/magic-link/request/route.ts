@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
   const parsed = requestMagicLinkSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "Entrada invalida." },
+      { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "Entrada inválida." },
       { status: 400 },
     );
   }

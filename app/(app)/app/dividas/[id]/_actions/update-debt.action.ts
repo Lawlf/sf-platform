@@ -96,14 +96,14 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const d = parsed.data;
 
   let annualInterestRate: InterestRate | undefined;
   if (d.annualRatePct != null) {
     const r = InterestRate.fromAnnual(d.annualRatePct / 100);
-    if (!isOk(r)) return { ok: false, message: "Taxa anual invalida." };
+    if (!isOk(r)) return { ok: false, message: "Taxa anual inválida." };
     annualInterestRate = r.value;
   }
 
@@ -113,7 +113,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
       revolvingMonthlyRate = null;
     } else {
       const r = InterestRate.fromMonthly(d.revolvingMonthlyRatePct / 100);
-      if (!isOk(r)) return { ok: false, message: "Taxa rotativo invalida." };
+      if (!isOk(r)) return { ok: false, message: "Taxa rotativo inválida." };
       revolvingMonthlyRate = r.value;
     }
   }
@@ -121,7 +121,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
   let overdraftMonthlyRate: InterestRate | undefined;
   if (d.monthlyRatePct != null) {
     const r = InterestRate.fromMonthly(d.monthlyRatePct / 100);
-    if (!isOk(r)) return { ok: false, message: "Taxa mensal invalida." };
+    if (!isOk(r)) return { ok: false, message: "Taxa mensal inválida." };
     overdraftMonthlyRate = r.value;
   }
 
@@ -167,7 +167,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
       if (!r.success) {
         return {
           ok: false,
-          message: r.error.issues[0]?.message ?? "Compras parceladas invalidas.",
+          message: r.error.issues[0]?.message ?? "Compras parceladas inválidas.",
         };
       }
       input.installmentPurchases = r.data.map((p) => {

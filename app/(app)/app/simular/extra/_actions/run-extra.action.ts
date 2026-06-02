@@ -31,7 +31,7 @@ export async function runExtraAction(formData: FormData): Promise<ExtraActionRes
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success)
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
 
   const r = await simulateExtraPayment(
     { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
