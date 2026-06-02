@@ -25,7 +25,7 @@ export function RhythmGrid({ modulesRead, todayIndex }: RhythmGridProps) {
         </div>
       </div>
       <p className="mb-3 text-[0.75rem] leading-[1.45] text-[color:var(--text-secondary)]">
-        Sem corrida. Sem streak de "abriu o app". Aqui só conta módulo lido e aplicado.
+        Sem corrida. Sem streak de “abriu o app”. Aqui só conta módulo lido e aplicado.
       </p>
       <div className="grid grid-cols-7 gap-1.5">
         {WEEKDAY_LABELS.map((label, idx) => (
