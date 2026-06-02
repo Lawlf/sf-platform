@@ -9,8 +9,11 @@ const redisMock = {
   hincrby: vi.fn(),
 };
 
-vi.mock("@upstash/redis", () => ({
-  Redis: vi.fn(() => redisMock),
+// Mock the cache boundary the repo actually depends on, not the @upstash/redis
+// constructor. The repo calls getUpstashRedis(); mocking the SDK class is brittle
+// (breaks when the SDK changes how Redis is constructed) and was the source of rot.
+vi.mock("@/infrastructure/cache/upstash-redis", () => ({
+  getUpstashRedis: () => redisMock,
 }));
 
 describe("UpstashMagicLinkTokenRepository", () => {
