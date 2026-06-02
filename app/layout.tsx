@@ -35,6 +35,18 @@ export const metadata: Metadata = {
     "Veja o tamanho real da sua dívida, quanto os juros custam e o mês em que você sai do vermelho. Painel macro de patrimônio, dívida e renda. Sem conectar banco.",
   applicationName: "Sabor Financeiro",
   manifest: "/manifest.webmanifest",
+  appleWebApp: {
+    capable: true,
+    title: "Sabor Financeiro",
+    statusBarStyle: "default",
+  },
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icons/icon-512.png", sizes: "512x512", type: "image/png" },
+    ],
+    apple: [{ url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" }],
+  },
   keywords: [
     "controle financeiro",
     "sair das dívidas",
