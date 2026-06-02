@@ -6,6 +6,7 @@ interface SummaryInputs {
   values: PersonalLoanFormValues;
   iofCents: bigint | null;
   iofPercentText: string | null;
+  cetAnnualText: string | null;
   cashAssets: CashAssetForLoanPayload[] | undefined;
   totalPaidValue: string;
   linkSummary: string;
@@ -15,6 +16,7 @@ export function buildLoanSummary({
   values,
   iofCents,
   iofPercentText,
+  cetAnnualText,
   cashAssets,
   totalPaidValue,
   linkSummary,
@@ -32,6 +34,7 @@ export function buildLoanSummary({
           iofCents && iofPercentText ? `${formatCentsBRL(iofCents)} (${iofPercentText}%)` : "R$ 0,00",
       },
       { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+      { label: "CET (custo real)", value: cetAnnualText ?? `${values.annualRatePct}% a.a.` },
       { label: "Prazo", value: `${values.termMonths} meses` },
       { label: "Total a pagar", value: totalPaidValue },
       { label: "Bem vinculado", value: linkSummary },

@@ -4,6 +4,7 @@ import { z } from "zod";
 
 import { PriceAmortizationService } from "@/domain/services/amortization/price-amortization.service";
 import { SacAmortizationService } from "@/domain/services/amortization/sac-amortization.service";
+import { CetCalculatorService } from "@/domain/services/cet-calculator.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -14,6 +15,8 @@ const inputSchema = z.object({
   annualRatePct: z.number().nonnegative().max(200),
   termMonths: z.number().int().min(1).max(600),
   amortizationMethod: z.enum(["PRICE", "SAC"]),
+  monthlyInsuranceCents: z.string().regex(/^\d+$/).max(20).optional(),
+  monthlyAdminFeeCents: z.string().regex(/^\d+$/).max(20).optional(),
 });
 
 export type PreviewInstallmentInput = {
@@ -21,6 +24,8 @@ export type PreviewInstallmentInput = {
   annualRatePct: number;
   termMonths: number;
   amortizationMethod: "PRICE" | "SAC";
+  monthlyInsuranceCents?: string;
+  monthlyAdminFeeCents?: string;
 };
 
 export type PreviewResult =
@@ -30,6 +35,7 @@ export type PreviewResult =
       lastInstallmentFormatted: string;
       totalPaidFormatted: string;
       totalInterestFormatted: string;
+      cetAnnualFormatted: string | null;
       isFixed: boolean;
     }
   | { ok: false; message: string };
@@ -74,12 +80,21 @@ export async function previewInstallmentAction(raw: unknown): Promise<PreviewRes
     return { ok: false, message: "Não foi possível calcular." };
   }
 
+  const recurringFeeCents =
+    BigInt(data.monthlyInsuranceCents ?? "0") + BigInt(data.monthlyAdminFeeCents ?? "0");
+  const cetInstallments = schedule.installments.map((row) =>
+    Money.fromCents(row.installment.toCents() + recurringFeeCents),
+  );
+  const cetR = CetCalculatorService.compute({ principal, installments: cetInstallments });
+  const cetAnnualFormatted = isOk(cetR) ? cetR.value.toAnnual().format() : null;
+
   return {
     ok: true,
     firstInstallmentFormatted: first.installment.format(),
     lastInstallmentFormatted: last.installment.format(),
     totalPaidFormatted: schedule.totalPaid().format(),
     totalInterestFormatted: schedule.totalInterest().format(),
+    cetAnnualFormatted,
     isFixed: data.amortizationMethod === "PRICE",
   };
 }

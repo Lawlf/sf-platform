@@ -57,6 +57,28 @@ function mapData(event: Stripe.Event): ParsedWebhookEventData {
         invoice: mapStripeInvoice(event.data.object as Stripe.Invoice),
       };
     }
+    case "charge.refunded": {
+      const charge = event.data.object as Stripe.Charge;
+      // `invoice` is untyped on Charge in the v22 SDK types (it is a string id or
+      // expanded object at runtime); coerce like the invoice mapper does.
+      const invoiceRaw = (charge as unknown as { invoice?: string | { id: string } | null })
+        .invoice;
+      const invoiceId =
+        typeof invoiceRaw === "string" ? invoiceRaw : invoiceRaw?.id ?? null;
+      const paymentIntentId =
+        typeof charge.payment_intent === "string"
+          ? charge.payment_intent
+          : charge.payment_intent?.id ?? null;
+      const providerPaymentIds = [invoiceId, paymentIntentId].filter(
+        (id): id is string => typeof id === "string" && id.length > 0,
+      );
+      if (providerPaymentIds.length === 0) return { kind: "unhandled", type: event.type };
+      return {
+        kind: "charge.refunded",
+        providerPaymentIds,
+        fullyRefunded: (charge.amount_refunded ?? 0) >= (charge.amount ?? 0),
+      };
+    }
     case "customer.subscription.updated": {
       return {
         kind: "subscription.updated",

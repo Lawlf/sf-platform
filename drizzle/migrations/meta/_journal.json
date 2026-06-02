@@ -253,6 +253,13 @@
       "when": 1780246810262,
       "tag": "0035_lucky_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 36,
+      "version": "7",
+      "when": 1780366412936,
+      "tag": "0036_ordinary_hemingway",
+      "breakpoints": true
     }
   ]
 }

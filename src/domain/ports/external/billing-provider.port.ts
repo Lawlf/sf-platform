@@ -70,6 +70,17 @@ export type ParsedWebhookEventData =
     }
   | { kind: "invoice.paid"; invoice: ProviderInvoiceSnapshot }
   | { kind: "invoice.payment_failed"; invoice: ProviderInvoiceSnapshot }
+  | {
+      kind: "charge.refunded";
+      /**
+       * Ids to locate the original payment, in priority order. A charge carries
+       * the invoice id (subscription payments) and/or the payment_intent id
+       * (lifetime one-off). Our payments store one of these as providerPaymentId.
+       */
+      providerPaymentIds: string[];
+      /** true when amount_refunded >= amount (revoke access); false = partial. */
+      fullyRefunded: boolean;
+    }
   | { kind: "subscription.updated"; snapshot: ProviderSubscriptionSnapshot }
   | { kind: "subscription.deleted"; providerSubscriptionId: string }
   | { kind: "unhandled"; type: string };
@@ -85,6 +96,14 @@ export interface BillingProvider {
   readonly provider: PaymentProvider;
   createCheckoutSession(input: CheckoutSessionInput): Promise<CheckoutSessionOutput>;
   createSetupSession(input: SetupSessionInput): Promise<CheckoutSessionOutput>;
+  /**
+   * Hosted billing portal: lets the customer pay an open (past_due) invoice,
+   * update the card, and view history. The canonical "retry payment" path.
+   */
+  createBillingPortalSession(input: {
+    providerCustomerId: string;
+    returnUrl: string;
+  }): Promise<{ url: string }>;
   cancelAtPeriodEnd(providerSubscriptionId: string): Promise<void>;
   reactivate(providerSubscriptionId: string): Promise<void>;
   /** Substitui o price do item da subscription. Habilita rateio (proration). */

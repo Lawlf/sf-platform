@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Spinner } from "@/app/components/ui/spinner";
+
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
@@ -187,6 +188,12 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       annualRatePct,
       termMonths: previewTerm,
       amortizationMethod: values.amortizationMethod,
+      monthlyInsuranceCents: values.monthlyInsuranceCents
+        ? values.monthlyInsuranceCents.toString()
+        : undefined,
+      monthlyAdminFeeCents: values.monthlyAdminFeeCents
+        ? values.monthlyAdminFeeCents.toString()
+        : undefined,
     }).then((result) => {
       if (!cancelled) setPreview(result);
     });
@@ -199,6 +206,8 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
     previewTerm,
     values.annualRatePct,
     values.amortizationMethod,
+    values.monthlyInsuranceCents,
+    values.monthlyAdminFeeCents,
   ]);
 
   async function goToStep3() {
@@ -627,8 +636,15 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       <Spinner size={16} decorative />
     );
 
+  const cetValue: ReactNode =
+    preview && preview !== "pending" && preview.ok ? (
+      (preview.cetAnnualFormatted ?? "Não foi possível calcular")
+    ) : (
+      <Spinner size={16} decorative />
+    );
+
   const linkSummary = buildLinkSummary(values);
-  const summaryItems = buildFinancingSummary({ values, totalPaidValue, linkSummary });
+  const summaryItems = buildFinancingSummary({ values, totalPaidValue, cetValue, linkSummary });
 
   return (
     <WizardShell

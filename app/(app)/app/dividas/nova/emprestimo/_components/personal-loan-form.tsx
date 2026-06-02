@@ -10,7 +10,7 @@ import { useForm, type UseFormReturn } from "react-hook-form";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
-import { computePriceInstallmentCents } from "../../../_lib/amortization";
+import { computeCetAnnualText, computePriceInstallmentCents } from "../../../_lib/amortization";
 import { todayIso } from "../../../_lib/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
@@ -157,6 +157,19 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
     if (typeof v.principalCents !== "bigint") return null;
     return computePriceInstallmentCents(v.principalCents, v.annualRatePct, v.termMonths);
   }, [scenario, values]);
+
+  const cetAnnualText = useMemo<string | null>(() => {
+    if (scenario !== "new") return null;
+    const v = values as Extract<FormValues, { scenario: "new" }>;
+    if (!estimatedInstallmentCents) return null;
+    if (typeof v.principalCents !== "bigint" || typeof v.netReceivedCents !== "bigint") return null;
+    return computeCetAnnualText(
+      v.netReceivedCents,
+      v.principalCents,
+      estimatedInstallmentCents,
+      v.termMonths,
+    );
+  }, [scenario, values, estimatedInstallmentCents]);
 
   // Total paid: depends on scenario.
   const totalPaidCents = useMemo<bigint | null>(() => {
@@ -523,6 +536,12 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 min={0}
                 max={1000}
               />
+              {cetAnnualText ? (
+                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
+                  <Calculator size={11} strokeWidth={2.25} aria-hidden />
+                  CET real: {cetAnnualText}
+                </div>
+              ) : null}
             </WizardField>
 
             <WizardField
@@ -800,6 +819,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
     values,
     iofCents,
     iofPercentText,
+    cetAnnualText,
     cashAssets,
     totalPaidValue,
     linkSummary,
