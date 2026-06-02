@@ -36,7 +36,7 @@ export async function recordPaymentAction(
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const d = parsed.data;
   const r = await recordPayment(

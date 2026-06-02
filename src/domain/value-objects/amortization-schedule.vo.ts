@@ -34,7 +34,7 @@ export class AmortizationSchedule {
       if (installments[idx]!.month !== expected) {
         return err(
           new InvalidAmortizationParamsError(
-            `Sequencia de meses invalida: esperado ${expected}, recebido ${installments[idx]!.month}.`,
+            `Sequência de meses inválida: esperado ${expected}, recebido ${installments[idx]!.month}.`,
           ),
         );
       }
@@ -54,14 +54,14 @@ export class AmortizationSchedule {
       if (installmentRow.principal.isNegative()) {
         return err(
           new InvalidAmortizationParamsError(
-            `Parcela ${installmentRow.month}: principal nao pode ser negativo.`,
+            `Parcela ${installmentRow.month}: principal não pode ser negativo.`,
           ),
         );
       }
       if (installmentRow.interest.isNegative()) {
         return err(
           new InvalidAmortizationParamsError(
-            `Parcela ${installmentRow.month}: juros nao pode ser negativo.`,
+            `Parcela ${installmentRow.month}: juros não pode ser negativo.`,
           ),
         );
       }
@@ -76,7 +76,7 @@ export class AmortizationSchedule {
     if (principalDiff > TOLERANCE_CENTS || principalDiff < -TOLERANCE_CENTS) {
       return err(
         new InvalidAmortizationParamsError(
-          `Soma das amortizacoes nao reconcilia com principal original.`,
+          `Soma das amortizações não reconcilia com principal original.`,
         ),
       );
     }

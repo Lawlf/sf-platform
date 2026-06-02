@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
-import { createDebtAction } from "@/app/(app)/app/dividas/_actions/create-debt.action";
+import { upsertOnboardingDebtAction } from "../../_actions/onboarding-entities";
 
 const fieldClass =
   "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
@@ -19,13 +19,6 @@ const schema = z.object({
   label: z.string().min(1, "Informe um nome."),
   creditLimitCents: z.bigint().positive("Informe o limite."),
   currentStatementCents: z.bigint().positive("Informe a fatura atual."),
-  ratePct: z.string().refine(
-    (v) => {
-      const n = Number(v.replace(",", "."));
-      return Number.isFinite(n) && n > 0;
-    },
-    "Informe a taxa do rotativo (% ao mês).",
-  ),
 });
 type FormValues = z.infer<typeof schema>;
 
@@ -39,13 +32,13 @@ export function DebtStep({
   totalSteps,
   onDone,
   onBack,
-  onSkipAll,
+  onSkip,
 }: {
   stepNumber: WizardStep;
   totalSteps: number;
   onDone: () => void;
   onBack: () => void;
-  onSkipAll: () => void;
+  onSkip: () => void;
 }) {
   const [saving, startSaving] = useTransition();
   const form = useForm<FormValues>({
@@ -54,12 +47,10 @@ export function DebtStep({
       label: "Cartão de crédito",
       creditLimitCents: 0n as unknown as bigint,
       currentStatementCents: 0n as unknown as bigint,
-      ratePct: "",
     },
   });
 
   function onSubmit(values: FormValues) {
-    const rate = Number(values.ratePct.replace(",", "."));
     startSaving(async () => {
       const fd = new FormData();
       fd.set("label", values.label.trim());
@@ -69,10 +60,11 @@ export function DebtStep({
       // z.coerce.number().int().min(1).max(31)
       fd.set("statementDay", "1");
       fd.set("dueDay", "10");
-      // z.coerce.number().min(0).max(1000) - number as string
-      fd.set("revolvingMonthlyRatePct", String(rate));
+      // Rotativo fica de fora do onboarding: só existe se a fatura não for paga.
+      // Vazio -> null no validator; usuário informa depois no editor da dívida.
+      fd.set("revolvingMonthlyRatePct", "");
       fd.set("startDate", todayIso());
-      const res = await createDebtAction("credit_card", fd);
+      const res = await upsertOnboardingDebtAction(fd);
       if (!res.ok) {
         toast.error(res.message);
         return;
@@ -85,11 +77,11 @@ export function DebtStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Sua maior dívida"
-      description="Comece pelo cartão. Só o essencial para calcular seu próximo passo."
+      title="Seu cartão de crédito"
+      description="Comece pelo que mais pesa. Só um agora, os outros você soma depois. Com um já dá pra te mostrar por onde atacar."
       onBack={onBack}
       primary={{ label: "Ver meu próximo passo", onClick: form.handleSubmit(onSubmit), loading: saving }}
-      secondary={{ label: "Pular por agora", onClick: onSkipAll }}
+      secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
       <div className="flex flex-col gap-4">
         <div>
@@ -106,24 +98,6 @@ export function DebtStep({
 
         <MoneyInput control={form.control} name="currentStatementCents" label="Fatura atual" required />
         <MoneyInput control={form.control} name="creditLimitCents" label="Limite" required />
-
-        <div>
-          <label className={labelClass} htmlFor="onb-debt-rate">
-            Juros do rotativo (% ao mês)
-          </label>
-          <input
-            id="onb-debt-rate"
-            inputMode="decimal"
-            placeholder="14,5"
-            {...form.register("ratePct")}
-            className={fieldClass}
-          />
-          {form.formState.errors.ratePct ? (
-            <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
-              {form.formState.errors.ratePct.message}
-            </span>
-          ) : null}
-        </div>
       </div>
     </WizardShell>
   );

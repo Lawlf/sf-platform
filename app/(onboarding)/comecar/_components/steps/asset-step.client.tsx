@@ -26,13 +26,13 @@ export function AssetStep({
   totalSteps,
   onDone,
   onBack,
-  onSkipAll,
+  onSkip,
 }: {
   stepNumber: WizardStep;
   totalSteps: number;
   onDone: () => void;
   onBack: () => void;
-  onSkipAll: () => void;
+  onSkip: () => void;
 }) {
   const [saving, startSaving] = useTransition();
   const form = useForm<FormValues>({
@@ -67,7 +67,7 @@ export function AssetStep({
       description="Seu dinheiro guardado ou um bem. Só um item já monta sua foto."
       onBack={onBack}
       primary={{ label: "Ver meu patrimônio", onClick: form.handleSubmit(onSubmit), loading: saving }}
-      secondary={{ label: "Pular por agora", onClick: onSkipAll }}
+      secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
       <div className="flex flex-col gap-4">
         <div>

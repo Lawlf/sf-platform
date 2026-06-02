@@ -25,16 +25,33 @@ import { ResultNetWorth } from "./steps/result-networth.client";
 
 export function OnboardingWizardClient({
   initialFocus,
+  initialStep,
 }: {
   initialFocus: ContentDiagnosticAnswer | null;
+  initialStep: string | null;
 }) {
   const router = useRouter();
   const [focus, setFocus] = useState<ContentDiagnosticAnswer | null>(initialFocus);
-  const [current, setCurrent] = useState<WizardStepId>("focus");
+  // Recupera a posição do ?step= (lido no server) num reload/crash. Validamos
+  // contra o caminho do focus persistido; step inválido cai no primeiro.
+  const [current, setCurrent] = useState<WizardStepId>(() => {
+    const path = stepsForFocus(initialFocus);
+    return initialStep && path.includes(initialStep as WizardStepId)
+      ? (initialStep as WizardStepId)
+      : path[0]!;
+  });
   const [finishing, startFinish] = useTransition();
 
   const steps = useMemo(() => stepsForFocus(focus), [focus]);
   const stepNumber = (Math.max(0, steps.indexOf(current)) + 1) as WizardStep;
+
+  // Troca de step + espelha na URL de forma imperativa (no handler, antes do
+  // novo step montar). Num useEffect, o replaceState rodava DEPOIS do fetch do
+  // step começar e o Next abortava o server action em voo (spinner infinito).
+  function go(step: WizardStepId) {
+    setCurrent(step);
+    window.history.replaceState(null, "", `${window.location.pathname}?step=${step}`);
+  }
 
   function finishWizard() {
     startFinish(async () => {
@@ -53,19 +70,19 @@ export function OnboardingWizardClient({
       finishWizard();
       return;
     }
-    setCurrent(next);
+    go(next);
   }
 
   function goBack() {
     const prev = prevStep(steps, current);
-    if (prev !== null) setCurrent(prev);
+    if (prev !== null) go(prev);
   }
 
   function onFocusChosen(chosen: ContentDiagnosticAnswer) {
     setFocus(chosen);
     // After focus, advance into that path's second step (income).
     const path = stepsForFocus(chosen);
-    setCurrent(path[1] ?? "focus");
+    go(path[1] ?? "focus");
   }
 
   if (current === "focus") {
@@ -75,7 +92,8 @@ export function OnboardingWizardClient({
         stepNumber={stepNumber}
         totalSteps={steps.length}
         onChosen={onFocusChosen}
-        onSkipAll={finishWizard}
+        onBack={() => router.push("/app")}
+        onSkip={advance}
         finishing={finishing}
       />
     );
@@ -88,41 +106,41 @@ export function OnboardingWizardClient({
         totalSteps={steps.length}
         onDone={advance}
         onBack={goBack}
-        onSkipAll={finishWizard}
+        onSkip={advance}
       />
     );
   }
 
   if (current === "debt") {
     return (
-      <DebtStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkipAll={finishWizard} />
+      <DebtStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
   if (current === "result-prescription") {
     return (
-      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
+      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
     );
   }
 
   if (current === "goal") {
     return (
-      <GoalStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkipAll={finishWizard} />
+      <GoalStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
   if (current === "result-goal") {
     return (
-      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
+      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
     );
   }
 
   if (current === "asset") {
     return (
-      <AssetStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkipAll={finishWizard} />
+      <AssetStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
   if (current === "result-networth") {
     return (
-      <ResultNetWorth stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} finishing={finishing} />
+      <ResultNetWorth stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
     );
   }
 

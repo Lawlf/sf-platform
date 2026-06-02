@@ -150,7 +150,7 @@ export async function registerLoanCashInflowAction(
 ): Promise<RegisterLoanCashInflowActionResult> {
   const parsed = actionSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados invalidos." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const v = parsed.data;
 

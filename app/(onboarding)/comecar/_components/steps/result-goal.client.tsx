@@ -12,41 +12,67 @@ export function ResultGoal({
   stepNumber,
   totalSteps,
   onFinish,
+  onBack,
   finishing,
 }: {
   stepNumber: WizardStep;
   totalSteps: number;
   onFinish: () => void;
+  onBack: () => void;
   finishing: boolean;
 }) {
   const [goals, setGoals] = useState<Goals>([]);
   const [loaded, setLoaded] = useState(false);
+  const [error, setError] = useState(false);
 
   useEffect(() => {
     let active = true;
-    fetchGoalsWithProgress().then((g) => {
-      if (active) {
-        setGoals(g);
-        setLoaded(true);
-      }
-    });
+    fetchGoalsWithProgress()
+      .then((g) => {
+        if (active) {
+          setGoals(g);
+          setLoaded(true);
+        }
+      })
+      .catch((e) => {
+        // Sem catch o loaded nunca virava true e o spinner ficava infinito.
+        console.error("fetchGoalsWithProgress falhou", e);
+        if (active) {
+          setError(true);
+          setLoaded(true);
+        }
+      });
     return () => {
       active = false;
     };
   }, []);
 
   const first = goals[0];
+  const skipped = loaded && !error && !first;
 
   return (
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Sua meta está criada"
-      description="Sua reserva começa agora. Acompanhe o progresso no início."
+      title={error ? "Sua reserva de emergência" : skipped ? "Você pulou a meta" : "Sua meta está criada"}
+      description={
+        error
+          ? "Acompanhe sua reserva no início."
+          : skipped
+            ? "Sem problema. Você cria sua reserva quando quiser, no início."
+            : "Sua reserva começa agora. Acompanhe o progresso no início."
+      }
+      onBack={onBack}
       primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6"><Spinner size={24} /></div>
+      ) : error ? (
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+          <p className="text-sm text-[color:var(--text-secondary)]">
+            Não consegui carregar sua meta agora. Vá para o início e veja por lá.
+          </p>
+        </div>
       ) : first ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="font-semibold">{first.goal.title}</p>
@@ -67,7 +93,11 @@ export function ResultGoal({
           )}
         </div>
       ) : (
-        <p className="text-sm text-[color:var(--text-secondary)]">Sua meta foi criada. Veja no início.</p>
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+          <p className="text-sm text-[color:var(--text-secondary)]">
+            Nenhuma meta criada ainda. Quando quiser, monte sua reserva de emergência no início.
+          </p>
+        </div>
       )}
     </WizardShell>
   );

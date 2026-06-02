@@ -43,11 +43,11 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
   if (kind === "financing") {
     const parsed = financingFormSchema.safeParse({ ...raw, kind });
     if (!parsed.success) {
-      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
     const annualRate = InterestRate.fromAnnual(d.annualRatePct / 100);
-    if (!isOk(annualRate)) return { ok: false, message: "Taxa anual invalida." };
+    if (!isOk(annualRate)) return { ok: false, message: "Taxa anual inválida." };
     const r = await registerDebt(deps, {
       userId: user.id,
       label: d.label,
@@ -65,7 +65,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
         d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents) : null,
       currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
+    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -73,11 +73,11 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
   if (kind === "personal_loan") {
     const parsed = personalLoanFormSchema.safeParse({ ...raw, kind });
     if (!parsed.success) {
-      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
     const annualRate = InterestRate.fromAnnual(d.annualRatePct / 100);
-    if (!isOk(annualRate)) return { ok: false, message: "Taxa anual invalida." };
+    if (!isOk(annualRate)) return { ok: false, message: "Taxa anual inválida." };
     const r = await registerDebt(deps, {
       userId: user.id,
       label: d.label,
@@ -91,7 +91,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       monthlyInstallment: Money.fromCents(d.monthlyInstallmentCents),
       currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
+    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -99,13 +99,13 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
   if (kind === "credit_card") {
     const parsed = creditCardFormSchema.safeParse({ ...raw, kind });
     if (!parsed.success) {
-      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
     let revolvingRate: InterestRate | null = null;
     if (d.revolvingMonthlyRatePct !== null) {
       const rr = InterestRate.fromMonthly(d.revolvingMonthlyRatePct / 100);
-      if (!isOk(rr)) return { ok: false, message: "Taxa rotativo invalida." };
+      if (!isOk(rr)) return { ok: false, message: "Taxa rotativo inválida." };
       revolvingRate = rr.value;
     }
     const installmentPurchases = d.installmentPurchasesJson.map((p) => {
@@ -135,7 +135,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       revolvingMonthlyRate: revolvingRate,
       installmentPurchases,
     });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
+    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -143,11 +143,11 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
   if (kind === "overdraft") {
     const parsed = overdraftFormSchema.safeParse({ ...raw, kind });
     if (!parsed.success) {
-      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+      return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
     const monthly = InterestRate.fromMonthly(d.monthlyRatePct / 100);
-    if (!isOk(monthly)) return { ok: false, message: "Taxa mensal invalida." };
+    if (!isOk(monthly)) return { ok: false, message: "Taxa mensal inválida." };
     const r = await registerDebt(deps, {
       userId: user.id,
       label: d.label,
@@ -159,10 +159,10 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       bankName: d.bankName,
       monthlyRate: monthly.value,
     });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar divida." };
+    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
 
-  return { ok: false, message: "Tipo de divida desconhecido." };
+  return { ok: false, message: "Tipo de dívida desconhecido." };
 }

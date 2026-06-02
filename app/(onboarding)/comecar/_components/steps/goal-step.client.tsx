@@ -11,13 +11,13 @@ export function GoalStep({
   totalSteps,
   onDone,
   onBack,
-  onSkipAll,
+  onSkip,
 }: {
   stepNumber: WizardStep;
   totalSteps: number;
   onDone: () => void;
   onBack: () => void;
-  onSkipAll: () => void;
+  onSkip: () => void;
 }) {
   const [months, setMonths] = useState("6");
   const [saving, startSaving] = useTransition();
@@ -50,7 +50,7 @@ export function GoalStep({
       description="Quantos meses de gastos você quer ter guardado? O padrão é 6."
       onBack={onBack}
       primary={{ label: "Criar minha meta", onClick: submit, loading: saving }}
-      secondary={{ label: "Pular por agora", onClick: onSkipAll }}
+      secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
       <label className="flex flex-col gap-1 text-sm font-semibold">
         Meses de reserva

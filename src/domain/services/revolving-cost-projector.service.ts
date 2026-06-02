@@ -46,7 +46,7 @@ export class RevolvingCostProjectorService {
       runningNumber = runningNumber * (1 + r);
       const m = Money.from(runningNumber);
       if (!isOk(m)) {
-        return err(new InvalidAmortizationParamsError(`Valor monetario invalido no mes ${k}.`));
+        return err(new InvalidAmortizationParamsError(`Valor monetário inválido no mês ${k}.`));
       }
       balances.push(m.value);
     }

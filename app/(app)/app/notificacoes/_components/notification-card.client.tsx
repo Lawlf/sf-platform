@@ -36,7 +36,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
     startTransition(async () => {
       const result = await dismissNotificationAction({ notificationId: notification.id });
       if (!result.ok) {
-        toast.error(result.message || "Nao foi possivel dispensar a notificacao.");
+        toast.error(result.message || "Não foi possível dispensar a notificação.");
       }
     });
   }
@@ -79,7 +79,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
             type="button"
             onClick={handleDismiss}
             disabled={pending}
-            aria-label="Dispensar notificacao"
+            aria-label="Dispensar notificação"
             className="focus-ring flex h-7 w-7 items-center justify-center rounded-md text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)] disabled:cursor-not-allowed disabled:opacity-50"
           >
             <X size={14} strokeWidth={2} aria-hidden />

@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
-import { createIncomeAction } from "@/app/(app)/app/renda/_actions/create-income.action";
+import { upsertOnboardingIncomeAction } from "../../_actions/onboarding-entities";
 
 const fieldClass =
   "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";
@@ -32,13 +32,13 @@ export function IncomeStep({
   totalSteps,
   onDone,
   onBack,
-  onSkipAll,
+  onSkip,
 }: {
   stepNumber: WizardStep;
   totalSteps: number;
   onDone: () => void;
   onBack: () => void;
-  onSkipAll: () => void;
+  onSkip: () => void;
 }) {
   const [saving, startSaving] = useTransition();
   const form = useForm<FormValues>({
@@ -53,7 +53,7 @@ export function IncomeStep({
       fd.set("amountCents", values.amountCents.toString());
       fd.set("frequency", "monthly");
       fd.set("startDate", todayIso());
-      const res = await createIncomeAction(fd);
+      const res = await upsertOnboardingIncomeAction(fd);
       if (!res.ok) {
         toast.error(res.message);
         return;
@@ -70,7 +70,7 @@ export function IncomeStep({
       description="Sua renda mensal líquida aproximada. Só um número já ajuda."
       onBack={onBack}
       primary={{ label: "Continuar", onClick: form.handleSubmit(onSubmit), loading: saving }}
-      secondary={{ label: "Pular por agora", onClick: onSkipAll }}
+      secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
       <div className="flex flex-col gap-4">
         <div>

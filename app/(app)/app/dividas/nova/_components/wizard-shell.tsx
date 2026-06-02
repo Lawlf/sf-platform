@@ -91,7 +91,7 @@ export function WizardShell({
 
       <div
         key={currentStep}
-        className="relative z-10 animate-in fade-in-0 slide-in-from-right-4 duration-300"
+        className="relative z-10 mt-8 animate-in fade-in-0 slide-in-from-right-4 duration-300 md:mt-10"
       >
         <h1
           ref={headingRef}

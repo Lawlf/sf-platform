@@ -17,7 +17,7 @@ export async function createIncomeAction(
   const raw = Object.fromEntries(formData.entries());
   const parsed = incomeFormSchema.safeParse(raw);
   if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada invalida." };
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const data = parsed.data;
   const amount = Money.fromCents(BigInt(data.amountCents));

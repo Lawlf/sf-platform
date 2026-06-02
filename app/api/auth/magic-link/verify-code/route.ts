@@ -22,7 +22,7 @@ export const dynamic = "force-dynamic";
 // Avoids enumeration, rate-limit leaks, and lockout signalling.
 function genericInvalid() {
   return NextResponse.json(
-    { code: "MAGIC_LINK_INVALID", message: "Codigo invalido ou expirado." },
+    { code: "MAGIC_LINK_INVALID", message: "Código inválido ou expirado." },
     { status: 400 },
   );
 }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   const parsed = verifyCodeSchema.safeParse(body);
   if (!parsed.success) {
     return NextResponse.json(
-      { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "Entrada invalida." },
+      { code: "INVALID_INPUT", message: parsed.error.issues[0]?.message ?? "Entrada inválida." },
       { status: 400 },
     );
   }
