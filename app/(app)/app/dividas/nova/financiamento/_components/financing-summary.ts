@@ -7,12 +7,14 @@ import { type FinancingFormValues } from "../_schema";
 interface SummaryInputs {
   values: FinancingFormValues;
   totalPaidValue: ReactNode;
+  cetValue: ReactNode;
   linkSummary: string;
 }
 
 export function buildFinancingSummary({
   values,
   totalPaidValue,
+  cetValue,
   linkSummary,
 }: SummaryInputs): SummaryItem[] {
   if (values.scenario === "new") {
@@ -21,6 +23,7 @@ export function buildFinancingSummary({
       { label: "Tipo", value: "Financiamento" },
       { label: "Valor", value: formatCentsBRL(values.principalCents) },
       { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+      { label: "CET (custo real)", value: cetValue },
       { label: "Prazo", value: `${values.termMonths} meses` },
       { label: "Total a pagar", value: totalPaidValue },
       { label: "Bem vinculado", value: linkSummary },
@@ -32,6 +35,7 @@ export function buildFinancingSummary({
     { label: "Valor original", value: formatCentsBRL(values.originalPrincipalCents) },
     { label: "Saldo devedor", value: formatCentsBRL(values.currentBalanceCents) },
     { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+    { label: "CET (custo real)", value: cetValue },
     { label: "Parcelas pagas", value: `${values.paidInstallments}` },
     { label: "Parcelas restantes", value: `${values.remainingTerms}` },
     { label: "Total a pagar", value: totalPaidValue },

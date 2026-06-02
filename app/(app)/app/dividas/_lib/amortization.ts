@@ -1,3 +1,7 @@
+import { CetCalculatorService } from "@/domain/services/cet-calculator.service";
+import { Money } from "@/domain/value-objects/money.vo";
+import { isOk } from "@/shared/errors/result";
+
 // Price installment formula: parcela = P × i / (1 − (1+i)^−n)
 // Monthly rate derived from annual rate (compound):
 //   i_monthly = (1 + annualPct/100)^(1/12) − 1
@@ -19,4 +23,24 @@ export function computePriceInstallmentCents(
   }
   if (!Number.isFinite(installmentReais)) return null;
   return BigInt(Math.round(installmentReais * 100));
+}
+
+export function computeCetAnnualText(
+  netReceivedCents: bigint,
+  principalCents: bigint,
+  installmentCents: bigint,
+  termMonths: number,
+): string | null {
+  if (principalCents <= 0n || netReceivedCents <= 0n || installmentCents <= 0n) return null;
+  if (netReceivedCents >= principalCents) return null;
+  const term = Math.floor(termMonths);
+  if (!Number.isFinite(term) || term < 1) return null;
+  const installments = Array.from({ length: term }, () => Money.fromCents(installmentCents));
+  const r = CetCalculatorService.compute({
+    principal: Money.fromCents(principalCents),
+    installments,
+    upfrontFees: Money.fromCents(principalCents - netReceivedCents),
+  });
+  if (!isOk(r)) return null;
+  return r.value.toAnnual().format();
 }
