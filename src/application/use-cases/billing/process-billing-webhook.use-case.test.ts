@@ -199,7 +199,120 @@ describe("processBillingWebhook", () => {
     expect(deps._payments[0]?.status).toBe("failed");
     const updatedSub = [...deps._subs.values()][0];
     expect(updatedSub?.status).toBe("past_due");
-    expect(deps._emails.some((s) => /cobrar/i.test(s) || /falhou/i.test(s) || /pagamento/i.test(s))).toBe(true);
+    expect(deps._emails.some((s) => /cart[ãa]o/i.test(s) || /trope[çc]o/i.test(s))).toBe(true);
+  });
+
+  it("charge.refunded (full) marks payment refunded, cancels sub, downgrades user", async () => {
+    const deps = makeDeps();
+    deps._subs.set("sub_local_1", {
+      id: "sub_local_1",
+      userId: "user_1",
+      planId: null,
+      provider: "stripe",
+      providerSubscriptionId: "sub_stripe_1",
+      providerCustomerId: "cus_1",
+      status: "active",
+      priceCents: 1990n,
+      currency: "BRL",
+      currentPeriodStart: NOW,
+      currentPeriodEnd: FUTURE,
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      endedAt: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    (deps.users.findById as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "user_1",
+      email: "t@x.com",
+      emailVerifiedAt: NOW,
+      displayName: "T",
+      role: "user",
+      plan: "pro",
+      isPro: true,
+      deactivatedAt: null,
+      deactivationReason: null,
+      contentDiagnosticAnswer: null,
+      contentDiagnosticAnsweredAt: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    (deps.payments.findByProviderPaymentId as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "pay_1",
+      subscriptionId: "sub_local_1",
+      userId: "user_1",
+      provider: "stripe",
+      providerPaymentId: "in_1",
+      amountCents: 1990n,
+      currency: "BRL",
+      status: "succeeded",
+      paymentMethod: "card",
+      gatewayFeeCents: null,
+      paidAt: NOW,
+      failedAt: null,
+      failureReason: null,
+      hostedInvoiceUrl: null,
+      createdAt: NOW,
+    } satisfies Payment);
+    const event: ParsedWebhookEvent = {
+      id: "evt_refund_full",
+      type: "charge.refunded",
+      rawPayload: {},
+      data: { kind: "charge.refunded", providerPaymentIds: ["in_1"], fullyRefunded: true },
+    };
+    await processBillingWebhook(deps as never, event);
+    expect(deps._payments.some((p) => p.status === "refunded")).toBe(true);
+    expect([...deps._subs.values()][0]?.status).toBe("canceled");
+    expect(deps._users.some((u) => !u.isPro)).toBe(true);
+  });
+
+  it("charge.refunded (partial) marks payment refunded but keeps access", async () => {
+    const deps = makeDeps();
+    deps._subs.set("sub_local_1", {
+      id: "sub_local_1",
+      userId: "user_1",
+      planId: null,
+      provider: "stripe",
+      providerSubscriptionId: "sub_stripe_1",
+      providerCustomerId: "cus_1",
+      status: "active",
+      priceCents: 1990n,
+      currency: "BRL",
+      currentPeriodStart: NOW,
+      currentPeriodEnd: FUTURE,
+      cancelAtPeriodEnd: false,
+      canceledAt: null,
+      endedAt: null,
+      createdAt: NOW,
+      updatedAt: NOW,
+    });
+    (deps.payments.findByProviderPaymentId as ReturnType<typeof vi.fn>).mockResolvedValue({
+      id: "pay_1",
+      subscriptionId: "sub_local_1",
+      userId: "user_1",
+      provider: "stripe",
+      providerPaymentId: "in_1",
+      amountCents: 1990n,
+      currency: "BRL",
+      status: "succeeded",
+      paymentMethod: "card",
+      gatewayFeeCents: null,
+      paidAt: NOW,
+      failedAt: null,
+      failureReason: null,
+      hostedInvoiceUrl: null,
+      createdAt: NOW,
+    } satisfies Payment);
+    const event: ParsedWebhookEvent = {
+      id: "evt_refund_partial",
+      type: "charge.refunded",
+      rawPayload: {},
+      data: { kind: "charge.refunded", providerPaymentIds: ["in_1"], fullyRefunded: false },
+    };
+    await processBillingWebhook(deps as never, event);
+    expect(deps._payments.some((p) => p.status === "refunded")).toBe(true);
+    expect([...deps._subs.values()][0]?.status).toBe("active");
+    expect(deps._users.some((u) => !u.isPro)).toBe(false);
   });
 
   it("subscription.deleted downgrades user to Free", async () => {

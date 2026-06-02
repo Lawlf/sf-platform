@@ -71,6 +71,19 @@ export class StripeBillingAdapter implements BillingProvider {
     return { sessionId: session.id, redirectUrl: session.url };
   }
 
+  async createBillingPortalSession(input: {
+    providerCustomerId: string;
+    returnUrl: string;
+  }): Promise<{ url: string }> {
+    const session = await this.stripe.billingPortal.sessions.create({
+      customer: input.providerCustomerId,
+      return_url: input.returnUrl,
+      locale: "pt-BR",
+    });
+    if (!session.url) throw new Error("Stripe billing portal session missing url");
+    return { url: session.url };
+  }
+
   async cancelAtPeriodEnd(providerSubscriptionId: string): Promise<void> {
     await this.stripe.subscriptions.update(providerSubscriptionId, {
       cancel_at_period_end: true,

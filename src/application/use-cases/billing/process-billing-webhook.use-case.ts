@@ -73,6 +73,9 @@ export async function processBillingWebhook(
       case "invoice.payment_failed":
         await handleInvoicePaymentFailed(deps, event.data.invoice);
         break;
+      case "charge.refunded":
+        await handleChargeRefunded(deps, event.data);
+        break;
       case "subscription.updated":
         await handleSubscriptionUpdated(deps, event.data.snapshot);
         break;
@@ -350,6 +353,54 @@ async function handleInvoicePaymentFailed(
         console.error("[webhook] payment-failed email failed (non-blocking):", e);
       }
     }
+  }
+}
+
+async function handleChargeRefunded(
+  deps: ProcessBillingWebhookDeps,
+  data: { providerPaymentIds: string[]; fullyRefunded: boolean },
+): Promise<void> {
+  let payment: Payment | null = null;
+  for (const id of data.providerPaymentIds) {
+    payment = await deps.payments.findByProviderPaymentId(deps.billing.provider, id);
+    if (payment) break;
+  }
+  if (!payment) {
+    console.warn("[webhook] charge.refunded: no matching payment for", data.providerPaymentIds);
+    return;
+  }
+
+  if (payment.status !== "refunded") {
+    await deps.payments.save({ ...payment, status: "refunded" });
+  }
+
+  // Partial refund keeps access; only a full refund revokes Pro.
+  if (!data.fullyRefunded) return;
+
+  // Cancel the subscription first so downgradeToFree (which bails while an active
+  // sub exists) actually flips the user back to Free. Mirrors subscription.deleted.
+  if (payment.subscriptionId) {
+    const sub = await deps.subscriptions.findById(payment.subscriptionId);
+    if (sub && sub.status !== "canceled") {
+      sub.status = "canceled";
+      sub.canceledAt = sub.canceledAt ?? deps.clock.now();
+      sub.endedAt = deps.clock.now();
+      sub.updatedAt = deps.clock.now();
+      await deps.subscriptions.save(sub);
+    }
+  }
+
+  if (payment.userId) {
+    await downgradeToFree(
+      {
+        users: deps.users,
+        subscriptions: deps.subscriptions,
+        email: deps.email,
+        clock: deps.clock,
+        appUrl: deps.appUrl,
+      },
+      payment.userId,
+    );
   }
 }
 
