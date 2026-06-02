@@ -18,14 +18,16 @@ export function FocusStep({
   stepNumber,
   totalSteps,
   onChosen,
-  onSkipAll,
+  onBack,
+  onSkip,
   finishing,
 }: {
   initialFocus: ContentDiagnosticAnswer | null;
   stepNumber: WizardStep;
   totalSteps: number;
   onChosen: (focus: ContentDiagnosticAnswer) => void;
-  onSkipAll: () => void;
+  onBack: () => void;
+  onSkip: () => void;
   finishing: boolean;
 }) {
   const [selected, setSelected] = useState<ContentDiagnosticAnswer | null>(initialFocus);
@@ -46,6 +48,7 @@ export function FocusStep({
       totalSteps={totalSteps}
       title="Por onde começamos?"
       description="Escolha o que mais pesa agora. Dá para mudar depois."
+      onBack={onBack}
       primary={{
         label: "Continuar",
         onClick: confirm,
@@ -53,7 +56,7 @@ export function FocusStep({
         loading: saving,
         icon: <ArrowRight size={18} />,
       }}
-      secondary={{ label: "Pular por agora", onClick: onSkipAll }}
+      secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
       <div className="flex flex-col gap-3">
         {OPTIONS.map(({ value, title, sub, Icon }) => {
