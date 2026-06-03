@@ -83,10 +83,10 @@ export class FinancialHealthService {
       return err(new InvalidAmortizationParamsError("CET ponderada inválida."));
     }
 
-    const netWorthNumber = totalIncomeNumber - totalMonthlyServiceNumber;
-    const netWorthR = Money.from(netWorthNumber);
-    if (!isOk(netWorthR)) {
-      return err(new InvalidAmortizationParamsError("Net worth inválido."));
+    const monthlyFreeCashFlowNumber = totalIncomeNumber - totalMonthlyServiceNumber;
+    const monthlyFreeCashFlowR = Money.from(monthlyFreeCashFlowNumber);
+    if (!isOk(monthlyFreeCashFlowR)) {
+      return err(new InvalidAmortizationParamsError("Saldo livre mensal inválido."));
     }
 
     return ok({
@@ -96,7 +96,7 @@ export class FinancialHealthService {
       totalIncome,
       totalDebtBalance,
       totalMonthlyService,
-      netWorth: netWorthR.value,
+      monthlyFreeCashFlow: monthlyFreeCashFlowR.value,
       cetWeightedAverage: cetRateR.value.toAnnual(),
       incomeCommittedPct,
     });

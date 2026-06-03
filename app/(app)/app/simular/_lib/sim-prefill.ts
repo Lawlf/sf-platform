@@ -66,7 +66,7 @@ export async function loadSimPrefill(userId: string): Promise<SimPrefill> {
   let incomeCents = 0n;
   let monthlyServiceCents = 0n;
   if (isOk(snapshot)) {
-    const free = snapshot.value.netWorth.toCents();
+    const free = snapshot.value.monthlyFreeCashFlow.toCents();
     contributionCents = free > 0n ? free : 0n;
     incomeCents = snapshot.value.totalIncome.toCents();
     monthlyServiceCents = snapshot.value.totalMonthlyService.toCents();

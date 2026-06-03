@@ -68,7 +68,7 @@ export async function buildGoalMacro(
   let monthlyServiceCents = 0n;
   let monthlyIncomeCents = 0n;
   if (isOk(snapshotResult)) {
-    const free = snapshotResult.value.netWorth.toCents();
+    const free = snapshotResult.value.monthlyFreeCashFlow.toCents();
     contributionCents = free > 0n ? free : 0n;
     monthlyServiceCents = snapshotResult.value.totalMonthlyService.toCents();
     monthlyIncomeCents = snapshotResult.value.totalIncome.toCents();

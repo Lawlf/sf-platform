@@ -4,8 +4,9 @@ import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors/result";
+import { isErr, isOk } from "@/shared/errors/result";
 
+import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
 import { registerDebt } from "./register-debt.use-case";
 
 function makeDebtRepo(): DebtRepository {
@@ -148,6 +149,37 @@ describe("registerDebt", () => {
       expect(arg.dueDay).toBe(15);
       expect(arg.installmentPurchases).toEqual([]);
     }
+  });
+
+  it("rejects a credit_card debt where statement + revolving exceeds the limit", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        userId: "user-4",
+        label: "Cartão estourado",
+        notes: null,
+        startDate: new Date("2026-01-01"),
+        expectedEndDate: null,
+        kind: "credit_card",
+        creditLimit: makeMoney(1500),
+        currentStatement: makeMoney(3000),
+        statementDay: 5,
+        dueDay: 15,
+        revolvingBalance: null,
+        revolvingMonthlyRate: null,
+        installmentPurchases: [],
+      },
+    );
+
+    expect(isErr(result)).toBe(true);
+    if (isErr(result)) {
+      expect(result.error).toBeInstanceOf(CreditCardStatementExceedsLimit);
+    }
+    expect((debts.create as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
   });
 
   it("creates a recurring debt with currentBalance=0 and persists recurring fields", async () => {
