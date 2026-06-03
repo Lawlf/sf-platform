@@ -5,7 +5,7 @@ export default function manifest(): MetadataRoute.Manifest {
     name: "Sabor Financeiro",
     short_name: "Sabor",
     description: "O sabor de uma vida financeira saudável.",
-    start_url: "/",
+    start_url: "/app",
     display: "standalone",
     background_color: "#fdf8f3",
     theme_color: "#f28e25",
