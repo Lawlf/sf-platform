@@ -3,6 +3,7 @@
 import { CalendarRange, Plus, Trash2, X } from "lucide-react";
 import { useMemo, useState, useTransition } from "react";
 
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import { Spinner } from "@/app/components/ui/spinner";
 
 import {
@@ -287,7 +288,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                     {p.endMonth ? formatMonth(p.endMonth) : "em diante"}
                   </span>
                   <span className="text-[color:var(--text-secondary)]">
-                    {formatBRL(BigInt(p.amountCents))}/mês
+                    <HideableValue>{formatBRL(BigInt(p.amountCents))}</HideableValue>/mês
                   </span>
                 </div>
                 <button
@@ -369,7 +370,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                     {formatDueDayMonth(row.dueDateIso)}
                   </span>
                   <span className="text-right text-[0.875rem] font-semibold">
-                    {formatBRL(BigInt(row.amountCents))}
+                    <HideableValue>{formatBRL(BigInt(row.amountCents))}</HideableValue>
                   </span>
                   <button
                     type="button"

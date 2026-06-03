@@ -1,6 +1,10 @@
+import type { ReactNode } from "react";
+
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { AmortizationSchedule } from "@/domain/value-objects/amortization-schedule.vo";
 import { Money } from "@/domain/value-objects/money.vo";
+
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
 
 import { ScheduleRender } from "./schedule-render";
 
@@ -40,11 +44,21 @@ export function AmortizationSection({ debt, amortization }: Props) {
           Resumo do contrato
         </h2>
         <div className="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <Stat label="Total a pagar" value={Money.fromCents(totalInstallmentCents).format()} />
-          <Stat label="Juros totais" value={Money.fromCents(totalInterestCents).format()} />
+          <Stat
+            label="Total a pagar"
+            value={<HideableValue>{Money.fromCents(totalInstallmentCents).format()}</HideableValue>}
+          />
+          <Stat
+            label="Juros totais"
+            value={<HideableValue>{Money.fromCents(totalInterestCents).format()}</HideableValue>}
+          />
           <Stat
             label="Já amortizado"
-            value={Money.fromCents(paidPrincipalCents > 0n ? paidPrincipalCents : 0n).format()}
+            value={
+              <HideableValue>
+                {Money.fromCents(paidPrincipalCents > 0n ? paidPrincipalCents : 0n).format()}
+              </HideableValue>
+            }
           />
           <Stat
             label="Progresso"
@@ -90,7 +104,7 @@ export function AmortizationSection({ debt, amortization }: Props) {
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({ label, value }: { label: string; value: ReactNode }) {
   return (
     <div>
       <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">

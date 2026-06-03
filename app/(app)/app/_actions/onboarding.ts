@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { dismissHomeTour } from "@/application/use-cases/onboarding/dismiss-home-tour.use-case";
 import {
   getOnboardingState,
@@ -58,6 +60,7 @@ export async function dismissHomeTourAction(): Promise<{ ok: boolean }> {
   const user = await requireUser();
   const users = new DrizzleUserRepository();
   const result = await dismissHomeTour({ users }, { userId: user.id });
+  revalidatePath("/app");
   return { ok: isOk(result) };
 }
 

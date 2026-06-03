@@ -17,6 +17,9 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
+
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { Button } from "@/app/components/ui/button";
 import {
   Sheet,
@@ -26,12 +29,11 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 
-import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
-import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 import { WizardMoneyField } from "../../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { deactivateAssetAction } from "../_actions/deactivate-asset.action";
 import { linkDebtAction } from "../_actions/link-debt.action";
@@ -185,13 +187,17 @@ export function AssetDetailView(props: AssetDetailViewProps) {
             <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               Valor atual
             </div>
-            <div className="mt-0.5 font-bold">{props.currentValueFormatted}</div>
+            <div className="mt-0.5 font-bold">
+              <HideableValue>{props.currentValueFormatted}</HideableValue>
+            </div>
           </div>
           <div>
             <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
               Patrimônio líquido
             </div>
-            <div className={`mt-0.5 font-bold ${nwColor}`}>{props.netWorthFormatted}</div>
+            <div className={`mt-0.5 font-bold ${nwColor}`}>
+              <HideableValue>{props.netWorthFormatted}</HideableValue>
+            </div>
           </div>
         </div>
       </section>
@@ -421,7 +427,7 @@ function StockSection({
             Preço médio
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            {stock.avgPriceFormatted}
+            <HideableValue>{stock.avgPriceFormatted}</HideableValue>
           </dd>
         </div>
         <div>
@@ -429,7 +435,11 @@ function StockSection({
             Última cotação
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            {stock.lastQuoteFormatted ?? "—"}
+            {stock.lastQuoteFormatted ? (
+              <HideableValue>{stock.lastQuoteFormatted}</HideableValue>
+            ) : (
+              "—"
+            )}
             {stock.lastQuoteAt ? (
               <span className="ml-1 text-[0.625rem] font-normal text-[color:var(--text-muted)]">
                 · {stock.lastQuoteAt}
@@ -444,7 +454,9 @@ function StockSection({
             </dt>
             <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${gainLossColor}`}>
               <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
-              <span>{stock.gainLossFormatted}</span>
+              <span>
+                <HideableValue>{stock.gainLossFormatted}</HideableValue>
+              </span>
               {stock.gainLossPctFormatted ? (
                 <span className="text-[0.6875rem] opacity-80">({stock.gainLossPctFormatted})</span>
               ) : null}
@@ -581,8 +593,8 @@ function LinkedDebtRow({ assetId, debt }: { assetId: string; debt: LinkedDebtVie
           {debt.label}
         </p>
         <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-          Original: {debt.allocationOriginalFormatted} · Saldo no ativo:{" "}
-          {debt.outstandingOnAssetFormatted}
+          Original: <HideableValue>{debt.allocationOriginalFormatted}</HideableValue> · Saldo no
+          ativo: <HideableValue>{debt.outstandingOnAssetFormatted}</HideableValue>
         </p>
         {error ? (
           <span
@@ -688,7 +700,7 @@ function LinkRow({ assetId, debt }: { assetId: string; debt: AvailableDebtView }
       <div>
         <p className="text-sm font-semibold text-[color:var(--text-primary)]">{debt.label}</p>
         <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
-          Original: {debt.originalPrincipalFormatted}
+          Original: <HideableValue>{debt.originalPrincipalFormatted}</HideableValue>
         </p>
       </div>
       <WizardMoneyField control={form.control} name="allocationCents" placeholder="R$ 0,00" />
@@ -719,7 +731,7 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
             Pagou
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            {view.paidFormatted}
+            <HideableValue>{view.paidFormatted}</HideableValue>
           </dd>
         </div>
         <div>
@@ -727,7 +739,7 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
             Vale agora
           </dt>
           <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            {view.currentFormatted}
+            <HideableValue>{view.currentFormatted}</HideableValue>
           </dd>
         </div>
         <div className="col-span-2">
@@ -736,7 +748,9 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
           </dt>
           <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${deltaColor}`}>
             <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
-            <span>{view.deltaFormatted}</span>
+            <span>
+              <HideableValue>{view.deltaFormatted}</HideableValue>
+            </span>
             {view.deltaPctFormatted ? (
               <span className="text-[0.6875rem] opacity-80">({view.deltaPctFormatted})</span>
             ) : null}
@@ -935,7 +949,9 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
       >
         <SheetContent side="bottom" className="flex flex-col gap-3">
           <SheetHeader>
-            <SheetTitle>Você liberou {formatCentsToBRL(soldNudge ?? 0n)}</SheetTitle>
+            <SheetTitle>
+              Você liberou <HideableValue>{formatCentsToBRL(soldNudge ?? 0n)}</HideableValue>
+            </SheetTitle>
             <SheetDescription>O que fazer com esse dinheiro agora?</SheetDescription>
           </SheetHeader>
           <Link

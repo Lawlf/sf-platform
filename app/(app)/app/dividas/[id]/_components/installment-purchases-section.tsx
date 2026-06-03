@@ -5,6 +5,8 @@ import { Button } from "@/app/components/ui/button";
 import type { CreditCardDebt, DebtStatus } from "@/domain/entities/debt.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+
 interface Props {
   debt: CreditCardDebt;
 }
@@ -61,12 +63,12 @@ export function InstallmentPurchasesSection({ debt }: Props) {
               </p>
               <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
                 {p.installmentsTotal - p.installmentsRemaining}/{p.installmentsTotal} pagas · Total{" "}
-                {p.total.format()}
+                <HideableValue>{p.total.format()}</HideableValue>
               </p>
             </div>
             <div className="flex shrink-0 flex-col items-end gap-0.5">
               <span className="text-sm font-semibold tabular-nums text-[color:var(--text-primary)]">
-                {p.monthlyValue.format()}
+                <HideableValue>{p.monthlyValue.format()}</HideableValue>
               </span>
               <span className="text-[0.625rem] uppercase tracking-wide text-[color:var(--text-muted)]">
                 /mês
@@ -80,7 +82,7 @@ export function InstallmentPurchasesSection({ debt }: Props) {
           Total mensal
         </span>
         <span className="text-sm font-bold tabular-nums text-[color:var(--text-primary)]">
-          {Money.fromCents(totalMonthly).format()}
+          <HideableValue>{Money.fromCents(totalMonthly).format()}</HideableValue>
         </span>
       </div>
     </section>

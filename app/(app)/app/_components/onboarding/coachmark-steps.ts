@@ -8,7 +8,7 @@ export interface CoachmarkStep {
 export const COACHMARK_STEPS: CoachmarkStep[] = [
   {
     target: '[data-tour="hero"]',
-    title: "Sua foto do mês",
+    title: "Seu resumo do mês",
     body: "Quanto entra, quanto sai e o que sobra, tudo num lugar só.",
   },
   {
@@ -32,6 +32,19 @@ export const COACHMARK_STEPS: CoachmarkStep[] = [
     body: "O quanto da sua renda já está comprometida, num olhar.",
   },
 ];
+
+export interface StepGates {
+  hasGoal: boolean;
+}
+
+const GOALS_TARGET = '[data-tour="goals"]';
+
+// Remove passos sem dado real ANTES de medir o DOM. O card de meta renderiza null
+// quando o usuario nao tem meta, mas durante o streaming do Suspense o esqueleto
+// ocupa altura > 0 e enganaria o filtro por altura -> o passo aparecia vazio.
+export function gateSteps(steps: CoachmarkStep[], gates: StepGates): CoachmarkStep[] {
+  return steps.filter((s) => s.target !== GOALS_TARGET || gates.hasGoal);
+}
 
 export function clampIndex(i: number): number {
   if (i < 0) return 0;

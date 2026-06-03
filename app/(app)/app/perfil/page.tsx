@@ -9,6 +9,7 @@ import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persisten
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -28,10 +29,15 @@ export default async function PerfilPage({
 }) {
   const user = await requireUser();
   const { stepup } = await searchParams;
+  const avatarUrl = await new DrizzleUserAvatarRepository().get(user.id);
 
   return (
     <PageShell title="Perfil" description="Quem você é, como anda sua saúde financeira.">
-      <PerfilHero initialDisplayName={user.displayName ?? ""} email={user.email} />
+      <PerfilHero
+        initialDisplayName={user.displayName ?? ""}
+        initialAvatarUrl={avatarUrl}
+        email={user.email}
+      />
       {user.role === "admin" ? <AdminPanelButton autoOpen={stepup === "admin"} /> : null}
       <Suspense
         fallback={

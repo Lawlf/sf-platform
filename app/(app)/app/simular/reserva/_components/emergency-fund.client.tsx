@@ -10,6 +10,7 @@ import {
 } from "@/domain/services/emergency-fund.service";
 
 import { MoneyInput } from "../../../_components/money-input";
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
 import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
@@ -132,9 +133,14 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
               {result.monthsCovered === 1 ? "mês" : "meses"} coberto{result.monthsCovered === 1 ? "" : "s"}
             </div>
             <p className="mt-2 text-[0.75rem] font-medium text-white/85">
-              {result.status === "ok"
-                ? "Você atingiu sua meta de reserva. Tranquilidade garantida."
-                : `Faltam ${brl(result.gapCents)} para cobrir ${targetMonths} meses.`}
+              {result.status === "ok" ? (
+                "Você atingiu sua meta de reserva. Tranquilidade garantida."
+              ) : (
+                <>
+                  Faltam <HideableValue>{brl(result.gapCents)}</HideableValue> para cobrir{" "}
+                  {targetMonths} meses.
+                </>
+              )}
             </p>
           </div>
           <Icon size={38} strokeWidth={1.5} className="shrink-0 text-white/85" aria-hidden />
@@ -144,9 +150,9 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
       <section className="grid gap-3 sm:grid-cols-2">
         <ResultCard title="Reserva-alvo" subtitle={`${targetMonths} meses de custo fixo`}>
           <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
-            {brl(result.targetCents)}
+            <HideableValue>{brl(result.targetCents)}</HideableValue>
           </div>
-          <ResultStat label="Você já tem" value={brl(reserve)} />
+          <ResultStat label="Você já tem" value={<HideableValue>{brl(reserve)}</HideableValue>} />
         </ResultCard>
         <ResultCard title="Pra completar" subtitle="Com seu aporte mensal">
           <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
@@ -156,7 +162,7 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
                 ? "Pronto!"
                 : `${result.monthsToComplete} ${result.monthsToComplete === 1 ? "mês" : "meses"}`}
           </div>
-          <ResultStat label="Falta guardar" value={brl(result.gapCents)} />
+          <ResultStat label="Falta guardar" value={<HideableValue>{brl(result.gapCents)}</HideableValue>} />
           {result.monthsToComplete === null ? (
             <p className="text-[0.6875rem] text-[color:var(--text-secondary)]">
               Defina um aporte mensal para estimar o prazo.

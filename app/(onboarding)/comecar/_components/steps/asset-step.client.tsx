@@ -64,7 +64,7 @@ export function AssetStep({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="O que você já tem"
-      description="Seu dinheiro guardado ou um bem. Só um item já monta sua foto."
+      description="Seu dinheiro guardado ou um bem. Só um item já monta seu resumo."
       onBack={onBack}
       primary={{ label: "Ver meu patrimônio", onClick: form.handleSubmit(onSubmit), loading: saving }}
       secondary={{ label: "Pular esta etapa", onClick: onSkip }}

@@ -68,7 +68,10 @@ export default async function DashboardPage() {
       description="Aqui está sua situação agora."
     >
       <div className="grid gap-4 md:grid-cols-2">
-        <HomeCoachmarks active={onboardingState.wizardSeen && !onboardingState.tourDismissed} />
+        <HomeCoachmarks
+          active={onboardingState.wizardSeen && !onboardingState.tourDismissed}
+          hasGoal={onboardingState.checklist.hasGoal}
+        />
 
         <div className="md:col-span-2">
           <OnboardingChecklistCard checklist={onboardingState.checklist} />

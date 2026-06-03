@@ -5,6 +5,7 @@ import { Calendar, Repeat, TrendingDown, TrendingUp, Wallet } from "lucide-react
 import type { Route } from "next";
 import Link from "next/link";
 
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import {
   Sheet,
   SheetContent,
@@ -12,6 +13,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+
 
 import { fetchMonthDetail, type SerializedMonthDetail } from "../../_actions/timeline-month-detail";
 import { type SerializedMonthlyDataPoint } from "../../_actions/timeline-queries";
@@ -79,10 +81,11 @@ export function MonthDetailDrawer({ point, open, onOpenChange }: MonthDetailDraw
                 : "text-[color:var(--semantic-positive)]"
             }`}
           >
-            {point.netWorth.formatted}
+            <HideableValue>{point.netWorth.formatted}</HideableValue>
           </div>
           <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-            Ativos {point.assetsTotal.formatted} menos dívidas {point.debtsBalance.formatted}.
+            Ativos <HideableValue>{point.assetsTotal.formatted}</HideableValue> menos dívidas{" "}
+            <HideableValue>{point.debtsBalance.formatted}</HideableValue>.
           </div>
         </div>
       </SheetContent>
@@ -114,7 +117,7 @@ function KPI({
         {label}
       </div>
       <div className="text-[0.8125rem] font-bold" style={{ color }}>
-        {value}
+        <HideableValue>{value}</HideableValue>
       </div>
     </div>
   );
@@ -163,7 +166,7 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
                       </div>
                     </div>
                     <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-negative)]">
-                      {p.amount.formatted}
+                      <HideableValue>{p.amount.formatted}</HideableValue>
                     </span>
                   </div>
                 </Link>
@@ -206,7 +209,7 @@ function MonthDetailBody({ monthIso }: { monthIso: string }) {
                         </div>
                       </div>
                       <span className="text-[0.8125rem] font-bold text-[color:var(--semantic-positive)]">
-                        {inc.amount.formatted}
+                        <HideableValue>{inc.amount.formatted}</HideableValue>
                       </span>
                     </div>
                   </Link>

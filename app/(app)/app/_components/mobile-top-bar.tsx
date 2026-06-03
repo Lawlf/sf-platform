@@ -7,14 +7,15 @@ import Link from "next/link";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
+import { UserAvatar } from "./user-avatar";
 
 export interface MobileTopBarProps {
   displayName: string;
+  avatarUrl?: string | null | undefined;
   notificationCount?: number;
 }
 
-export function MobileTopBar({ displayName, notificationCount = 0 }: MobileTopBarProps) {
-  const initials = displayName.slice(0, 2).toUpperCase();
+export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0 }: MobileTopBarProps) {
   const hasNotifications = notificationCount > 0;
   const badgeLabel = notificationCount > 9 ? "9+" : String(notificationCount);
 
@@ -29,9 +30,11 @@ export function MobileTopBar({ displayName, notificationCount = 0 }: MobileTopBa
           aria-label="Ir para perfil"
           className="focus-ring flex items-center gap-2.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] py-2 pl-2 pr-5 text-[0.9375rem] font-semibold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.2]"
         >
-          <span className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
-            {initials}
-          </span>
+          <UserAvatar
+            dataUrl={avatarUrl}
+            displayName={displayName}
+            className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]"
+          />
           <span className="max-w-[150px] truncate">{displayName}</span>
         </Link>
       </SimpleTooltip>

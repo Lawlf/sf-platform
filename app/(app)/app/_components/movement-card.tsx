@@ -2,6 +2,8 @@
 
 import { ChevronRight, MoveRight } from "lucide-react";
 
+import { HideableValue } from "./money-visibility/hideable-value.client";
+
 export interface MovementCardProps {
   rendaFormatted: string;
   despesasFormatted: string;
@@ -108,7 +110,9 @@ function EqRow({ sign, name, hint, value, tone }: EqRowProps) {
           <span className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{hint}</span>
         </span>
       </div>
-      <span className={`text-[0.9375rem] font-extrabold tracking-[-0.2px] ${valueColor}`}>{value}</span>
+      <span className={`text-[0.9375rem] font-extrabold tracking-[-0.2px] ${valueColor}`}>
+        <HideableValue>{value}</HideableValue>
+      </span>
     </div>
   );
 }
@@ -135,7 +139,9 @@ export function ResultLine({ head, sub, value, tone }: ResultLineProps) {
         </span>
         <span className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{sub}</span>
       </div>
-      <span className={`text-[1.5rem] font-extrabold tracking-[-0.4px] ${valColor}`}>{value}</span>
+      <span className={`text-[1.5rem] font-extrabold tracking-[-0.4px] ${valColor}`}>
+        <HideableValue>{value}</HideableValue>
+      </span>
     </div>
   );
 }

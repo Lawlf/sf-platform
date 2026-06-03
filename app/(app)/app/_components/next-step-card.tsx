@@ -4,6 +4,7 @@ import Link from "next/link";
 
 import { fetchPrescription } from "../_actions/prescription-queries";
 
+import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
 import { presentMove } from "./prescription-copy";
@@ -154,9 +155,11 @@ export async function NextStepCard() {
         {CARD_TITLE}
       </h2>
       <p className="mt-2 text-[1rem] font-bold leading-[1.35] tracking-[-0.01em] text-[color:var(--text-primary)]">
-        {dominant.headline}
+        <MaskMoneyText text={dominant.headline} />
       </p>
-      <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">{dominant.impact}</p>
+      <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
+        <MaskMoneyText text={dominant.impact} />
+      </p>
       <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">{dominant.reason}</p>
       {(() => {
         const cta = moveCtaFor({ type: p.dominant.type, targetDebtId: p.dominant.targetDebtId ?? null });
