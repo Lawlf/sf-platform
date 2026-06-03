@@ -87,4 +87,11 @@ export class DrizzleIncomeRepository implements IncomeRepository {
       .set({ deletedAt, updatedAt: deletedAt })
       .where(eq(incomes.id, id));
   }
+
+  async restore(id: string): Promise<void> {
+    await getDb()
+      .update(incomes)
+      .set({ deletedAt: null, updatedAt: new Date() })
+      .where(eq(incomes.id, id));
+  }
 }

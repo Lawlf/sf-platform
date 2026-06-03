@@ -24,4 +24,10 @@ export interface IncomeRepository {
    * esse método.
    */
   softDelete(id: string, deletedAt: Date): Promise<void>;
+  /**
+   * Reverte um soft delete (`deleted_at = null`). Usado pelo undo de uma ação
+   * MCP que apagou a renda. Como o soft delete não toca em sub-records (income
+   * não tem), restaurar é um simples UPDATE.
+   */
+  restore(id: string): Promise<void>;
 }

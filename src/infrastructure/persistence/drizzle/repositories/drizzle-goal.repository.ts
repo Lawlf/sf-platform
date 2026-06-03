@@ -128,6 +128,13 @@ export class DrizzleGoalRepository implements GoalRepository {
       .where(eq(goals.id, id));
   }
 
+  async restore(id: string): Promise<void> {
+    await getDb()
+      .update(goals)
+      .set({ deletedAt: null, updatedAt: sql`now()` })
+      .where(eq(goals.id, id));
+  }
+
   async listAllActive(): Promise<GoalEntity[]> {
     const rows = await getDb()
       .select()
