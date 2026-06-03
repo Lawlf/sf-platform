@@ -9,6 +9,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 
 import { AppLockProvider } from "./app/_components/app-lock/app-lock-provider.client";
 import { BottomNavGate } from "./app/_components/bottom-nav-gate";
+import { CommandPalette } from "./app/_components/command-palette.client";
 import { MobileTopBar } from "./app/_components/mobile-top-bar";
 import { MoneyVisibilityProvider } from "./app/_components/money-visibility/money-visibility-provider.client";
 import { Sidebar } from "./app/_components/sidebar";
@@ -45,15 +46,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
-            <Sidebar />
-            <Topbar
-              displayName={displayName}
-              email={user.email}
-              notificationCount={notificationCount}
-            />
+            <Sidebar displayName={displayName} isPro={user.isPro} />
+            <Topbar notificationCount={notificationCount} />
             <MobileTopBar displayName={displayName} notificationCount={notificationCount} />
 
             <UsageHeartbeat />
+            <CommandPalette />
             {children}
 
             <div className="md:hidden">

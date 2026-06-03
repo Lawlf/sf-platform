@@ -40,7 +40,7 @@
 @layer base {
   :root {
     color-scheme: light;
-    --sidebar-w: 220px;
+    --sidebar-w: 256px;
     --bg-app: #fdf8f3;
     --bg-warm: #fff8ee;
     /* Laranja de TEXTO theme-aware: queimado no claro, mais vivo no escuro
