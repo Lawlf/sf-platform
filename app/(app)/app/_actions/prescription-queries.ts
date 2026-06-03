@@ -6,7 +6,7 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { isOk } from "@/shared/errors/result";
-import type { Prescription } from "@/domain/services/prescription/prescription.types";
+import type { MoveType, Prescription } from "@/domain/services/prescription/prescription.types";
 
 export interface PrescriptionViewPayload {
   isPro: boolean;
@@ -17,6 +17,8 @@ export interface PrescriptionViewPayload {
   prescription: Prescription | null;
   /** indica que existe plano sem revelar conteúdo (free + pro). */
   teaser: { hasPlan: boolean; missing: Prescription["completeness"]["missing"] };
+  /** resposta concreta liberada pro free (sem números): qual movimento e dívida. */
+  freeMove: { type: MoveType; targetDebtLabel: string | null; targetDebtId: string | null } | null;
 }
 
 export async function fetchPrescription(): Promise<PrescriptionViewPayload | null> {
@@ -36,12 +38,21 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
 
   const p = r.value;
   const hasPlan = p.state !== "incomplete";
+  const dom = p.dominant;
 
   return {
     isPro: user.isPro,
     hasPlan,
     state: p.state,
-    prescription: user.isPro ? p : null, // paywall: conteúdo só pra Pro
+    prescription: user.isPro ? p : null, // paywall: números só pra Pro
     teaser: { hasPlan, missing: p.completeness.missing },
+    // Movimento concreto sem números: liberado pro free (qual dívida atacar).
+    freeMove: dom
+      ? {
+          type: dom.type,
+          targetDebtLabel: dom.targetDebtLabel ?? null,
+          targetDebtId: dom.targetDebtId ?? null,
+        }
+      : null,
   };
 }

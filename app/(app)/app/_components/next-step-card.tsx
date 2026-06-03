@@ -74,9 +74,16 @@ export async function NextStepCard() {
     );
   }
 
-  // Free: teaser bloqueado por estado + CTA (parede de conversão).
+  // Free: resposta concreta liberada (qual movimento/dívida) + ação. Só os
+  // números (economia, meses) ficam borrados como prévia do Pro.
   if (!data.isPro) {
     const teaser = TEASER_BY_STATE[data.state] ?? TEASER_FALLBACK;
+    const fm = data.freeMove;
+    // Linha concreta, não borrada: nomeia a dívida quando há label.
+    const answer = fm?.targetDebtLabel
+      ? `Comece pela dívida: ${fm.targetDebtLabel}.`
+      : teaser.line1;
+    const action = fm ? moveCtaFor({ type: fm.type, targetDebtId: fm.targetDebtId }) : null;
     return (
       <section
         aria-label={CARD_TITLE}
@@ -91,24 +98,39 @@ export async function NextStepCard() {
           {CARD_TITLE}
         </h2>
         <p className="mt-1.5 text-[0.9375rem] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
-          Tem um movimento certo para você este mês
+          {answer}
         </p>
-        <div className="mt-2 select-none blur-sm" aria-hidden="true">
-          <p className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-            {teaser.line1}
-          </p>
-          <p className="mt-0.5 text-[0.78125rem] text-[color:var(--text-secondary)]">
-            {teaser.line2}
-          </p>
+        <div className="mt-1 select-none blur-sm" aria-hidden="true">
+          <p className="text-[0.78125rem] text-[color:var(--text-secondary)]">{teaser.line2}</p>
         </div>
-        <Link
-          href={"/app/configuracoes/planos" as Route}
-          className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[0.84375rem] font-bold text-white"
-          style={{ boxShadow: "0 10px 24px -8px rgba(239,122,26,0.5)" }}
-        >
-          {teaser.cta}
-          <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
-        </Link>
+        {action ? (
+          <Link
+            href={action.href as Route}
+            className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[0.84375rem] font-bold text-white"
+            style={{ boxShadow: "0 10px 24px -8px rgba(239,122,26,0.5)" }}
+          >
+            {action.label}
+            <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
+          </Link>
+        ) : (
+          <Link
+            href={"/app/configuracoes/planos" as Route}
+            className="focus-ring mt-4 inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[0.84375rem] font-bold text-white"
+            style={{ boxShadow: "0 10px 24px -8px rgba(239,122,26,0.5)" }}
+          >
+            {teaser.cta}
+            <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
+          </Link>
+        )}
+        {action ? (
+          <Link
+            href={"/app/configuracoes/planos" as Route}
+            className="mt-3 inline-flex items-center gap-1.5 text-[0.78125rem] font-semibold text-[color:var(--color-brand-800)] hover:underline"
+          >
+            Ver o plano completo com seus números
+            <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
+          </Link>
+        ) : null}
         <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
           Isto é educação financeira, não recomendação de investimento.
         </p>
