@@ -15,8 +15,10 @@ function makeNotificationsRepo(): NotificationRepository {
     findByUserAndKindAndMonth: vi.fn(),
     listForUser: vi.fn(),
     countUndismissedForUser: vi.fn(),
+    countUnreadForUser: vi.fn(),
     create: vi.fn(),
     markDismissed: vi.fn(),
+    markAllReadForUser: vi.fn(),
   };
 }
 
@@ -33,6 +35,7 @@ function makeExisting(overrides: Partial<NotificationEntity> = {}): Notification
     triggeredAt: new Date("2026-05-20T08:00:00Z"),
     payload: { eyebrow: "Atenção", line: "line", iconName: "AlertTriangle" },
     dismissedAt: null,
+    readAt: null,
     createdAt: new Date("2026-05-20T08:00:00Z"),
     ...overrides,
   };

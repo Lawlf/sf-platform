@@ -27,5 +27,6 @@ export interface NotificationEntity {
   triggeredAt: Date;
   payload: NotificationPayload;
   dismissedAt: Date | null;
+  readAt: Date | null;
   createdAt: Date;
 }

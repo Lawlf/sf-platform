@@ -48,6 +48,7 @@ function rowToEntity(row: NotificationRow): NotificationEntity {
     triggeredAt: row.triggeredAt,
     payload: parsePayload(row.payload),
     dismissedAt: row.dismissedAt,
+    readAt: row.readAt,
     createdAt: row.createdAt,
   };
 }
@@ -61,6 +62,7 @@ function entityToRow(entity: NotificationEntity): NewNotificationRow {
     triggeredAt: entity.triggeredAt,
     payload: entity.payload,
     dismissedAt: entity.dismissedAt,
+    readAt: entity.readAt,
     createdAt: entity.createdAt,
   };
 }
@@ -115,6 +117,23 @@ export class DrizzleNotificationRepository implements NotificationRepository {
     const raw = rows[0]?.count ?? "0";
     const n = Number.parseInt(raw, 10);
     return Number.isFinite(n) ? n : 0;
+  }
+
+  async countUnreadForUser(userId: string): Promise<number> {
+    const rows = await getDb()
+      .select({ count: sql<string>`count(*)` })
+      .from(notifications)
+      .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
+    const raw = rows[0]?.count ?? "0";
+    const n = Number.parseInt(raw, 10);
+    return Number.isFinite(n) ? n : 0;
+  }
+
+  async markAllReadForUser(userId: string, readAt: Date): Promise<void> {
+    await getDb()
+      .update(notifications)
+      .set({ readAt })
+      .where(and(eq(notifications.userId, userId), isNull(notifications.readAt)));
   }
 
   async create(entity: NotificationEntity): Promise<NotificationEntity> {

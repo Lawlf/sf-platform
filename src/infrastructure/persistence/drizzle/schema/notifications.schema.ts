@@ -17,6 +17,7 @@ export const notifications = pgTable(
       .notNull()
       .default(sql`'{}'::jsonb`),
     dismissedAt: timestamp("dismissed_at", { withTimezone: true }),
+    readAt: timestamp("read_at", { withTimezone: true }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

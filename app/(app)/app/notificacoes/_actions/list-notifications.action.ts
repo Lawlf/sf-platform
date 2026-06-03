@@ -1,6 +1,6 @@
 "use server";
 
-import { countUndismissed } from "@/application/use-cases/notification/count-undismissed.use-case";
+import { countUnread } from "@/application/use-cases/notification/count-unread.use-case";
 import { listNotifications } from "@/application/use-cases/notification/list-notifications.use-case";
 import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
@@ -16,6 +16,10 @@ export interface SerializedNotification {
   line: string;
   iconName: string;
   dismissed: boolean;
+  read: boolean;
+  url: string | null;
+  description: string | null;
+  cta: string | null;
 }
 
 const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
@@ -44,13 +48,17 @@ export async function fetchNotifications(opts?: {
     line: n.payload.line,
     iconName: n.payload.iconName,
     dismissed: n.dismissedAt !== null,
+    read: n.readAt !== null,
+    url: typeof n.payload.url === "string" ? n.payload.url : null,
+    description: typeof n.payload.description === "string" ? n.payload.description : null,
+    cta: typeof n.payload.cta === "string" ? n.payload.cta : null,
   }));
 }
 
-export async function fetchUndismissedNotificationsCount(): Promise<number> {
+export async function fetchUnreadNotificationsCount(): Promise<number> {
   const user = await getCurrentUser();
   if (!user) return 0;
-  const result = await countUndismissed(
+  const result = await countUnread(
     { notifications: new DrizzleNotificationRepository() },
     { userId: user.id },
   );

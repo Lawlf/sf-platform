@@ -16,7 +16,7 @@ import { MoneyVisibilityProvider } from "./app/_components/money-visibility/mone
 import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
-import { fetchUndismissedNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
+import { fetchUnreadNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
@@ -30,7 +30,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   }
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;
-  const notificationCount = await fetchUndismissedNotificationsCount();
+  const notificationCount = await fetchUnreadNotificationsCount();
 
   const credsRepo = new DrizzleUserCredentialsRepository();
   const [creds, passkeys, avatarUrl] = await Promise.all([

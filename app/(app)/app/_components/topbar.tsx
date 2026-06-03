@@ -66,7 +66,7 @@ export function Topbar({ notificationCount = 0 }: TopbarProps) {
   const pathname = usePathname();
   const crumbs = buildBreadcrumb(pathname);
   const hasNotifications = notificationCount > 0;
-  const badgeLabel = notificationCount > 9 ? "9+" : String(notificationCount);
+  const badgeLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 
   return (
     <header className="hidden md:fixed md:left-[var(--sidebar-w)] md:right-0 md:top-0 md:z-20 md:flex md:items-center md:justify-between md:border-b md:border-[color:var(--border-soft)] md:bg-[color:var(--bg-app)]/80 md:px-8 md:py-3 md:backdrop-blur-md md:transition-[left] md:duration-200">
