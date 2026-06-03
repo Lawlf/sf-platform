@@ -80,12 +80,15 @@ export default function LgpdPage() {
           </li>
           <li>
             <strong>Portar:</strong> levar seus dados para outro fornecedor.
-            Você consegue exportar seus lançamentos em CSV e PDF a qualquer
-            momento.
+            Basta solicitar pelo suporte e a gente prepara uma cópia dos seus
+            dados dentro do prazo legal.
           </li>
           <li>
-            <strong>Eliminar dados tratados com consentimento</strong> e excluir
-            sua conta.
+            <strong>Eliminar dados tratados com consentimento</strong> e
+            encerrar sua conta. Ao encerrar, sua conta é desativada na hora:
+            você deixa de acessar e de receber comunicações. Alguns registros
+            podem ser mantidos por até dois anos para cumprir obrigações legais,
+            e depois são eliminados.
           </li>
           <li>
             <strong>Saber com quem compartilhamos</strong> seus dados.
@@ -102,8 +105,9 @@ export default function LgpdPage() {
 
         <h2>Como exercer seus direitos</h2>
         <p>
-          Boa parte você resolve sozinho dentro do app (exportar dados, encerrar
-          conta). Para qualquer pedido, é só escrever para{" "}
+          Você encerra a conta sozinho dentro do app, nas configurações. Para
+          exportar uma cópia dos seus dados ou qualquer outro pedido, é só
+          escrever para{" "}
           <a href="mailto:contato@saborfinanceiro.com.br">
             contato@saborfinanceiro.com.br
           </a>

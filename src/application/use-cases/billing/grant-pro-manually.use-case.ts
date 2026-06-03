@@ -29,6 +29,7 @@ export interface GrantProManuallyDeps {
   email: EmailService;
   clock: Clock;
   appUrl: string;
+  transaction?: <T>(fn: () => Promise<T>) => Promise<T>;
 }
 
 function addMonths(base: Date, months: number): Date {
@@ -40,7 +41,11 @@ function addMonths(base: Date, months: number): Date {
 /**
  * Grants cortesia Pro: upserts a manual active subscription (priceCents 0),
  * records a R$0 manual succeeded payment, then reuses activatePro to flip the
- * user + send the welcome email. No outer transaction (each save idempotent).
+ * user + send the welcome email. The two financial writes (subscription +
+ * payment) run inside a transaction so a partial failure cannot leave a
+ * subscription without its payment record. The user flip + email run outside
+ * the transaction (activatePro does network I/O) and are independently
+ * idempotent.
  */
 export async function grantProManually(
   deps: GrantProManuallyDeps,
@@ -72,8 +77,6 @@ export async function grantProManually(
     createdAt: existing?.createdAt ?? now,
     updatedAt: now,
   };
-  await deps.subscriptions.save(sub);
-
   const payment: Payment = {
     id: crypto.randomUUID(),
     subscriptionId: sub.id,
@@ -91,7 +94,12 @@ export async function grantProManually(
     hostedInvoiceUrl: null,
     createdAt: now,
   };
-  await deps.payments.save(payment);
+
+  const runInTransaction = deps.transaction ?? ((fn) => fn());
+  await runInTransaction(async () => {
+    await deps.subscriptions.save(sub);
+    await deps.payments.save(payment);
+  });
 
   await activatePro(
     { users: deps.users, email: deps.email, clock: deps.clock, appUrl: deps.appUrl },

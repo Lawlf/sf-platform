@@ -274,6 +274,13 @@
       "when": 1780491464721,
       "tag": "0038_clammy_mojo",
       "breakpoints": true
+    },
+    {
+      "idx": 39,
+      "version": "7",
+      "when": 1780600000000,
+      "tag": "0039_rate_check_constraints",
+      "breakpoints": true
     }
   ]
 }

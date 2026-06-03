@@ -237,4 +237,51 @@ describe("recordPayment", () => {
     const payment = (payments.create as ReturnType<typeof vi.fn>).mock.calls[0]![0];
     expect(payment.isClosingPayment).toBe(false);
   });
+
+  it("runs the balance update and payment insert inside the same transaction", async () => {
+    const debts = makeDebtRepo();
+    const payments = makePaymentsRepo();
+    const clock = makeClock();
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt());
+
+    let inTx = false;
+    const ranInTx: boolean[] = [];
+    (debts.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => {
+      ranInTx.push(inTx);
+      return e;
+    });
+    (payments.create as ReturnType<typeof vi.fn>).mockImplementation(async (p) => {
+      ranInTx.push(inTx);
+      return p;
+    });
+
+    const result = await recordPayment(
+      {
+        debts,
+        payments,
+        clock,
+        lock: makeLock(),
+        transaction: async <T>(fn: () => Promise<T>): Promise<T> => {
+          inTx = true;
+          try {
+            return await fn();
+          } finally {
+            inTx = false;
+          }
+        },
+      },
+      {
+        userId: "user-1",
+        debtId: "debt-1",
+        amount: makeMoney(950),
+        principalPortion: makeMoney(750),
+        interestPortion: makeMoney(200),
+        isExtra: false,
+        paidAt: new Date("2026-02-10"),
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    expect(ranInTx).toEqual([true, true]);
+  });
 });

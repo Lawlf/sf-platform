@@ -1,4 +1,4 @@
-import { and, desc, eq, gt } from "drizzle-orm";
+import { and, desc, eq, gt, lt } from "drizzle-orm";
 
 import type { SessionEntity } from "@/domain/entities/session.entity";
 import type { UserEntity } from "@/domain/entities/user.entity";
@@ -106,5 +106,10 @@ export class DrizzleSessionRepository implements SessionRepository {
 
   async deleteAllForUser(userId: string): Promise<void> {
     await getDb().delete(sessions).where(eq(sessions.userId, userId));
+  }
+
+  async deleteExpired(now: Date): Promise<number> {
+    const rows = await getDb().delete(sessions).where(lt(sessions.expiresAt, now)).returning();
+    return rows.length;
   }
 }

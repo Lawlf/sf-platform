@@ -17,6 +17,8 @@ export interface MoneyInputProps<TFieldValues extends FieldValues> {
 
 export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputProps<TFieldValues>) {
   const inputId = useId();
+  const errorId = useId();
+  const helperId = useId();
   return (
     <Controller
       control={props.control}
@@ -84,13 +86,25 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
               onChange={handleChange}
               onBlur={field.onBlur}
               aria-required={props.required}
+              aria-invalid={fieldState.error ? true : undefined}
+              aria-describedby={
+                [fieldState.error ? errorId : null, props.helper ? helperId : null]
+                  .filter(Boolean)
+                  .join(" ") || undefined
+              }
               className="w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30"
             />
             {props.helper ? (
-              <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{props.helper}</span>
+              <span id={helperId} className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                {props.helper}
+              </span>
             ) : null}
             {fieldState.error ? (
-              <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
+              <span
+                id={errorId}
+                role="alert"
+                className="text-[0.6875rem] text-[color:var(--semantic-negative)]"
+              >
                 {fieldState.error.message}
               </span>
             ) : null}
