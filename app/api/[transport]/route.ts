@@ -15,10 +15,18 @@ const baseHandler = createMcpHandler(
   { basePath: "/api" },
 );
 
-async function verifyToken(_req: Request, bearerToken?: string): Promise<AuthInfo | undefined> {
-  if (!bearerToken) return undefined;
+async function verifyToken(req: Request, bearerToken?: string): Promise<AuthInfo | undefined> {
+  if (!bearerToken) {
+    console.warn(
+      `[mcp/auth] ${req.method} ${new URL(req.url).pathname} sem bearer (header Authorization ${req.headers.get("authorization") ? "presente" : "ausente"})`,
+    );
+    return undefined;
+  }
   const ctx = await resolveMcpContextFromToken(bearerToken);
-  if (!ctx) return undefined;
+  if (!ctx) {
+    console.warn(`[mcp/auth] token nao resolveu (tamanho=${bearerToken.length})`);
+    return undefined;
+  }
   return {
     token: bearerToken,
     clientId: ctx.connectionId,
