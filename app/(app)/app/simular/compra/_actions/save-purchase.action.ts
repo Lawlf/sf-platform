@@ -12,6 +12,8 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../_actions/_achievements";
+
 /**
  * Batch 6 (Plano 9 - Compra Inteligente).
  *
@@ -113,6 +115,8 @@ export async function savePurchaseAction(formData: FormData): Promise<SavePurcha
   revalidatePath("/app/patrimonio");
   revalidatePath("/app/dividas");
   revalidatePath("/app");
+
+  await awardEventAchievement(user.id, "mapa-do-tesouro");
 
   return { ok: true, assetId };
 }

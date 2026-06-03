@@ -17,9 +17,11 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../_components/page-shell";
+import { UserAvatar } from "../_components/user-avatar";
 
 export const metadata: Metadata = { title: "Configurações" };
 
@@ -133,16 +135,18 @@ const SECTIONS: SettingSection[] = [
 
 export default async function ConfiguracoesPage() {
   const user = await requireUser();
+  const avatarUrl = await new DrizzleUserAvatarRepository().get(user.id);
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;
-  const initials = displayName.slice(0, 2).toUpperCase();
 
   return (
     <PageShell title="Configurações" description="Ajuste a plataforma do seu jeito.">
       <section className="flex items-center gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-sm font-bold text-white">
-          {initials}
-        </span>
+        <UserAvatar
+          dataUrl={avatarUrl}
+          displayName={displayName}
+          className="flex h-12 w-12 flex-none items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-sm font-bold text-white"
+        />
         <div className="min-w-0 flex-1">
           <div className="truncate text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
             {user.displayName ?? "Sem nome"}

@@ -18,6 +18,8 @@ import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { awardEventAchievement } from "../../_actions/_achievements";
+
 export interface ActionResult {
   ok: boolean;
   message?: string;
@@ -117,6 +119,7 @@ export async function createGoalAction(
   }
 
   revalidatePath("/app/metas");
+  await awardEventAchievement(user.id, "norte-definido");
   return { ok: true, goalId: result.goal.id };
 }
 

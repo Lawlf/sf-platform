@@ -9,6 +9,8 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../_actions/_achievements";
+
 const schema = z.object({
   debtId: z.string().uuid(),
   monthlyPaymentCents: z.coerce.bigint().positive(),
@@ -44,6 +46,7 @@ export async function runPayoffAction(formData: FormData): Promise<PayoffActionR
     },
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
+  await awardEventAchievement(user.id, "simulou-futuro");
   return {
     ok: true,
     payoffMonth: r.value.payoffMonth,

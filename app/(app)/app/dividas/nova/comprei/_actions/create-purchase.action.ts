@@ -21,6 +21,8 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../../_actions/_achievements";
+
 // Categorias do wizard "Comprei algo novo". Mapeadas para AssetCategory + parâmetros
 // de depreciação. travel e education NÃO viram patrimônio (são gastos consumíveis).
 const PURCHASE_CATEGORY = [
@@ -582,6 +584,8 @@ export async function createPurchaseAction(
     revalidatePath("/app/dividas");
     if (result.assetId) revalidatePath(`/app/patrimonio/${result.assetId}`);
     if (result.debtId) revalidatePath(`/app/dividas/${result.debtId}`);
+    if (result.debtId) await awardEventAchievement(user.id, "primeiro-passo");
+    if (result.assetId) await awardEventAchievement(user.id, "mapa-do-tesouro");
   }
   return result;
 }

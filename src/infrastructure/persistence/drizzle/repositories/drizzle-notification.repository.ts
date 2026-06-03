@@ -14,7 +14,10 @@ import {
   type NotificationRow,
 } from "../schema/notifications.schema";
 
-const KNOWN_KINDS: ReadonlyArray<NotificationKind> = ["negative_balance_month"];
+const KNOWN_KINDS: ReadonlyArray<NotificationKind> = [
+  "negative_balance_month",
+  "achievement_unlocked",
+];
 
 function parseKind(raw: string): NotificationKind {
   if ((KNOWN_KINDS as ReadonlyArray<string>).includes(raw)) {

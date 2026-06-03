@@ -12,6 +12,8 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../_actions/_achievements";
+
 const allocSchema = z.object({
   debtId: z.string().uuid(),
   allocationOriginalCents: z.string().regex(/^\d+$/, "Alocação inválida."),
@@ -117,5 +119,6 @@ export async function createAssetAction(formInput: unknown): Promise<CreateAsset
   revalidatePath("/app/linha-do-tempo");
   revalidatePath("/app/notificacoes");
   revalidatePath("/app");
+  await awardEventAchievement(user.id, "mapa-do-tesouro");
   return { ok: true, assetId: result.value.id };
 }

@@ -18,11 +18,11 @@ import {
   Wallet,
 } from "lucide-react";
 import type { Route } from "next";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 
-import { BrandLogo } from "@/app/components/icons/brand-logo";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
@@ -126,7 +126,7 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
     <aside
       aria-label="Navegação principal"
       data-collapsed={collapsed ? "true" : "false"}
-      className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-[var(--sidebar-w)] md:flex-col md:border-r md:border-[color:var(--border-soft)] md:bg-[color:var(--surface-3)] md:px-3 md:py-6 md:[backdrop-filter:blur(24px)_saturate(180%)] md:transition-[width] md:duration-200"
+      className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-[var(--sidebar-w)] md:flex-col md:overflow-hidden md:border-r md:border-[color:var(--border-soft)] md:bg-[color:var(--surface-3)] md:px-3 md:py-6 md:[backdrop-filter:blur(24px)_saturate(180%)] md:transition-[width] md:duration-200"
     >
       <div
         className={`mb-6 flex items-center ${collapsed ? "flex-col gap-3" : "justify-between gap-2 px-2"}`}
@@ -136,7 +136,14 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
           aria-label="Sabor Financeiro"
           className="flex items-center gap-2"
         >
-          <BrandLogo size={32} />
+          <Image
+            src="/icons/icon-512.png"
+            alt=""
+            width={32}
+            height={32}
+            priority
+            className="h-8 w-8 flex-none rounded-full shadow-[0_2px_8px_rgba(239,122,26,0.35)]"
+          />
           {!collapsed ? (
             <span className="text-[0.875rem] font-bold tracking-tight text-[color:var(--color-brand-800)]">
               Sabor Financeiro
@@ -178,11 +185,12 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
         )}
       </div>
 
-      {isOnConteudoImmersive && !collapsed ? (
-        <ImmersiveSidebar activeTrilha={null} />
-      ) : (
-        <nav className="flex flex-col gap-5">
-          {NAV_GROUPS.map((group) => (
+      <div className="-mr-1 flex min-h-0 flex-1 flex-col overflow-y-auto pr-1 [scrollbar-width:thin]">
+        {isOnConteudoImmersive && !collapsed ? (
+          <ImmersiveSidebar activeTrilha={null} />
+        ) : (
+          <nav className="flex flex-col gap-5">
+            {NAV_GROUPS.map((group) => (
             <div key={group.label || "main"} className="flex flex-col gap-1">
               {!collapsed && group.label ? (
                 <span className="px-3 pb-1 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
@@ -218,8 +226,9 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
               })}
             </div>
           ))}
-        </nav>
-      )}
+          </nav>
+        )}
+      </div>
 
       <AccountZone
         displayName={displayName}
@@ -315,11 +324,14 @@ function AccountZone({
   );
 
   return (
-    <div ref={ref} className="relative mt-auto pt-4">
+    <div
+      ref={ref}
+      className="relative mt-2 flex-none border-t border-[color:var(--border-soft)] pt-4"
+    >
       {open ? (
         <div
           role="menu"
-          className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-1)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)] [backdrop-filter:blur(24px)_saturate(180%)]"
+          className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)]"
         >
           <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
             Trocar conta

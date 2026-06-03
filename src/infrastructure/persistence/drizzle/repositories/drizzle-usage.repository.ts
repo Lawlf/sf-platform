@@ -107,4 +107,22 @@ export class DrizzleUsageRepository implements UsageRepository {
       lastSeenAt: r.lastSeen,
     }));
   }
+
+  async listActiveMonthIsos(userId: string): Promise<string[]> {
+    const rows = await getDb()
+      .select({ month: sql<string>`to_char(${usageDailyRollup.day}, 'YYYY-MM')` })
+      .from(usageDailyRollup)
+      .where(eq(usageDailyRollup.userId, userId))
+      .groupBy(sql`to_char(${usageDailyRollup.day}, 'YYYY-MM')`);
+    return rows.map((r) => r.month);
+  }
+
+  async listRecentlyActiveUserIds(now: Date, days: number): Promise<string[]> {
+    const rows = await getDb()
+      .select({ userId: usageDailyRollup.userId })
+      .from(usageDailyRollup)
+      .where(gte(usageDailyRollup.day, windowStartDayUTC(now, days)))
+      .groupBy(usageDailyRollup.userId);
+    return rows.map((r) => r.userId);
+  }
 }

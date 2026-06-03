@@ -9,6 +9,8 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../../_actions/_achievements";
+
 const schema = z.object({
   label: z.string().min(1).max(120),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]),
@@ -69,6 +71,7 @@ export async function createRecurringDebtAction(
     },
   );
   if (!isOk(r)) return { ok: false, message: "Erro ao criar compromisso." };
+  await awardEventAchievement(user.id, "primeiro-passo");
   revalidatePath(`/app/dividas/${r.value.id}`);
   revalidatePath("/app/dividas");
   revalidatePath("/app/linha-do-tempo");
