@@ -1,8 +1,14 @@
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import { ImageResponse } from "next/og";
 
-export const alt = "Sabor Financeiro - Saia das dívidas com clareza";
+export const alt = "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
+
+const logo = `data:image/png;base64,${readFileSync(
+  join(process.cwd(), "public/icons/icon-512.png"),
+).toString("base64")}`;
 
 const risingChart = (w: number, h: number, stroke = "#d96813") => {
   const markup = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}" viewBox="0 0 ${w} ${h}">
@@ -34,22 +40,7 @@ export default function OpengraphImage() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-          <div
-            style={{
-              width: "48px",
-              height: "48px",
-              borderRadius: "13px",
-              background: "linear-gradient(135deg, #f28e25 0%, #d96813 100%)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              color: "white",
-              fontSize: "27px",
-              fontWeight: 800,
-            }}
-          >
-            S
-          </div>
+          <img src={logo} width={56} height={56} alt="" />
           <div style={{ fontSize: "25px", fontWeight: 700, color: "#1f1d1c" }}>
             Sabor Financeiro
           </div>
