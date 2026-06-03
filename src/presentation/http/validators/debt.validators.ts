@@ -147,6 +147,15 @@ export const creditCardFormSchema = z.object({
     .nullable()
     .default(null),
   installmentPurchasesJson: installmentPurchasesField,
+}).superRefine((d, ctx) => {
+  const used = d.currentStatementCents + (d.revolvingBalanceCents ?? 0n);
+  if (used > d.creditLimitCents) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["currentStatementCents"],
+      message: "A fatura mais o rotativo não podem passar do limite do cartão.",
+    });
+  }
 });
 
 export const overdraftFormSchema = z.object({

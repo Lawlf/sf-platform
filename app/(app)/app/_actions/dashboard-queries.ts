@@ -11,7 +11,7 @@ import { serializeMoney, type SerializedMoney } from "./_serialize";
 
 export interface DashboardSnapshotPayload {
   incomeCommittedPct: number;
-  netWorth: SerializedMoney;
+  monthlyFreeCashFlow: SerializedMoney;
   totalIncome: SerializedMoney;
   totalDebtBalance: SerializedMoney;
   totalMonthlyDebtService: SerializedMoney;
@@ -32,7 +32,7 @@ export async function fetchDashboardSnapshot(): Promise<DashboardSnapshotPayload
   const s = result.value;
   return {
     incomeCommittedPct: s.incomeCommittedPct,
-    netWorth: serializeMoney(s.netWorth),
+    monthlyFreeCashFlow: serializeMoney(s.monthlyFreeCashFlow),
     totalIncome: serializeMoney(s.totalIncome),
     totalDebtBalance: serializeMoney(s.totalDebtBalance),
     totalMonthlyDebtService: serializeMoney(s.totalMonthlyService),

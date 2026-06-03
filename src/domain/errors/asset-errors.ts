@@ -73,6 +73,20 @@ export class AllocationExceedsPrincipal extends DomainError {
   }
 }
 
+export class CreditCardStatementExceedsLimit extends DomainError {
+  readonly code = "CREDIT_CARD_STATEMENT_EXCEEDS_LIMIT" as const;
+  readonly limitCents: bigint;
+  readonly usedCents: bigint;
+
+  constructor(limitCents: bigint, usedCents: bigint) {
+    super(
+      `Fatura mais rotativo (${usedCents} centavos) excede o limite do cartão (${limitCents} centavos).`,
+    );
+    this.limitCents = limitCents;
+    this.usedCents = usedCents;
+  }
+}
+
 export class AssetFipeNotApplicable extends DomainError {
   readonly code = "ASSET_FIPE_NOT_APPLICABLE" as const;
 

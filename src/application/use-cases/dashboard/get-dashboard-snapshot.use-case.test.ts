@@ -151,11 +151,11 @@ describe("getDashboardSnapshot", () => {
     if (isOk(result)) {
       expect(result.value.totalIncome.isZero()).toBe(true);
       expect(result.value.totalDebtBalance.isZero()).toBe(true);
-      expect(result.value.netWorth.isZero()).toBe(true);
+      expect(result.value.monthlyFreeCashFlow.isZero()).toBe(true);
     }
   });
 
-  it("recurring debt enters totalMonthlyService and impacts saldo livre via netWorth", async () => {
+  it("recurring debt enters totalMonthlyService and impacts saldo livre via monthlyFreeCashFlow", async () => {
     const debts = makeDebtRepo();
     const incomes = makeIncomeRepo();
     const clock = makeClock();
@@ -171,8 +171,8 @@ describe("getDashboardSnapshot", () => {
     if (isOk(result)) {
       // totalMonthlyService = R$ 1.500,00 (150_000 cents) puramente do recurring.
       expect(result.value.totalMonthlyService.toCents()).toBe(150_000n);
-      // netWorth = renda - serviço = 800_000 - 150_000 = 650_000.
-      expect(result.value.netWorth.toCents()).toBe(650_000n);
+      // monthlyFreeCashFlow = renda - serviço = 800_000 - 150_000 = 650_000.
+      expect(result.value.monthlyFreeCashFlow.toCents()).toBe(650_000n);
     }
   });
 

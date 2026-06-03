@@ -8,7 +8,7 @@ export interface FinancialSnapshotEntity {
   totalIncome: Money;
   totalDebtBalance: Money;
   totalMonthlyService: Money;
-  netWorth: Money;
+  monthlyFreeCashFlow: Money;
   cetWeightedAverage: InterestRate;
   incomeCommittedPct: number;
 }

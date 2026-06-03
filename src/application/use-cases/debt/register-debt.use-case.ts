@@ -6,9 +6,10 @@ import type {
 } from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { ok, type Result } from "@/shared/errors/result";
+import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RegisterDebtDeps {
   debts: DebtRepository;
@@ -84,7 +85,7 @@ export type RegisterDebtInput =
 export async function registerDebt(
   deps: RegisterDebtDeps,
   input: RegisterDebtInput,
-): Promise<Result<DebtEntity, never>> {
+): Promise<Result<DebtEntity, CreditCardStatementExceedsLimit>> {
   const now = deps.clock.now();
 
   let entity: DebtEntity;
@@ -118,6 +119,12 @@ export async function registerDebt(
       break;
     }
     case "credit_card": {
+      const usedCents =
+        input.currentStatement.toCents() +
+        (input.revolvingBalance ? input.revolvingBalance.toCents() : 0n);
+      if (usedCents > input.creditLimit.toCents()) {
+        return err(new CreditCardStatementExceedsLimit(input.creditLimit.toCents(), usedCents));
+      }
       const base = legacyBase(input, now);
       entity = {
         ...base,

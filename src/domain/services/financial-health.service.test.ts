@@ -110,7 +110,7 @@ describe("FinancialHealthService", () => {
     }
   });
 
-  it("no debts -> committed pct 0, netWorth = totalIncome", () => {
+  it("no debts -> committed pct 0, monthlyFreeCashFlow = totalIncome", () => {
     const r = FinancialHealthService.snapshot({
       userId: "u1",
       incomes: [income()],
@@ -119,7 +119,7 @@ describe("FinancialHealthService", () => {
     });
     if (isOk(r)) {
       expect(r.value.incomeCommittedPct).toBe(0);
-      expect(r.value.netWorth.toCents()).toBe(r.value.totalIncome.toCents());
+      expect(r.value.monthlyFreeCashFlow.toCents()).toBe(r.value.totalIncome.toCents());
     }
   });
 
