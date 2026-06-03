@@ -4,7 +4,10 @@ import Link from "next/link";
 import posthog from "posthog-js";
 import { useEffect, useState } from "react";
 
+import { CONSENT_EVENT } from "./analytics-gated.client";
+
 const CONSENT_KEY = "sf_analytics_consent";
+
 const enabled = Boolean(process.env.NEXT_PUBLIC_POSTHOG_KEY);
 
 export function AnalyticsConsentBanner() {
@@ -29,6 +32,7 @@ export function AnalyticsConsentBanner() {
     } else {
       posthog.opt_out_capturing();
     }
+    window.dispatchEvent(new Event(CONSENT_EVENT));
     setVisible(false);
   }
 

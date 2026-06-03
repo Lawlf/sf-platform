@@ -21,6 +21,10 @@ export async function activatePro(deps: ActivateProDeps, userId: string): Promis
   if (wasFreeBefore) {
     const updated = { ...user, isPro: true, plan: "pro" as const, updatedAt: deps.clock.now() };
     await deps.users.update(updated);
+    // Deactivated accounts must not receive any e-mail (LGPD: account hidden,
+    // data retained but no outreach). Keep the billing flag consistent, skip
+    // the welcome message.
+    if (user.deactivatedAt) return;
     try {
       const html = await renderEmailToHtml(
         ProWelcomeEmail({ appUrl: deps.appUrl, displayName: user.displayName }),

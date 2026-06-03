@@ -93,4 +93,39 @@ describe("grantProManually", () => {
     });
     expect(isOk(r)).toBe(false);
   });
+
+  it("persists the subscription and payment inside the same transaction", async () => {
+    const d = deps();
+    let inTx = false;
+    const savedInTx: boolean[] = [];
+    const baseSubSave = d.subscriptions.save;
+    const basePaymentSave = d.payments.save;
+    d.subscriptions.save = async (s: Subscription) => {
+      savedInTx.push(inTx);
+      return baseSubSave(s);
+    };
+    d.payments.save = async (p: Payment) => {
+      savedInTx.push(inTx);
+      return basePaymentSave(p);
+    };
+    const withTx = {
+      ...d,
+      transaction: async <T>(fn: () => Promise<T>): Promise<T> => {
+        inTx = true;
+        try {
+          return await fn();
+        } finally {
+          inTx = false;
+        }
+      },
+    };
+    const r = await grantProManually(withTx as never, {
+      userId: "u1",
+      grant: { kind: "lifetime" },
+      adminId: "admin1",
+    });
+    expect(isOk(r)).toBe(true);
+    // Both financial writes ran while the transaction was open.
+    expect(savedInTx).toEqual([true, true]);
+  });
 });

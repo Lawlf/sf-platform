@@ -107,10 +107,11 @@ export default function PrivacidadePage() {
 
         <h2>Seus dados são seus</h2>
         <p>
-          Você pode exportar seus lançamentos em CSV e PDF a qualquer momento,
-          sem barreira artificial, e pode pedir a exclusão da sua conta. O
-          detalhamento completo dos seus direitos e como exercê-los está na
-          página da <Link href="/lgpd">LGPD</Link>.
+          Você pode encerrar sua conta a qualquer momento pelas configurações
+          (a conta é desativada na hora) e solicitar pelo suporte uma cópia dos
+          seus dados, que preparamos dentro do prazo legal. O detalhamento
+          completo dos seus direitos e como exercê-los está na página da{" "}
+          <Link href="/lgpd">LGPD</Link>.
         </p>
 
         <h2>Cookies e sessão</h2>

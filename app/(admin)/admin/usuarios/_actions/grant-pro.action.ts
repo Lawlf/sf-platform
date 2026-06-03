@@ -11,6 +11,7 @@ import { DrizzlePaymentRepository } from "@/infrastructure/persistence/drizzle/r
 import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
 import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { withTransaction } from "@/infrastructure/persistence/drizzle/with-transaction";
 import { requireAdmin } from "@/presentation/http/middleware/cached-current-user";
 import { isAdminElevated } from "@/presentation/http/middleware/require-elevated-admin";
 import { isErr } from "@/shared/errors/result";
@@ -37,6 +38,7 @@ export async function grantProAction(userId: string, grant: ProGrant): Promise<A
       email: new ResendEmailService(),
       clock: new SystemClock(),
       appUrl: env.NEXT_PUBLIC_APP_URL,
+      transaction: withTransaction,
     },
     { userId, grant, adminId: admin.id },
   );

@@ -80,4 +80,29 @@ describe("DrizzleSessionRepository (integration)", () => {
     expect(active.find((x) => x.idHash === "3".repeat(64))).toBeDefined();
     await sessionRepo.deleteAllForUser(userId);
   });
+
+  it("deleteExpired removes only sessions past their expiry", async () => {
+    const now = new Date();
+    const past = new Date(now.getTime() - 60_000);
+    const future = new Date(now.getTime() + 60_000);
+    await sessionRepo.create({
+      idHash: "4".repeat(64),
+      userId,
+      expiresAt: past,
+      ip: null,
+      userAgent: null,
+    });
+    await sessionRepo.create({
+      idHash: "5".repeat(64),
+      userId,
+      expiresAt: future,
+      ip: null,
+      userAgent: null,
+    });
+    const removed = await sessionRepo.deleteExpired(now);
+    expect(removed).toBeGreaterThanOrEqual(1);
+    expect(await sessionRepo.findByIdHash("4".repeat(64))).toBeNull();
+    expect(await sessionRepo.findByIdHash("5".repeat(64))).not.toBeNull();
+    await sessionRepo.deleteAllForUser(userId);
+  });
 });

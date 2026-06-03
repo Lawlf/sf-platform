@@ -79,9 +79,15 @@ export function IncomeForm() {
           {...form.register("label")}
           placeholder="Ex: Salário, freelance, dividendos"
           className={fieldClass}
+          aria-invalid={form.formState.errors.label ? true : undefined}
+          aria-describedby={form.formState.errors.label ? "renda-label-error" : undefined}
         />
         {form.formState.errors.label ? (
-          <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
+          <span
+            id="renda-label-error"
+            role="alert"
+            className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]"
+          >
             {form.formState.errors.label.message}
           </span>
         ) : null}

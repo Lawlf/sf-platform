@@ -9,6 +9,7 @@ import { UpstashDistributedLock } from "@/infrastructure/cache/upstash-distribut
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { withTransaction } from "@/infrastructure/persistence/drizzle/with-transaction";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -46,6 +47,7 @@ export async function recordPaymentAction(
       payments: new DrizzleDebtPaymentRepository(),
       clock: new SystemClock(),
       lock: new UpstashDistributedLock(),
+      transaction: withTransaction,
     },
     {
       userId: user.id,

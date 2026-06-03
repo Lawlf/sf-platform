@@ -18,6 +18,7 @@ export interface RecordPaymentDeps {
   payments: DebtPaymentRepository;
   clock: Clock;
   lock: DistributedLock;
+  transaction?: <T>(fn: () => Promise<T>) => Promise<T>;
 }
 
 export interface RecordPaymentInput {
@@ -70,7 +71,6 @@ export async function recordPayment(
       status: newStatus,
       updatedAt: deps.clock.now(),
     };
-    await deps.debts.update(updated);
 
     const payment: DebtPaymentEntity = {
       id: crypto.randomUUID(),
@@ -82,7 +82,14 @@ export async function recordPayment(
       isExtra: input.isExtra,
       isClosingPayment: false,
     };
-    const persisted = await deps.payments.create(payment);
+
+    // Balance update and payment insert must land together: a partial failure
+    // would leave the debt balance reduced with no payment record (or vice versa).
+    const runInTransaction = deps.transaction ?? ((fn) => fn());
+    const persisted = await runInTransaction(async () => {
+      await deps.debts.update(updated);
+      return deps.payments.create(payment);
+    });
     return ok(persisted);
   });
 }

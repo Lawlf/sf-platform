@@ -1,0 +1,3 @@
+ALTER TABLE "debts" ADD CONSTRAINT "debts_annual_rate_decimal_numeric_check" CHECK ("annual_rate_decimal" IS NULL OR "annual_rate_decimal" ~ '^-?[0-9]+(\.[0-9]+)?$');--> statement-breakpoint
+ALTER TABLE "debts" ADD CONSTRAINT "debts_revolving_monthly_rate_decimal_numeric_check" CHECK ("revolving_monthly_rate_decimal" IS NULL OR "revolving_monthly_rate_decimal" ~ '^-?[0-9]+(\.[0-9]+)?$');--> statement-breakpoint
+ALTER TABLE "debts" ADD CONSTRAINT "debts_overdraft_monthly_rate_decimal_numeric_check" CHECK ("overdraft_monthly_rate_decimal" IS NULL OR "overdraft_monthly_rate_decimal" ~ '^-?[0-9]+(\.[0-9]+)?$');

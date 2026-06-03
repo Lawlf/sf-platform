@@ -1,10 +1,9 @@
-import { Analytics } from "@vercel/analytics/next";
-import { SpeedInsights } from "@vercel/speed-insights/next";
 import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import "./globals.css";
 import { AnalyticsConsentBanner } from "@/app/components/analytics-consent-banner";
+import { AnalyticsGated } from "@/app/components/analytics-gated.client";
 import { PostHogProvider } from "@/app/components/providers/posthog-provider";
 import { QueryProvider } from "@/app/components/providers/query-provider";
 import { Toaster } from "@/app/components/ui/sonner";
@@ -156,8 +155,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
           <AnalyticsConsentBanner />
         </PostHogProvider>
         <Toaster richColors closeButton position="top-right" />
-        <Analytics />
-        <SpeedInsights />
+        <AnalyticsGated />
       </body>
     </html>
   );

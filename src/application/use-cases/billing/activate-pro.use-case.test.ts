@@ -77,4 +77,12 @@ describe("activatePro", () => {
     expect(deps.usersUpdated).toHaveLength(0);
     expect(deps.emailsSent).toHaveLength(0);
   });
+
+  it("flips a deactivated user's flag but sends no e-mail", async () => {
+    const user = makeUser({ isPro: false, plan: "free", deactivatedAt: new Date() });
+    const deps = makeDeps(user);
+    await activatePro(deps, user.id);
+    expect(deps.usersUpdated[0]?.isPro).toBe(true);
+    expect(deps.emailsSent).toHaveLength(0);
+  });
 });
