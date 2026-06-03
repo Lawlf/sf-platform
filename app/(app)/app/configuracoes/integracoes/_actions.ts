@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import {
   revokeConnection,
@@ -36,6 +37,7 @@ export async function revokeConnectionAction(formData: FormData): Promise<void> 
     { userId: user.id, connectionId },
   );
   revalidatePath(ROUTE);
+  redirect(ROUTE);
 }
 
 export async function toggleScopeAction(formData: FormData): Promise<void> {
@@ -52,7 +54,7 @@ export async function toggleScopeAction(formData: FormData): Promise<void> {
     },
     { userId: user.id, connectionId, scope, grant },
   );
-  revalidatePath(ROUTE);
+  revalidatePath(`${ROUTE}/${connectionId}`);
 }
 
 export async function approvePendingAction(formData: FormData): Promise<void> {
@@ -76,6 +78,7 @@ export async function approvePendingAction(formData: FormData): Promise<void> {
     },
     { userId: user.id, isPro: user.isPro, pendingId, decision: "approve" },
   );
+  revalidatePath(`${ROUTE}/pendentes`);
   revalidatePath(ROUTE);
 }
 
@@ -100,6 +103,7 @@ export async function rejectPendingAction(formData: FormData): Promise<void> {
     },
     { userId: user.id, isPro: user.isPro, pendingId, decision: "reject" },
   );
+  revalidatePath(`${ROUTE}/pendentes`);
   revalidatePath(ROUTE);
 }
 
@@ -118,5 +122,5 @@ export async function undoAuditAction(formData: FormData): Promise<void> {
     },
     { userId: user.id, auditId },
   );
-  revalidatePath(ROUTE);
+  revalidatePath(`${ROUTE}/atividade`);
 }
