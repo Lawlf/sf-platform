@@ -1,6 +1,11 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "nextjs",
+  "git": {
+    "deploymentEnabled": {
+      "master": false
+    }
+  },
   "buildCommand": "pnpm build",
   "installCommand": "pnpm install --frozen-lockfile",
   "devCommand": "pnpm dev",
