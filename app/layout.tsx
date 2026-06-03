@@ -28,11 +28,11 @@ const yandexVerification = process.env.YANDEX_SITE_VERIFICATION;
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Sabor Financeiro - Saia das dívidas com clareza",
+    default: "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda",
     template: "%s · Sabor Financeiro",
   },
   description:
-    "Veja o tamanho real da sua dívida, quanto os juros custam e o mês em que você sai do vermelho. Painel macro de patrimônio, dívida e renda. Sem conectar banco.",
+    "Patrimônio, dívida e renda num painel só, mês a mês. Veja quanto os juros pesam e em que mês a dívida zera no ritmo atual. Sem virar planilha de centavo.",
   applicationName: "Sabor Financeiro",
   manifest: "/manifest.webmanifest",
   appleWebApp: {
@@ -57,8 +57,8 @@ export const metadata: Metadata = {
     "patrimônio líquido",
     "planejamento financeiro pessoal",
     "educação financeira",
-    "alternativa Open Finance",
-    "finanças sem conectar banco",
+    "visão macro das finanças",
+    "trajetória financeira mensal",
     "PWA financeiro",
   ],
   authors: [{ name: "Sabor Financeiro" }],
@@ -73,21 +73,21 @@ export const metadata: Metadata = {
     locale: "pt_BR",
     url: siteUrl,
     siteName: "Sabor Financeiro",
-    title: "Sabor Financeiro - Saia das dívidas com clareza",
+    title: "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda",
     description:
-      "Painel macro de patrimônio, dívida e renda. Veja o custo real dos juros e o mês em que você sai do vermelho. Sem conectar banco.",
+      "Patrimônio, dívida e renda numa visão mensal, não numa lista de transações. Veja quanto os juros pesam e em que mês a dívida zera no ritmo atual.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Sabor Financeiro - Saia das dívidas com clareza",
+    title: "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda",
     description:
-      "Painel macro de patrimônio, dívida e renda. Sem conectar banco. Sem microscópio de cafezinho.",
+      "Banco mostra saldo. App de gasto mostra cada centavo. Aqui você vê a trajetória: patrimônio, dívida e renda mês a mês.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "Sabor Financeiro - Saia das dívidas com clareza",
+        alt: "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda",
       },
     ],
   },
