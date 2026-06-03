@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Route } from "next";
 
 import {
   ACHIEVEMENTS,
@@ -44,7 +44,11 @@ export default async function ConquistasPage() {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
 
   return (
-    <PageShell title="Conquistas" description="Marcos da sua jornada financeira.">
+    <PageShell
+      title="Conquistas"
+      description="Marcos da sua jornada financeira."
+      backHref={"/app/perfil" as Route}
+    >
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <div className="flex items-baseline justify-between">
           <span className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">
