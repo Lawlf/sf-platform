@@ -1,4 +1,4 @@
-import { ShieldCheck } from "lucide-react";
+import { Eye, type LucideIcon, Pencil, TriangleAlert } from "lucide-react";
 import type { Metadata } from "next";
 
 import {
@@ -13,6 +13,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { PageShell } from "../../../_components/page-shell";
 
 import { approveAuthorization } from "./_actions";
+import { AuthorizeSubmit } from "./submit-button.client";
 
 export const metadata: Metadata = { title: "Conectar assistente" };
 
@@ -23,6 +24,66 @@ interface SearchParams {
   state?: string;
   code_challenge?: string;
   code_challenge_method?: string;
+}
+
+function ScopeGroup({
+  title,
+  caption,
+  icon: Icon,
+  scopes,
+  defaultChecked,
+  danger,
+}: {
+  title: string;
+  caption?: string;
+  icon: LucideIcon;
+  scopes: McpScope[];
+  defaultChecked: boolean;
+  danger?: boolean;
+}) {
+  if (scopes.length === 0) return null;
+  return (
+    <section
+      className={`flex flex-col gap-3 rounded-2xl border p-4 backdrop-blur-xl ${
+        danger
+          ? "border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/[0.05]"
+          : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
+      }`}
+    >
+      <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+        <Icon
+          size={16}
+          strokeWidth={1.75}
+          className={
+            danger
+              ? "text-[color:var(--semantic-negative)]"
+              : "text-[color:var(--color-brand-800)]"
+          }
+          aria-hidden
+        />
+        {title}
+      </div>
+      {caption ? <p className="text-[0.75rem] text-[color:var(--text-muted)]">{caption}</p> : null}
+      <ul className="flex flex-col gap-2.5">
+        {scopes.map((scope) => (
+          <li
+            key={scope}
+            className="flex items-start gap-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
+          >
+            <input
+              type="checkbox"
+              id={`scope-${scope}`}
+              name="scope"
+              value={scope}
+              defaultChecked={defaultChecked}
+              className="focus-ring mt-0.5 h-4 w-4 flex-none accent-[color:var(--color-brand-500)]"
+            />
+            <label htmlFor={`scope-${scope}`}>{MCP_SCOPE_DESCRIPTIONS[scope]}</label>
+          </li>
+        ))}
+      </ul>
+    </section>
+  );
 }
 
 export default async function AutorizarPage({
@@ -38,6 +99,9 @@ export default async function AutorizarPage({
     : null;
   const shipped = new Set<McpScope>(MCP_SHIPPED_SCOPES);
   const scopes = parseScopeString(sp.scope).filter((scope) => shipped.has(scope));
+  const readScopes = scopes.filter((s) => s.endsWith(":read"));
+  const writeScopes = scopes.filter((s) => s.endsWith(":write"));
+  const deleteScopes = scopes.filter((s) => s.endsWith(":delete"));
   const invalid =
     !client ||
     !sp.redirect_uri ||
@@ -70,46 +134,22 @@ export default async function AutorizarPage({
         <input type="hidden" name="state" value={sp.state ?? ""} />
         <input type="hidden" name="code_challenge" value={sp.code_challenge} />
 
-        <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <div className="flex items-center gap-2 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-            <ShieldCheck
-              size={16}
-              strokeWidth={1.75}
-              className="text-[color:var(--color-brand-800)]"
-              aria-hidden
-            />
-            Permissões solicitadas
-          </div>
-          <ul className="flex flex-col gap-2.5">
-            {scopes.map((scope) => (
-              <li
-                key={scope}
-                className="flex items-start gap-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
-              >
-                <input
-                  type="checkbox"
-                  id={`scope-${scope}`}
-                  name="scope"
-                  value={scope}
-                  defaultChecked
-                  className="focus-ring mt-0.5 h-4 w-4 flex-none accent-[color:var(--color-brand-500)]"
-                />
-                <label htmlFor={`scope-${scope}`}>{MCP_SCOPE_DESCRIPTIONS[scope]}</label>
-              </li>
-            ))}
-          </ul>
-        </section>
+        <ScopeGroup title="Ver seus dados" icon={Eye} scopes={readScopes} defaultChecked />
+        <ScopeGroup title="Criar e editar" icon={Pencil} scopes={writeScopes} defaultChecked />
+        <ScopeGroup
+          title="Excluir"
+          icon={TriangleAlert}
+          scopes={deleteScopes}
+          defaultChecked={false}
+          danger
+          caption="Deixa o assistente apagar dados. Marque só se tiver certeza; você pode conceder depois em Integrações."
+        />
 
         <p className="px-1 text-[0.75rem] text-[color:var(--text-muted)]">
           Você pode revogar o acesso ou ajustar permissões a qualquer momento em Integrações.
         </p>
 
-        <button
-          type="submit"
-          className="focus-ring rounded-2xl bg-[color:var(--color-brand-500)] px-4 py-3 text-[0.875rem] font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
-        >
-          Autorizar conexão
-        </button>
+        <AuthorizeSubmit />
       </form>
     </PageShell>
   );
