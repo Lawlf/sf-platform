@@ -1,4 +1,6 @@
 import { Check } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 export interface GoogleLinkRowProps {
   linked: boolean;
@@ -24,12 +26,12 @@ export function GoogleLinkRow({ linked }: GoogleLinkRowProps) {
           Ativo
         </span>
       ) : (
-        <a
-          href="/api/auth/google/start"
+        <Link
+          href={"/api/auth/google/start" as Route}
           className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-[0.75rem] font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
         >
           Vincular
-        </a>
+        </Link>
       )}
     </div>
   );

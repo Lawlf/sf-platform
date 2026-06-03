@@ -12,6 +12,7 @@ import { LandingFounder } from "./_components/landing-founder";
 import { LandingHeader } from "./_components/landing-header";
 import { LandingHero } from "./_components/landing-hero";
 import { LandingHow } from "./_components/landing-how";
+import { LandingMcp } from "./_components/landing-mcp";
 import { LandingPillars } from "./_components/landing-pillars";
 import { LandingPricing } from "./_components/landing-pricing";
 import { LandingPrivacy } from "./_components/landing-privacy";
@@ -37,6 +38,7 @@ export default function HomePage() {
         <LandingPillars />
         <LandingFeatures />
         <LandingHow />
+        <LandingMcp />
         <LandingPrivacy />
         <LandingPricing />
         <LandingFounder />

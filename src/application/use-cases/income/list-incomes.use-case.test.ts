@@ -15,6 +15,7 @@ function makeIncomeRepo(): IncomeRepository {
     update: vi.fn(),
     setActive: vi.fn(),
     softDelete: vi.fn(),
+    restore: vi.fn(),
   };
 }
 
