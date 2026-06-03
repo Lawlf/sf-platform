@@ -23,4 +23,6 @@ export interface UsageRepository {
   getUserUsage(userId: string, now: Date): Promise<UserUsage>;
   getUserUsageMap(userIds: string[], now: Date): Promise<Map<string, UserUsage>>;
   listTopUsers(now: Date, limit: number): Promise<TopUserUsage[]>;
+  listActiveMonthIsos(userId: string): Promise<string[]>;
+  listRecentlyActiveUserIds(now: Date, days: number): Promise<string[]>;
 }

@@ -12,6 +12,7 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../../../_actions/_achievements";
 import { detectNotificationsForUser } from "../../../../_actions/_notifications";
 
 const schema = z.object({
@@ -58,6 +59,10 @@ export async function recordPaymentAction(
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
   await detectNotificationsForUser(user.id);
+  const settledDebt = await new DrizzleDebtRepository().findById(d.debtId);
+  if (settledDebt?.status === "paid_off") {
+    await awardEventAchievement(user.id, "quitacao", { debtLabel: settledDebt.label });
+  }
   revalidatePath(`/app/dividas/${d.debtId}`);
   revalidatePath("/app/dividas");
   revalidatePath("/app/linha-do-tempo");

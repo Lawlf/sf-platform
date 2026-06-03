@@ -16,6 +16,8 @@ import {
 } from "@/presentation/http/validators/debt.validators";
 import { isOk } from "@/shared/errors/result";
 
+import { awardEventAchievement } from "../../_actions/_achievements";
+
 type Kind = "financing" | "personal_loan" | "credit_card" | "overdraft";
 
 export type CreateDebtResult = { ok: true; debtId: string } | { ok: false; message: string };
@@ -66,6 +68,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
+    await awardEventAchievement(user.id, "primeiro-passo");
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -92,6 +95,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
+    await awardEventAchievement(user.id, "primeiro-passo");
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -136,6 +140,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       installmentPurchases,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
+    await awardEventAchievement(user.id, "primeiro-passo");
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }
@@ -160,6 +165,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       monthlyRate: monthly.value,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
+    await awardEventAchievement(user.id, "primeiro-passo");
     revalidateDebtPaths(r.value.id);
     return { ok: true, debtId: r.value.id };
   }

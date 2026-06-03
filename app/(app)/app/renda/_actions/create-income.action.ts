@@ -9,6 +9,8 @@ import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/re
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { incomeFormSchema } from "@/presentation/http/validators/income.validators";
 
+import { awardEventAchievement } from "../../_actions/_achievements";
+
 export async function createIncomeAction(
   formData: FormData,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
@@ -35,5 +37,6 @@ export async function createIncomeAction(
   );
 
   revalidatePath("/app/renda");
+  await awardEventAchievement(user.id, "renda-a-vista");
   return { ok: true };
 }

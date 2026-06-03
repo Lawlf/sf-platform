@@ -1,7 +1,24 @@
 "use client";
 
-import { AlertTriangle, Bell, X } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  AlertTriangle,
+  Award,
+  Bell,
+  CalendarCheck,
+  CalendarHeart,
+  CircleCheckBig,
+  HeartPulse,
+  LineChart,
+  type LucideIcon,
+  Map,
+  Medal,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Trophy,
+  Wallet,
+  X,
+} from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
 
@@ -11,6 +28,19 @@ import type { SerializedNotification } from "../_actions/list-notifications.acti
 const ICON_MAP: Record<string, LucideIcon> = {
   AlertTriangle,
   Bell,
+  Award,
+  CalendarCheck,
+  CalendarHeart,
+  CircleCheckBig,
+  HeartPulse,
+  LineChart,
+  Map,
+  Medal,
+  Sparkles,
+  Target,
+  TrendingUp,
+  Trophy,
+  Wallet,
 };
 
 function renderLine(line: string) {
@@ -31,6 +61,7 @@ export function NotificationCard({ notification }: NotificationCardProps) {
   const [pending, startTransition] = useTransition();
   const Icon = ICON_MAP[notification.iconName] ?? Bell;
   const dismissed = notification.dismissed;
+  const isPositive = notification.kind === "achievement_unlocked";
 
   function handleDismiss() {
     startTransition(async () => {
@@ -46,14 +77,18 @@ export function NotificationCard({ notification }: NotificationCardProps) {
       className={`relative flex items-start gap-3 rounded-xl p-4 ${
         dismissed
           ? "border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] opacity-70"
-          : "border border-[color:var(--semantic-negative)]/20 bg-[color:var(--semantic-negative)]/[0.08]"
+          : isPositive
+            ? "border border-[color:var(--color-brand-500)]/20 bg-[color:var(--color-brand-500)]/[0.08]"
+            : "border border-[color:var(--semantic-negative)]/20 bg-[color:var(--semantic-negative)]/[0.08]"
       }`}
     >
       <span
         className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-lg ${
           dismissed
             ? "bg-[color:var(--surface-2)] text-[color:var(--text-muted)]"
-            : "bg-[color:var(--semantic-negative)]/[0.14] text-[color:var(--semantic-negative)]"
+            : isPositive
+              ? "bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]"
+              : "bg-[color:var(--semantic-negative)]/[0.14] text-[color:var(--semantic-negative)]"
         }`}
       >
         <Icon size={16} strokeWidth={2} aria-hidden />
@@ -61,7 +96,11 @@ export function NotificationCard({ notification }: NotificationCardProps) {
       <div className="min-w-0 flex-1">
         <div
           className={`text-[0.625rem] font-bold uppercase tracking-[0.5px] ${
-            dismissed ? "text-[color:var(--text-muted)]" : "text-[color:var(--semantic-negative)]"
+            dismissed
+              ? "text-[color:var(--text-muted)]"
+              : isPositive
+                ? "text-[color:var(--color-brand-800)]"
+                : "text-[color:var(--semantic-negative)]"
           }`}
         >
           {notification.eyebrow}

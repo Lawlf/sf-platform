@@ -4,7 +4,7 @@
  * divida, reativacao). Novos kinds futuros sao adicionados aqui (por exemplo
  * `large_debt_added`, `payment_overdue`).
  */
-export type NotificationKind = "negative_balance_month";
+export type NotificationKind = "negative_balance_month" | "achievement_unlocked";
 
 export interface NotificationPayload {
   eyebrow: string;
