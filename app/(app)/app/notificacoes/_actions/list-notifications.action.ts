@@ -2,6 +2,7 @@
 
 import { countUnread } from "@/application/use-cases/notification/count-unread.use-case";
 import { listNotifications } from "@/application/use-cases/notification/list-notifications.use-case";
+import { getAchievement } from "@/domain/achievements/achievement.catalog";
 import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
@@ -38,21 +39,39 @@ export async function fetchNotifications(opts?: {
       : { userId: user.id },
   );
   if (!isOk(result)) return [];
-  return result.value.map((n) => ({
-    id: n.id,
-    kind: n.kind,
-    monthIso: n.monthIso,
-    triggeredAtIso: n.triggeredAt.toISOString(),
-    triggeredAtLabel: DATE_FMT.format(n.triggeredAt),
-    eyebrow: n.payload.eyebrow,
-    line: n.payload.line,
-    iconName: n.payload.iconName,
-    dismissed: n.dismissedAt !== null,
-    read: n.readAt !== null,
-    url: typeof n.payload.url === "string" ? n.payload.url : null,
-    description: typeof n.payload.description === "string" ? n.payload.description : null,
-    cta: typeof n.payload.cta === "string" ? n.payload.cta : null,
-  }));
+  return result.value.map((n) => {
+    let url = typeof n.payload.url === "string" ? n.payload.url : null;
+    let description = typeof n.payload.description === "string" ? n.payload.description : null;
+    let cta = typeof n.payload.cta === "string" ? n.payload.cta : null;
+
+    // Notificações de conquista criadas antes do enriquecimento de payload
+    // (ex: backfill inicial) não tinham url/cta/descrição. Derivamos do
+    // catálogo via slug para que o card fique clicável e contextual.
+    if (n.kind === "achievement_unlocked") {
+      url ??= "/app/conquistas";
+      cta ??= "Ver conquistas";
+      if (description === null) {
+        const slug = typeof n.payload.slug === "string" ? n.payload.slug : null;
+        description = slug ? (getAchievement(slug)?.description ?? null) : null;
+      }
+    }
+
+    return {
+      id: n.id,
+      kind: n.kind,
+      monthIso: n.monthIso,
+      triggeredAtIso: n.triggeredAt.toISOString(),
+      triggeredAtLabel: DATE_FMT.format(n.triggeredAt),
+      eyebrow: n.payload.eyebrow,
+      line: n.payload.line,
+      iconName: n.payload.iconName,
+      dismissed: n.dismissedAt !== null,
+      read: n.readAt !== null,
+      url,
+      description,
+      cta,
+    };
+  });
 }
 
 export async function fetchUnreadNotificationsCount(): Promise<number> {
