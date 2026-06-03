@@ -1,3 +1,5 @@
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+
 import type { SerializedMonthlyDataPoint } from "../../_actions/timeline-queries";
 
 import type { TimelineFocus } from "./month-section";
@@ -145,7 +147,7 @@ export function MonthCard({
       <div
         className={`mt-1 text-[1.625rem] font-extrabold leading-none tracking-[-0.6px] ${valueColor(focus, focusVal.isNegative)}`}
       >
-        {focusVal.formatted}
+        <HideableValue>{focusVal.formatted}</HideableValue>
       </div>
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -173,7 +175,7 @@ export function MonthCard({
             Patrimônio
           </span>
           <span className="text-[0.875rem] font-extrabold text-[color:var(--color-brand-800)]">
-            {point.netWorth.formatted}
+            <HideableValue>{point.netWorth.formatted}</HideableValue>
           </span>
         </div>
         {delta && previousLabel ? (
@@ -184,7 +186,7 @@ export function MonthCard({
                 : "bg-[color:var(--semantic-negative)]/[0.12] text-[color:var(--semantic-negative)]"
             }`}
           >
-            {delta.formatted} vs {previousLabel}
+            <HideableValue>{delta.formatted}</HideableValue> vs {previousLabel}
           </span>
         ) : null}
       </div>
@@ -213,7 +215,9 @@ function BarBlock({
         <span className="text-[0.625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
           {label}
         </span>
-        <span className={`text-[0.75rem] font-extrabold ${colorClass}`}>{value}</span>
+        <span className={`text-[0.75rem] font-extrabold ${colorClass}`}>
+          <HideableValue>{value}</HideableValue>
+        </span>
       </div>
       <div className="relative h-2 overflow-hidden rounded-full bg-[color:var(--surface-2)]">
         {ghostWidth > 0 ? (

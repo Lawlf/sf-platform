@@ -3,6 +3,8 @@ import type { Route } from "next";
 import Link from "next/link";
 import type { ReactNode } from "react";
 
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+
 export interface AssetCardProps {
   href: Route;
   label: string;
@@ -35,10 +37,14 @@ export function AssetCard({
         <div className="truncate text-sm font-bold text-[color:var(--text-primary)]">{label}</div>
         <div className="mt-0.5 flex items-baseline gap-2 text-[0.6875rem]">
           <span className="text-[color:var(--text-muted)]">Valor</span>
-          <span className="font-semibold text-[color:var(--text-primary)]">{valueFormatted}</span>
+          <span className="font-semibold text-[color:var(--text-primary)]">
+            <HideableValue>{valueFormatted}</HideableValue>
+          </span>
           <span className="text-[color:var(--text-muted)]">·</span>
           <span className="text-[color:var(--text-muted)]">Líquido</span>
-          <span className={`font-semibold ${nwColor}`}>{netWorthFormatted}</span>
+          <span className={`font-semibold ${nwColor}`}>
+            <HideableValue>{netWorthFormatted}</HideableValue>
+          </span>
         </div>
       </div>
       <ChevronRight

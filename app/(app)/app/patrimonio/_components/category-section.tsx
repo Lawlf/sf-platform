@@ -2,7 +2,9 @@ import { Box, Car, Home, TrendingUp, Wallet } from "lucide-react";
 import type { Route } from "next";
 import type { ReactNode } from "react";
 
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import type { AssetCategory } from "@/domain/entities/asset.entity";
+
 
 import { AssetCard } from "./asset-card";
 
@@ -52,7 +54,7 @@ export function CategorySection({ category, totalFormatted, items }: CategorySec
           {CATEGORY_LABEL[category]}
         </h2>
         <span className="text-[0.6875rem] font-semibold text-[color:var(--text-secondary)]">
-          {totalFormatted}
+          <HideableValue>{totalFormatted}</HideableValue>
         </span>
       </div>
       <div className="flex flex-col gap-2">

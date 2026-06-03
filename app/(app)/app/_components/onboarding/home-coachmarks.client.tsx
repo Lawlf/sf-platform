@@ -4,7 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { dismissHomeTourAction } from "../../_actions/onboarding";
 
-import { COACHMARK_STEPS, type CoachmarkStep } from "./coachmark-steps";
+import { COACHMARK_STEPS, type CoachmarkStep, gateSteps } from "./coachmark-steps";
 
 interface Rect {
   top: number;
@@ -22,15 +22,16 @@ const EST_TOOLTIP_H = 210;
 
 // So' vale destacar um passo cujo alvo existe na tela E tem altura > 0. Cards que
 // retornam null (ex: HomeGoalCard sem meta) deixam o wrapper com altura 0 -> o passo
-// e' removido da sequencia (nao aparece nem conta no "X de N").
-function visibleSteps(): CoachmarkStep[] {
-  return COACHMARK_STEPS.filter((s) => {
+// e' removido da sequencia (nao aparece nem conta no "X de N"). O gate por dado real
+// (hasGoal) roda antes para nao depender do timing do esqueleto do Suspense.
+function visibleSteps(hasGoal: boolean): CoachmarkStep[] {
+  return gateSteps(COACHMARK_STEPS, { hasGoal }).filter((s) => {
     const el = document.querySelector(s.target);
     return !!el && el.getBoundingClientRect().height > 0;
   });
 }
 
-export function HomeCoachmarks({ active }: { active: boolean }) {
+export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: boolean }) {
   const [open, setOpen] = useState(active);
   const [steps, setSteps] = useState<CoachmarkStep[]>([]);
   const [ready, setReady] = useState(false);
@@ -80,7 +81,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
     let cancelled = false;
     const raf = requestAnimationFrame(() => {
       if (cancelled) return;
-      const vs = visibleSteps();
+      const vs = visibleSteps(hasGoal);
       setSteps(vs);
       setIndex(0);
       setReady(true);
@@ -93,7 +94,7 @@ export function HomeCoachmarks({ active }: { active: boolean }) {
       cancelled = true;
       cancelAnimationFrame(raf);
     };
-  }, [open]);
+  }, [open, hasGoal]);
 
   // Liga as transicoes de posicao apos o primeiro paint (entrada = fade no lugar).
   useEffect(() => {

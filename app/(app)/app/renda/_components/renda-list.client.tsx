@@ -8,6 +8,7 @@ import Link from "next/link";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import { fetchIncomes } from "../../_actions/income-queries";
+import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import { queryKeys } from "../../_lib/query-keys";
 
 import { ArchiveIncomeButton } from "./archive-income-button";
@@ -63,7 +64,7 @@ export function RendaListClient() {
                     </div>
                     <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
                       <span className="font-semibold text-[color:var(--semantic-positive)]">
-                        {income.amount.formatted}
+                        <HideableValue>{income.amount.formatted}</HideableValue>
                       </span>
                       <span className="text-[color:var(--text-muted)]">·</span>
                       <span className="text-[color:var(--text-muted)]">
@@ -113,7 +114,7 @@ export function RendaListClient() {
                     </div>
                     <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
                       <span className="font-semibold text-[color:var(--text-secondary)]">
-                        {income.amount.formatted}
+                        <HideableValue>{income.amount.formatted}</HideableValue>
                       </span>
                       <span className="text-[color:var(--text-muted)]">·</span>
                       <span className="text-[color:var(--text-muted)]">

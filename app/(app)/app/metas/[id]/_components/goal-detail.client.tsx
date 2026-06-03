@@ -21,6 +21,7 @@ import { Button } from "@/app/components/ui/button";
 
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
 import type { HowItWorksTopic } from "../../../_components/how-it-works-sheet";
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
 import { ResultCard, ResultStat } from "../../../simular/_components/sim-result";
 import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
@@ -113,9 +114,11 @@ export function GoalDetail({ detail }: GoalDetailProps) {
             aria-valuemax={100}
           />
         </div>
-        <ResultStat label="Já juntou/pagou" value={brl(progress.currentCents)} />
-        <ResultStat label="Alvo total" value={brl(progress.targetCents)} />
-        {!progress.reached && <ResultStat label="Falta" value={brl(String(remainingCents))} />}
+        <ResultStat label="Já juntou/pagou" value={<HideableValue>{brl(progress.currentCents)}</HideableValue>} />
+        <ResultStat label="Alvo total" value={<HideableValue>{brl(progress.targetCents)}</HideableValue>} />
+        {!progress.reached && (
+          <ResultStat label="Falta" value={<HideableValue>{brl(String(remainingCents))}</HideableValue>} />
+        )}
         {goal.type === "emergency_fund" && goal.monthlyCostCents === null && (
           <p className="mt-1 text-[0.7rem] text-[color:var(--text-muted)]">
             Reserva estimada com base em ~75% da sua renda mensal.

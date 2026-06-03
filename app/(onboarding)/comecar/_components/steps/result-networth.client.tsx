@@ -53,10 +53,10 @@ export function ResultNetWorth({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title={empty ? "Você pulou o patrimônio" : "Sua foto financeira"}
+      title={empty ? "Você pulou o patrimônio" : "Seu resumo financeiro"}
       description={
         empty
-          ? "Sem problema. Cadastre um bem ou sua reserva no início pra montar sua foto."
+          ? "Sem problema. Cadastre um bem ou sua reserva no início pra montar seu resumo."
           : "Esse é seu patrimônio líquido agora. Ele cresce conforme você cadastra."
       }
       onBack={onBack}
@@ -67,13 +67,13 @@ export function ResultNetWorth({
       ) : error ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="text-sm text-[color:var(--text-secondary)]">
-            Não consegui carregar sua foto financeira agora. Vá para o início e veja por lá.
+            Não consegui carregar seu resumo financeiro agora. Vá para o início e veja por lá.
           </p>
         </div>
       ) : empty ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <p className="text-sm text-[color:var(--text-secondary)]">
-            Você ainda não cadastrou nenhum bem. Quando cadastrar, sua foto financeira aparece aqui.
+            Você ainda não cadastrou nenhum bem. Quando cadastrar, seu resumo financeiro aparece aqui.
           </p>
         </div>
       ) : snap ? (

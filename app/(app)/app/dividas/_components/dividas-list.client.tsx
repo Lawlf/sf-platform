@@ -8,6 +8,7 @@ import Link from "next/link";
 import type { DebtKind } from "@/domain/entities/debt.entity";
 
 import { fetchDebts, type DebtStatusFilter } from "../../_actions/debt-queries";
+import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import { queryKeys } from "../../_lib/query-keys";
 
 const KIND_LABEL: Record<DebtKind, string> = {
@@ -83,12 +84,17 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
       {debts.map((d) => {
         const Icon = KIND_ICON[d.kind] ?? Wallet;
         const tone: StatusTone = STATUS_TONE[d.status] ?? DEFAULT_STATUS_TONE;
-        const amountText =
-          d.kind === "recurring" && d.recurringAmount && d.recurringFrequency
-            ? `${d.recurringAmount.formatted} / ${FREQUENCY_LABEL[d.recurringFrequency]}`
-            : d.status === "active"
-              ? d.currentBalance.formatted
-              : d.originalPrincipal.formatted;
+        const isRecurring =
+          d.kind === "recurring" && d.recurringAmount && d.recurringFrequency;
+        const amountValue = isRecurring
+          ? d.recurringAmount!.formatted
+          : d.status === "active"
+            ? d.currentBalance.formatted
+            : d.originalPrincipal.formatted;
+        const amountSuffix =
+          isRecurring && d.recurringFrequency
+            ? ` / ${FREQUENCY_LABEL[d.recurringFrequency]}`
+            : "";
         return (
           <Link
             key={d.id}
@@ -119,7 +125,8 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
                 </span>
                 <span className="text-[color:var(--text-muted)]">·</span>
                 <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
-                  {amountText}
+                  <HideableValue>{amountValue}</HideableValue>
+                  {amountSuffix}
                 </span>
               </div>
             </div>

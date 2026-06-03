@@ -28,6 +28,7 @@ import { SimpleTooltip } from "@/app/components/ui/tooltip";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
+import { UserAvatar } from "./user-avatar";
 
 interface NavItem {
   href: Route;
@@ -73,10 +74,11 @@ const STORAGE_KEY = "sf_sidebar_collapsed";
 
 export interface SidebarProps {
   displayName: string;
+  avatarUrl?: string | null | undefined;
   isPro: boolean;
 }
 
-export function Sidebar({ displayName, isPro }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
@@ -219,23 +221,29 @@ export function Sidebar({ displayName, isPro }: SidebarProps) {
         </nav>
       )}
 
-      <AccountZone displayName={displayName} isPro={isPro} collapsed={collapsed} />
+      <AccountZone
+        displayName={displayName}
+        avatarUrl={avatarUrl}
+        isPro={isPro}
+        collapsed={collapsed}
+      />
     </aside>
   );
 }
 
 function AccountZone({
   displayName,
+  avatarUrl,
   isPro,
   collapsed,
 }: {
   displayName: string;
+  avatarUrl?: string | null | undefined;
   isPro: boolean;
   collapsed: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
-  const initials = displayName.slice(0, 2).toUpperCase();
 
   useEffect(() => {
     if (!open) return;
@@ -254,9 +262,11 @@ function AccountZone({
   }, [open]);
 
   const avatar = (
-    <span className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.6875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]">
-      {initials}
-    </span>
+    <UserAvatar
+      dataUrl={avatarUrl}
+      displayName={displayName}
+      className="flex h-8 w-8 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.6875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]"
+    />
   );
 
   const collapsedCard = (
@@ -320,9 +330,11 @@ function AccountZone({
             aria-checked="true"
             className="focus-ring flex w-full items-center gap-2.5 rounded-lg bg-[color:var(--surface-2)] px-2.5 py-2 transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
           >
-            <span className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white">
-              {initials}
-            </span>
+            <UserAvatar
+              dataUrl={avatarUrl}
+              displayName={displayName}
+              className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
+            />
             <span className="min-w-0 flex-1 truncate text-left text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
               {displayName}
             </span>

@@ -4,6 +4,8 @@ import { useState } from "react";
 
 import { Button } from "@/app/components/ui/button";
 
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+
 export interface ScheduleRow {
   month: number;
   installment: string;
@@ -67,10 +69,18 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
                 ) : null}
                 <div className={rowClass}>
                   <span className="font-semibold">{row.month}</span>
-                  <span className="text-right">{row.installment}</span>
-                  <span className="text-right">{row.principal}</span>
-                  <span className="text-right">{row.interest}</span>
-                  <span className="text-right">{row.remainingBalance}</span>
+                  <span className="text-right">
+                    <HideableValue>{row.installment}</HideableValue>
+                  </span>
+                  <span className="text-right">
+                    <HideableValue>{row.principal}</HideableValue>
+                  </span>
+                  <span className="text-right">
+                    <HideableValue>{row.interest}</HideableValue>
+                  </span>
+                  <span className="text-right">
+                    <HideableValue>{row.remainingBalance}</HideableValue>
+                  </span>
                 </div>
               </div>
             );
@@ -80,9 +90,15 @@ export function ScheduleRender({ installments, totals, currentMonth }: ScheduleR
         {totals ? (
           <div className="grid grid-cols-[44px_1fr_1fr_1fr_1fr] gap-2 border-t-2 border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3 py-2.5 text-[0.75rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             <span className="uppercase tracking-wide">Total</span>
-            <span className="text-right">{totals.totalInstallment}</span>
-            <span className="text-right">{totals.totalPrincipal}</span>
-            <span className="text-right">{totals.totalInterest}</span>
+            <span className="text-right">
+              <HideableValue>{totals.totalInstallment}</HideableValue>
+            </span>
+            <span className="text-right">
+              <HideableValue>{totals.totalPrincipal}</HideableValue>
+            </span>
+            <span className="text-right">
+              <HideableValue>{totals.totalInterest}</HideableValue>
+            </span>
             <span />
           </div>
         ) : null}

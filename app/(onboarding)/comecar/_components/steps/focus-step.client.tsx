@@ -10,7 +10,7 @@ import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 const OPTIONS: { value: ContentDiagnosticAnswer; title: string; sub: string; Icon: typeof Wallet }[] = [
   { value: "pagar-divida", title: "Estou afogado em dívidas", sub: "Quero saber qual quitar primeiro.", Icon: Wallet },
   { value: "guardar", title: "Quero me organizar e guardar", sub: "Montar minha reserva com um alvo.", Icon: PiggyBank },
-  { value: "investir", title: "Quero crescer meu patrimônio", sub: "Ver minha foto financeira completa.", Icon: TrendingUp },
+  { value: "investir", title: "Quero crescer meu patrimônio", sub: "Ver meu resumo financeiro completo.", Icon: TrendingUp },
 ];
 
 export function FocusStep({

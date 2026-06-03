@@ -2,7 +2,9 @@ import { Landmark, Lock, Rocket, ShieldCheck, Target } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import type { SerializedGoalWithProgress } from "../_actions/goal-queries";
+
 
 function brl(cents: string): string {
   return (Number(cents) / 100).toLocaleString("pt-BR", {
@@ -95,7 +97,7 @@ export function GoalCard({ data }: GoalCardProps) {
             <>
               Faltam{" "}
               <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
-                {brl(String(remainingCents))}
+                <HideableValue>{brl(String(remainingCents))}</HideableValue>
               </span>
             </>
           )}

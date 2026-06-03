@@ -1,10 +1,12 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Suspense } from "react";
 import type { Route } from "next";
 import Link from "next/link";
+import { Suspense } from "react";
 
+
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import type { ExpenseCategory } from "@/domain/entities/debt.entity";
 
 import {
@@ -166,7 +168,7 @@ function SectionLabel({
         {label}
       </span>
       <span className="text-[0.75rem] font-extrabold" style={{ color }}>
-        {totalFormatted}
+        <HideableValue>{totalFormatted}</HideableValue>
       </span>
     </div>
   );
@@ -194,7 +196,7 @@ function IncomeRow({ row }: { row: SerializedIncomeRow }) {
             </span>
           </div>
           <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-positive)]">
-            +{row.amount.formatted}
+            +<HideableValue>{row.amount.formatted}</HideableValue>
           </span>
         </div>
       </Link>
@@ -221,7 +223,7 @@ function ExpenseRow({ row }: { row: SerializedExpenseRow }) {
             </span>
           </div>
           <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-            −{row.amount.formatted}
+            −<HideableValue>{row.amount.formatted}</HideableValue>
           </span>
         </div>
       </Link>
@@ -243,7 +245,7 @@ function PaymentRow({ row, monthLabel }: { row: SerializedPaymentRow; monthLabel
             </span>
           </div>
           <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-            −{row.amount.formatted}
+            −<HideableValue>{row.amount.formatted}</HideableValue>
           </span>
         </div>
       </Link>

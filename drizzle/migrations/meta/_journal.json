@@ -260,6 +260,13 @@
       "when": 1780366412936,
       "tag": "0036_ordinary_hemingway",
       "breakpoints": true
+    },
+    {
+      "idx": 37,
+      "version": "7",
+      "when": 1780455676565,
+      "tag": "0037_rich_goliath",
+      "breakpoints": true
     }
   ]
 }

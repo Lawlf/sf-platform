@@ -4,6 +4,7 @@ import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
 import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -32,7 +33,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const notificationCount = await fetchUndismissedNotificationsCount();
 
   const credsRepo = new DrizzleUserCredentialsRepository();
-  const [creds, passkeys] = await Promise.all([credsRepo.find(user.id), credsRepo.listWebauthn(user.id)]);
+  const [creds, passkeys, avatarUrl] = await Promise.all([
+    credsRepo.find(user.id),
+    credsRepo.listWebauthn(user.id),
+    new DrizzleUserAvatarRepository().get(user.id),
+  ]);
   const appLockEnabled = creds?.appLockEnabled ?? false;
   const appLockTimeout = creds?.appLockTimeout ?? 60;
   const hasPasskey = passkeys.length > 0;
@@ -46,9 +51,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
-            <Sidebar displayName={displayName} isPro={user.isPro} />
+            <Sidebar displayName={displayName} avatarUrl={avatarUrl} isPro={user.isPro} />
             <Topbar notificationCount={notificationCount} />
-            <MobileTopBar displayName={displayName} notificationCount={notificationCount} />
+            <MobileTopBar
+              displayName={displayName}
+              avatarUrl={avatarUrl}
+              notificationCount={notificationCount}
+            />
 
             <UsageHeartbeat />
             <CommandPalette />

@@ -4,6 +4,8 @@ import Link from "next/link";
 
 import { fetchGoalsWithProgress } from "../metas/_actions/goal-queries";
 
+import { HideableValue } from "./money-visibility/hideable-value.client";
+
 function brl(cents: string): string {
   return (Number(cents) / 100).toLocaleString("pt-BR", {
     style: "currency",
@@ -68,7 +70,7 @@ export async function HomeGoalCard() {
             <>
               Faltam{" "}
               <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
-                {brl(String(remainingCents))}
+                <HideableValue>{brl(String(remainingCents))}</HideableValue>
               </span>
             </>
           )}

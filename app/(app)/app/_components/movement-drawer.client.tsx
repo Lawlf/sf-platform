@@ -19,6 +19,7 @@ import {
 } from "../_actions/timeline-month-detail";
 import { queryKeys } from "../_lib/query-keys";
 
+import { HideableValue } from "./money-visibility/hideable-value.client";
 import { ResultLine } from "./movement-card";
 
 const FREQUENCY_LABELS: Record<
@@ -156,7 +157,7 @@ function SectionLabel({ label, totalFormatted }: { label: string; totalFormatted
         {label}
       </span>
       <span className="text-[0.75rem] font-extrabold text-[color:var(--text-primary)]">
-        {totalFormatted}
+        <HideableValue>{totalFormatted}</HideableValue>
       </span>
     </div>
   );
@@ -182,7 +183,7 @@ function IncomeRow({ row }: { row: SerializedIncomeRow }) {
         </span>
       </div>
       <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-positive)]">
-        +{row.amount.formatted}
+        +<HideableValue>{row.amount.formatted}</HideableValue>
       </span>
     </li>
   );
@@ -205,7 +206,7 @@ function ExpenseRow({ row }: { row: SerializedExpenseRow }) {
         </span>
       </div>
       <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-        −{row.amount.formatted}
+        −<HideableValue>{row.amount.formatted}</HideableValue>
       </span>
     </li>
   );
@@ -223,7 +224,7 @@ function PaymentRow({ row, monthLabel }: { row: SerializedPaymentRow; monthLabel
         </span>
       </div>
       <span className="text-[0.8125rem] font-extrabold text-[color:var(--semantic-negative)]">
-        −{row.amount.formatted}
+        −<HideableValue>{row.amount.formatted}</HideableValue>
       </span>
     </li>
   );

@@ -4,7 +4,9 @@ import { Flame, Search } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
+import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
+
 
 import { TimelineFilterDrawer } from "./timeline-filter-drawer";
 
@@ -81,7 +83,7 @@ export function TimelineHero({
             Patrimônio líquido
           </div>
           <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
-            {patrimonyFormatted}
+            <HideableValue>{patrimonyFormatted}</HideableValue>
           </div>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             {deltaText ? (

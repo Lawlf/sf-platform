@@ -1,5 +1,7 @@
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 
+import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+
 const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
 interface Props {
@@ -33,12 +35,13 @@ export function PaymentsSection({ payments }: Props) {
                   {DATE_FMT.format(p.paidAt)}
                 </p>
                 <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-                  {p.principalPortion.format()} principal + {p.interestPortion.format()} juros
+                  <HideableValue>{p.principalPortion.format()}</HideableValue> principal +{" "}
+                  <HideableValue>{p.interestPortion.format()}</HideableValue> juros
                 </p>
               </div>
               <div className="flex shrink-0 flex-col items-end gap-1">
                 <span className="text-sm font-semibold text-[color:var(--text-primary)]">
-                  {p.amount.format()}
+                  <HideableValue>{p.amount.format()}</HideableValue>
                 </span>
                 {p.isExtra ? (
                   <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
