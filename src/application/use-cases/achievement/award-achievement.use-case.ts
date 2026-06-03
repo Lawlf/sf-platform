@@ -53,8 +53,12 @@ export async function awardAchievement(
       line: def.title,
       iconName: def.iconName,
       slug: def.slug,
+      description: def.description,
+      url: "/app/conquistas",
+      cta: "Ver conquistas",
     },
     dismissedAt: null,
+    readAt: null,
     createdAt: now,
   };
 

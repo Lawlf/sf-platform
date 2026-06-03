@@ -17,7 +17,7 @@ export interface MobileTopBarProps {
 
 export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0 }: MobileTopBarProps) {
   const hasNotifications = notificationCount > 0;
-  const badgeLabel = notificationCount > 9 ? "9+" : String(notificationCount);
+  const badgeLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 
   return (
     <header

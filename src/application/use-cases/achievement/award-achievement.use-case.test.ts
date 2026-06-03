@@ -36,11 +36,15 @@ function fakes() {
     async countUndismissedForUser() {
       return 0;
     },
+    async countUnreadForUser() {
+      return 0;
+    },
     async create(entity) {
       created.push(entity);
       return entity;
     },
     async markDismissed() {},
+    async markAllReadForUser() {},
   };
   return { userAchievements, notifications, created };
 }

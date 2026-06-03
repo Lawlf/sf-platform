@@ -11,8 +11,10 @@ function makeNotificationsRepo(): NotificationRepository {
     findByUserAndKindAndMonth: vi.fn(),
     listForUser: vi.fn(),
     countUndismissedForUser: vi.fn(),
+    countUnreadForUser: vi.fn(),
     create: vi.fn(),
     markDismissed: vi.fn(),
+    markAllReadForUser: vi.fn(),
   };
 }
 

@@ -281,6 +281,13 @@
       "when": 1780600000000,
       "tag": "0039_rate_check_constraints",
       "breakpoints": true
+    },
+    {
+      "idx": 40,
+      "version": "7",
+      "when": 1780506031590,
+      "tag": "0040_wealthy_champions",
+      "breakpoints": true
     }
   ]
 }

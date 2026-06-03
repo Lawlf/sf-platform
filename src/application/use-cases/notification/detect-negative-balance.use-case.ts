@@ -66,6 +66,7 @@ export async function detectNegativeBalance(
       freeBalanceCents: input.freeBalanceCents.toString(),
     },
     dismissedAt: null,
+    readAt: null,
     createdAt: triggeredAt,
   };
 

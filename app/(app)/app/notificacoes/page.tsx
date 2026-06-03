@@ -6,23 +6,22 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { PageShell } from "../_components/page-shell";
 
 import { fetchNotifications } from "./_actions/list-notifications.action";
-import { NotificationsTabs } from "./_components/notifications-tabs.client";
+import { NotificationsFeed } from "./_components/notifications-feed.client";
 
 export const metadata: Metadata = { title: "Notificações" };
 
 export default async function NotificacoesPage() {
   await requireUser();
   const all = await fetchNotifications();
-  const active = all.filter((n) => !n.dismissed);
-  const dismissed = all.filter((n) => n.dismissed);
+  const hasUnread = all.some((n) => !n.read);
 
   return (
-    <PageShell title="Notificações" description="Avisos do sistema.">
+    <PageShell title="Notificações" description="Tudo que aconteceu na sua conta.">
       <div className="flex flex-col gap-4">
-        {active.length === 0 && dismissed.length === 0 ? (
+        {all.length === 0 ? (
           <EmptyState />
         ) : (
-          <NotificationsTabs active={active} dismissed={dismissed} />
+          <NotificationsFeed notifications={all} hasUnread={hasUnread} />
         )}
       </div>
     </PageShell>

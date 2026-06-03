@@ -1,42 +1,10 @@
-import {
-  Award,
-  CalendarCheck,
-  CalendarHeart,
-  CircleCheckBig,
-  HeartPulse,
-  LineChart,
-  type LucideIcon,
-  Map as MapIcon,
-  Medal,
-  Sparkles,
-  Target,
-  TrendingUp,
-  Trophy,
-  Wallet,
-} from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { ACHIEVEMENTS } from "@/domain/achievements/achievement.catalog";
 import type { UserAchievementEntity } from "@/domain/entities/user-achievement.entity";
 
-const ICONS: Record<string, LucideIcon> = {
-  Sparkles,
-  Map: MapIcon,
-  Wallet,
-  Target,
-  LineChart,
-  CircleCheckBig,
-  HeartPulse,
-  TrendingUp,
-  CalendarCheck,
-  CalendarHeart,
-  Award,
-  Medal,
-  Trophy,
-};
-
-function iconByName(name: string): LucideIcon {
-  return ICONS[name] ?? Award;
-}
+import { getAchievementIcon } from "../../_components/achievement-icons";
 
 function formatMonthYear(date: Date): string {
   return date.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
@@ -56,14 +24,22 @@ export function PerfilAchievements({ unlocked }: PerfilAchievementsProps) {
 
   return (
     <section>
-      <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-        Conquistas
-      </h2>
+      <div className="mb-2 flex items-center justify-between px-1">
+        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          Conquistas {unlocked.length}/{ACHIEVEMENTS.length}
+        </h2>
+        <Link
+          href={"/app/conquistas" as Route}
+          className="text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)] hover:underline"
+        >
+          Ver todas
+        </Link>
+      </div>
       <div className="grid gap-2 md:grid-cols-2">
         {ordered.map((a) => {
           const unlockedAt = unlockedMap.get(a.slug);
           const isUnlocked = Boolean(unlockedAt);
-          const Icon = iconByName(a.iconName);
+          const Icon = getAchievementIcon(a.iconName);
           return (
             <div
               key={a.slug}
