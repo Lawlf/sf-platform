@@ -87,7 +87,8 @@ function BucketPicker({
           </span>
         </div>
         <p className="mt-1.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Cadastre uma reserva pra dizer onde seu dinheiro rende.{" "}
+          Seu saldo livre já fica num caixa automático que não rende. Aponta pra uma reserva
+          que rende pra ele crescer mais.{" "}
           <Link
             href={"/app/patrimonio/novo" as Route}
             className="focus-ring font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2"
@@ -128,7 +129,7 @@ function BucketPicker({
         {pending ? <Spinner size={14} className="text-[color:var(--text-muted)]" /> : null}
       </div>
       <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-        Define o rendimento que a projeção usa pro que sobra cada mês.
+        Por padrão, o que sobra fica num caixa que não rende. Aponta pra uma reserva pra render.
       </p>
       <div className="mt-3">
         <Select
@@ -140,7 +141,7 @@ function BucketPicker({
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NO_BUCKET_VALUE}>Ainda não defini</SelectItem>
+            <SelectItem value={NO_BUCKET_VALUE}>Caixa automático (não rende)</SelectItem>
             {cashAssets.map((asset) => (
               <SelectItem key={asset.id} value={asset.id}>
                 {asset.label}
