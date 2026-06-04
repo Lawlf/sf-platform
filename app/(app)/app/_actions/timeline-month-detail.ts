@@ -38,6 +38,7 @@ export interface SerializedIncomeRow {
   amount: SerializedMoney;
   frequency: "monthly" | "weekly" | "one_off";
   dateIso: string;
+  isNew: boolean;
 }
 
 /**
@@ -249,6 +250,7 @@ export async function fetchMonthDetail(input: {
       amount: serializeMoney(inc.amount),
       frequency: inc.frequency,
       dateIso: date.toISOString(),
+      isNew: MonthYear.fromDate(inc.createdAt).equals(month),
     };
   });
 
@@ -342,9 +344,11 @@ export async function fetchMonthDetail(input: {
     });
   }
 
+  const activeIncomeIds = new Set(activeIncomes.map((i) => i.id));
   for (const inc of incomesRaw) {
     const createdMonth = MonthYear.fromDate(inc.createdAt);
     if (!createdMonth.equals(month)) continue;
+    if (activeIncomeIds.has(inc.id)) continue;
     events.push({
       id: `income-${inc.id}`,
       kind: "income_added",
