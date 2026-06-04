@@ -5,7 +5,7 @@ export type McpWriteVerb = "create" | "update" | "delete";
 
 export interface McpWriteAction {
   toolName: string;
-  entityType: "income" | "debt" | "asset" | "goal";
+  entityType: "income" | "transaction" | "debt" | "asset" | "goal";
   verb: McpWriteVerb;
   scope: McpScope;
 }
@@ -14,6 +14,12 @@ export const MCP_WRITE_ACTIONS: McpWriteAction[] = [
   { toolName: "income_create", entityType: "income", verb: "create", scope: "incomes:write" },
   { toolName: "income_update", entityType: "income", verb: "update", scope: "incomes:write" },
   { toolName: "income_delete", entityType: "income", verb: "delete", scope: "incomes:write" },
+  {
+    toolName: "transaction_create",
+    entityType: "transaction",
+    verb: "create",
+    scope: "transactions:write",
+  },
   { toolName: "debt_create", entityType: "debt", verb: "create", scope: "debts:write" },
   { toolName: "debt_update", entityType: "debt", verb: "update", scope: "debts:write" },
   { toolName: "debt_delete", entityType: "debt", verb: "delete", scope: "debts:delete" },

@@ -21,6 +21,7 @@ import { DrizzleMcpAuditLogRepository } from "@/infrastructure/persistence/drizz
 import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
 import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
 import { DrizzleMcpTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-token.repository";
+import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 const ROUTE = "/app/configuracoes/integracoes";
@@ -70,6 +71,7 @@ export async function approvePendingAction(formData: FormData): Promise<void> {
         allocations: new DrizzleAssetDebtAllocationRepository(),
         assets: new DrizzleAssetRepository(),
         goals: new DrizzleGoalRepository(),
+        transactions: new DrizzleTransactionRepository(),
         clock: new SystemClock(),
       },
       audit: new DrizzleMcpAuditLogRepository(),
@@ -95,6 +97,7 @@ export async function rejectPendingAction(formData: FormData): Promise<void> {
         allocations: new DrizzleAssetDebtAllocationRepository(),
         assets: new DrizzleAssetRepository(),
         goals: new DrizzleGoalRepository(),
+        transactions: new DrizzleTransactionRepository(),
         clock: new SystemClock(),
       },
       audit: new DrizzleMcpAuditLogRepository(),

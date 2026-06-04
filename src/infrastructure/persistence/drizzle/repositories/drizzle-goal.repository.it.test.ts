@@ -50,6 +50,9 @@ function makeGoal(overrides: Partial<Omit<GoalEntity, "createdAt" | "updatedAt">
     manualSavedCents: 200_000n,
     monthlyCostCents: null,
     realReturnPct: null,
+    cascadeOrder: null,
+    cascadeMode: null,
+    cascadeParallelPct: null,
     ...overrides,
   };
 }

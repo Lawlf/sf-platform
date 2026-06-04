@@ -36,7 +36,7 @@ export function BrandLogo({
         width={size}
         height={size}
         priority
-        className="relative"
+        className="relative rounded-full"
         style={{
           filter: glow ? undefined : "drop-shadow(0 12px 22px rgba(239, 122, 26, 0.35))",
         }}

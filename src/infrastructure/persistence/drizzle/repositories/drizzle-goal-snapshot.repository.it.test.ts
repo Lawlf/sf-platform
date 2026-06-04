@@ -39,6 +39,9 @@ beforeAll(async () => {
     manualSavedCents: null,
     monthlyCostCents: null,
     realReturnPct: null,
+    cascadeOrder: null,
+    cascadeMode: null,
+    cascadeParallelPct: null,
   });
   goalId = goal.id;
 });
@@ -121,6 +124,9 @@ describe("DrizzleGoalSnapshotRepository (integration)", () => {
       manualSavedCents: null,
       monthlyCostCents: null,
       realReturnPct: null,
+      cascadeOrder: null,
+      cascadeMode: null,
+      cascadeParallelPct: null,
     });
 
     const list = await repo.listForGoal(other.id);

@@ -6,6 +6,7 @@ export type GoalType =
 
 export type GoalStatus = "active" | "reached" | "archived";
 export type GoalFundingMode = "linked" | "manual";
+export type GoalCascadeMode = "queue" | "parallel";
 
 export interface GoalEntity {
   id: string;
@@ -22,6 +23,9 @@ export interface GoalEntity {
   manualSavedCents: bigint | null;
   monthlyCostCents: bigint | null;
   realReturnPct: number | null;
+  cascadeOrder: number | null;
+  cascadeMode: GoalCascadeMode | null;
+  cascadeParallelPct: number | null;
   createdAt: Date;
   updatedAt: Date;
 }

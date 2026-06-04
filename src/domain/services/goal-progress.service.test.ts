@@ -9,6 +9,7 @@ const baseGoal = {
   targetCents: null, deadline: null, linkedDebtId: null, linkedAssetId: null,
   targetMonths: null, fundingMode: null, manualSavedCents: null,
   monthlyCostCents: null, realReturnPct: null,
+  cascadeOrder: null, cascadeMode: null, cascadeParallelPct: null,
   createdAt: new Date(), updatedAt: new Date(),
 };
 

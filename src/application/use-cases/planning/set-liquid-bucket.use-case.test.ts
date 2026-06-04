@@ -1,0 +1,106 @@
+import { describe, expect, it } from "vitest";
+
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { FinancialPlanningSettingsEntity } from "@/domain/entities/financial-planning-settings.entity";
+import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { FinancialPlanningSettingsRepository } from "@/domain/ports/repositories/financial-planning-settings.repository";
+import { Money } from "@/domain/value-objects/money.vo";
+
+import { setLiquidBucket } from "./set-liquid-bucket.use-case";
+
+function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" | "category">): AssetEntity {
+  return {
+    label: "x",
+    currentValue: Money.fromCents(100000n),
+    metadata: { kind: "cash" },
+    fipeCode: null,
+    fipeLastSyncedAt: null,
+    acquiredAt: null,
+    depreciationKind: "stable",
+    depreciationRatePctYear: 0,
+    purchaseDate: null,
+    purchasePriceCents: null,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    deactivatedAt: null,
+    deactivationKind: null,
+    salePriceCents: null,
+    deactivationReason: null,
+    deletedAt: null,
+    ...p,
+  };
+}
+
+function makeAssetsRepo(initial: AssetEntity[]): AssetRepository {
+  return {
+    findById: async (id: string, userId: string) => {
+      const found = initial.find((a) => a.id === id && a.userId === userId);
+      return found ?? null;
+    },
+    create: async () => { throw new Error("not used"); },
+    update: async () => { throw new Error("not used"); },
+    findActiveByUser: async () => { throw new Error("not used"); },
+    findActiveByUserAndCategory: async () => { throw new Error("not used"); },
+    findByIdWithAllocations: async () => { throw new Error("not used"); },
+    findActiveWithAllocations: async () => { throw new Error("not used"); },
+    listStockTickersForUser: async () => { throw new Error("not used"); },
+    softDelete: async () => { throw new Error("not used"); },
+  } as unknown as AssetRepository;
+}
+
+function makeSettingsRepo(): FinancialPlanningSettingsRepository {
+  const store = new Map<string, FinancialPlanningSettingsEntity>();
+  return {
+    findByUser: async (userId: string) => store.get(userId) ?? null,
+    upsertLiquidBucket: async (userId: string, liquidBucketAssetId: string | null) => {
+      const existing = store.get(userId);
+      const record: FinancialPlanningSettingsEntity = {
+        userId,
+        liquidBucketAssetId,
+        createdAt: existing?.createdAt ?? new Date(0),
+        updatedAt: new Date(),
+      };
+      store.set(userId, record);
+      return record;
+    },
+  };
+}
+
+const cashAsset = makeAsset({ id: "buck", userId: "u1", category: "cash" });
+const vehicleAsset = makeAsset({
+  id: "car",
+  userId: "u1",
+  category: "vehicle",
+  metadata: { kind: "vehicle", brand: "Toyota", model: "Corolla", year: 2020 },
+});
+
+const assets = makeAssetsRepo([cashAsset, vehicleAsset]);
+const settings = makeSettingsRepo();
+
+describe("setLiquidBucket", () => {
+  it("sets the bucket to a cash asset owned by the user", async () => {
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: "buck" });
+    expect(res.ok).toBe(true);
+    const stored = await settings.findByUser("u1");
+    expect(stored?.liquidBucketAssetId).toBe("buck");
+  });
+
+  it("clears the bucket when assetId is null", async () => {
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: null });
+    expect(res.ok).toBe(true);
+    const stored = await settings.findByUser("u1");
+    expect(stored?.liquidBucketAssetId).toBeNull();
+  });
+
+  it("rejects an asset that does not belong to the user", async () => {
+    const res = await setLiquidBucket({ assets, settings }, { userId: "intruder", assetId: "buck" });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.message).toBe("Ativo não encontrado.");
+  });
+
+  it("rejects a non-cash asset", async () => {
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: "car" });
+    expect(res.ok).toBe(false);
+    if (!res.ok) expect(res.message).toMatch(/reserva/);
+  });
+});

@@ -8,14 +8,17 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
+import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
 import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
+import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MaisCard } from "./_components/mais-card";
+import { MonthClosingCard } from "./_components/month-closing-card.client";
 import { NextStepCard } from "./_components/next-step-card";
 import { PageShell } from "./_components/page-shell";
 import { QuickAccessRow } from "./_components/quick-access-row";
@@ -56,10 +59,18 @@ export default async function DashboardPage() {
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
 
-  const [initialMonthDetail, initialMaintenancePrompts, onboardingState] = await Promise.all([
+  const [
+    initialMonthDetail,
+    initialMaintenancePrompts,
+    onboardingState,
+    projectionInitial,
+    monthClosingInitial,
+  ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
     fetchMaintenancePrompts(),
     fetchOnboardingState(),
+    fetchPlanningProjection(),
+    fetchMonthClosing(),
   ]);
 
   return (
@@ -83,6 +94,12 @@ export default async function DashboardPage() {
           </Suspense>
         </div>
 
+        <div className="md:col-span-2">
+          <Suspense fallback={<Skeleton className="h-[96px] rounded-2xl" />}>
+            <MonthClosingCard initialData={monthClosingInitial} />
+          </Suspense>
+        </div>
+
         <div className="min-w-0 md:col-span-2" data-tour="quick-access">
           <QuickAccessRow />
         </div>
@@ -90,6 +107,12 @@ export default async function DashboardPage() {
         <div className="md:col-span-2" data-tour="next-step">
           <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
             <NextStepCard />
+          </Suspense>
+        </div>
+
+        <div className="md:col-span-2" data-tour="projection">
+          <Suspense fallback={<Skeleton className="h-[72px] rounded-2xl" />}>
+            <HomeProjectionCard initialData={projectionInitial} />
           </Suspense>
         </div>
 

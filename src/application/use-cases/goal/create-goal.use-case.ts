@@ -90,6 +90,9 @@ function normalizeFields(input: CreateGoalInput): Omit<
     manualSavedCents: null,
     monthlyCostCents: null,
     realReturnPct: null,
+    cascadeOrder: null,
+    cascadeMode: null,
+    cascadeParallelPct: null,
   };
 
   switch (input.type) {

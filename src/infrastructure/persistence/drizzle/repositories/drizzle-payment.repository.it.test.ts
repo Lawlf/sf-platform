@@ -1,3 +1,4 @@
+import { eq, like } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { Payment } from "@/domain/entities/payment.entity";
@@ -22,8 +23,8 @@ describe("DrizzlePaymentRepository (IT)", () => {
   });
 
   afterEach(async () => {
-    await getDb().delete(payments);
-    await getDb().delete(users);
+    await getDb().delete(payments).where(eq(payments.userId, userId));
+    await getDb().delete(users).where(like(users.email, "pay-test-%"));
   });
 
   it("saves and retrieves a payment", async () => {

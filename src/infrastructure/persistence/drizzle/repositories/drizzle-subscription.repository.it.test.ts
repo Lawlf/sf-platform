@@ -1,3 +1,4 @@
+import { eq, like } from "drizzle-orm";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 
 import type { Subscription } from "@/domain/entities/subscription.entity";
@@ -22,8 +23,8 @@ describe("DrizzleSubscriptionRepository (IT)", () => {
   });
 
   afterEach(async () => {
-    await getDb().delete(subscriptions);
-    await getDb().delete(users);
+    await getDb().delete(subscriptions).where(eq(subscriptions.userId, userId));
+    await getDb().delete(users).where(like(users.email, "sub-test-%"));
   });
 
   it("saves and retrieves a subscription", async () => {

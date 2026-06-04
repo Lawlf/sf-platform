@@ -1,0 +1,38 @@
+import { sql } from "drizzle-orm";
+import {
+  bigint,
+  date,
+  pgTable,
+  primaryKey,
+  timestamp,
+  uuid,
+} from "drizzle-orm/pg-core";
+
+import { users } from "./users.schema";
+
+export const monthClosings = pgTable(
+  "month_closings",
+  {
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    month: date("month", { mode: "date" }).notNull(),
+    baselineNetWorthCents: bigint("baseline_net_worth_cents", {
+      mode: "bigint",
+    }).notNull(),
+    endNetWorthCents: bigint("end_net_worth_cents", { mode: "bigint" }).notNull(),
+    theoreticalFreeCashFlowCents: bigint("theoretical_free_cash_flow_cents", {
+      mode: "bigint",
+    }).notNull(),
+    leakCents: bigint("leak_cents", { mode: "bigint" }).notNull(),
+    closedAt: timestamp("closed_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.userId, t.month] }),
+  }),
+);
+
+export type MonthClosingRow = typeof monthClosings.$inferSelect;
+export type NewMonthClosingRow = typeof monthClosings.$inferInsert;

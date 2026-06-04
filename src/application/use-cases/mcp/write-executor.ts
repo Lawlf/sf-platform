@@ -14,6 +14,7 @@ import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-pay
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { serialize } from "@/presentation/http/mcp/serialize";
@@ -31,6 +32,7 @@ import { updateGoal } from "../goal/update-goal.use-case";
 import { deleteIncome } from "../income/delete-income.use-case";
 import { registerIncome } from "../income/register-income.use-case";
 import { updateIncome } from "../income/update-income.use-case";
+import { createTransaction } from "../transaction/create-transaction.use-case";
 
 export interface WriteExecutorResult {
   entityType: string;
@@ -47,6 +49,7 @@ export interface WriteExecutorDeps {
   allocations: AssetDebtAllocationRepository;
   assets: AssetRepository;
   goals: GoalRepository;
+  transactions: TransactionRepository;
   clock: Clock;
 }
 
@@ -116,6 +119,28 @@ export async function executeWrite(
       );
       if (isErr(result)) throw result.error;
       return { entityType: "income", entityId: id, before, after: null, reversible: true };
+    }
+
+    case "transaction_create": {
+      const result = await createTransaction(
+        { transactions: deps.transactions, clock: deps.clock },
+        {
+          userId,
+          amount: money(args.amountCents),
+          description: str(args.description),
+          category: optStr(args.category),
+          occurredAt: optDate(args.occurredAt),
+        },
+      );
+      if (isErr(result)) throw result.error;
+      const after = serialize(result.value);
+      return {
+        entityType: "transaction",
+        entityId: result.value.id,
+        before: null,
+        after,
+        reversible: false,
+      };
     }
 
     case "debt_create": {

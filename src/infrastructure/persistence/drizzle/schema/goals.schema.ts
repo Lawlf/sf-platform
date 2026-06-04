@@ -24,6 +24,7 @@ export const goalType = pgEnum("goal_type", [
 ]);
 export const goalStatus = pgEnum("goal_status", ["active", "reached", "archived"]);
 export const goalFundingMode = pgEnum("goal_funding_mode", ["linked", "manual"]);
+export const goalCascadeMode = pgEnum("goal_cascade_mode", ["queue", "parallel"]);
 
 export const goals = pgTable(
   "goals",
@@ -44,6 +45,9 @@ export const goals = pgTable(
     manualSavedCents: bigint("manual_saved_cents", { mode: "bigint" }),
     monthlyCostCents: bigint("monthly_cost_cents", { mode: "bigint" }),
     realReturnPct: numeric("real_return_pct"),
+    cascadeOrder: integer("cascade_order"),
+    cascadeMode: goalCascadeMode("cascade_mode"),
+    cascadeParallelPct: numeric("cascade_parallel_pct"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

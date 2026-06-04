@@ -1,4 +1,7 @@
+import { ChevronRight, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
+import type { Route } from "next";
+import Link from "next/link";
 import { Suspense } from "react";
 
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -93,6 +96,23 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
         streakCount={streakCount}
         oldestUserDataIso={oldestUserDataIso}
       />
+      <Link
+        href={"/app/linha-do-tempo/projecao" as Route}
+        className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+          <TrendingUp size={18} strokeWidth={2} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+          Projeção futura
+        </span>
+        <ChevronRight
+          size={18}
+          strokeWidth={2.25}
+          className="shrink-0 text-[color:var(--text-muted)]"
+          aria-hidden
+        />
+      </Link>
       <Suspense fallback={<TimelineSkeleton />}>
         <TimelineContent />
       </Suspense>
