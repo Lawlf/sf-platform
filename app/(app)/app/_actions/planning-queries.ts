@@ -4,6 +4,7 @@ import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { previewMonthClosing } from "@/application/use-cases/month-closing/preview-month-closing.use-case";
 import { assemblePlanningView } from "@/application/use-cases/planning/assemble-planning-view";
 import { buildProjectionDebtInputs } from "@/application/use-cases/planning/build-projection-debt-inputs";
+import { getAnnualReport } from "@/application/use-cases/transaction/get-annual-report.use-case";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -16,6 +17,7 @@ import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/per
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
+import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 const HORIZON_MONTHS = 120;
@@ -226,5 +228,86 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
     deltaFormatted: Money.fromCents(deltaCents).format(),
     leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
     status: preview.status,
+  };
+}
+
+export interface AnnualReportMonth {
+  month: number;
+  label: string;
+  totalCents: string;
+  totalFormatted: string;
+}
+
+export interface AnnualReportCategory {
+  category: string | null;
+  label: string;
+  totalFormatted: string;
+}
+
+export interface AnnualReportPayload {
+  isPro: boolean;
+  year: number;
+  hasData: boolean;
+  totalFormatted: string;
+  byMonth: AnnualReportMonth[];
+  byCategory: AnnualReportCategory[];
+}
+
+const SHORT_MONTH_LABELS = [
+  "jan",
+  "fev",
+  "mar",
+  "abr",
+  "mai",
+  "jun",
+  "jul",
+  "ago",
+  "set",
+  "out",
+  "nov",
+  "dez",
+];
+
+function emptyAnnualReport(year: number, isPro: boolean): AnnualReportPayload {
+  return {
+    isPro,
+    year,
+    hasData: false,
+    totalFormatted: Money.zero().format(),
+    byMonth: [],
+    byCategory: [],
+  };
+}
+
+export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
+  const user = await getCurrentUser();
+  const year = new Date().getUTCFullYear();
+  if (!user) return emptyAnnualReport(year, false);
+
+  const result = await getAnnualReport(
+    { transactions: new DrizzleTransactionRepository() },
+    { userId: user.id, year, isPro: user.isPro },
+  );
+
+  if (!result.ok) return emptyAnnualReport(year, false);
+
+  const { report } = result;
+
+  return {
+    isPro: true,
+    year,
+    hasData: report.totalCents > 0n,
+    totalFormatted: Money.fromCents(report.totalCents).format(),
+    byMonth: report.byMonth.map((m) => ({
+      month: m.month,
+      label: SHORT_MONTH_LABELS[m.month - 1] ?? String(m.month),
+      totalCents: m.totalCents.toString(),
+      totalFormatted: Money.fromCents(m.totalCents).format(),
+    })),
+    byCategory: report.byCategory.map((c) => ({
+      category: c.category,
+      label: c.category ?? "Sem categoria",
+      totalFormatted: Money.fromCents(c.totalCents).format(),
+    })),
   };
 }

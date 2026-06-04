@@ -1,7 +1,9 @@
 "use client";
 
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, ChevronRight, Receipt } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
@@ -190,6 +192,27 @@ export function MonthClosingCard({ initialData }: Props) {
                 leakAbsFormatted={data.leakAbsFormatted ?? ""}
               />
             </div>
+
+            {data.status === "leaked" ? (
+              <Link
+                href={"/app/linha-do-tempo/relatorio" as Route}
+                className="focus-ring -mx-1 flex items-center gap-2 rounded-lg px-1 py-1.5 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+              >
+                <Receipt
+                  size={15}
+                  strokeWidth={2}
+                  className="shrink-0 text-[color:var(--color-brand-800)]"
+                  aria-hidden
+                />
+                <span className="flex-1">Detalhar onde foi</span>
+                <ChevronRight
+                  size={15}
+                  strokeWidth={2}
+                  className="shrink-0 text-[color:var(--text-muted)]"
+                  aria-hidden
+                />
+              </Link>
+            ) : null}
 
             {error ? (
               <p

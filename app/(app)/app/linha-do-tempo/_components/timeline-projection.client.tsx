@@ -1,7 +1,7 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { SlidersHorizontal, Target } from "lucide-react";
+import { ChevronRight, Receipt, SlidersHorizontal, Target } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -111,6 +111,20 @@ export function TimelineProjection({ initialData }: Props) {
       ) : null}
 
       <div className="mt-4 border-t border-[color:var(--border-soft)] pt-3">
+        <Link
+          href={"/app/linha-do-tempo/relatorio" as Route}
+          className="focus-ring -mx-1 mb-2 flex items-center gap-2 rounded-lg px-1 py-1.5 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+        >
+          <Receipt
+            size={15}
+            strokeWidth={2}
+            className="shrink-0 text-[color:var(--color-brand-800)]"
+            aria-hidden
+          />
+          <span className="flex-1">Relatório do ano</span>
+          <ChevronRight size={15} strokeWidth={2} className="shrink-0 text-[color:var(--text-muted)]" aria-hidden />
+        </Link>
+
         <Sheet>
           <SheetTrigger className="focus-ring inline-flex items-center gap-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]">
             <SlidersHorizontal size={14} strokeWidth={2} aria-hidden />
