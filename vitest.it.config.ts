@@ -6,6 +6,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
+    globalSetup: ["./vitest.it.setup.ts"],
     include: ["src/**/*.it.test.ts"],
     testTimeout: 30_000,
     hookTimeout: 30_000,
