@@ -1,0 +1,154 @@
+import { describe, expect, it } from "vitest";
+
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { MonthClosingEntity } from "@/domain/entities/month-closing.entity";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
+import { Money } from "@/domain/value-objects/money.vo";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
+
+import { previewMonthClosing, type MonthClosingDeps } from "./preview-month-closing.use-case";
+
+const clock: Clock = { now: () => new Date("2026-06-15T00:00:00Z") };
+
+function makeAsset(currentValueCents: bigint): AssetEntity {
+  return {
+    id: "asset-1",
+    userId: "u1",
+    category: "vehicle",
+    label: "Carro",
+    currentValue: Money.fromCents(currentValueCents),
+    metadata: { kind: "vehicle", brand: "Honda", model: "Civic", year: 2020 },
+    fipeCode: null,
+    fipeLastSyncedAt: null,
+    acquiredAt: new Date("2025-01-01T00:00:00Z"),
+    depreciationKind: "stable",
+    depreciationRatePctYear: 0,
+    purchaseDate: null,
+    purchasePriceCents: null,
+    createdAt: new Date("2025-01-01T00:00:00Z"),
+    updatedAt: new Date("2025-01-01T00:00:00Z"),
+    deactivatedAt: null,
+    deactivationKind: null,
+    salePriceCents: null,
+    deactivationReason: null,
+    deletedAt: null,
+  };
+}
+
+function makeIncome(amountReais: number): IncomeEntity {
+  return {
+    id: "income-1",
+    userId: "u1",
+    label: "Salario",
+    amount: Money.fromCents(BigInt(Math.round(amountReais * 100))),
+    frequency: "monthly",
+    startDate: new Date("2025-01-01T00:00:00Z"),
+    endDate: null,
+    isActive: true,
+    createdAt: new Date("2025-01-01T00:00:00Z"),
+    deletedAt: null,
+  };
+}
+
+function makeClosing(monthIso: string, endNetWorthCents: bigint): MonthClosingEntity {
+  return {
+    userId: "u1",
+    month: MonthYear.fromIso(monthIso).firstDay(),
+    baselineNetWorthCents: 0n,
+    endNetWorthCents,
+    theoreticalFreeCashFlowCents: 0n,
+    leakCents: 0n,
+    closedAt: new Date("2026-05-01T00:00:00Z"),
+  };
+}
+
+interface Stored {
+  closings?: MonthClosingEntity[];
+  assets?: AssetEntity[];
+  incomes?: IncomeEntity[];
+}
+
+function makeDeps(stored: Stored): MonthClosingDeps {
+  const closingsStore = stored.closings ?? [];
+  const assetsStore = stored.assets ?? [];
+  const incomesStore = stored.incomes ?? [];
+
+  const closings: MonthClosingRepository = {
+    upsert: async () => {},
+    listForUser: async () => closingsStore,
+    latest: async () => {
+      if (closingsStore.length === 0) return null;
+      return [...closingsStore].sort((a, b) => b.month.getTime() - a.month.getTime())[0]!;
+    },
+  };
+
+  const assets = {
+    findActiveByUser: async () => assetsStore,
+  } as unknown as AssetRepository;
+
+  const allocations = {
+    findByAsset: async () => [],
+  } as unknown as AssetDebtAllocationRepository;
+
+  const debts = {
+    listForUser: async () => [],
+  } as unknown as DebtRepository;
+
+  const incomes = {
+    listForUser: async () => incomesStore,
+  } as unknown as IncomeRepository;
+
+  const payments = {
+    listForUserInRange: async () => [],
+  } as unknown as DebtPaymentRepository;
+
+  return { closings, assets, allocations, debts, incomes, payments, clock };
+}
+
+describe("previewMonthClosing", () => {
+  it("returns { open: false } when there is no month to close", async () => {
+    const deps = makeDeps({ closings: [makeClosing("2026-05", 0n)] });
+    const r = await previewMonthClosing(deps, { userId: "u1" });
+    expect(r).toEqual({ open: false });
+  });
+
+  it("reports a leak on a first close, taking the baseline from the timeline", async () => {
+    const deps = makeDeps({
+      assets: [makeAsset(80_000n)],
+      incomes: [makeIncome(1000)],
+    });
+    const r = await previewMonthClosing(deps, { userId: "u1" });
+    expect(r.open).toBe(true);
+    if (!r.open) return;
+    expect(r.monthIso).toBe("2026-05");
+    expect(r.theoreticalFreeCashFlowCents).toBe(100_000n);
+    expect(r.baselineNetWorthCents).toBe(80_000n);
+    expect(r.endNetWorthCents).toBe(80_000n);
+    expect(r.leakCents).toBe(100_000n);
+    expect(r.status).toBe("leaked");
+  });
+
+  it("reports ahead on a subsequent close, taking the baseline from the previous closing", async () => {
+    const deps = makeDeps({
+      closings: [makeClosing("2026-04", 50_000n)],
+      assets: [makeAsset(300_000n)],
+      incomes: [makeIncome(1000)],
+    });
+    const r = await previewMonthClosing(deps, { userId: "u1" });
+    expect(r.open).toBe(true);
+    if (!r.open) return;
+    expect(r.monthIso).toBe("2026-05");
+    expect(r.theoreticalFreeCashFlowCents).toBe(100_000n);
+    expect(r.baselineNetWorthCents).toBe(50_000n);
+    expect(r.endNetWorthCents).toBe(300_000n);
+    expect(r.leakCents).toBe(-150_000n);
+    expect(r.status).toBe("ahead");
+  });
+});
