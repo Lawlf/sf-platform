@@ -22,6 +22,7 @@ import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/re
 import { DrizzleMcpAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-audit-log.repository";
 import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
 import { DrizzleMcpWriteIdempotencyRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-write-idempotency.repository";
+import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { DomainError } from "@/shared/errors/domain-error";
 import { isErr } from "@/shared/errors/result";
 
@@ -44,6 +45,7 @@ function writeDeps(): PerformMcpWriteDeps {
       allocations: new DrizzleAssetDebtAllocationRepository(),
       assets: new DrizzleAssetRepository(),
       goals: new DrizzleGoalRepository(),
+      transactions: new DrizzleTransactionRepository(),
       clock: new SystemClock(),
     },
     audit: new DrizzleMcpAuditLogRepository(),
@@ -62,6 +64,7 @@ function confirmDeps(): ConfirmMcpActionDeps {
       allocations: new DrizzleAssetDebtAllocationRepository(),
       assets: new DrizzleAssetRepository(),
       goals: new DrizzleGoalRepository(),
+      transactions: new DrizzleTransactionRepository(),
       clock: new SystemClock(),
     },
     audit: new DrizzleMcpAuditLogRepository(),
@@ -237,6 +240,23 @@ export function registerMcpWriteTools(server: McpServer): void {
       inputSchema: { incomeId: z.string().min(1), idempotencyKey },
     },
     async (args, extra) => runWrite(extra, "income_delete", args, 0, args.idempotencyKey),
+  );
+
+  server.registerTool(
+    "transaction_create",
+    {
+      description:
+        "Registra um gasto avulso do usuário (ex.: 'gastei 40 no café'). Opcional, detalha pra onde foi o dinheiro.",
+      inputSchema: {
+        amountCents: cents,
+        description: z.string().min(1).max(200),
+        category: z.string().min(1).max(60).optional(),
+        occurredAt: isoDate.optional(),
+        idempotencyKey,
+      },
+    },
+    async (args, extra) =>
+      runWrite(extra, "transaction_create", args, args.amountCents, args.idempotencyKey),
   );
 
   server.registerTool(
