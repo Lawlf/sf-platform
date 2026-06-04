@@ -8,7 +8,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
-import { fetchPlanningProjection } from "./_actions/planning-queries";
+import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
@@ -18,6 +18,7 @@ import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MaisCard } from "./_components/mais-card";
+import { MonthClosingCard } from "./_components/month-closing-card.client";
 import { NextStepCard } from "./_components/next-step-card";
 import { PageShell } from "./_components/page-shell";
 import { QuickAccessRow } from "./_components/quick-access-row";
@@ -58,13 +59,19 @@ export default async function DashboardPage() {
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
 
-  const [initialMonthDetail, initialMaintenancePrompts, onboardingState, projectionInitial] =
-    await Promise.all([
-      fetchMonthDetail({ monthIso }),
-      fetchMaintenancePrompts(),
-      fetchOnboardingState(),
-      fetchPlanningProjection(),
-    ]);
+  const [
+    initialMonthDetail,
+    initialMaintenancePrompts,
+    onboardingState,
+    projectionInitial,
+    monthClosingInitial,
+  ] = await Promise.all([
+    fetchMonthDetail({ monthIso }),
+    fetchMaintenancePrompts(),
+    fetchOnboardingState(),
+    fetchPlanningProjection(),
+    fetchMonthClosing(),
+  ]);
 
   return (
     <PageShell
@@ -84,6 +91,12 @@ export default async function DashboardPage() {
         <div className="md:col-span-2" data-tour="hero">
           <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
             <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
+          </Suspense>
+        </div>
+
+        <div className="md:col-span-2">
+          <Suspense fallback={<Skeleton className="h-[96px] rounded-2xl" />}>
+            <MonthClosingCard initialData={monthClosingInitial} />
           </Suspense>
         </div>
 

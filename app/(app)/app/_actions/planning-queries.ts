@@ -1,17 +1,21 @@
 "use server";
 
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
+import { previewMonthClosing } from "@/application/use-cases/month-closing/preview-month-closing.use-case";
 import { assemblePlanningView } from "@/application/use-cases/planning/assemble-planning-view";
 import { buildProjectionDebtInputs } from "@/application/use-cases/planning/build-projection-debt-inputs";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
 import { Money } from "@/domain/value-objects/money.vo";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 const HORIZON_MONTHS = 120;
@@ -169,5 +173,58 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
       order: goal.cascadeOrder ?? fallbackOrder,
       parallelPct: Math.round((goal.cascadeParallelPct ?? 0) * 100),
     })),
+  };
+}
+
+export type MonthClosingStatus = "on_track" | "leaked" | "ahead";
+
+export interface MonthClosingPayload {
+  open: boolean;
+  monthIso?: string;
+  monthLabel?: string;
+  theoreticalFormatted?: string;
+  deltaFormatted?: string;
+  leakAbsFormatted?: string;
+  status?: MonthClosingStatus;
+}
+
+function monthLabelFromIso(monthIso: string): string {
+  const my = MonthYear.fromIso(monthIso);
+  return my
+    .toDate()
+    .toLocaleDateString("pt-BR", { month: "long", year: "numeric", timeZone: "UTC" });
+}
+
+export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
+  const user = await getCurrentUser();
+  if (!user) return { open: false };
+
+  const debtsRepo = new DrizzleDebtRepository();
+  const preview = await previewMonthClosing(
+    {
+      closings: new DrizzleMonthClosingRepository(),
+      assets: new DrizzleAssetRepository(),
+      allocations: new DrizzleAssetDebtAllocationRepository(),
+      debts: debtsRepo,
+      incomes: new DrizzleIncomeRepository(),
+      payments: new DrizzleDebtPaymentRepository(),
+      clock: new SystemClock(),
+    },
+    { userId: user.id },
+  );
+
+  if (!preview.open) return { open: false };
+
+  const deltaCents = preview.endNetWorthCents - preview.baselineNetWorthCents;
+  const leakAbsCents = preview.leakCents < 0n ? -preview.leakCents : preview.leakCents;
+
+  return {
+    open: true,
+    monthIso: preview.monthIso,
+    monthLabel: monthLabelFromIso(preview.monthIso),
+    theoreticalFormatted: Money.fromCents(preview.theoreticalFreeCashFlowCents).format(),
+    deltaFormatted: Money.fromCents(deltaCents).format(),
+    leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
+    status: preview.status,
   };
 }
