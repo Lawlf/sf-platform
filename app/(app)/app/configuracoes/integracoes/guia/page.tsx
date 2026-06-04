@@ -158,6 +158,10 @@ export default async function GuiaConexaoPage() {
           <li>Exclusões e operações acima de R$ 5.000 exigem sua confirmação.</li>
           <li>Tudo fica registrado em Atividade e dá para desfazer onde aplicável.</li>
           <li>Você revoga o acesso na hora; a próxima chamada já é bloqueada.</li>
+          <li>
+            O assistente também pode rodar os simuladores financeiros, e simuladores não consomem o
+            seu limite mensal.
+          </li>
         </ul>
       </section>
 

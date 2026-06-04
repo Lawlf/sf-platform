@@ -5,12 +5,10 @@ import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/re
 import { serialize } from "@/presentation/http/mcp/serialize";
 
 import { registerMcpReadTools } from "./mcp-read-tools";
+import { text } from "./mcp-response";
 import { registerMcpWriteTools } from "./mcp-write-tools";
 import { assertScope, enforceUsageOrThrow, requireCtxFromExtra } from "./require-mcp-context";
-
-function text(value: unknown) {
-  return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }] };
-}
+import { registerSimulatorTools } from "./simulator-tools";
 
 export function registerMcpTools(server: McpServer): void {
   server.registerTool(
@@ -39,4 +37,5 @@ export function registerMcpTools(server: McpServer): void {
 
   registerMcpReadTools(server);
   registerMcpWriteTools(server);
+  registerSimulatorTools(server);
 }

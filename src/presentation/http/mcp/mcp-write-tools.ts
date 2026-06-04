@@ -25,11 +25,8 @@ import { DrizzleMcpWriteIdempotencyRepository } from "@/infrastructure/persisten
 import { DomainError } from "@/shared/errors/domain-error";
 import { isErr } from "@/shared/errors/result";
 
+import { text } from "./mcp-response";
 import { assertScope, enforceUsageOrThrow, requireCtxFromExtra } from "./require-mcp-context";
-
-function text(value: unknown) {
-  return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }] };
-}
 
 function errorText(message: string) {
   return {

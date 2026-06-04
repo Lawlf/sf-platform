@@ -16,6 +16,7 @@ export const MCP_SCOPES = [
   "reports:read",
   "insights:read",
   "achievements:read",
+  "simulations:read",
 ] as const;
 
 export type McpScope = (typeof MCP_SCOPES)[number];
@@ -35,6 +36,7 @@ export const MCP_SHIPPED_SCOPES = [
   "reports:read",
   "insights:read",
   "achievements:read",
+  "simulations:read",
 ] as const satisfies readonly McpScope[];
 
 export const MCP_SCOPE_DESCRIPTIONS: Record<McpScope, string> = {
@@ -55,6 +57,7 @@ export const MCP_SCOPE_DESCRIPTIONS: Record<McpScope, string> = {
   "reports:read": "Gerar relatórios.",
   "insights:read": "Ver anomalias e recomendações.",
   "achievements:read": "Ver suas conquistas.",
+  "simulations:read": "Rodar simuladores financeiros (sem alterar seus dados).",
 };
 
 const SCOPE_SET = new Set<string>(MCP_SCOPES);

@@ -13,12 +13,9 @@ import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/re
 import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
 import { isErr } from "@/shared/errors/result";
 
+import { text } from "./mcp-response";
 import { assertScope, enforceUsageOrThrow, requireCtxFromExtra } from "./require-mcp-context";
 import { serialize } from "./serialize";
-
-function text(value: unknown) {
-  return { content: [{ type: "text" as const, text: JSON.stringify(value, null, 2) }] };
-}
 
 export function registerMcpReadTools(server: McpServer): void {
   server.registerTool(
