@@ -285,16 +285,19 @@ export async function fetchMonthDetail(input: {
   // Warnings (saldo negativo) agora vivem no modulo de Notificacoes
   // (`/app/notificacoes`), nao na linha do tempo. Filtra fora aqui para nao
   // duplicar a informacao e poupar payload trafegado.
-  const serializedStories: SerializedStoryRow[] = allStories
-    .filter((s) => s.monthIso === monthIso && s.kind !== "warning")
-    .map((s) => ({
-      kind: s.kind,
-      monthIso: s.monthIso,
-      eyebrow: s.eyebrow,
-      line: s.line,
-      iconName: s.iconName,
-      dateIso: lastDay.toISOString(),
-    }));
+  const monthIsComplete = month.isBefore(MonthYear.fromDate(new Date()));
+  const serializedStories: SerializedStoryRow[] = monthIsComplete
+    ? allStories
+        .filter((s) => s.monthIso === monthIso && s.kind !== "warning")
+        .map((s) => ({
+          kind: s.kind,
+          monthIso: s.monthIso,
+          eyebrow: s.eyebrow,
+          line: s.line,
+          iconName: s.iconName,
+          dateIso: lastDay.toISOString(),
+        }))
+    : [];
 
   // Eventos de "cadastro no mês": derivamos do `createdAt` das entidades
   // (assets, incomes, debts). MVP simples sem tabela `events` dedicada.
