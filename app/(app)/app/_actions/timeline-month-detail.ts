@@ -18,6 +18,7 @@ import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizz
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
 
@@ -126,7 +127,7 @@ const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
   one_off: "Pontual",
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
+const DATE_FMT = dateOnlyFormat({ day: "2-digit", month: "short" });
 
 const WEEKS_PER_MONTH = 4.33;
 
@@ -259,7 +260,8 @@ export async function fetchMonthDetail(input: {
   // do tipo `recurring`.
   const recurringRows = debtsRaw.filter((d) => isRecurringActiveInMonth(d, month));
   const serializedExpenses: SerializedExpenseRow[] = recurringRows.map((d) => {
-    const date = dateInMonthFromDay(d.startDate.getUTCDate());
+    const recurrenceDay = d.kind === "recurring" ? d.dueDay : null;
+    const date = dateInMonthFromDay(recurrenceDay ?? d.startDate.getUTCDate());
     return {
       id: d.id,
       label: d.label,

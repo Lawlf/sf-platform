@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 
 import type { DebtEntity, DebtKind, DebtStatus } from "@/domain/entities/debt.entity";
 import { Money } from "@/domain/value-objects/money.vo";
+import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
 
@@ -44,7 +45,7 @@ const EXPENSE_CATEGORY_LABEL: Record<string, string> = {
   other: "Outros",
 };
 
-const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
+const DATE_FMT = dateOnlyFormat({ dateStyle: "short" });
 
 function kindIcon(kind: DebtKind): ReactNode {
   if (kind === "credit_card") return <CreditCard size={20} strokeWidth={1.5} aria-hidden />;
