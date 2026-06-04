@@ -22,6 +22,9 @@ function rowToEntity(row: GoalRow): GoalEntity {
     manualSavedCents: row.manualSavedCents ?? null,
     monthlyCostCents: row.monthlyCostCents ?? null,
     realReturnPct: row.realReturnPct === null ? null : Number(row.realReturnPct),
+    cascadeOrder: row.cascadeOrder ?? null,
+    cascadeMode: row.cascadeMode ?? null,
+    cascadeParallelPct: row.cascadeParallelPct === null ? null : Number(row.cascadeParallelPct),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -46,6 +49,12 @@ function entityToRow(entity: Omit<GoalEntity, "createdAt" | "updatedAt">): NewGo
       entity.realReturnPct === null || entity.realReturnPct === undefined
         ? null
         : String(entity.realReturnPct),
+    cascadeOrder: entity.cascadeOrder ?? null,
+    cascadeMode: entity.cascadeMode ?? null,
+    cascadeParallelPct:
+      entity.cascadeParallelPct === null || entity.cascadeParallelPct === undefined
+        ? null
+        : String(entity.cascadeParallelPct),
   };
 }
 
@@ -76,6 +85,14 @@ export class DrizzleGoalRepository implements GoalRepository {
         patch.realReturnPct === null || patch.realReturnPct === undefined
           ? null
           : String(patch.realReturnPct);
+    }
+    if ("cascadeOrder" in patch) setPatch.cascadeOrder = patch.cascadeOrder ?? null;
+    if ("cascadeMode" in patch) setPatch.cascadeMode = patch.cascadeMode ?? null;
+    if ("cascadeParallelPct" in patch) {
+      setPatch.cascadeParallelPct =
+        patch.cascadeParallelPct === null || patch.cascadeParallelPct === undefined
+          ? null
+          : String(patch.cascadeParallelPct);
     }
 
     const rows = await getDb()

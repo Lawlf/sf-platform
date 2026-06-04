@@ -270,6 +270,9 @@ describe("executeWrite", () => {
       manualSavedCents: 0n,
       monthlyCostCents: null,
       realReturnPct: null,
+      cascadeOrder: null,
+      cascadeMode: null,
+      cascadeParallelPct: null,
       createdAt: new Date("2026-06-03"),
       updatedAt: new Date("2026-06-03"),
     };
