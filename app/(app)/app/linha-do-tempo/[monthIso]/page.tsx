@@ -19,6 +19,7 @@ import { notFound } from "next/navigation";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { fetchMonthDetail } from "../../_actions/timeline-month-detail";
 import type {
@@ -54,7 +55,7 @@ function formatBrl(cents: bigint): string {
   return `${negative ? "-" : ""}${fmt}`;
 }
 
-const DAY_FMT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", weekday: "short" });
+const DAY_FMT = dateOnlyFormat({ day: "2-digit", weekday: "short" });
 
 type TimelineEntry =
   | { kind: "income"; dateIso: string; data: SerializedIncomeRow }
