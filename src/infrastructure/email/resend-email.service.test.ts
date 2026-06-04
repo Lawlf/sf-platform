@@ -30,6 +30,7 @@ describe("ResendEmailService", () => {
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(sendMock).toHaveBeenCalledWith({
       from: "Sabor Financeiro <nao-responda@saborfinanceiro.com.br>",
+      replyTo: "ajuda@saborfinanceiro.com.br",
       to: "u@example.com",
       subject: "S",
       html: "<p>x</p>",
@@ -48,6 +49,7 @@ describe("ResendEmailService", () => {
     expect(sendMock.mock.calls[0]?.[0].from).toBe(
       "Sabor Financeiro <nao-responda@saborfinanceiro.com.br>",
     );
+    expect(sendMock.mock.calls[0]?.[0].replyTo).toBe("ajuda@saborfinanceiro.com.br");
   });
 
   it("throws on resend error", async () => {
