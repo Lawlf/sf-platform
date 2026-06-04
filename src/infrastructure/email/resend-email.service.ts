@@ -3,7 +3,7 @@ import { Resend } from "resend";
 import type { EmailMessage, EmailService } from "@/domain/ports/services/email.service";
 import { requireResendConfig } from "@/infrastructure/config/env";
 
-import { getSenderFor } from "./senders";
+import { getReplyToFor, getSenderFor } from "./senders";
 
 const SEND_TIMEOUT_MS = 8000;
 
@@ -26,9 +26,11 @@ export class ResendEmailService implements EmailService {
 
   async send(message: EmailMessage): Promise<void> {
     const from = getSenderFor(message.purpose);
+    const replyTo = getReplyToFor(message.purpose);
     const result = await withTimeout(
       this.client.emails.send({
         from,
+        replyTo,
         to: message.to,
         subject: message.subject,
         html: message.html,

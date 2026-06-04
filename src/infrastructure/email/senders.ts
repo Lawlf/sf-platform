@@ -14,6 +14,8 @@ import type { EmailPurpose } from "@/domain/ports/services/email.service";
  */
 const SENDER_ADDRESS = "nao-responda@saborfinanceiro.com.br";
 
+const REPLY_TO_ADDRESS = "ajuda@saborfinanceiro.com.br";
+
 export const EMAIL_SENDERS: Record<EmailPurpose, string> = {
   auth: `Sabor Financeiro <${SENDER_ADDRESS}>`,
   transactional: `Sabor Financeiro <${SENDER_ADDRESS}>`,
@@ -21,4 +23,8 @@ export const EMAIL_SENDERS: Record<EmailPurpose, string> = {
 
 export function getSenderFor(purpose: EmailPurpose): string {
   return EMAIL_SENDERS[purpose];
+}
+
+export function getReplyToFor(_purpose: EmailPurpose): string {
+  return REPLY_TO_ADDRESS;
 }
