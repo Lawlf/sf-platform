@@ -234,7 +234,11 @@ function TimelineRow({ entry }: { entry: TimelineEntry }) {
         icon={TrendingUp}
         tone="positive"
         label={entry.data.label}
-        meta={frequencyLabel(entry.data.frequency)}
+        meta={
+          entry.data.isNew
+            ? `${frequencyLabel(entry.data.frequency)} · Nova renda`
+            : frequencyLabel(entry.data.frequency)
+        }
         value={`+${entry.data.amount.formatted}`}
       />
     );
