@@ -99,6 +99,50 @@ export function BreadcrumbJsonLd({
   return <JsonLdScript data={data} id="ld-breadcrumb" />;
 }
 
+export function SoftwareToolJsonLd({
+  name,
+  description,
+  path,
+}: {
+  name: string;
+  description: string;
+  path: string;
+}) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name,
+    description,
+    url: `${siteUrl}${path}`,
+    applicationCategory: "FinanceApplication",
+    operatingSystem: "Web",
+    inLanguage: "pt-BR",
+    isAccessibleForFree: true,
+    offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+    publisher: { "@type": "Organization", name: "Sabor Financeiro" },
+  };
+  return <JsonLdScript data={data} id="ld-webapplication" />;
+}
+
+export function FaqPageJsonLd({
+  items,
+  id = "ld-faq",
+}: {
+  items: { q: string; a: string }[];
+  id?: string;
+}) {
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
+  };
+  return <JsonLdScript data={data} id={id} />;
+}
+
 export function FaqJsonLd() {
   const data = {
     "@context": "https://schema.org",

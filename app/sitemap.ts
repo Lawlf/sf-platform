@@ -1,5 +1,7 @@
 import type { MetadataRoute } from "next";
 
+import { publicCalculatorSlugs } from "./(public)/calculadora/_lib/public-calculators";
+
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
 
 // Add new public routes here when launched (blog posts, course pages, calculators).
@@ -7,14 +9,25 @@ const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.
 const staticRoutes = [
   { path: "/", changeFrequency: "weekly", priority: 1.0 },
   { path: "/precos", changeFrequency: "monthly", priority: 0.9 },
+  { path: "/calculadora", changeFrequency: "monthly", priority: 0.8 },
   { path: "/entrar", changeFrequency: "yearly", priority: 0.3 },
 ] as const;
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  return staticRoutes.map(({ path, changeFrequency, priority }) => ({
-    url: `${siteUrl}${path === "/" ? "" : path}`,
-    lastModified: new Date(),
-    changeFrequency,
-    priority,
+  const lastModified = new Date();
+  const staticEntries: MetadataRoute.Sitemap = staticRoutes.map(
+    ({ path, changeFrequency, priority }) => ({
+      url: `${siteUrl}${path === "/" ? "" : path}`,
+      lastModified,
+      changeFrequency,
+      priority,
+    }),
+  );
+  const calculatorEntries: MetadataRoute.Sitemap = publicCalculatorSlugs().map((slug) => ({
+    url: `${siteUrl}/calculadora/${slug}`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.8,
   }));
+  return [...staticEntries, ...calculatorEntries];
 }

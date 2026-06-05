@@ -8,6 +8,7 @@ const groups = [
     links: [
       { label: "Funcionalidades", href: "#produto" },
       { label: "Como funciona", href: "#como" },
+      { label: "Calculadoras", href: "/calculadora" },
       { label: "Privacidade", href: "#privacidade" },
       { label: "Preços", href: "#precos" },
       { label: "Dúvidas", href: "#faq" },

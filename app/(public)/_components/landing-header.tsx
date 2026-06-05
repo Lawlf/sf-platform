@@ -12,6 +12,7 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "#produto", label: "Produto" },
   { href: "#como", label: "Como funciona" },
+  { href: "/calculadora", label: "Calculadoras" },
   { href: "#privacidade", label: "Privacidade" },
   { href: "#precos", label: "Preços" },
   { href: "#faq", label: "Dúvidas" },
