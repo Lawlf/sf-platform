@@ -19,7 +19,7 @@ const inter = Inter({
   weight: ["400", "500", "600", "700", "800"],
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 const googleVerification = process.env.GOOGLE_SITE_VERIFICATION;
 const bingVerification = process.env.BING_SITE_VERIFICATION;
 const yandexVerification = process.env.YANDEX_SITE_VERIFICATION;

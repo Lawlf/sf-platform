@@ -1,0 +1,31 @@
+# Sabor Financeiro
+
+> Painel de finanças pessoais com lente macro: acompanha patrimônio, dívidas e renda mês a mês, em vez de registrar cada transação. App web (PWA) brasileiro, para quem quer enxergar a trajetória financeira além do saldo do dia.
+
+Sabor Financeiro é um aplicativo web (PWA) brasileiro de finanças pessoais. O diferencial central é a abordagem macro-mensal: o usuário acompanha o tamanho do patrimônio, das dívidas e da renda ao longo dos meses, sem precisar anotar cada gasto individual. Isso o separa dos apps de controle micro (registro de transação por transação). Indicado para trabalhadores CLT e PJ solo (MEI ou Simples) com renda mensal entre 3 e 20 mil reais.
+
+## O que o produto faz
+- Patrimônio: soma bens (carro, casa, investimentos) que crescem ou depreciam com o tempo.
+- Dívidas: acompanha o custo real dos juros, somando tudo, não a taxa anunciada.
+- Renda: salário, freela, comissão, 13º e variáveis, recorrente ou pontual.
+- Resultado em uma linha: quanto sobra de verdade por mês e para onde a trajetória aponta.
+
+## Calculadoras gratuitas (sem cadastro)
+- [Calculadoras financeiras](https://www.saborfinanceiro.com.br/calculadora): hub com calculadoras grátis, direto no navegador.
+- [Salário líquido CLT](https://www.saborfinanceiro.com.br/calculadora/salario-liquido-clt): líquido depois de INSS e Imposto de Renda.
+- [Juros compostos](https://www.saborfinanceiro.com.br/calculadora/juros-compostos): projeção com aporte mensal.
+- [CLT ou PJ](https://www.saborfinanceiro.com.br/calculadora/clt-ou-pj): compara o líquido dos dois regimes.
+- [Reserva de emergência](https://www.saborfinanceiro.com.br/calculadora/reserva-de-emergencia): quantos meses a reserva cobre.
+- [Independência financeira](https://www.saborfinanceiro.com.br/calculadora/independencia-financeira): quando o patrimônio paga as contas.
+
+## Produto e conta
+- [Início](https://www.saborfinanceiro.com.br/)
+- [Planos e preços](https://www.saborfinanceiro.com.br/precos)
+- [Criar conta](https://www.saborfinanceiro.com.br/cadastrar)
+
+## Preços
+- Free: R$ 0.
+- Pro mensal: R$ 19,90 por mês.
+- Pro anual: R$ 199 por ano.
+- Pro vitalício: R$ 497, pagamento único.
+- Detalhe atual em https://www.saborfinanceiro.com.br/precos

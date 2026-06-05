@@ -6,7 +6,7 @@ import { RevealOnScroll } from "../_components/reveal-on-scroll";
 import { CalcBrowser } from "./_components/calc-browser.client";
 import { CalcShell } from "./_components/calc-shell";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 
 export const metadata: Metadata = {
   title: "Calculadoras financeiras grátis",

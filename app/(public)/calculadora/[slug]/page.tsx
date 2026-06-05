@@ -9,7 +9,7 @@ import { getPublicCalculator, publicCalculatorSlugs } from "../_lib/public-calcu
 
 import { CalcWidget } from "./_components/calc-widget.client";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 
 export function generateStaticParams(): { slug: string }[] {
   return publicCalculatorSlugs().map((slug) => ({ slug }));
