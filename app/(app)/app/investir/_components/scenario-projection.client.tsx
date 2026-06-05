@@ -20,7 +20,7 @@ interface KindConfig {
   rateLabel: string;
   rateDefault: number;
   hasDividends: boolean;
-  caveat: string;
+  reference: string;
 }
 
 const CONFIG: Record<GrowthKind, KindConfig> = {
@@ -28,42 +28,51 @@ const CONFIG: Record<GrowthKind, KindConfig> = {
     rateLabel: "Rende por ano",
     rateDefault: 8,
     hasDividends: false,
-    caveat:
-      "Estimativa de referência. Na renda fixa prefixada, o valor pode variar se você vender antes do vencimento.",
+    reference: "",
   },
   appreciation: {
     rateLabel: "Valoriza por ano (média)",
     rateDefault: 8,
     hasDividends: false,
-    caveat: "É uma média hipotética. Na prática o valor sobe e desce, e pode até cair.",
+    reference:
+      "Referência: fundo é nome para coisas muito diferentes, de conservador a agressivo, então não tem uma faixa única. Confira o histórico daquele fundo antes de chutar a taxa.",
   },
   appreciation_dividends: {
     rateLabel: "Valoriza por ano",
     rateDefault: 7,
     hasDividends: true,
-    caveat:
-      "Média hipotética: o preço sobe e desce. Os dividendos variam e não são garantidos. Não é promessa.",
+    reference:
+      "Referência: no longo prazo a bolsa costuma render acima da renda fixa, mas oscila muito e já caiu 40% ou mais em crises. Ainda pode pagar dividendos por cima. Passado não garante o futuro.",
   },
   speculative: {
     rateLabel: "Se valorizar por ano",
     rateDefault: 12,
     hasDividends: false,
-    caveat:
-      "Cripto não rende como renda fixa: é um ativo muito volátil, pode multiplicar ou zerar. Tem quem nem considere investimento. Use só o que você aceita perder.",
+    reference:
+      "Referência: cripto não tem média confiável. Já multiplicou em pouco tempo e já caiu mais de 80% no mesmo ciclo. Qualquer número aqui é chute, não projeção.",
   },
 };
 
 export function ScenarioProjection({
   amountCents,
   growthKind,
+  cdiAnnualPct,
 }: {
   amountCents: bigint;
   growthKind: GrowthKind;
+  cdiAnnualPct: number;
 }) {
   const cfg = CONFIG[growthKind];
-  const [ratePct, setRatePct] = useState(cfg.rateDefault);
+  const [ratePct, setRatePct] = useState(
+    growthKind === "yield" ? Math.round(cdiAnnualPct) : cfg.rateDefault,
+  );
   const [divPct, setDivPct] = useState(5);
   const [years, setYears] = useState(10);
+
+  const reference =
+    growthKind === "yield"
+      ? `Referência: títulos de renda fixa costumam render perto do CDI de hoje (${cdiAnnualPct.toLocaleString("pt-BR")}% ao ano). Muda quando a Selic muda.`
+      : cfg.reference;
 
   const totalRate = cfg.hasDividends ? ratePct + divPct : ratePct;
 
@@ -169,7 +178,7 @@ export function ScenarioProjection({
         {sentence}{" "}
         <span className="font-bold text-[color:var(--color-brand-800)]">{brl(projection.finalCents)}</span>.
       </p>
-      <p className="mt-2 text-[0.625rem] leading-relaxed text-[color:var(--text-muted)]">{cfg.caveat}</p>
+      <p className="mt-2 text-[0.625rem] leading-relaxed text-[color:var(--text-muted)]">{reference}</p>
     </section>
   );
 }

@@ -177,6 +177,7 @@ export function Decisor({
         <OptionDetail
           option={selected}
           amountCents={amountBig}
+          cdiAnnualPct={cdiAnnualPct}
           projection={projection}
           earlyWithdrawal={earlyWithdrawal}
           onComoFunciona={() => setStep("comofunciona")}

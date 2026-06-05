@@ -23,6 +23,7 @@ function brl(cents: bigint): string {
 interface OptionDetailProps {
   option: InvestOption;
   amountCents: bigint;
+  cdiAnnualPct: number;
   projection?: Projection | null;
   earlyWithdrawal?: EarlyWithdrawalSample[];
   onComoFunciona: () => void;
@@ -33,6 +34,7 @@ type Tab = "render" | "early";
 export function OptionDetail({
   option,
   amountCents,
+  cdiAnnualPct,
   projection,
   earlyWithdrawal,
   onComoFunciona,
@@ -129,6 +131,7 @@ export function OptionDetail({
         <ScenarioProjection
           amountCents={amountCents}
           growthKind={OPTION_GROWTH[option.key] ?? "appreciation"}
+          cdiAnnualPct={cdiAnnualPct}
         />
       ) : null}
 
