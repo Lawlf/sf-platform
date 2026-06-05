@@ -1,4 +1,7 @@
+import { ArrowRight } from "lucide-react";
 import type { Metadata } from "next";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -25,6 +28,20 @@ export default async function OndeRendeMaisPage() {
         summary="A gente projeta o rendimento líquido (depois do Imposto de Renda) de cada aplicação e mostra lado a lado quem ganha."
       />
       <SavingsComparisonClient prefill={{ amountCents: prefill.cashReserveCents }} />
+      <Link
+        href={"/app/investir" as Route}
+        className="focus-ring mt-1 flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
+      >
+        <span className="text-[0.8125rem] font-medium text-[color:var(--text-primary)]">
+          Entenda as opções: onde investir
+        </span>
+        <ArrowRight
+          size={18}
+          strokeWidth={2.25}
+          className="shrink-0 text-[color:var(--text-muted)]"
+          aria-hidden
+        />
+      </Link>
     </PageShell>
   );
 }

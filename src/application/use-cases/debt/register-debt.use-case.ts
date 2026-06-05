@@ -54,7 +54,7 @@ export type RegisterDebtInput =
         }
       | {
           kind: "credit_card";
-          creditLimit: Money;
+          creditLimit: Money | null;
           currentStatement: Money;
           statementDay: number;
           dueDay: number;
@@ -119,11 +119,13 @@ export async function registerDebt(
       break;
     }
     case "credit_card": {
-      const usedCents =
-        input.currentStatement.toCents() +
-        (input.revolvingBalance ? input.revolvingBalance.toCents() : 0n);
-      if (usedCents > input.creditLimit.toCents()) {
-        return err(new CreditCardStatementExceedsLimit(input.creditLimit.toCents(), usedCents));
+      if (input.creditLimit !== null) {
+        const usedCents =
+          input.currentStatement.toCents() +
+          (input.revolvingBalance ? input.revolvingBalance.toCents() : 0n);
+        if (usedCents > input.creditLimit.toCents()) {
+          return err(new CreditCardStatementExceedsLimit(input.creditLimit.toCents(), usedCents));
+        }
       }
       const base = legacyBase(input, now);
       entity = {

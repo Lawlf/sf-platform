@@ -325,7 +325,7 @@ function EditValueSection({
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Valor do ativo</h2>
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Valor atual</h2>
         {!open ? (
           <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(true)}>
             Editar
@@ -640,8 +640,8 @@ function LinkNewDebtSection({
       {!hasLinkedDebts && !open ? (
         <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
           {availableDebts.length > 0
-            ? "Vincule uma dívida pra rastrear quanto ainda deve neste ativo."
-            : "Cadastre uma dívida primeiro pra poder vincular ao ativo."}
+            ? "Vincule uma dívida pra acompanhar quanto ainda deve neste bem."
+            : "Cadastre uma dívida primeiro pra poder vincular a este bem."}
         </p>
       ) : null}
       {open && availableDebts.length > 0 ? (
@@ -840,7 +840,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Desativar ativo</h2>
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Tirar do patrimônio</h2>
         <div className="flex items-center gap-2">
           <Button
             type="button"
@@ -857,7 +857,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
         </div>
       </div>
       <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
-        O ativo permanecerá no histórico, mas deixa de compor seu patrimônio atual. Para remover
+        O bem permanecerá no histórico, mas deixa de compor seu patrimônio atual. Para remover
         definitivamente, use o ícone de lixeira.
       </p>
 
@@ -870,7 +870,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
       >
         <SheetContent side="bottom" className="flex flex-col gap-4">
           <SheetHeader>
-            <SheetTitle>O que aconteceu com esse ativo?</SheetTitle>
+            <SheetTitle>O que aconteceu com esse bem?</SheetTitle>
             <SheetDescription>
               A gente guarda esse registro pra você ter o histórico completo.
             </SheetDescription>

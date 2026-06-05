@@ -13,12 +13,15 @@ import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
+import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
+import { RateEstimateHint } from "../../_components/rate-estimate-hint";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";
+import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rotulo.").max(120),
@@ -64,7 +67,7 @@ export function OverdraftForm() {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
+      label: "Cheque especial",
       currentBalanceCents: 0n as unknown as bigint,
       bankName: "",
       monthlyRatePct: 0,
@@ -141,20 +144,28 @@ export function OverdraftForm() {
           icon: arrowRight,
         }}
       >
+        <WizardField label="Banco" htmlFor={bankId} error={errors.bankName?.message}>
+          <BankCombobox
+            id={bankId}
+            value={values.bankName}
+            onChange={(b) => {
+              form.setValue("bankName", b, { shouldValidate: true });
+              form.setValue(
+                "label",
+                b.trim() ? `Cheque especial ${b.trim()}` : "Cheque especial",
+                { shouldValidate: true },
+              );
+            }}
+            placeholder="Ex: Itaú, Nubank, Caixa..."
+            ariaInvalid={errors.bankName ? true : undefined}
+          />
+        </WizardField>
+
         <WizardField label="Rótulo" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
-            placeholder="Ex: Itaú"
-            className={wizardInputClass}
-          />
-        </WizardField>
-
-        <WizardField label="Banco" htmlFor={bankId} error={errors.bankName?.message}>
-          <input
-            id={bankId}
-            {...form.register("bankName")}
-            placeholder="Ex: Itaú, Bradesco, Caixa..."
+            placeholder="Ex: Cheque especial Itaú"
             className={wizardInputClass}
           />
         </WizardField>
@@ -192,7 +203,7 @@ export function OverdraftForm() {
         }}
       >
         <WizardField
-          label="Taxa de juros (a.m.)"
+          label="Taxa por mês"
           htmlFor={rateId}
           error={errors.monthlyRatePct?.message}
           helpLink={<HowItWorksSheet topic="cheque-especial" variant="brand" />}
@@ -204,6 +215,11 @@ export function OverdraftForm() {
             step="0.01"
             min={0}
             max={1000}
+          />
+          <RateEstimateHint
+            control={form.control}
+            name="monthlyRatePct"
+            estimate={DEBT_RATE_ESTIMATES.overdraft}
           />
         </WizardField>
 
@@ -252,7 +268,7 @@ export function OverdraftForm() {
           { label: "Tipo", value: "Cheque especial" },
           { label: "Banco", value: values.bankName || "Sem banco" },
           { label: "Saldo devedor", value: formatBRL(values.currentBalanceCents) },
-          { label: "Taxa", value: `${values.monthlyRatePct}% a.m.` },
+          { label: "Taxa", value: `${values.monthlyRatePct}% por mês` },
         ]}
       />
 

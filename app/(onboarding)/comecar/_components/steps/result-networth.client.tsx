@@ -83,7 +83,7 @@ export function ResultNetWorth({
           </p>
           <p className="mt-1 text-[2rem] font-extrabold leading-none">{snap.netWorth.formatted}</p>
           <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
-            Ativos: {snap.totalAssets.formatted}
+            O que você tem: {snap.totalAssets.formatted}
           </p>
         </div>
       ) : (

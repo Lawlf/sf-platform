@@ -29,7 +29,7 @@ export function CommitmentSectionClient({ monthIso, initialData, hasDebt }: Prop
         aria-label="Renda comprometida"
         className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[18px] backdrop-blur-xl"
       >
-        <p className="font-semibold">Quanto da sua renda já tem dono?</p>
+        <p className="font-semibold">Quanto da sua renda já está comprometida?</p>
         <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
           Tem cartão, empréstimo ou financiamento? Cadastre para ver quanto da sua renda já está
           comprometida.

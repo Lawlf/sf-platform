@@ -11,7 +11,7 @@ export default async function PatrimonioPage() {
   await requireUser();
 
   return (
-    <PageShell title="Patrimônio" description="Acompanhe seus ativos e patrimônio líquido.">
+    <PageShell title="Patrimônio" description="Veja o que você tem, o que deve e o que sobra.">
       <Suspense fallback={<PatrimonyContentSkeleton />}>
         <PatrimonioContentClient />
       </Suspense>

@@ -140,7 +140,7 @@ export function LinkedDebtStep({
   return (
     <WizardShell
       currentStep={visualStep}
-      title="Esse ativo tem uma dívida atrelada?"
+      title="Esse bem tem uma dívida atrelada?"
       description="Por exemplo: comprou um carro financiado ou um imóvel com financiamento. Você pode vincular agora ou depois."
       onBack={onBack}
       totalSteps={totalSteps}
@@ -257,7 +257,7 @@ export function LinkedDebtStep({
         <div className="mt-2 flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3">
           <div className="text-[0.8125rem] font-bold text-[color:var(--text-primary)]">Nova dívida</div>
           <div className="text-[0.6875rem] text-[color:var(--text-primary)] opacity-65">
-            Vamos cadastrar a dívida e já vincular a este ativo.
+            Vamos cadastrar a dívida e já vincular a este bem.
           </div>
 
           <Controller

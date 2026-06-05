@@ -80,7 +80,9 @@ function buildHeaderStats(
   }
   const secondary =
     debt.kind === "credit_card"
-      ? { label: "Limite", value: debt.creditLimit.format(), isCurrency: true }
+      ? debt.creditLimit
+        ? { label: "Limite", value: debt.creditLimit.format(), isCurrency: true }
+        : { label: "Limite", value: "Não informado" }
       : {
           label: "Previsto",
           value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "Sem previsão",

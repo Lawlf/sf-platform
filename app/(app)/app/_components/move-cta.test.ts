@@ -19,10 +19,10 @@ describe("moveCtaFor", () => {
       href: "/app/simular/reserva",
     });
   });
-  it("invest -> simulador de juros compostos", () => {
+  it("invest -> guia onde investir", () => {
     expect(moveCtaFor({ type: "invest" })).toEqual({
-      label: "Simular onde investir",
-      href: "/app/simular/juros-compostos",
+      label: "Onde investir",
+      href: "/app/investir",
     });
   });
   it("reduce_commitment -> dividas", () => {

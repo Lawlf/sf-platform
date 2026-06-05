@@ -17,6 +17,7 @@ import { todayIso } from "../../../_lib/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";
 import { linkDebtToAssetAction } from "../../_actions/link-debt-to-asset.action";
+import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import {
   canAdvanceLinkAssetStep,
@@ -58,7 +59,10 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const [bank, setBank] = useState("");
+
   const labelId = useId();
+  const bankId = useId();
   const termId = useId();
   const rateId = useId();
   const principalId = useId();
@@ -68,6 +72,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   const startDateId = useId();
   const insuranceId = useId();
   const adminFeeId = useId();
+  const installmentId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(financingFormSchema),
@@ -75,12 +80,13 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       initialScenario === "ongoing"
         ? ({
             scenario: "ongoing",
-            label: "",
+            label: "Financiamento",
             originalPrincipalCents: 0n as unknown as bigint,
             currentBalanceCents: 0n as unknown as bigint,
             annualRatePct: 0,
             paidInstallments: 0,
             remainingTerms: 60,
+            monthlyInstallmentCents: null,
             amortizationMethod: "PRICE",
             monthlyInsuranceCents: null,
             monthlyAdminFeeCents: null,
@@ -91,10 +97,11 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           } as FormValues)
         : ({
             scenario: "new",
-            label: "",
+            label: "Financiamento",
             principalCents: 0n as unknown as bigint,
             annualRatePct: 0,
             termMonths: 60,
+            monthlyInstallmentCents: null,
             amortizationMethod: "PRICE",
             monthlyInsuranceCents: null,
             monthlyAdminFeeCents: null,
@@ -119,6 +126,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           principalCents: 0n as unknown as bigint,
           annualRatePct: 0,
           termMonths: 60,
+          monthlyInstallmentCents: null,
           amortizationMethod: "PRICE",
           monthlyInsuranceCents: null,
           monthlyAdminFeeCents: null,
@@ -139,6 +147,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           annualRatePct: 0,
           paidInstallments: 0,
           remainingTerms: 60,
+          monthlyInstallmentCents: null,
           amortizationMethod: "PRICE",
           monthlyInsuranceCents: null,
           monthlyAdminFeeCents: null,
@@ -258,8 +267,12 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
     }
 
     fd.set("principalCents", principalForServer.toString());
-    fd.set("annualRatePct", String(v.annualRatePct));
+    fd.set("annualRatePct", v.annualRatePct ? String(v.annualRatePct) : "");
     fd.set("termMonths", String(termMonthsForServer));
+    fd.set(
+      "monthlyInstallmentCents",
+      v.monthlyInstallmentCents ? v.monthlyInstallmentCents.toString() : "",
+    );
     fd.set("amortizationMethod", v.amortizationMethod);
     fd.set(
       "monthlyInsuranceCents",
@@ -350,11 +363,27 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           onSelect={selectScenario}
         />
 
+        <WizardField label="Banco (opcional)" htmlFor={bankId}>
+          <BankCombobox
+            id={bankId}
+            value={bank}
+            onChange={(b) => {
+              setBank(b);
+              form.setValue(
+                "label" as never,
+                (b.trim() ? `Financiamento ${b.trim()}` : "Financiamento") as never,
+                { shouldValidate: true },
+              );
+            }}
+            placeholder="Ex: Caixa, Itaú, Bradesco..."
+          />
+        </WizardField>
+
         <WizardField label="Rótulo da dívida" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
-            placeholder="Ex: Apto Vila Mariana"
+            placeholder="Ex: Financiamento Caixa"
             className={wizardInputClass}
           />
         </WizardField>
@@ -377,7 +406,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
             </WizardField>
 
             <WizardField
-              label="Taxa anual (a.a.)"
+              label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
@@ -389,6 +418,23 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 step="0.01"
                 min={0}
                 max={1000}
+              />
+            </WizardField>
+
+            <WizardField
+              label="Parcela mensal (opcional)"
+              htmlFor={installmentId}
+              error={
+                (errors as { monthlyInstallmentCents?: { message?: string } })
+                  .monthlyInstallmentCents?.message
+              }
+              helper="Se não souber a taxa, informe a parcela que você paga."
+            >
+              <WizardMoneyField
+                control={form.control}
+                name={"monthlyInstallmentCents" as never}
+                id={installmentId}
+                placeholder="R$ 0,00"
               />
             </WizardField>
 
@@ -445,7 +491,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
             </WizardField>
 
             <WizardField
-              label="Taxa anual (a.a.)"
+              label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
@@ -457,6 +503,23 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 step="0.01"
                 min={0}
                 max={1000}
+              />
+            </WizardField>
+
+            <WizardField
+              label="Parcela mensal (opcional)"
+              htmlFor={installmentId}
+              error={
+                (errors as { monthlyInstallmentCents?: { message?: string } })
+                  .monthlyInstallmentCents?.message
+              }
+              helper="Se não souber a taxa, informe a parcela que você paga."
+            >
+              <WizardMoneyField
+                control={form.control}
+                name={"monthlyInstallmentCents" as never}
+                id={installmentId}
+                placeholder="R$ 0,00"
               />
             </WizardField>
 
@@ -530,14 +593,14 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
             >
               <div className="grid grid-cols-2 gap-2">
                 <WizardRadioCard
-                  title="Price"
-                  description="Parcela fixa"
+                  title="Parcela fixa"
+                  description="Sistema Price"
                   active={field.value === "PRICE"}
                   onSelect={() => field.onChange("PRICE")}
                 />
                 <WizardRadioCard
-                  title="SAC"
-                  description="Parcela cai"
+                  title="Parcela que diminui"
+                  description="Sistema SAC"
                   active={field.value === "SAC"}
                   onSelect={() => field.onChange("SAC")}
                 />

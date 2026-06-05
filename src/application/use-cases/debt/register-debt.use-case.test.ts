@@ -182,6 +182,37 @@ describe("registerDebt", () => {
     expect((debts.create as ReturnType<typeof vi.fn>).mock.calls).toHaveLength(0);
   });
 
+  it("creates a credit_card debt without limit (creditLimit null, no limit check)", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        userId: "user-5",
+        label: "Cartão sem limite",
+        notes: null,
+        startDate: new Date("2026-01-01"),
+        expectedEndDate: null,
+        kind: "credit_card",
+        creditLimit: null,
+        currentStatement: makeMoney(99999),
+        statementDay: 5,
+        dueDay: 15,
+        revolvingBalance: null,
+        revolvingMonthlyRate: null,
+        installmentPurchases: [],
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    if (arg.kind === "credit_card") {
+      expect(arg.creditLimit).toBeNull();
+    }
+  });
+
   it("creates a recurring debt with currentBalance=0 and persists recurring fields", async () => {
     const debts = makeDebtRepo();
     const clock = makeClock();

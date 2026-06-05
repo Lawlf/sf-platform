@@ -209,7 +209,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
   }
 
   return (
-    <PageShell title="Ativo" backHref={"/app/patrimonio" as Route}>
+    <PageShell title="Detalhe do bem" backHref={"/app/patrimonio" as Route}>
       <AssetDetailView
         assetId={asset.id}
         label={asset.label}

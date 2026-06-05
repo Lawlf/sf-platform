@@ -20,17 +20,20 @@ import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";
 import { linkDebtToAssetAction } from "../../_actions/link-debt-to-asset.action";
+import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import {
   canAdvanceLinkAssetStep,
   LinkAssetStepContent,
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
+import { RateEstimateHint } from "../../_components/rate-estimate-hint";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";
+import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 import {
   buildLinkSummary,
   linkAssetDefaults,
@@ -51,7 +54,7 @@ const installmentPurchaseSchema = z
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rotulo.").max(120),
-  creditLimitCents: z.bigint().positive("Limite deve ser positivo."),
+  creditLimitCents: z.bigint().nullable(),
   currentStatementCents: z.bigint().min(0n, "Não pode ser negativo."),
   statementDay: z.number().int().min(1).max(31),
   dueDay: z.number().int().min(1).max(31),
@@ -63,6 +66,7 @@ const formSchema = z.object({
   installmentPurchases: z.array(installmentPurchaseSchema),
   ...linkAssetSlice,
 }).superRefine((d, ctx) => {
+  if (d.creditLimitCents === null || d.creditLimitCents <= 0n) return;
   const used = d.currentStatementCents + (d.revolvingBalanceCents ?? 0n);
   if (used > d.creditLimitCents) {
     ctx.addIssue({
@@ -101,7 +105,10 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const [bank, setBank] = useState("");
+
   const labelId = useId();
+  const bankId = useId();
   const limitId = useId();
   const statementId = useId();
   const statementDayId = useId();
@@ -113,8 +120,8 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
-      creditLimitCents: 0n as unknown as bigint,
+      label: "Cartão de crédito",
+      creditLimitCents: null,
       currentStatementCents: 0n as unknown as bigint,
       statementDay: 1,
       dueDay: 10,
@@ -186,7 +193,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
 
     const fd = new FormData();
     fd.set("label", v.label);
-    fd.set("creditLimitCents", v.creditLimitCents.toString());
+    fd.set("creditLimitCents", v.creditLimitCents ? v.creditLimitCents.toString() : "");
     fd.set("currentStatementCents", v.currentStatementCents.toString());
     fd.set("statementDay", String(v.statementDay));
     fd.set("dueDay", String(v.dueDay));
@@ -289,11 +296,25 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
           icon: arrowRight,
         }}
       >
+        <WizardField label="Banco (opcional)" htmlFor={bankId}>
+          <BankCombobox
+            id={bankId}
+            value={bank}
+            onChange={(b) => {
+              setBank(b);
+              form.setValue("label", b.trim() ? `Cartão ${b.trim()}` : "Cartão de crédito", {
+                shouldValidate: true,
+              });
+            }}
+            placeholder="Ex: Nubank, Itaú, Caixa..."
+          />
+        </WizardField>
+
         <WizardField label="Rótulo do cartão" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
-            placeholder="Ex: Nubank Roxinho"
+            placeholder="Ex: Cartão Nubank"
             className={wizardInputClass}
           />
         </WizardField>
@@ -374,7 +395,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
         }}
       >
         <WizardField
-          label="Taxa de juros do rotativo (a.m.)"
+          label="Taxa do rotativo por mês (opcional)"
           htmlFor={rateId}
           error={errors.revolvingMonthlyRatePct?.message}
           helpLink={<HowItWorksSheet topic="rotativo" variant="brand" />}
@@ -386,6 +407,11 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
             step="0.01"
             min={0}
             max={1000}
+          />
+          <RateEstimateHint
+            control={form.control}
+            name="revolvingMonthlyRatePct"
+            estimate={DEBT_RATE_ESTIMATES.creditCardRevolving}
           />
         </WizardField>
 
@@ -511,7 +537,12 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
         items={[
           { label: "Rótulo", value: values.label || "Sem rótulo" },
           { label: "Tipo", value: "Cartão de crédito" },
-          { label: "Limite", value: formatCentsBRL(values.creditLimitCents) },
+          {
+            label: "Limite",
+            value: values.creditLimitCents
+              ? formatCentsBRL(values.creditLimitCents)
+              : "Não informado",
+          },
           { label: "Fatura atual", value: formatCentsBRL(values.currentStatementCents) },
           { label: "Fechamento", value: `Dia ${values.statementDay}` },
           { label: "Vencimento", value: `Dia ${values.dueDay}` },

@@ -70,7 +70,7 @@ export interface InstallmentPurchase {
 
 export interface CreditCardDebt extends BaseDebt {
   kind: "credit_card";
-  creditLimit: Money;
+  creditLimit: Money | null;
   statementDay: number;
   dueDay: number;
   currentStatement: Money;

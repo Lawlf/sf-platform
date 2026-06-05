@@ -25,6 +25,34 @@ export function computePriceInstallmentCents(
   return BigInt(Math.round(installmentReais * 100));
 }
 
+export function solveAnnualRatePct(
+  principalCents: bigint,
+  installmentCents: bigint,
+  termMonths: number,
+): number | null {
+  if (principalCents <= 0n || installmentCents <= 0n) return null;
+  if (!Number.isFinite(termMonths) || termMonths < 1) return null;
+
+  const minInstallment = computePriceInstallmentCents(principalCents, 0, termMonths);
+  if (minInstallment === null) return null;
+  if (installmentCents < minInstallment) return null;
+
+  let lo = 0;
+  let hi = 1000;
+  for (let i = 0; i < 100; i++) {
+    const mid = (lo + hi) / 2;
+    const inst = computePriceInstallmentCents(principalCents, mid, termMonths);
+    if (inst === null) return null;
+    if (inst < installmentCents) {
+      lo = mid;
+    } else {
+      hi = mid;
+    }
+    if (hi - lo < 1e-6) break;
+  }
+  return (lo + hi) / 2;
+}
+
 export function computeCetAnnualText(
   netReceivedCents: bigint,
   principalCents: bigint,

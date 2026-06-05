@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+
 import { upsertOnboardingDebtAction } from "../../_actions/onboarding-entities";
 
 const fieldClass =
@@ -17,7 +18,7 @@ const labelClass =
 
 const schema = z.object({
   label: z.string().min(1, "Informe um nome."),
-  creditLimitCents: z.bigint().positive("Informe o limite."),
+  creditLimitCents: z.bigint().nullable(),
   currentStatementCents: z.bigint().positive("Informe a fatura atual."),
 });
 type FormValues = z.infer<typeof schema>;
@@ -45,7 +46,7 @@ export function DebtStep({
     resolver: zodResolver(schema),
     defaultValues: {
       label: "Cartão de crédito",
-      creditLimitCents: 0n as unknown as bigint,
+      creditLimitCents: null,
       currentStatementCents: 0n as unknown as bigint,
     },
   });
@@ -55,7 +56,7 @@ export function DebtStep({
       const fd = new FormData();
       fd.set("label", values.label.trim());
       // creditCardFormSchema: positiveBigint / nonNegativeBigint transforms (string -> BigInt)
-      fd.set("creditLimitCents", values.creditLimitCents.toString());
+      fd.set("creditLimitCents", values.creditLimitCents ? values.creditLimitCents.toString() : "");
       fd.set("currentStatementCents", values.currentStatementCents.toString());
       // z.coerce.number().int().min(1).max(31)
       fd.set("statementDay", "1");
@@ -97,7 +98,7 @@ export function DebtStep({
         </div>
 
         <MoneyInput control={form.control} name="currentStatementCents" label="Fatura atual" required />
-        <MoneyInput control={form.control} name="creditLimitCents" label="Limite" required />
+        <MoneyInput control={form.control} name="creditLimitCents" label="Limite (opcional)" />
       </div>
     </WizardShell>
   );

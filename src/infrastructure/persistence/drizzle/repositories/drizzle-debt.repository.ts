@@ -96,7 +96,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
       return {
         ...base,
         kind: "credit_card",
-        creditLimit: row.creditLimitCents ? Money.fromCents(row.creditLimitCents) : Money.zero(),
+        creditLimit: row.creditLimitCents ? Money.fromCents(row.creditLimitCents) : null,
         statementDay: row.statementDay ?? 1,
         dueDay: row.dueDay ?? 1,
         currentStatement: row.currentStatementCents
@@ -190,7 +190,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
     case "credit_card":
       return {
         ...base,
-        creditLimitCents: entity.creditLimit.toCents(),
+        creditLimitCents: entity.creditLimit ? entity.creditLimit.toCents() : null,
         statementDay: entity.statementDay,
         dueDay: entity.dueDay,
         currentStatementCents: entity.currentStatement.toCents(),

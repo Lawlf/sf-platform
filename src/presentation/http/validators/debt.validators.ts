@@ -25,7 +25,10 @@ export const financingFormSchema = z.object({
     .nullable()
     .default(null),
   principalCents: positiveBigint,
-  annualRatePct: z.coerce.number().min(0).max(200),
+  annualRatePct: z
+    .union([z.literal("").transform(() => null), z.coerce.number().min(0).max(200)])
+    .nullable()
+    .default(null),
   termMonths: z.coerce.number().int().min(1).max(600),
   amortizationMethod: z.enum(["PRICE", "SAC"]),
   monthlyInsuranceCents: z
@@ -34,6 +37,10 @@ export const financingFormSchema = z.object({
     .default(null),
   monthlyAdminFeeCents: z
     .union([nonNegativeBigint, z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
+  monthlyInstallmentCents: z
+    .union([positiveBigint, z.literal("").transform(() => null)])
     .nullable()
     .default(null),
   // Ongoing: saldo devedor atual difere do principal contratado.
@@ -48,6 +55,14 @@ export const financingFormSchema = z.object({
     ])
     .nullable()
     .default(null),
+}).superRefine((d, ctx) => {
+  if (d.annualRatePct === null && d.monthlyInstallmentCents === null) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["annualRatePct"],
+      message: "Informe a taxa ou a parcela mensal.",
+    });
+  }
 });
 
 export const personalLoanFormSchema = z.object({
@@ -60,7 +75,10 @@ export const personalLoanFormSchema = z.object({
     .nullable()
     .default(null),
   principalCents: positiveBigint,
-  annualRatePct: z.coerce.number().min(0).max(200),
+  annualRatePct: z
+    .union([z.literal("").transform(() => null), z.coerce.number().min(0).max(200)])
+    .nullable()
+    .default(null),
   termMonths: z.coerce.number().int().min(1).max(600),
   monthlyInstallmentCents: positiveBigint,
   // Ongoing scenario: saldo devedor atual difere do principal original.
@@ -134,7 +152,10 @@ export const creditCardFormSchema = z.object({
     .union([z.coerce.date(), z.literal("").transform(() => null)])
     .nullable()
     .default(null),
-  creditLimitCents: positiveBigint,
+  creditLimitCents: z
+    .union([positiveBigint, z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
   currentStatementCents: nonNegativeBigint,
   statementDay: z.coerce.number().int().min(1).max(31),
   dueDay: z.coerce.number().int().min(1).max(31),
@@ -148,6 +169,7 @@ export const creditCardFormSchema = z.object({
     .default(null),
   installmentPurchasesJson: installmentPurchasesField,
 }).superRefine((d, ctx) => {
+  if (d.creditLimitCents === null) return;
   const used = d.currentStatementCents + (d.revolvingBalanceCents ?? 0n);
   if (used > d.creditLimitCents) {
     ctx.addIssue({

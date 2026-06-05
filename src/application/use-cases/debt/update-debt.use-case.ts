@@ -29,7 +29,7 @@ export interface UpdateDebtInput {
   monthlyInstallment?: Money;
   monthlyInsurance?: Money | null;
   monthlyAdminFee?: Money | null;
-  creditLimit?: Money;
+  creditLimit?: Money | null;
   currentStatement?: Money;
   statementDay?: number;
   dueDay?: number;

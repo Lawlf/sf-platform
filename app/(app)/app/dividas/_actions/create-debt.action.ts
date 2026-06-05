@@ -17,6 +17,7 @@ import {
 import { isOk } from "@/shared/errors/result";
 
 import { awardEventAchievement } from "../../_actions/_achievements";
+import { solveAnnualRatePct } from "../_lib/amortization";
 
 type Kind = "financing" | "personal_loan" | "credit_card" | "overdraft";
 
@@ -48,7 +49,21 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
-    const annualRate = InterestRate.fromAnnual(d.annualRatePct / 100);
+    let financingAnnualPct = d.annualRatePct;
+    if (financingAnnualPct === null) {
+      if (d.monthlyInstallmentCents === null) {
+        return { ok: false, message: "Informe a taxa ou a parcela mensal." };
+      }
+      const solved = solveAnnualRatePct(d.principalCents, d.monthlyInstallmentCents, d.termMonths);
+      if (solved === null) {
+        return {
+          ok: false,
+          message: "A parcela informada não bate com o valor e o prazo; revise.",
+        };
+      }
+      financingAnnualPct = solved;
+    }
+    const annualRate = InterestRate.fromAnnual(financingAnnualPct / 100);
     if (!isOk(annualRate)) return { ok: false, message: "Taxa anual inválida." };
     const r = await registerDebt(deps, {
       userId: user.id,
@@ -79,7 +94,18 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     const d = parsed.data;
-    const annualRate = InterestRate.fromAnnual(d.annualRatePct / 100);
+    let loanAnnualPct = d.annualRatePct;
+    if (loanAnnualPct === null) {
+      const solved = solveAnnualRatePct(d.principalCents, d.monthlyInstallmentCents, d.termMonths);
+      if (solved === null) {
+        return {
+          ok: false,
+          message: "A parcela informada não bate com o valor e o prazo; revise.",
+        };
+      }
+      loanAnnualPct = solved;
+    }
+    const annualRate = InterestRate.fromAnnual(loanAnnualPct / 100);
     if (!isOk(annualRate)) return { ok: false, message: "Taxa anual inválida." };
     const r = await registerDebt(deps, {
       userId: user.id,
@@ -130,7 +156,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       startDate: d.startDate,
       expectedEndDate: d.expectedEndDate ?? null,
       kind: "credit_card",
-      creditLimit: Money.fromCents(d.creditLimitCents),
+      creditLimit: d.creditLimitCents !== null ? Money.fromCents(d.creditLimitCents) : null,
       currentStatement: Money.fromCents(d.currentStatementCents),
       statementDay: d.statementDay,
       dueDay: d.dueDay,

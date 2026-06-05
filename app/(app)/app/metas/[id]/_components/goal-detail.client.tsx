@@ -26,8 +26,8 @@ import { ResultCard, ResultStat } from "../../../simular/_components/sim-result"
 import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
 
-import { ContributionsList } from "./contributions-list.client";
 import { ContributionSheet } from "./contribution-sheet.client";
+import { ContributionsList } from "./contributions-list.client";
 import { GoalEvolutionChart } from "./goal-evolution-chart";
 import { NextMoveAfterGoal } from "./next-move-after-goal.client";
 
@@ -293,8 +293,8 @@ function EtaHero({
           Fora do horizonte
         </div>
         <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Com os números atuais, o alvo não é atingido num horizonte projetável. Aumente o aporte ou
-          revise o alvo.
+          No ritmo atual, a meta não fecha num prazo que dá pra projetar. Aumente o quanto guarda por
+          mês ou revise o alvo.
         </p>
       </section>
     );

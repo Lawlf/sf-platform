@@ -12,10 +12,17 @@ import {
 } from "@/app/components/ui/sheet";
 
 const TOPICS = {
+  patrimonio: {
+    title: "Patrimônio",
+    tag: "Conceito",
+    body: "É tudo o que você tem somado, menos o que você deve. Conta corrente, investimentos, carro, imóvel, de um lado. Cartão, financiamento, empréstimo, do outro. A sobra é o seu patrimônio.",
+    technical:
+      "Patrimônio líquido = soma dos bens (valor atual de cada um) menos a soma dos saldos devedores das dívidas. Pode ser negativo quando as dívidas superam os bens.",
+  },
   "saldo-livre": {
     title: "Saldo livre por mês",
     tag: "Conceito",
-    body: "É o que sobra da sua renda mensal depois de pagar todas as parcelas e contas fixas. Quanto maior, mais flexibilidade você tem pra poupar, investir ou amortizar dívidas.",
+    body: "É o que sobra da renda depois das parcelas e contas fixas. Quanto maior, mais espaço pra guardar, investir ou quitar dívida.",
     technical:
       "Cálculo: soma de renda mensal equivalente (incluindo semanais convertidas) menos soma das parcelas atuais (financiamento, empréstimo, mínimo do cartão a 15%, juros do cheque especial).",
   },
