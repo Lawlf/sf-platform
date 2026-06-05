@@ -2,7 +2,7 @@ import type { MetadataRoute } from "next";
 
 import { publicCalculatorSlugs } from "./(public)/calculadora/_lib/public-calculators";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 
 // Add new public routes here when launched (blog posts, course pages, calculators).
 // For dynamic content (e.g., blog), fetch slugs from DB/CMS and map them inside `sitemap()`.

@@ -1,6 +1,6 @@
 import { faqItems } from "../_lib/faq-items";
 
-const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://saborfinanceiro.com.br";
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 
 function JsonLdScript({ data, id }: { data: unknown; id: string }) {
   return (
@@ -58,13 +58,24 @@ export function SoftwareApplicationJsonLd() {
         price: "0",
         priceCurrency: "BRL",
         category: "free",
+        priceSpecification: {
+          "@type": "PriceSpecification",
+          price: "0",
+          priceCurrency: "BRL",
+        },
       },
       {
         "@type": "Offer",
         name: "Pro",
+        price: "19.90",
         priceCurrency: "BRL",
         category: "subscription",
         url: `${siteUrl}/precos`,
+        priceSpecification: {
+          "@type": "PriceSpecification",
+          price: "19.90",
+          priceCurrency: "BRL",
+        },
       },
     ],
     featureList: [
@@ -118,7 +129,16 @@ export function SoftwareToolJsonLd({
     operatingSystem: "Web",
     inLanguage: "pt-BR",
     isAccessibleForFree: true,
-    offers: { "@type": "Offer", price: "0", priceCurrency: "BRL" },
+    offers: {
+      "@type": "Offer",
+      price: "0",
+      priceCurrency: "BRL",
+      priceSpecification: {
+        "@type": "PriceSpecification",
+        price: "0",
+        priceCurrency: "BRL",
+      },
+    },
     publisher: { "@type": "Organization", name: "Sabor Financeiro" },
   };
   return <JsonLdScript data={data} id="ld-webapplication" />;
