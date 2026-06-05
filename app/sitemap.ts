@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 
+import { competitorSlugs } from "./(public)/alternativas/_lib/competitors";
 import { publicCalculatorSlugs } from "./(public)/calculadora/_lib/public-calculators";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
@@ -29,5 +30,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     changeFrequency: "monthly",
     priority: 0.8,
   }));
-  return [...staticEntries, ...calculatorEntries];
+  const alternativeEntries: MetadataRoute.Sitemap = competitorSlugs().map((slug) => ({
+    url: `${siteUrl}/alternativas/${slug}`,
+    lastModified,
+    changeFrequency: "monthly",
+    priority: 0.7,
+  }));
+  return [...staticEntries, ...calculatorEntries, ...alternativeEntries];
 }

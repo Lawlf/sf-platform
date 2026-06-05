@@ -14,4 +14,9 @@ describe("sitemap", () => {
       true,
     );
   });
+
+  it("inclui as paginas de alternativa", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls.some((u) => u.endsWith("/alternativas/mobills"))).toBe(true);
+  });
 });
