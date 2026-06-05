@@ -135,6 +135,17 @@ export interface OptionProfile {
   liquidez: Level;
 }
 
+export type GrowthKind = "yield" | "appreciation" | "appreciation_dividends" | "speculative";
+
+export const OPTION_GROWTH: Record<string, GrowthKind> = {
+  "tesouro-prefixado": "yield",
+  "tesouro-ipca": "yield",
+  fundos: "appreciation",
+  fii: "appreciation_dividends",
+  acoes: "appreciation_dividends",
+  cripto: "speculative",
+};
+
 export const OPTION_PROFILE: Record<string, OptionProfile> = {
   "tesouro-selic": { retorno: 1, risco: 1, liquidez: 3 },
   "cdb-liquidez": { retorno: 1, risco: 1, liquidez: 3 },

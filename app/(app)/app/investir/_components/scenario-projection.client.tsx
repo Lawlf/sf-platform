@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { Area, AreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 
 import { compoundProjection } from "../_lib/compound";
+import type { GrowthKind } from "../_lib/options";
 
 function brl(cents: bigint): string {
   return (Number(cents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
@@ -15,16 +16,72 @@ function brlAxis(reais: number): string {
 
 const YEAR_OPTIONS = [1, 5, 10, 20];
 
-export function ScenarioProjection({ amountCents }: { amountCents: bigint }) {
-  const [ratePct, setRatePct] = useState(8);
+interface KindConfig {
+  rateLabel: string;
+  rateDefault: number;
+  hasDividends: boolean;
+  caveat: string;
+}
+
+const CONFIG: Record<GrowthKind, KindConfig> = {
+  yield: {
+    rateLabel: "Rende por ano",
+    rateDefault: 8,
+    hasDividends: false,
+    caveat:
+      "Estimativa de referência. Na renda fixa prefixada, o valor pode variar se você vender antes do vencimento.",
+  },
+  appreciation: {
+    rateLabel: "Valoriza por ano (média)",
+    rateDefault: 8,
+    hasDividends: false,
+    caveat: "É uma média hipotética. Na prática o valor sobe e desce, e pode até cair.",
+  },
+  appreciation_dividends: {
+    rateLabel: "Valoriza por ano",
+    rateDefault: 7,
+    hasDividends: true,
+    caveat:
+      "Média hipotética: o preço sobe e desce. Os dividendos variam e não são garantidos. Não é promessa.",
+  },
+  speculative: {
+    rateLabel: "Se valorizar por ano",
+    rateDefault: 12,
+    hasDividends: false,
+    caveat:
+      "Cripto não rende como renda fixa: é um ativo muito volátil, pode multiplicar ou zerar. Tem quem nem considere investimento. Use só o que você aceita perder.",
+  },
+};
+
+export function ScenarioProjection({
+  amountCents,
+  growthKind,
+}: {
+  amountCents: bigint;
+  growthKind: GrowthKind;
+}) {
+  const cfg = CONFIG[growthKind];
+  const [ratePct, setRatePct] = useState(cfg.rateDefault);
+  const [divPct, setDivPct] = useState(5);
   const [years, setYears] = useState(10);
 
+  const totalRate = cfg.hasDividends ? ratePct + divPct : ratePct;
+
   const projection = useMemo(
-    () => compoundProjection({ amountCents, annualRatePct: ratePct, years }),
-    [amountCents, ratePct, years],
+    () => compoundProjection({ amountCents, annualRatePct: totalRate, years }),
+    [amountCents, totalRate, years],
   );
 
   const data = projection.points.map((p) => ({ year: p.year, valor: Number(p.valueCents) / 100 }));
+  const anosLabel = years === 1 ? "ano" : "anos";
+
+  const sentence = cfg.hasDividends
+    ? `Valorizando ${ratePct.toLocaleString("pt-BR")}% e pagando ${divPct.toLocaleString("pt-BR")}% de dividendos ao ano, em ${years} ${anosLabel} teria`
+    : growthKind === "yield"
+      ? `Rendendo ${ratePct.toLocaleString("pt-BR")}% ao ano, em ${years} ${anosLabel} viraria`
+      : growthKind === "speculative"
+        ? `Se valorizar ${ratePct.toLocaleString("pt-BR")}% ao ano (puro chute), em ${years} ${anosLabel} teria`
+        : `Valorizando ${ratePct.toLocaleString("pt-BR")}% ao ano na média, em ${years} ${anosLabel} teria`;
 
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
@@ -33,24 +90,10 @@ export function ScenarioProjection({ amountCents }: { amountCents: bigint }) {
       </h3>
 
       <div className="mt-3 flex flex-wrap items-end gap-3">
-        <label className="flex flex-col gap-1">
-          <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Rende por ano
-          </span>
-          <span className="flex items-center gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
-            <input
-              type="number"
-              inputMode="decimal"
-              min={0}
-              max={100}
-              step={0.5}
-              value={ratePct}
-              onChange={(e) => setRatePct(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
-              className="w-12 bg-transparent text-[0.9375rem] font-bold text-[color:var(--text-primary)] outline-none"
-            />
-            <span className="text-[0.875rem] font-semibold text-[color:var(--text-muted)]">%</span>
-          </span>
-        </label>
+        <RateInput label={cfg.rateLabel} value={ratePct} onChange={setRatePct} />
+        {cfg.hasDividends ? (
+          <RateInput label="Dividendos por ano" value={divPct} onChange={setDivPct} />
+        ) : null}
 
         <div className="flex flex-col gap-1">
           <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
@@ -123,14 +166,41 @@ export function ScenarioProjection({ amountCents }: { amountCents: bigint }) {
       </div>
 
       <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-        Rendendo {ratePct.toLocaleString("pt-BR")}% ao ano, em {years}{" "}
-        {years === 1 ? "ano" : "anos"} viraria{" "}
+        {sentence}{" "}
         <span className="font-bold text-[color:var(--color-brand-800)]">{brl(projection.finalCents)}</span>.
       </p>
-      <p className="mt-2 text-[0.625rem] leading-relaxed text-[color:var(--text-muted)]">
-        Isto é uma hipótese pra você simular, não uma promessa. Renda variável oscila e pode perder
-        valor; rendimento passado não garante o futuro.
-      </p>
+      <p className="mt-2 text-[0.625rem] leading-relaxed text-[color:var(--text-muted)]">{cfg.caveat}</p>
     </section>
+  );
+}
+
+function RateInput({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (v: number) => void;
+}) {
+  return (
+    <label className="flex flex-col gap-1">
+      <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        {label}
+      </span>
+      <span className="flex items-center gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
+        <input
+          type="number"
+          inputMode="decimal"
+          min={0}
+          max={100}
+          step={0.5}
+          value={value}
+          onChange={(e) => onChange(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
+          className="w-12 bg-transparent text-[0.9375rem] font-bold text-[color:var(--text-primary)] outline-none"
+        />
+        <span className="text-[0.875rem] font-semibold text-[color:var(--text-muted)]">%</span>
+      </span>
+    </label>
   );
 }

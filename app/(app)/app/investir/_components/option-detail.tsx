@@ -6,7 +6,7 @@ import Link from "next/link";
 import { useState } from "react";
 
 import { buildGoalSeedQuery } from "../../simular/_lib/goal-seed";
-import type { InvestOption } from "../_lib/options";
+import { OPTION_GROWTH, type InvestOption } from "../_lib/options";
 import type { EarlyWithdrawalSample, Projection } from "../_lib/projection";
 
 import { EarlyWithdrawalChart } from "./early-withdrawal-chart";
@@ -125,7 +125,12 @@ export function OptionDetail({
         </section>
       ) : null}
 
-      {!projection && amountCents > 0n ? <ScenarioProjection amountCents={amountCents} /> : null}
+      {!projection && amountCents > 0n ? (
+        <ScenarioProjection
+          amountCents={amountCents}
+          growthKind={OPTION_GROWTH[option.key] ?? "appreciation"}
+        />
+      ) : null}
 
       <PerfilBars optionKey={option.key} />
 
