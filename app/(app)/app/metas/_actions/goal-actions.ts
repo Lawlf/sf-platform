@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
-import { addToReserve } from "@/application/use-cases/goal/add-to-reserve.use-case";
+import { recordContribution } from "@/application/use-cases/goal/record-contribution.use-case";
 import { archiveGoal } from "@/application/use-cases/goal/archive-goal.use-case";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { createGoal, type CreateGoalInput } from "@/application/use-cases/goal/create-goal.use-case";
@@ -16,6 +16,7 @@ import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/rep
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
+import { DrizzleGoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-contribution.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -172,15 +173,31 @@ export async function updateGoalAction(
   return { ok: true };
 }
 
-export async function addToReserveAction(
+export async function recordContributionAction(
   goalId: string,
   amountCents: string,
 ): Promise<ActionResult> {
   const user = await requireUser();
-  const goals = new DrizzleGoalRepository();
-  const assets = new DrizzleAssetRepository();
-  const result = await addToReserve(
-    { goals, assets },
+  const result = await recordContribution(
+    {
+      goals: new DrizzleGoalRepository(),
+      assets: new DrizzleAssetRepository(),
+      contributions: new DrizzleGoalContributionRepository(),
+      snapshots: new DrizzleGoalSnapshotRepository(),
+      buildMacro: (userId) =>
+        buildGoalMacro(
+          {
+            assets: new DrizzleAssetRepository(),
+            allocations: new DrizzleAssetDebtAllocationRepository(),
+            debts: new DrizzleDebtRepository(),
+            incomes: new DrizzleIncomeRepository(),
+            clock: new SystemClock(),
+          },
+          { userId },
+        ),
+      clock: new SystemClock(),
+      newId: () => crypto.randomUUID(),
+    },
     { userId: user.id, goalId, amountCents: BigInt(amountCents) },
   );
   if (!result.ok) return { ok: false, message: result.message };
