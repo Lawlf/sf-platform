@@ -4,6 +4,10 @@ import { revalidatePath } from "next/cache";
 
 import { updateGoalCascadeConfig } from "@/application/use-cases/goal/update-goal-cascade-config.use-case";
 import { closeMonth } from "@/application/use-cases/month-closing/close-month.use-case";
+import {
+  settleRecurringCommitment,
+  type SettleAction,
+} from "@/application/use-cases/month-closing/settle-recurring-commitment.use-case";
 import { setLiquidBucket } from "@/application/use-cases/planning/set-liquid-bucket.use-case";
 import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
@@ -17,6 +21,7 @@ import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/per
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
+import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -73,6 +78,28 @@ export async function closeMonthAction(): Promise<CloseMonthActionResult> {
     status: result.status,
     leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
   };
+}
+
+export async function settleRecurringCommitmentAction(
+  debtId: string,
+  monthIso: string,
+  action: SettleAction,
+): Promise<PlanningActionResult> {
+  const user = await requireUser();
+  const result = await settleRecurringCommitment(
+    {
+      debts: new DrizzleDebtRepository(),
+      settlements: new DrizzleRecurringSettlementRepository(),
+      clock: new SystemClock(),
+    },
+    { userId: user.id, debtId, monthIso, action },
+  );
+  if (result._tag === "err") {
+    return { ok: false, message: result.error.message };
+  }
+  revalidatePath("/app/linha-do-tempo");
+  revalidatePath("/app");
+  return { ok: true };
 }
 
 export async function updateGoalCascadeConfigAction(

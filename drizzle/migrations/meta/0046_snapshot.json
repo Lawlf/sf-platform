@@ -1,5 +1,5 @@
 {
-  "id": "4499bf42-7b83-4463-bc55-ea53b02c0ce1",
+  "id": "de4cc979-d132-4642-823d-c3381422b846",
   "prevId": "c5fc6838-2ac1-4ed7-9dfe-0e32e800036d",
   "version": "7",
   "dialect": "postgresql",
@@ -1256,100 +1256,6 @@
             "id"
           ],
           "onDelete": "set null",
-          "onUpdate": "no action"
-        }
-      },
-      "compositePrimaryKeys": {},
-      "uniqueConstraints": {},
-      "policies": {},
-      "checkConstraints": {},
-      "isRLSEnabled": false
-    },
-    "public.goal_contributions": {
-      "name": "goal_contributions",
-      "schema": "",
-      "columns": {
-        "id": {
-          "name": "id",
-          "type": "uuid",
-          "primaryKey": true,
-          "notNull": true,
-          "default": "gen_random_uuid()"
-        },
-        "goal_id": {
-          "name": "goal_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "user_id": {
-          "name": "user_id",
-          "type": "uuid",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "amount_cents": {
-          "name": "amount_cents",
-          "type": "bigint",
-          "primaryKey": false,
-          "notNull": true
-        },
-        "created_at": {
-          "name": "created_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": true,
-          "default": "now()"
-        }
-      },
-      "indexes": {
-        "goal_contributions_goal_id_created_at_idx": {
-          "name": "goal_contributions_goal_id_created_at_idx",
-          "columns": [
-            {
-              "expression": "goal_id",
-              "isExpression": false,
-              "asc": true,
-              "nulls": "last"
-            },
-            {
-              "expression": "created_at",
-              "isExpression": false,
-              "asc": false,
-              "nulls": "last"
-            }
-          ],
-          "isUnique": false,
-          "concurrently": false,
-          "method": "btree",
-          "with": {}
-        }
-      },
-      "foreignKeys": {
-        "goal_contributions_goal_id_goals_id_fk": {
-          "name": "goal_contributions_goal_id_goals_id_fk",
-          "tableFrom": "goal_contributions",
-          "tableTo": "goals",
-          "columnsFrom": [
-            "goal_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
-          "onUpdate": "no action"
-        },
-        "goal_contributions_user_id_users_id_fk": {
-          "name": "goal_contributions_user_id_users_id_fk",
-          "tableFrom": "goal_contributions",
-          "tableTo": "users",
-          "columnsFrom": [
-            "user_id"
-          ],
-          "columnsTo": [
-            "id"
-          ],
-          "onDelete": "cascade",
           "onUpdate": "no action"
         }
       },
@@ -3668,6 +3574,105 @@
           ]
         }
       },
+      "policies": {},
+      "checkConstraints": {},
+      "isRLSEnabled": false
+    },
+    "public.recurring_settlements": {
+      "name": "recurring_settlements",
+      "schema": "",
+      "columns": {
+        "user_id": {
+          "name": "user_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "debt_id": {
+          "name": "debt_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "month": {
+          "name": "month",
+          "type": "date",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "status": {
+          "name": "status",
+          "type": "text",
+          "primaryKey": false,
+          "notNull": true
+        },
+        "created_debt_id": {
+          "name": "created_debt_id",
+          "type": "uuid",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "created_at": {
+          "name": "created_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": true,
+          "default": "now()"
+        }
+      },
+      "indexes": {},
+      "foreignKeys": {
+        "recurring_settlements_user_id_users_id_fk": {
+          "name": "recurring_settlements_user_id_users_id_fk",
+          "tableFrom": "recurring_settlements",
+          "tableTo": "users",
+          "columnsFrom": [
+            "user_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "recurring_settlements_debt_id_debts_id_fk": {
+          "name": "recurring_settlements_debt_id_debts_id_fk",
+          "tableFrom": "recurring_settlements",
+          "tableTo": "debts",
+          "columnsFrom": [
+            "debt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "cascade",
+          "onUpdate": "no action"
+        },
+        "recurring_settlements_created_debt_id_debts_id_fk": {
+          "name": "recurring_settlements_created_debt_id_debts_id_fk",
+          "tableFrom": "recurring_settlements",
+          "tableTo": "debts",
+          "columnsFrom": [
+            "created_debt_id"
+          ],
+          "columnsTo": [
+            "id"
+          ],
+          "onDelete": "set null",
+          "onUpdate": "no action"
+        }
+      },
+      "compositePrimaryKeys": {
+        "recurring_settlements_user_id_debt_id_month_pk": {
+          "name": "recurring_settlements_user_id_debt_id_month_pk",
+          "columns": [
+            "user_id",
+            "debt_id",
+            "month"
+          ]
+        }
+      },
+      "uniqueConstraints": {},
       "policies": {},
       "checkConstraints": {},
       "isRLSEnabled": false

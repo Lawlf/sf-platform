@@ -9,7 +9,7 @@ import {
   type StoryCardKind,
   type StoryIconName,
 } from "@/domain/services/story-detection.service";
-import { TimelineService } from "@/domain/services/timeline.service";
+import { TimelineService, type TimelineSettlement } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
@@ -17,6 +17,7 @@ import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persiste
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
@@ -178,6 +179,7 @@ export async function fetchMonthDetail(input: {
   const incomes = new DrizzleIncomeRepository();
   const assets = new DrizzleAssetRepository();
   const debtAmountAdjustmentsRepo = new DrizzleDebtAmountAdjustmentRepository();
+  const settlementsRepo = new DrizzleRecurringSettlementRepository();
 
   // Para detectar conquistas/marcos do mês, precisamos rodar a detecção
   // numa janela maior (24 meses antes até o mês alvo) e filtrar pra este.
@@ -187,18 +189,32 @@ export async function fetchMonthDetail(input: {
     return m;
   })();
 
-  const [paymentsRaw, debtsRaw, incomesRaw, assetsRaw, paymentsForTimeline, adjustmentsRaw] =
-    await Promise.all([
-      debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
-      debts.listForUser(user.id, { status: "all" }),
-      incomes.listForUser(user.id),
-      assets.findActiveByUser(user.id),
-      debtPayments.listForUserInRange(user.id, {
-        from: windowFrom.firstDay(),
-        to: month.lastDay(),
-      }),
-      debtAmountAdjustmentsRepo.listForUser(user.id),
-    ]);
+  const [
+    paymentsRaw,
+    debtsRaw,
+    incomesRaw,
+    assetsRaw,
+    paymentsForTimeline,
+    adjustmentsRaw,
+    settlementsRaw,
+  ] = await Promise.all([
+    debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
+    debts.listForUser(user.id, { status: "all" }),
+    incomes.listForUser(user.id),
+    assets.findActiveByUser(user.id),
+    debtPayments.listForUserInRange(user.id, {
+      from: windowFrom.firstDay(),
+      to: month.lastDay(),
+    }),
+    debtAmountAdjustmentsRepo.listForUser(user.id),
+    settlementsRepo.listForUser(user.id),
+  ]);
+
+  const settlements: TimelineSettlement[] = settlementsRaw.map((s) => ({
+    debtId: s.debtId,
+    monthIso: MonthYear.fromDate(s.month).toIso(),
+    status: s.status,
+  }));
 
   const debtById = new Map(debtsRaw.map((d) => [d.id, d] as const));
 
@@ -281,6 +297,7 @@ export async function fetchMonthDetail(input: {
     from: windowFrom,
     to: month,
     adjustments: adjustmentsRaw,
+    settlements,
   });
 
   const allStories = StoryDetectionService.detect(timeline.points);
