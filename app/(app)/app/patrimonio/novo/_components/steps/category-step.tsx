@@ -19,7 +19,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
   return (
     <WizardShell
       currentStep={visualStep}
-      title="Qual categoria do ativo?"
+      title="Qual a categoria?"
       description="Cada categoria mostra campos diferentes. Escolha a mais próxima."
       onBack={onBack}
       totalSteps={totalSteps}

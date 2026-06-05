@@ -120,12 +120,12 @@ export function DetailsStep({
             ? "Onde está e se rende algum juros."
             : category === "investment"
               ? "Instituição e descrição."
-              : "Detalhes do ativo.";
+              : "Detalhes do bem.";
 
   return (
     <WizardShell
       currentStep={visualStep}
-      title="Detalhes do ativo"
+      title="Detalhes do bem"
       description={description}
       onBack={onBack}
       totalSteps={totalSteps}

@@ -1,5 +1,6 @@
 import { Wallet } from "lucide-react";
 
+import { HowItWorksSheet } from "../../_components/how-it-works-sheet";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 
 export interface PatrimonyHeroProps {
@@ -22,8 +23,11 @@ export function PatrimonyHero({
       />
       <div className="relative flex items-center justify-between">
         <div>
-          <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
-            Patrimônio líquido
+          <div className="flex items-center gap-1.5 text-white">
+            <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
+              Patrimônio líquido
+            </div>
+            <HowItWorksSheet topic="patrimonio" variant="chip" />
           </div>
           <div
             className="mt-1 text-[2.25rem] font-extrabold leading-none"
@@ -36,7 +40,7 @@ export function PatrimonyHero({
       </div>
       <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
         <div>
-          <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">Ativos</div>
+          <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">O que você tem</div>
           <div className="mt-0.5 font-bold"><HideableValue>{totalAssetsFormatted}</HideableValue></div>
         </div>
         <div>

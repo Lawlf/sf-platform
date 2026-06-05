@@ -62,7 +62,7 @@ export function PatrimonioContentClient() {
         href={"/app/patrimonio/novo" as Route}
         className="focus-ring inline-flex items-center justify-center self-start rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2.5 text-sm font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition hover:brightness-105"
       >
-        Cadastrar ativo
+        Adicionar ao patrimônio
       </Link>
 
       {ALL_CATEGORIES.map((cat) => {

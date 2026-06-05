@@ -1,7 +1,7 @@
 "use client";
 
 import type { ChangeEvent } from "react";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   type Control,
   Controller,
@@ -38,6 +38,15 @@ function PercentInputInner<TFieldValues extends FieldValues>(props: InnerProps<T
     typeof field.value === "number" && Number.isFinite(field.value) ? (field.value as number) : 0;
 
   const [display, setDisplay] = useState<string>(numericValue === 0 ? "" : String(numericValue));
+  const focusedRef = useRef(false);
+
+  // Sincroniza o display quando o valor muda de fora (ex: botão de estimativa),
+  // sem atropelar a digitação do usuário.
+  useEffect(() => {
+    if (!focusedRef.current) {
+      setDisplay(numericValue === 0 ? "" : String(numericValue));
+    }
+  }, [numericValue]);
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
@@ -54,12 +63,14 @@ function PercentInputInner<TFieldValues extends FieldValues>(props: InnerProps<T
   }
 
   function onFocus() {
+    focusedRef.current = true;
     if (numericValue === 0) {
       setDisplay("");
     }
   }
 
   function onBlur() {
+    focusedRef.current = false;
     setDisplay(numericValue === 0 ? "" : String(numericValue));
     field.onBlur();
   }

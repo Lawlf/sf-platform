@@ -126,17 +126,21 @@ export function shouldShowDepreciationSection(category: Category): boolean {
 
 const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
-export function AssetWizardClient() {
+export function AssetWizardClient({
+  initialCategory,
+}: { initialCategory?: Category | undefined } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [step, setStep] = useState<WizardStepId>("category");
+  const [step, setStep] = useState<WizardStepId>(
+    initialCategory ? (initialCategory === "investment" ? "investment_type" : "details") : "category",
+  );
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
   const form = useForm<AssetWizardFormValues>({
     resolver: zodResolver(wizardFormSchema),
     defaultValues: {
-      category: "vehicle",
+      category: initialCategory ?? "vehicle",
       label: "",
       currentValueCents: 0n as unknown as bigint,
       purchasePriceCents: null,

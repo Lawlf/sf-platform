@@ -2,7 +2,7 @@ import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { fetchPrescription } from "../_actions/prescription-queries";
+import { getPrescription } from "../_lib/prescription-cache";
 
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
@@ -48,7 +48,7 @@ const TEASER_FALLBACK: StateTeaser = {
 };
 
 export async function NextStepCard() {
-  const data = await fetchPrescription();
+  const data = await getPrescription();
   if (!data) return null;
 
   // Estado 0: faltam dados; pedir o dado, não prescrever (guard-rail).

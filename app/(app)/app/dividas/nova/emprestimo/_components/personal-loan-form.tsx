@@ -24,6 +24,7 @@ import {
   registerLoanCashInflowAction,
   type RegisterLoanCashInflowActionInput,
 } from "../../_actions/register-loan-cash-inflow.action";
+import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import {
   canAdvanceLinkAssetStep,
@@ -75,7 +76,10 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const [bank, setBank] = useState("");
+
   const labelId = useId();
+  const bankId = useId();
   const netReceivedId = useId();
   const principalId = useId();
   const balanceId = useId();
@@ -94,7 +98,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       initialScenario === "ongoing"
         ? ({
             scenario: "ongoing",
-            label: "",
+            label: "Empréstimo",
             originalPrincipalCents: 0n as unknown as bigint,
             currentBalanceCents: 0n as unknown as bigint,
             monthlyInstallmentCents: 0n as unknown as bigint,
@@ -109,7 +113,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           } as FormValues)
         : ({
             scenario: "new",
-            label: "",
+            label: "Empréstimo",
             netReceivedCents: 0n as unknown as bigint,
             principalCents: 0n as unknown as bigint,
             annualRatePct: 0,
@@ -346,7 +350,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
     }
 
     fd.set("principalCents", principalForServer.toString());
-    fd.set("annualRatePct", String(v.annualRatePct));
+    fd.set("annualRatePct", v.annualRatePct ? String(v.annualRatePct) : "");
     fd.set("termMonths", String(termMonthsForServer));
     fd.set("monthlyInstallmentCents", monthlyInstallmentForServer.toString());
     fd.set("startDate", v.startDate);
@@ -476,11 +480,25 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           newDescription="Recebi o dinheiro agora"
         />
 
+        <WizardField label="Banco (opcional)" htmlFor={bankId}>
+          <BankCombobox
+            id={bankId}
+            value={bank}
+            onChange={(b) => {
+              setBank(b);
+              formAny.setValue("label", b.trim() ? `Empréstimo ${b.trim()}` : "Empréstimo", {
+                shouldValidate: true,
+              });
+            }}
+            placeholder="Ex: Nubank, Itaú, Caixa..."
+          />
+        </WizardField>
+
         <WizardField label="Rótulo da dívida" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
-            placeholder="Ex: Empréstimo consignado"
+            placeholder="Ex: Empréstimo Nubank"
             className={wizardInputClass}
           />
         </WizardField>
@@ -523,7 +541,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
             </WizardField>
 
             <WizardField
-              label="Taxa anual (a.a.)"
+              label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
@@ -650,7 +668,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
             </div>
 
             <WizardField
-              label="Taxa anual (a.a.)"
+              label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}

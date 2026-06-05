@@ -61,7 +61,9 @@ export default async function EditarDividaPage({ params }: PageProps) {
               ? debt.monthlyAdminFee.toCents().toString()
               : null,
           creditLimitCents:
-            debt.kind === "credit_card" ? debt.creditLimit.toCents().toString() : null,
+            debt.kind === "credit_card" && debt.creditLimit
+              ? debt.creditLimit.toCents().toString()
+              : null,
           currentStatementCents:
             debt.kind === "credit_card" ? debt.currentStatement.toCents().toString() : null,
           statementDay: debt.kind === "credit_card" ? debt.statementDay : null,

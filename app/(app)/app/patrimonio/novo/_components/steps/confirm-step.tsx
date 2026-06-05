@@ -167,12 +167,12 @@ export function ConfirmStep({
   return (
     <WizardShell
       currentStep={visualStep}
-      title="Resumo do ativo"
+      title="Resumo do bem"
       description="Confira como vai ficar antes de salvar."
       onBack={onBack}
       totalSteps={totalSteps}
       primary={{
-        label: "Cadastrar ativo",
+        label: "Adicionar ao patrimônio",
         onClick: onSubmit,
         disabled: pending,
         loading: pending,

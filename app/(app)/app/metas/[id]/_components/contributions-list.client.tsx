@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 
-import { ResultCard } from "../../../simular/_components/sim-result";
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+import { ResultCard } from "../../../simular/_components/sim-result";
 import type { SerializedGoalContribution } from "../../_actions/goal-queries";
 
 interface ContributionsListProps {
@@ -32,7 +32,7 @@ export function ContributionsList({ contributions }: ContributionsListProps) {
   const hasMore = contributions.length > PREVIEW_COUNT;
 
   return (
-    <ResultCard title="Últimos aportes" subtitle="O que você guardou nesta meta">
+    <ResultCard title="O que você já guardou" subtitle="Cada vez que você guardou aqui">
       <ul className="flex flex-col divide-y divide-[color:var(--border-soft)]">
         {visible.map((c) => (
           <li key={c.id} className="flex items-center justify-between py-2">

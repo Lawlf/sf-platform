@@ -245,7 +245,8 @@ describe("executeWrite", () => {
     const entity = created.mock.calls[0]![0] as DebtEntity;
     expect(entity.kind).toBe("credit_card");
     if (entity.kind !== "credit_card") throw new Error("test: expected credit_card");
-    expect(entity.creditLimit.toCents()).toBe(1000000n);
+    expect(entity.creditLimit).not.toBeNull();
+    expect(entity.creditLimit!.toCents()).toBe(1000000n);
     expect(entity.currentStatement.toCents()).toBe(250000n);
     expect(entity.statementDay).toBe(5);
     expect(entity.dueDay).toBe(12);

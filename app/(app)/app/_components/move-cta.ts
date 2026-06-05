@@ -1,5 +1,6 @@
-import { buildGoalSeedQuery } from "../simular/_lib/goal-seed";
 import type { MoveType } from "@/domain/services/prescription/prescription.types";
+
+import { buildGoalSeedQuery } from "../simular/_lib/goal-seed";
 
 export type PrescriptionMoveType = MoveType;
 
@@ -22,7 +23,7 @@ export function moveCtaFor(move: {
     case "build_reserve":
       return { label: "Simular minha reserva", href: "/app/simular/reserva" };
     case "invest":
-      return { label: "Simular onde investir", href: "/app/simular/juros-compostos" };
+      return { label: "Onde investir", href: "/app/investir" };
     case "reduce_commitment":
       return { label: "Revisar minhas dívidas", href: "/app/dividas" };
     default:

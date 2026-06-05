@@ -4,7 +4,7 @@ import { PageShell } from "../_components/page-shell";
 
 export default function Loading() {
   return (
-    <PageShell title="Patrimônio" description="Acompanhe seus ativos e patrimônio líquido.">
+    <PageShell title="Patrimônio" description="Veja o que você tem, o que deve e o que sobra.">
       <Skeleton className="h-[148px] rounded-[var(--radius-card)]" />
       <Skeleton className="h-10 w-40 rounded-xl" />
       {Array.from({ length: 3 }).map((_, sectionIdx) => (
