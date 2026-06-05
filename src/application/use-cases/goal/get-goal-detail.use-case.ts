@@ -1,14 +1,19 @@
 import type { BuildGoalMacroDeps } from "@/application/use-cases/goal/build-goal-macro";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
+import type { GoalContributionEntity } from "@/domain/entities/goal-contribution.entity";
 import type { GoalSnapshotEntity } from "@/domain/entities/goal-snapshot.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
+import type { GoalContributionRepository } from "@/domain/ports/repositories/goal-contribution.repository";
 import type { GoalSnapshotRepository } from "@/domain/ports/repositories/goal-snapshot.repository";
 import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
 import { GoalProgressService, type GoalProgress } from "@/domain/services/goal-progress.service";
 
+const CONTRIBUTIONS_LIMIT = 20;
+
 export interface GetGoalDetailDeps extends BuildGoalMacroDeps {
   goals: GoalRepository;
   snapshots: GoalSnapshotRepository;
+  contributions: GoalContributionRepository;
 }
 
 export interface GoalDetailResult {
@@ -16,6 +21,7 @@ export interface GoalDetailResult {
   progress: GoalProgress;
   etaLocked: boolean;
   snapshots: GoalSnapshotEntity[];
+  contributions: GoalContributionEntity[];
 }
 
 /**
@@ -35,9 +41,10 @@ export async function getGoalDetail(
   const goal = await deps.goals.findById(goalId);
   if (!goal || goal.userId !== userId) return null;
 
-  const [macro, snapshotList] = await Promise.all([
+  const [macro, snapshotList, contributionList] = await Promise.all([
     buildGoalMacro(deps, { userId }),
     deps.snapshots.listForGoal(goalId),
+    deps.contributions.listForGoal(goalId, CONTRIBUTIONS_LIMIT),
   ]);
 
   const resolved = await resolveLinkedAsset(deps, goal);
@@ -47,7 +54,7 @@ export async function getGoalDetail(
     ? { progress: rawProgress, etaLocked: false }
     : { progress: { ...rawProgress, etaMonths: null }, etaLocked: true };
 
-  return { goal, progress, etaLocked, snapshots: snapshotList };
+  return { goal, progress, etaLocked, snapshots: snapshotList, contributions: contributionList };
 }
 
 /**

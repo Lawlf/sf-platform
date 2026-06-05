@@ -53,9 +53,9 @@ export class GoalProgressService {
 }
 
 function pctOf(current: bigint, target: bigint): number {
-  if (target <= 0n) return current > 0n ? 1 : 0;
-  const p = Number(current) / Number(target);
-  return Math.max(0, Math.min(1, p));
+  if (target <= 0n) return current > 0n ? 100 : 0;
+  const p = (Number(current) / Number(target)) * 100;
+  return Math.max(0, Math.min(100, p));
 }
 
 function debtPayoff(goal: GoalEntity, macro: GoalMacro): GoalProgress {

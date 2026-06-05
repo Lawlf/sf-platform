@@ -26,7 +26,8 @@ import { ResultCard, ResultStat } from "../../../simular/_components/sim-result"
 import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
 
-import { AddToReserveSheet } from "./add-to-reserve-sheet.client";
+import { ContributionsList } from "./contributions-list.client";
+import { ContributionSheet } from "./contribution-sheet.client";
 import { GoalEvolutionChart } from "./goal-evolution-chart";
 import { NextMoveAfterGoal } from "./next-move-after-goal.client";
 
@@ -62,7 +63,7 @@ const SIM_ROUTE: Record<string, Route> = {
 };
 
 export function GoalDetail({ detail }: GoalDetailProps) {
-  const { goal, progress, etaLocked, snapshots } = detail;
+  const { goal, progress, etaLocked, snapshots, contributions } = detail;
   const router = useRouter();
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -131,6 +132,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
       <ResultCard title="Evolução" subtitle="Saldo mensal registrado">
         <GoalEvolutionChart snapshots={snapshots} />
       </ResultCard>
+      <ContributionsList contributions={contributions} />
 
       {/* How it works */}
       {howItWorksTopic ? (
@@ -142,7 +144,13 @@ export function GoalDetail({ detail }: GoalDetailProps) {
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
       <div className="flex flex-col gap-2 border-t border-[color:var(--border-soft)] pt-3">
         {goal.type === "emergency_fund" ? (
-          <AddToReserveSheet goalId={goal.id} hasReserve={goal.linkedAssetId !== null} />
+          <ContributionSheet
+            goalId={goal.id}
+            variant="reserve"
+            hasReserve={goal.linkedAssetId !== null}
+          />
+        ) : goal.type === "savings" && goal.fundingMode === "manual" ? (
+          <ContributionSheet goalId={goal.id} variant="savings" />
         ) : null}
         {/* Acoes primarias: Editar + Simular, largura igual, sem quebra de linha */}
         <div className="grid grid-cols-2 gap-2">

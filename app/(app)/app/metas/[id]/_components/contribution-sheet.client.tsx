@@ -17,23 +17,33 @@ import {
 } from "@/app/components/ui/sheet";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { addToReserveAction } from "../../_actions/goal-actions";
+import { recordContributionAction } from "../../_actions/goal-actions";
 
 interface FormValues {
   amountCents: bigint;
 }
 
-interface AddToReserveSheetProps {
+interface ContributionSheetProps {
   goalId: string;
-  hasReserve: boolean;
+  variant: "reserve" | "savings";
+  hasReserve?: boolean;
 }
 
-export function AddToReserveSheet({ goalId, hasReserve }: AddToReserveSheetProps) {
+export function ContributionSheet({ goalId, variant, hasReserve }: ContributionSheetProps) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const form = useForm<FormValues>({ defaultValues: { amountCents: 0n } });
+
+  const title = variant === "reserve" ? "Guardar na reserva" : "Guardar na meta";
+  const description =
+    variant === "reserve"
+      ? hasReserve
+        ? "O valor é somado à sua reserva de emergência e a meta atualiza na hora."
+        : "Vamos criar sua reserva de emergência com esse primeiro valor."
+      : "O valor é somado ao que você já juntou e a meta atualiza na hora.";
+  const successMessage = variant === "reserve" ? "Guardado na reserva." : "Guardado na meta.";
 
   async function onSubmit(values: FormValues) {
     if (values.amountCents <= 0n) {
@@ -42,13 +52,13 @@ export function AddToReserveSheet({ goalId, hasReserve }: AddToReserveSheetProps
     }
     setError(null);
     setSubmitting(true);
-    const result = await addToReserveAction(goalId, values.amountCents.toString());
+    const result = await recordContributionAction(goalId, values.amountCents.toString());
     setSubmitting(false);
     if (!result.ok) {
       setError(result.message ?? "Não foi possível guardar agora.");
       return;
     }
-    toast.success("Guardado na reserva.");
+    toast.success(successMessage);
     form.reset({ amountCents: 0n });
     setOpen(false);
     router.refresh();
@@ -72,12 +82,8 @@ export function AddToReserveSheet({ goalId, hasReserve }: AddToReserveSheetProps
       </SheetTrigger>
       <SheetContent side="bottom">
         <SheetHeader>
-          <SheetTitle>Guardar na reserva</SheetTitle>
-          <SheetDescription>
-            {hasReserve
-              ? "O valor é somado à sua reserva de emergência e a meta atualiza na hora."
-              : "Vamos criar sua reserva de emergência com esse primeiro valor."}
-          </SheetDescription>
+          <SheetTitle>{title}</SheetTitle>
+          <SheetDescription>{description}</SheetDescription>
         </SheetHeader>
         <form className="mt-4 flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
           <MoneyInput

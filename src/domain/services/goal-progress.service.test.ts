@@ -30,7 +30,7 @@ describe("GoalProgressService.compute", () => {
     const r = GoalProgressService.compute(goal, macro);
     expect(Number(r.currentCents)).toBe(12_000_00);
     expect(Number(r.targetCents)).toBe(30_000_00);
-    expect(r.pct).toBeCloseTo(0.4, 3);
+    expect(r.pct).toBeCloseTo(40, 3);
     expect(r.reached).toBe(false);
     expect(r.etaMonths).not.toBeNull();
   });
@@ -88,7 +88,7 @@ describe("GoalProgressService.compute", () => {
     const r = GoalProgressService.compute(goal, macro);
     expect(Number(r.currentCents)).toBe(20_000_00);
     expect(Number(r.targetCents)).toBe(50_000_00);
-    expect(r.pct).toBeCloseTo(0.4, 3);
+    expect(r.pct).toBeCloseTo(40, 3);
     expect(r.reached).toBe(false);
   });
 });

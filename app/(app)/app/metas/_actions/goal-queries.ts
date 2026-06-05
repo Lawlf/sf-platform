@@ -7,6 +7,7 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleGoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-contribution.repository";
 import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
@@ -49,8 +50,15 @@ export interface SerializedGoalSnapshot {
   targetCents: string;
 }
 
+export interface SerializedGoalContribution {
+  id: string;
+  amountCents: string;
+  createdAtIso: string;
+}
+
 export interface SerializedGoalDetail extends SerializedGoalWithProgress {
   snapshots: SerializedGoalSnapshot[];
+  contributions: SerializedGoalContribution[];
 }
 
 function serializeGoal(goal: {
@@ -156,6 +164,7 @@ export async function fetchGoalDetail(
   const deps = {
     ...buildDeps(),
     snapshots: new DrizzleGoalSnapshotRepository(),
+    contributions: new DrizzleGoalContributionRepository(),
   };
 
   const result = await getGoalDetail(deps, {
@@ -166,7 +175,7 @@ export async function fetchGoalDetail(
 
   if (!result) return null;
 
-  const { goal, progress, etaLocked, snapshots } = result;
+  const { goal, progress, etaLocked, snapshots, contributions } = result;
 
   return {
     goal: serializeGoal(goal),
@@ -176,6 +185,11 @@ export async function fetchGoalDetail(
       monthIso: s.month.toISOString(),
       currentCents: s.currentCents.toString(),
       targetCents: s.targetCents.toString(),
+    })),
+    contributions: contributions.map((c) => ({
+      id: c.id,
+      amountCents: c.amountCents.toString(),
+      createdAtIso: c.createdAt.toISOString(),
     })),
   };
 }
