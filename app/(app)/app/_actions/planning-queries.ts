@@ -5,7 +5,10 @@ import { previewMonthClosing } from "@/application/use-cases/month-closing/previ
 import { assemblePlanningView } from "@/application/use-cases/planning/assemble-planning-view";
 import { buildProjectionDebtInputs } from "@/application/use-cases/planning/build-projection-debt-inputs";
 import { getAnnualReport } from "@/application/use-cases/transaction/get-annual-report.use-case";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
+import type { RecurringSettlementStatus } from "@/domain/entities/recurring-settlement.entity";
+import { recurringMonthlyEquivalent } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
@@ -17,6 +20,7 @@ import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/per
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
+import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -180,6 +184,15 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
 
 export type MonthClosingStatus = "on_track" | "leaked" | "ahead";
 
+export type MonthCommitmentStatus = "open" | RecurringSettlementStatus;
+
+export interface MonthClosingCommitment {
+  debtId: string;
+  label: string;
+  amountFormatted: string;
+  status: MonthCommitmentStatus;
+}
+
 export interface MonthClosingPayload {
   open: boolean;
   monthIso?: string;
@@ -188,6 +201,20 @@ export interface MonthClosingPayload {
   deltaFormatted?: string;
   leakAbsFormatted?: string;
   status?: MonthClosingStatus;
+  commitments?: MonthClosingCommitment[];
+}
+
+function isRecurringActiveInMonth(debt: DebtEntity, month: MonthYear): boolean {
+  if (debt.kind !== "recurring") return false;
+  const startMonth = MonthYear.fromDate(debt.startDate);
+  if (month.isBefore(startMonth)) return false;
+  if (debt.expectedEndDate) {
+    const endMonth = MonthYear.fromDate(debt.expectedEndDate);
+    if (month.isAfter(endMonth)) return false;
+  } else if (debt.status !== "active") {
+    return false;
+  }
+  return true;
 }
 
 function monthLabelFromIso(monthIso: string): string {
@@ -217,6 +244,26 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
 
   if (!preview.open) return { open: false };
 
+  const month = MonthYear.fromIso(preview.monthIso);
+  const settlementsRepo = new DrizzleRecurringSettlementRepository();
+  const [debts, settlements] = await Promise.all([
+    debtsRepo.listForUser(user.id, { status: "all" }),
+    settlementsRepo.listForUserMonth(user.id, month.firstDay()),
+  ]);
+
+  const statusByDebtId = new Map<string, RecurringSettlementStatus>(
+    settlements.map((s) => [s.debtId, s.status] as const),
+  );
+
+  const commitments: MonthClosingCommitment[] = debts
+    .filter((d) => isRecurringActiveInMonth(d, month))
+    .map((d) => ({
+      debtId: d.id,
+      label: d.label,
+      amountFormatted: recurringMonthlyEquivalent(d, month).format(),
+      status: statusByDebtId.get(d.id) ?? "open",
+    }));
+
   const deltaCents = preview.endNetWorthCents - preview.baselineNetWorthCents;
   const leakAbsCents = preview.leakCents < 0n ? -preview.leakCents : preview.leakCents;
 
@@ -228,6 +275,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
     deltaFormatted: Money.fromCents(deltaCents).format(),
     leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
     status: preview.status,
+    commitments,
   };
 }
 

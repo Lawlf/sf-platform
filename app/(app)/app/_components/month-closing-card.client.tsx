@@ -15,10 +15,16 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
+import type { SettleAction } from "@/application/use-cases/month-closing/settle-recurring-commitment.use-case";
 
-import { closeMonthAction } from "../_actions/planning-actions";
+import {
+  closeMonthAction,
+  settleRecurringCommitmentAction,
+} from "../_actions/planning-actions";
 import {
   fetchMonthClosing,
+  type MonthClosingCommitment,
   type MonthClosingPayload,
   type MonthClosingStatus,
 } from "../_actions/planning-queries";
@@ -86,6 +92,145 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
   );
 }
 
+const SETTLED_STATUS_LABEL: Record<"converted_to_debt" | "cancelled", string> = {
+  converted_to_debt: "Virou dívida",
+  cancelled: "Cancelado",
+};
+
+interface CommitmentRowProps {
+  commitment: MonthClosingCommitment;
+  monthIso: string;
+  onSettled: () => void;
+}
+
+function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [pendingAction, setPendingAction] = useState<SettleAction | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function run(action: SettleAction, successMessage: string) {
+    setError(null);
+    setPendingAction(action);
+    startTransition(async () => {
+      const result = await settleRecurringCommitmentAction(commitment.debtId, monthIso, action);
+      if (!result.ok) {
+        setPendingAction(null);
+        setError(result.message ?? "Não foi possível registrar.");
+        return;
+      }
+      toast.success(successMessage);
+      onSettled();
+    });
+  }
+
+  const settled = commitment.status !== "open";
+
+  return (
+    <li className="rounded-xl border border-[color:var(--border-soft)] p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+            {commitment.label}
+          </p>
+          <p className="mt-0.5 text-[0.8125rem] text-[color:var(--text-secondary)]">
+            <HideableValue>{commitment.amountFormatted}</HideableValue>
+          </p>
+        </div>
+        {commitment.status !== "open" ? (
+          <span className="shrink-0 rounded-full bg-[color:var(--surface-3)] px-2.5 py-1 text-[0.6875rem] font-semibold uppercase tracking-[0.4px] text-[color:var(--text-secondary)]">
+            {SETTLED_STATUS_LABEL[commitment.status]}
+          </span>
+        ) : null}
+      </div>
+
+      {settled ? null : (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={pending}
+            onClick={() => run("paid", `${commitment.label}: marcado como pago.`)}
+          >
+            {pending && pendingAction === "paid" ? (
+              <Spinner size={16} decorative />
+            ) : (
+              "Paguei"
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={pending}
+            onClick={() =>
+              run("convert_to_debt", `${commitment.label}: virou dívida.`)
+            }
+          >
+            {pending && pendingAction === "convert_to_debt" ? (
+              <Spinner size={16} decorative />
+            ) : (
+              "Não paguei → vira dívida"
+            )}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            disabled={pending}
+            onClick={() => run("cancel", `${commitment.label}: cancelado.`)}
+          >
+            {pending && pendingAction === "cancel" ? (
+              <Spinner size={16} decorative />
+            ) : (
+              "Cancelar"
+            )}
+          </Button>
+        </div>
+      )}
+
+      {error ? (
+        <p
+          className="mt-2 text-[0.8125rem] font-medium"
+          style={{ color: "var(--semantic-negative)" }}
+        >
+          {error}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
+interface CommitmentsListProps {
+  commitments: MonthClosingCommitment[];
+  monthIso: string;
+  monthShortLabel: string;
+  onSettled: () => void;
+}
+
+function CommitmentsList({
+  commitments,
+  monthIso,
+  monthShortLabel,
+  onSettled,
+}: CommitmentsListProps) {
+  if (commitments.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+        Compromissos de {monthShortLabel}
+      </p>
+      <ul className="flex flex-col gap-2">
+        {commitments.map((c) => (
+          <CommitmentRow
+            key={c.debtId}
+            commitment={c}
+            monthIso={monthIso}
+            onSettled={onSettled}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function MonthClosingCard({ initialData }: Props) {
   const queryClient = useQueryClient();
   const { data } = useSuspenseQuery({
@@ -102,6 +247,10 @@ export function MonthClosingCard({ initialData }: Props) {
 
   const monthLabel = data.monthLabel ?? "o mês";
   const shortMonth = capitalize(monthLabel.split(" de ")[0] ?? monthLabel);
+
+  async function handleCommitmentSettled() {
+    await queryClient.invalidateQueries({ queryKey: ["month-closing"] });
+  }
 
   function handleClose() {
     setError(null);
@@ -212,6 +361,17 @@ export function MonthClosingCard({ initialData }: Props) {
                   aria-hidden
                 />
               </Link>
+            ) : null}
+
+            {data.commitments && data.commitments.length > 0 ? (
+              <div className="border-t border-[color:var(--border-soft)] pt-4">
+                <CommitmentsList
+                  commitments={data.commitments}
+                  monthIso={data.monthIso ?? ""}
+                  monthShortLabel={shortMonth}
+                  onSettled={handleCommitmentSettled}
+                />
+              </div>
             ) : null}
 
             {error ? (
