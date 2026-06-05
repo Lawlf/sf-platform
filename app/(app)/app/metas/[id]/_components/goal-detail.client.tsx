@@ -26,6 +26,7 @@ import { ResultCard, ResultStat } from "../../../simular/_components/sim-result"
 import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
 
+import { AddToReserveSheet } from "./add-to-reserve-sheet.client";
 import { GoalEvolutionChart } from "./goal-evolution-chart";
 import { NextMoveAfterGoal } from "./next-move-after-goal.client";
 
@@ -140,6 +141,9 @@ export function GoalDetail({ detail }: GoalDetailProps) {
 
       {/* Actions: secundárias e discretas, padrão size sm ghost */}
       <div className="flex flex-col gap-2 border-t border-[color:var(--border-soft)] pt-3">
+        {goal.type === "emergency_fund" ? (
+          <AddToReserveSheet goalId={goal.id} hasReserve={goal.linkedAssetId !== null} />
+        ) : null}
         {/* Acoes primarias: Editar + Simular, largura igual, sem quebra de linha */}
         <div className="grid grid-cols-2 gap-2">
           <Button asChild variant="outline" size="sm" className="w-full justify-center gap-1.5">

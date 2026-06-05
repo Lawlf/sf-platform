@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 
+import { addToReserve } from "@/application/use-cases/goal/add-to-reserve.use-case";
 import { archiveGoal } from "@/application/use-cases/goal/archive-goal.use-case";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { createGoal, type CreateGoalInput } from "@/application/use-cases/goal/create-goal.use-case";
@@ -168,6 +169,23 @@ export async function updateGoalAction(
   );
   if (!result.ok) return { ok: false, message: result.message };
   revalidatePath("/app/metas");
+  return { ok: true };
+}
+
+export async function addToReserveAction(
+  goalId: string,
+  amountCents: string,
+): Promise<ActionResult> {
+  const user = await requireUser();
+  const goals = new DrizzleGoalRepository();
+  const assets = new DrizzleAssetRepository();
+  const result = await addToReserve(
+    { goals, assets },
+    { userId: user.id, goalId, amountCents: BigInt(amountCents) },
+  );
+  if (!result.ok) return { ok: false, message: result.message };
+  revalidatePath("/app/metas");
+  revalidatePath("/app");
   return { ok: true };
 }
 
