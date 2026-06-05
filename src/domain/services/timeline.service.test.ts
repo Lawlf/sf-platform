@@ -577,3 +577,89 @@ describe("TimelineService casos extremos", () => {
     expect(cents).toEqual([0n, 0n, 1_000_000n]);
   });
 });
+
+describe("TimelineService.buildTimeline com settlements (anti double-count)", () => {
+  it("recorrente convertido em dívida no mês M: não soma como saída naquele mês", () => {
+    const income = makeIncome({ amountCents: 500_000n, frequency: "monthly" });
+    const rec = makeRecurring({
+      id: "rent-1",
+      amountCents: 150_000n,
+      frequency: "monthly",
+    });
+    const tl = TimelineService.buildTimeline({
+      incomes: [income],
+      debts: [rec as DebtEntity],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 3),
+      settlements: [
+        { debtId: "rent-1", monthIso: "2026-03", status: "converted_to_debt" },
+      ],
+    });
+    expect(tl.points).toHaveLength(1);
+    // Saída zerada no mês convertido => debtPayments 0, saldo livre = renda cheia.
+    expect(tl.points[0]?.totalDebtPayments.toCents()).toBe(0n);
+    expect(tl.points[0]?.freeBalance.toCents()).toBe(500_000n);
+  });
+
+  it("meses não-convertidos seguem somando a saída normalmente", () => {
+    const rec = makeRecurring({
+      id: "rent-1",
+      amountCents: 150_000n,
+      frequency: "monthly",
+    });
+    const tl = TimelineService.buildTimeline({
+      incomes: [],
+      debts: [rec as DebtEntity],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 5),
+      settlements: [
+        { debtId: "rent-1", monthIso: "2026-04", status: "converted_to_debt" },
+      ],
+    });
+    const cents = tl.points.map((p) => p.totalDebtPayments.toCents());
+    // mar normal, abr zerado (convertido), mai normal.
+    expect(cents).toEqual([150_000n, 0n, 150_000n]);
+  });
+
+  it("settlement cancelled não zera a saída (só converted_to_debt zera)", () => {
+    const rec = makeRecurring({
+      id: "rent-1",
+      amountCents: 150_000n,
+      frequency: "monthly",
+    });
+    const tl = TimelineService.buildTimeline({
+      incomes: [],
+      debts: [rec as DebtEntity],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 3),
+      settlements: [{ debtId: "rent-1", monthIso: "2026-03", status: "cancelled" }],
+    });
+    expect(tl.points[0]?.totalDebtPayments.toCents()).toBe(150_000n);
+  });
+
+  it("settlement de outro debtId não afeta este compromisso", () => {
+    const rec = makeRecurring({
+      id: "rent-1",
+      amountCents: 150_000n,
+      frequency: "monthly",
+    });
+    const tl = TimelineService.buildTimeline({
+      incomes: [],
+      debts: [rec as DebtEntity],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 3),
+      settlements: [
+        { debtId: "other-debt", monthIso: "2026-03", status: "converted_to_debt" },
+      ],
+    });
+    expect(tl.points[0]?.totalDebtPayments.toCents()).toBe(150_000n);
+  });
+});

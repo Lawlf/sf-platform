@@ -38,6 +38,20 @@ export interface Timeline {
   points: MonthlyDataPoint[];
 }
 
+/**
+ * Registro de "settlement" de um compromisso recorrente num mês: quando o
+ * usuário, no fechar-mês, marcou aquele (compromisso, mês) como convertido em
+ * dívida ou cancelado. Apenas `converted_to_debt` afeta a outflow (zera a
+ * saída do mês para evitar contar 2x: a saída virou passivo). Chaveado por
+ * `debtId` + `monthIso` (`MonthYear.toIso()`), não por `Date`, para casar com
+ * a granularidade mensal da timeline.
+ */
+export interface TimelineSettlement {
+  debtId: string;
+  monthIso: string;
+  status: "converted_to_debt" | "cancelled";
+}
+
 export interface BuildTimelineInput {
   incomes: IncomeEntity[];
   debts: DebtEntity[];
@@ -51,6 +65,13 @@ export interface BuildTimelineInput {
    * outflow mensal. Opcional para backward compat com testes existentes.
    */
   adjustments?: DebtAmountAdjustmentEntity[];
+  /**
+   * Settlements de compromissos recorrentes no fechar-mês. Um
+   * `converted_to_debt` em (debtId, mês) zera a saída daquele compromisso
+   * naquele mês (o não-pago virou dívida; não conta 2x). Opcional para
+   * backward compat com os testes/chamadas existentes.
+   */
+  settlements?: TimelineSettlement[];
 }
 
 // 52 semanas / 12 meses = 4.333...
@@ -106,8 +127,20 @@ export function recurringMonthlyEquivalent(
   debt: DebtEntity,
   month: MonthYear,
   adjustments?: DebtAmountAdjustmentEntity[],
+  settlements?: TimelineSettlement[],
 ): Money {
   if (debt.kind !== "recurring") return Money.fromCents(0n);
+
+  // Anti-double-count: um compromisso convertido em dívida naquele mês deixa
+  // de contar como saída (foi substituído pelo passivo criado).
+  if (settlements && settlements.length > 0) {
+    const monthKey = month.toIso();
+    const converted = settlements.some(
+      (s) => s.debtId === debt.id && s.monthIso === monthKey && s.status === "converted_to_debt",
+    );
+    if (converted) return Money.fromCents(0n);
+  }
+
   const startMonth = MonthYear.fromDate(debt.startDate);
   if (month.isBefore(startMonth)) return Money.fromCents(0n);
   if (debt.expectedEndDate) {
@@ -159,9 +192,10 @@ function recurringOutflowForMonth(
   debts: DebtEntity[],
   month: MonthYear,
   adjustments?: DebtAmountAdjustmentEntity[],
+  settlements?: TimelineSettlement[],
 ): Money {
   return debts.reduce(
-    (acc, d) => acc.add(recurringMonthlyEquivalent(d, month, adjustments)),
+    (acc, d) => acc.add(recurringMonthlyEquivalent(d, month, adjustments, settlements)),
     Money.fromCents(0n),
   );
 }
@@ -227,7 +261,12 @@ export class TimelineService {
         Money.fromCents(0n),
       );
       const installmentPayments = paymentsForMonth(input.payments, m);
-      const recurringOutflow = recurringOutflowForMonth(input.debts, m, input.adjustments);
+      const recurringOutflow = recurringOutflowForMonth(
+        input.debts,
+        m,
+        input.adjustments,
+        input.settlements,
+      );
       const totalDebtPayments = installmentPayments.add(recurringOutflow);
       const freeBalance = totalIncome.subtract(totalDebtPayments);
       const assetsTotal = assetsAtMonthEnd(input.assets, m);
