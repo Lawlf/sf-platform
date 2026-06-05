@@ -98,11 +98,13 @@ export function ScenarioProjection({
         Simule um cenário
       </h3>
 
-      <div className="mt-3 flex flex-wrap items-end gap-3">
-        <RateInput label={cfg.rateLabel} value={ratePct} onChange={setRatePct} />
-        {cfg.hasDividends ? (
-          <RateInput label="Dividendos por ano" value={divPct} onChange={setDivPct} />
-        ) : null}
+      <div className="mt-3 flex flex-col gap-3">
+        <div className="flex flex-wrap gap-3">
+          <RateInput label={cfg.rateLabel} value={ratePct} onChange={setRatePct} />
+          {cfg.hasDividends ? (
+            <RateInput label="Dividendos por ano" value={divPct} onChange={setDivPct} />
+          ) : null}
+        </div>
 
         <div className="flex flex-col gap-1">
           <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
