@@ -199,7 +199,7 @@ function RateInput({
       <span className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
         {label}
       </span>
-      <span className="flex items-center gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
+      <span className="inline-flex w-fit items-center gap-0.5 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
         <input
           type="number"
           inputMode="decimal"
@@ -208,7 +208,7 @@ function RateInput({
           step={0.5}
           value={value}
           onChange={(e) => onChange(Math.max(0, Math.min(100, Number(e.target.value) || 0)))}
-          className="w-12 bg-transparent text-[0.9375rem] font-bold text-[color:var(--text-primary)] outline-none"
+          className="w-10 bg-transparent text-right text-[0.9375rem] font-bold text-[color:var(--text-primary)] outline-none"
         />
         <span className="text-[0.875rem] font-semibold text-[color:var(--text-muted)]">%</span>
       </span>
