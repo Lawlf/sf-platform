@@ -31,7 +31,7 @@ export function BottomNav() {
   return (
     <nav
       aria-label="Navegação rápida"
-      className="glass-tier-2 fixed bottom-2 left-2 right-2 z-20 mx-auto flex h-[72px] max-w-md items-end justify-around px-2 py-2"
+      className="glass-tier-2 fixed bottom-2 left-1/2 z-20 flex h-[72px] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-end justify-around px-2 py-2"
     >
       {NAV_ITEMS.map((item) => {
         const Icon = item.icon;

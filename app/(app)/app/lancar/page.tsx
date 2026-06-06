@@ -15,7 +15,7 @@ export default async function LancarPage() {
     <PageShell
       title="Lançar"
       description="Registre uma entrada ou saída avulsa."
-      backHref={"/app/linha-do-tempo" as Route}
+      backHref={"/app" as Route}
     >
       <LogTransactionForm />
     </PageShell>

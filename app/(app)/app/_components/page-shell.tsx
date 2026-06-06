@@ -1,7 +1,7 @@
-import { ArrowLeft } from "lucide-react";
 import type { Route } from "next";
-import Link from "next/link";
 import type { ReactNode } from "react";
+
+import { BackButton } from "./back-button.client";
 
 export interface PageShellProps {
   children: ReactNode;
@@ -25,15 +25,7 @@ export function PageShell({
   return (
     <main className="relative mx-auto flex w-full max-w-md flex-col gap-4 px-4 pb-8 pt-6 md:max-w-2xl md:pb-12 lg:max-w-4xl">
       {blob === "warm" ? <div className="bg-blob-top-right" aria-hidden /> : null}
-      {backHref ? (
-        <Link
-          href={backHref}
-          className="focus-ring relative inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--surface-1)] px-3 py-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] backdrop-blur-sm transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
-        >
-          <ArrowLeft size={14} strokeWidth={2} aria-hidden />
-          {backLabel}
-        </Link>
-      ) : null}
+      {backHref ? <BackButton fallbackHref={backHref} label={backLabel} /> : null}
       {title ? (
         <header className="relative flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
