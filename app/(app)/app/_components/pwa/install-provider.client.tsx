@@ -14,6 +14,7 @@ import { detectPwaEnv, type PwaEnv } from "@/app/(app)/app/_lib/pwa/platform";
 import {
   trackCtaClicked,
   trackDismissed,
+  trackEligible,
   trackInstalled,
   trackIosInstructions,
   trackNativeOutcome,
@@ -104,6 +105,11 @@ export function InstallProvider({
       return;
     }
 
+    const persisted = readPersisted();
+    if (!persisted.valueMoment && sessionCountRef.current >= 2) {
+      trackEligible(detected, plan, "second_session");
+    }
+
     function onBeforeInstallPrompt(e: Event) {
       e.preventDefault();
       deferredRef.current = e as BeforeInstallPromptEvent;
@@ -117,6 +123,7 @@ export function InstallProvider({
       toast.success("Pronto. O Sabor já está na sua tela inicial.");
     }
     function onValueMoment() {
+      trackEligible(detected, plan, "value_moment");
       evaluate(detected);
     }
 
