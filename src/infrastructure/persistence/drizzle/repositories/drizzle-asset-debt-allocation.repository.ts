@@ -2,7 +2,7 @@ import { and, eq, sql } from "drizzle-orm";
 
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import {
@@ -15,7 +15,7 @@ function toEntity(row: AssetDebtAllocationRow): AssetDebtAllocation {
     id: row.id,
     assetId: row.assetId,
     debtId: row.debtId,
-    allocationOriginal: Money.fromCents(row.allocationOriginalCents),
+    allocationOriginal: Money.fromCents(row.allocationOriginalCents, row.currency as Currency),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -30,6 +30,7 @@ export class DrizzleAssetDebtAllocationRepository implements AssetDebtAllocation
         assetId: allocation.assetId,
         debtId: allocation.debtId,
         allocationOriginalCents: allocation.allocationOriginal.toCents(),
+        currency: allocation.allocationOriginal.currency,
         createdAt: allocation.createdAt,
         updatedAt: allocation.updatedAt,
       })
@@ -37,6 +38,7 @@ export class DrizzleAssetDebtAllocationRepository implements AssetDebtAllocation
         target: [assetDebtAllocations.assetId, assetDebtAllocations.debtId],
         set: {
           allocationOriginalCents: allocation.allocationOriginal.toCents(),
+          currency: allocation.allocationOriginal.currency,
           updatedAt: allocation.updatedAt,
         },
       });

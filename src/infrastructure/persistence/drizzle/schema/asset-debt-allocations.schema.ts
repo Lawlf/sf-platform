@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, index, pgTable, timestamp, unique, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, pgTable, text, timestamp, unique, uuid } from "drizzle-orm/pg-core";
 
 import { assets } from "./assets.schema";
 import { debts } from "./debts.schema";
@@ -15,6 +15,7 @@ export const assetDebtAllocations = pgTable(
       .notNull()
       .references(() => debts.id, { onDelete: "cascade" }),
     allocationOriginalCents: bigint("allocation_original_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

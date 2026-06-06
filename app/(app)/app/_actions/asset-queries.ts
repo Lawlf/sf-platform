@@ -4,9 +4,12 @@ import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-cas
 import type { AssetCategory } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { assetNetWorth } from "@/domain/services/patrimony.service";
+import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -41,6 +44,9 @@ export async function fetchNetWorth(): Promise<NetWorthPayload | null> {
       assets: new DrizzleAssetRepository(),
       allocations: new DrizzleAssetDebtAllocationRepository(),
       debts: new DrizzleDebtRepository(),
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
+      clock: new SystemClock(),
     },
     { userId },
   );

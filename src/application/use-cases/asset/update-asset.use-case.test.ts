@@ -175,6 +175,25 @@ describe("updateAsset", () => {
     }
   });
 
+  it("keeps the asset currency when updating value of a non-BRL asset", async () => {
+    const assets = makeAssetRepo();
+    const clock = makeClock();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ currentValue: Money.fromCents(8_000_000n, "USD") }),
+    );
+
+    const result = await updateAsset(
+      { assets, clock },
+      { userId: "user-1", assetId: "asset-1", currentValueCents: 7_500_000n },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.currentValue.currency).toBe("USD");
+      expect(result.value.currentValue.toCents()).toBe(7_500_000n);
+    }
+  });
+
   it("allows clearing metadata to null", async () => {
     const assets = makeAssetRepo();
     const clock = makeClock();

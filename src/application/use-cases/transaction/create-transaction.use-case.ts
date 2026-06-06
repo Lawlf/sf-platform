@@ -56,11 +56,16 @@ export async function createTransaction(
   const status = input.status ?? "paid";
   const account = await resolveAccount(deps, input.userId, input.accountId);
 
+  const amount =
+    input.amount.currency === account.currentValue.currency
+      ? input.amount
+      : input.amount.convert(1, account.currentValue.currency);
+
   if (status === "paid") {
     const next =
       input.direction === "out"
-        ? account.currentValue.subtract(input.amount)
-        : account.currentValue.add(input.amount);
+        ? account.currentValue.subtract(amount)
+        : account.currentValue.add(amount);
     await deps.assets.update({ ...account, currentValue: next, updatedAt: deps.clock.now() });
   }
 
@@ -68,7 +73,7 @@ export async function createTransaction(
     id: crypto.randomUUID(),
     userId: input.userId,
     direction: input.direction,
-    amount: input.amount,
+    amount,
     description: input.description,
     category: input.category,
     accountId: account.id,

@@ -1,5 +1,10 @@
+import {
+  BASE_CURRENCY,
+  convertAssetToBase,
+} from "@/application/use-cases/fx/convert-entity-to-base";
 import type { BuildGoalMacroDeps } from "@/application/use-cases/goal/build-goal-macro";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
+import { isOk } from "@/shared/errors/result";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
 import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
 import { GoalProgressService, type GoalProgress } from "@/domain/services/goal-progress.service";
@@ -65,7 +70,10 @@ async function resolveLinkedAsset(
   const asset = await deps.assets.findById(goal.linkedAssetId, goal.userId);
   if (!asset) return goal;
 
-  return { ...goal, manualSavedCents: asset.currentValue.toCents() };
+  const converted = await convertAssetToBase(deps, goal.userId, asset, BASE_CURRENCY);
+  if (!isOk(converted)) return goal;
+
+  return { ...goal, manualSavedCents: converted.value.currentValue.toCents() };
 }
 
 function gateEta(

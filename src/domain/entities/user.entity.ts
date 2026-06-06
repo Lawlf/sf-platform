@@ -1,3 +1,5 @@
+import type { Currency } from "@/domain/value-objects/money.vo";
+
 export type UserRole = "user" | "admin";
 export type UserPlan = "free" | "pro";
 export type ContentDiagnosticAnswer = "pagar-divida" | "guardar" | "investir";
@@ -17,6 +19,7 @@ export interface UserEntity {
   onboardingWizardSeenAt: Date | null;
   homeTourDismissedAt: Date | null;
   quickAccess: string[];
+  baseCurrency: Currency;
   createdAt: Date;
   updatedAt: Date;
 }

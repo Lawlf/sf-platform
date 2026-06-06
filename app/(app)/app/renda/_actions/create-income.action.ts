@@ -22,7 +22,7 @@ export async function createIncomeAction(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const data = parsed.data;
-  const amount = Money.fromCents(BigInt(data.amountCents));
+  const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 
   await registerIncome(
     { incomes: new DrizzleIncomeRepository(), clock: new SystemClock() },

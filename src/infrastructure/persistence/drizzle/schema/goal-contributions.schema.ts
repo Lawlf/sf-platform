@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, index, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { goals } from "./goals.schema";
 import { users } from "./users.schema";
@@ -15,6 +15,7 @@ export const goalContributions = pgTable(
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

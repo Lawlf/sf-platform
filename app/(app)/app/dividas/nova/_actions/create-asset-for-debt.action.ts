@@ -92,6 +92,7 @@ export async function createAssetForDebtAction(
       category: v.category,
       label: v.label.trim(),
       currentValueCents,
+      currency: "BRL",
       metadata,
       fipeCode: null,
       acquiredAt,

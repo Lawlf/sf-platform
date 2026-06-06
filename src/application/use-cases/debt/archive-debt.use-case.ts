@@ -38,14 +38,14 @@ export async function archiveDebt(
         paidAt: now,
         amount: existing.currentBalance,
         principalPortion: existing.currentBalance,
-        interestPortion: Money.zero(),
+        interestPortion: Money.zero(existing.currentBalance.currency),
         isExtra: true,
         isClosingPayment: true,
       };
       await deps.payments.create(closingPayment);
       await deps.debts.update({
         ...existing,
-        currentBalance: Money.zero(),
+        currentBalance: Money.zero(existing.currentBalance.currency),
         status: "paid_off",
         updatedAt: now,
       });

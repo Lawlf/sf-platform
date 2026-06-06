@@ -8,7 +8,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RegisterDebtDeps {
@@ -80,6 +80,7 @@ export type RegisterDebtInput =
       endDate?: Date | null;
       notes?: string | undefined;
       dueDay?: number | null;
+      currency?: Currency;
     };
 
 export async function registerDebt(
@@ -162,14 +163,15 @@ export async function registerDebt(
       // Compromisso recorrente: `recurringAmountCents` é só um marcador do
       // valor por período. `currentBalance` fica em zero porque não há saldo
       // devedor projetável; o app trata a vista como fluxo de caixa.
-      const principalMoney = Money.fromCents(input.recurringAmountCents);
+      const recurringCurrency = input.currency ?? "BRL";
+      const principalMoney = Money.fromCents(input.recurringAmountCents, recurringCurrency);
       entity = {
         id: crypto.randomUUID(),
         userId: input.userId,
         label: input.label,
         status: "active",
         originalPrincipal: principalMoney,
-        currentBalance: Money.zero(),
+        currentBalance: Money.zero(recurringCurrency),
         startDate: input.startDate,
         expectedEndDate: input.endDate ?? null,
         notes: input.notes ?? null,

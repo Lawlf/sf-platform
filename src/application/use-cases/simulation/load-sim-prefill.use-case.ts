@@ -4,7 +4,9 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import { isOk } from "@/shared/errors/result";
 
 /**
@@ -31,6 +33,8 @@ export interface LoadSimPrefillDeps {
   debts: DebtRepository;
   incomes: IncomeRepository;
   clock: Clock;
+  rates: ExchangeRateRepository;
+  overrides: UserFxOverrideRepository;
 }
 
 export async function loadSimPrefill(
@@ -44,6 +48,9 @@ export async function loadSimPrefill(
         assets: deps.assets,
         allocations: deps.allocations,
         debts: deps.debts,
+        rates: deps.rates,
+        overrides: deps.overrides,
+        clock: deps.clock,
       },
       { userId },
     ),
@@ -52,6 +59,8 @@ export async function loadSimPrefill(
         debts: deps.debts,
         incomes: deps.incomes,
         clock: deps.clock,
+        rates: deps.rates,
+        overrides: deps.overrides,
       },
       { userId },
     ),

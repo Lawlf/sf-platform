@@ -38,6 +38,7 @@ export const assets = pgTable(
     category: assetCategory("category").notNull(),
     label: text("label").notNull(),
     currentValueCents: bigint("current_value_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     metadata: jsonb("metadata"),
     fipeCode: text("fipe_code"),
     fipeLastSyncedAt: timestamp("fipe_last_synced_at", { withTimezone: true }),

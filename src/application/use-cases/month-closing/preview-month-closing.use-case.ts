@@ -1,19 +1,32 @@
 import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
+import {
+  BASE_CURRENCY,
+  convertAssetToBase,
+  convertDebtToBase,
+  convertIncomeToBase,
+  convertPaymentToBase,
+} from "@/application/use-cases/fx/convert-entity-to-base";
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import {
   ReconciliationService,
   type ReconciliationStatus,
 } from "@/domain/services/reconciliation.service";
 import { TimelineService } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { isOk } from "@/shared/errors/result";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { getOpenMonth } from "./get-open-month.use-case";
 
@@ -25,6 +38,8 @@ export interface MonthClosingDeps {
   incomes: IncomeRepository;
   payments: DebtPaymentRepository;
   clock: Clock;
+  rates: ExchangeRateRepository;
+  overrides: UserFxOverrideRepository;
 }
 
 export interface ComputedMonthClosing {
@@ -57,7 +72,13 @@ export async function computeMonthClosing(
   if (!open) return null;
 
   const snapshotResult = await getDashboardSnapshot(
-    { debts: deps.debts, incomes: deps.incomes, clock: deps.clock },
+    {
+      debts: deps.debts,
+      incomes: deps.incomes,
+      clock: deps.clock,
+      rates: deps.rates,
+      overrides: deps.overrides,
+    },
     { userId: input.userId },
   );
   const theoreticalFreeCashFlowCents = isOk(snapshotResult)
@@ -65,7 +86,14 @@ export async function computeMonthClosing(
     : 0n;
 
   const netWorthResult = await getNetWorth(
-    { assets: deps.assets, allocations: deps.allocations, debts: deps.debts },
+    {
+      assets: deps.assets,
+      allocations: deps.allocations,
+      debts: deps.debts,
+      rates: deps.rates,
+      overrides: deps.overrides,
+      clock: deps.clock,
+    },
     { userId: input.userId },
   );
   const endNetWorthCents = isOk(netWorthResult)
@@ -116,11 +144,39 @@ async function resolveBaseline(
     deps.assets.findActiveByUser(userId),
   ]);
 
+  const convertedIncomes: IncomeEntity[] = [];
+  for (const inc of incomes) {
+    const r = await convertIncomeToBase(deps, userId, inc, BASE_CURRENCY);
+    if (isErr(r)) return 0n;
+    convertedIncomes.push(r.value);
+  }
+
+  const convertedDebts: DebtEntity[] = [];
+  for (const d of debts) {
+    const r = await convertDebtToBase(deps, userId, d, BASE_CURRENCY);
+    if (isErr(r)) return 0n;
+    convertedDebts.push(r.value);
+  }
+
+  const convertedPayments: DebtPaymentEntity[] = [];
+  for (const p of payments) {
+    const r = await convertPaymentToBase(deps, userId, p, BASE_CURRENCY);
+    if (isErr(r)) return 0n;
+    convertedPayments.push(r.value);
+  }
+
+  const convertedAssets: AssetEntity[] = [];
+  for (const a of assets) {
+    const r = await convertAssetToBase(deps, userId, a, BASE_CURRENCY);
+    if (isErr(r)) return 0n;
+    convertedAssets.push(r.value);
+  }
+
   const timeline = TimelineService.buildTimeline({
-    incomes,
-    debts,
-    payments,
-    assets,
+    incomes: convertedIncomes,
+    debts: convertedDebts,
+    payments: convertedPayments,
+    assets: convertedAssets,
     from: prevMonth,
     to: prevMonth,
   });

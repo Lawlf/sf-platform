@@ -11,6 +11,7 @@ import {
   type PerformMcpWriteOutput,
 } from "@/application/use-cases/mcp/perform-mcp-write.use-case";
 import { findWriteAction } from "@/domain/mcp/write-actions";
+import { CURRENCIES } from "@/domain/value-objects/money.vo";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
@@ -91,6 +92,7 @@ function presentWriteOutput(out: PerformMcpWriteOutput): ReturnType<typeof text>
 const idempotencyKey = z.string().optional();
 const cents = z.number().int().positive();
 const isoDate = z.string();
+const currency = z.enum(CURRENCIES).optional();
 
 const incomeFrequency = z.enum(["monthly", "weekly", "one_off"]);
 const recurringFrequency = z.enum(["monthly", "weekly", "annual"]);
@@ -133,6 +135,7 @@ const debtCreateShape = {
   recurringAmountCents: z.number().int().positive().optional(),
   expenseCategory: expenseCategory.optional(),
   endDate: isoDate.optional(),
+  currency,
   idempotencyKey,
 };
 
@@ -208,6 +211,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         frequency: incomeFrequency,
         startDate: isoDate,
         endDate: isoDate.optional(),
+        currency,
         idempotencyKey,
       },
     },
@@ -226,6 +230,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         frequency: incomeFrequency.optional(),
         startDate: isoDate.optional(),
         endDate: isoDate.optional(),
+        currency,
         idempotencyKey,
       },
     },
@@ -252,6 +257,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         description: z.string().min(1).max(200),
         category: z.string().min(1).max(60).optional(),
         occurredAt: isoDate.optional(),
+        currency,
         idempotencyKey,
       },
     },
@@ -289,6 +295,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         bankName: z.string().min(1).max(120).optional(),
         recurringAmountCents: z.number().int().positive().optional(),
         recurringFrequency: recurringFrequency.optional(),
+        currency,
         idempotencyKey,
       },
     },
@@ -317,6 +324,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         metadata: z.record(z.string(), z.unknown()).nullish(),
         fipeCode: z.string().nullish(),
         acquiredAt: isoDate.optional(),
+        currency,
         idempotencyKey,
       },
     },
@@ -341,6 +349,7 @@ export function registerMcpWriteTools(server: McpServer): void {
         metadata: z.record(z.string(), z.unknown()).nullish(),
         fipeCode: z.string().nullish(),
         acquiredAt: isoDate.optional(),
+        currency,
         idempotencyKey,
       },
     },

@@ -12,7 +12,7 @@ import type {
   AssetRepository,
   AssetWithAllocations,
 } from "@/domain/ports/repositories/asset.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import {
@@ -116,7 +116,7 @@ function toEntity(row: AssetRow): AssetEntity {
     userId: row.userId,
     category: row.category as AssetCategory,
     label: row.label,
-    currentValue: Money.fromCents(row.currentValueCents),
+    currentValue: Money.fromCents(row.currentValueCents, row.currency as Currency),
     metadata: normalizeMetadata(row.metadata),
     fipeCode: row.fipeCode,
     fipeLastSyncedAt: row.fipeLastSyncedAt,
@@ -140,7 +140,7 @@ function allocationToEntity(row: AssetDebtAllocationRow): AssetDebtAllocation {
     id: row.id,
     assetId: row.assetId,
     debtId: row.debtId,
-    allocationOriginal: Money.fromCents(row.allocationOriginalCents),
+    allocationOriginal: Money.fromCents(row.allocationOriginalCents, row.currency as Currency),
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -156,6 +156,7 @@ export class DrizzleAssetRepository implements AssetRepository {
         category: asset.category,
         label: asset.label,
         currentValueCents: asset.currentValue.toCents(),
+        currency: asset.currentValue.currency,
         metadata: serializeMetadata(asset.metadata),
         fipeCode: asset.fipeCode,
         fipeLastSyncedAt: asset.fipeLastSyncedAt,
@@ -181,6 +182,7 @@ export class DrizzleAssetRepository implements AssetRepository {
         category: asset.category,
         label: asset.label,
         currentValueCents: asset.currentValue.toCents(),
+        currency: asset.currentValue.currency,
         metadata: serializeMetadata(asset.metadata),
         fipeCode: asset.fipeCode,
         fipeLastSyncedAt: asset.fipeLastSyncedAt,

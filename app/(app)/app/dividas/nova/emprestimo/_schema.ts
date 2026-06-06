@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CURRENCIES } from "@/domain/value-objects/money.vo";
+
 import { linkAssetSlice } from "../_lib/link-asset";
 
 export const cashInflowSlice = {
@@ -12,6 +14,7 @@ export const cashInflowSlice = {
 export const newScenarioSchema = z
   .object({
     scenario: z.literal("new"),
+    currency: z.enum(CURRENCIES),
     label: z.string().min(1, "Informe um rótulo.").max(120),
     netReceivedCents: z.bigint().nonnegative("Valor recebido inválido."),
     principalCents: z.bigint().positive("Valor contratado deve ser positivo."),
@@ -32,6 +35,7 @@ export const newScenarioSchema = z
 export const ongoingScenarioSchema = z
   .object({
     scenario: z.literal("ongoing"),
+    currency: z.enum(CURRENCIES),
     label: z.string().min(1, "Informe um rótulo.").max(120),
     originalPrincipalCents: z.bigint().positive("Valor original deve ser positivo."),
     currentBalanceCents: z.bigint().positive("Saldo deve ser positivo."),

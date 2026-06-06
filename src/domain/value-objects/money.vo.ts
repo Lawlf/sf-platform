@@ -1,14 +1,24 @@
 import { InvalidMoneyAmountError } from "@/domain/errors/financial-errors";
 import { err, ok, type Result } from "@/shared/errors/result";
 
-export type Currency = "BRL";
+export const CURRENCIES = ["BRL", "USD", "EUR", "GBP"] as const;
+export type Currency = (typeof CURRENCIES)[number];
 
-const PT_BR_FORMATTER = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  minimumFractionDigits: 2,
-  maximumFractionDigits: 2,
-});
+const FORMATTER_CACHE = new Map<Currency, Intl.NumberFormat>();
+
+function formatterFor(currency: Currency): Intl.NumberFormat {
+  let fmt = FORMATTER_CACHE.get(currency);
+  if (!fmt) {
+    fmt = new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency,
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+    FORMATTER_CACHE.set(currency, fmt);
+  }
+  return fmt;
+}
 
 export class Money {
   private constructor(
@@ -56,7 +66,7 @@ export class Money {
   }
 
   format(): string {
-    return PT_BR_FORMATTER.format(this.toNumber());
+    return formatterFor(this.currency).format(this.toNumber());
   }
 
   add(other: Money): Money {
@@ -75,6 +85,14 @@ export class Money {
     }
     const product = Number(this.cents) * factor;
     return new Money(BigInt(bankersRound(product)), this.currency);
+  }
+
+  convert(rate: number, target: Currency): Money {
+    if (!Number.isFinite(rate) || rate < 0) {
+      throw new Error("Money.convert rate must be finite and non-negative");
+    }
+    const product = Number(this.cents) * rate;
+    return new Money(BigInt(bankersRound(product)), target);
   }
 
   divide(divisor: number): Money {

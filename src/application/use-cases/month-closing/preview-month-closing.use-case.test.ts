@@ -10,20 +10,20 @@ import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-pay
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
 import { previewMonthClosing, type MonthClosingDeps } from "./preview-month-closing.use-case";
 
 const clock: Clock = { now: () => new Date("2026-06-15T00:00:00Z") };
 
-function makeAsset(currentValueCents: bigint): AssetEntity {
+function makeAsset(currentValueCents: bigint, currency: Currency = "BRL"): AssetEntity {
   return {
     id: "asset-1",
     userId: "u1",
     category: "vehicle",
     label: "Carro",
-    currentValue: Money.fromCents(currentValueCents),
+    currentValue: Money.fromCents(currentValueCents, currency),
     metadata: { kind: "vehicle", brand: "Honda", model: "Civic", year: 2020 },
     fipeCode: null,
     fipeLastSyncedAt: null,
@@ -73,12 +73,14 @@ interface Stored {
   closings?: MonthClosingEntity[];
   assets?: AssetEntity[];
   incomes?: IncomeEntity[];
+  rate?: string | null;
 }
 
 function makeDeps(stored: Stored): MonthClosingDeps {
   const closingsStore = stored.closings ?? [];
   const assetsStore = stored.assets ?? [];
   const incomesStore = stored.incomes ?? [];
+  const rateDecimal = stored.rate ?? null;
 
   const closings: MonthClosingRepository = {
     upsert: async () => {},
@@ -109,7 +111,16 @@ function makeDeps(stored: Stored): MonthClosingDeps {
     listForUserInRange: async () => [],
   } as unknown as DebtPaymentRepository;
 
-  return { closings, assets, allocations, debts, incomes, payments, clock };
+  const rates = {
+    findLatest: async () =>
+      rateDecimal ? { rateDecimal, asOf: new Date("2026-06-15T00:00:00Z") } : null,
+  } as unknown as MonthClosingDeps["rates"];
+
+  const overrides = {
+    find: async () => null,
+  } as unknown as MonthClosingDeps["overrides"];
+
+  return { closings, assets, allocations, debts, incomes, payments, clock, rates, overrides };
 }
 
 describe("previewMonthClosing", () => {
@@ -150,5 +161,18 @@ describe("previewMonthClosing", () => {
     expect(r.endNetWorthCents).toBe(300_000n);
     expect(r.leakCents).toBe(-150_000n);
     expect(r.status).toBe("ahead");
+  });
+
+  it("converts a foreign asset when computing the baseline from the timeline", async () => {
+    const deps = makeDeps({
+      assets: [makeAsset(20_000n, "USD" as Currency)],
+      incomes: [makeIncome(0)],
+      rate: "5.00",
+    });
+    const r = await previewMonthClosing(deps, { userId: "u1" });
+    expect(r.open).toBe(true);
+    if (!r.open) return;
+    expect(r.baselineNetWorthCents).toBe(100_000n);
+    expect(r.endNetWorthCents).toBe(100_000n);
   });
 });

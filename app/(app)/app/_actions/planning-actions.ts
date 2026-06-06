@@ -17,12 +17,14 @@ import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persisten
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import type { MonthClosingStatus } from "./planning-queries";
@@ -67,6 +69,8 @@ export async function closeMonthAction(): Promise<CloseMonthActionResult> {
       incomes: new DrizzleIncomeRepository(),
       payments: new DrizzleDebtPaymentRepository(),
       clock: new SystemClock(),
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
     },
     { userId: user.id },
   );

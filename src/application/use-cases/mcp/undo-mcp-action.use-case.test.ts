@@ -96,6 +96,32 @@ describe("undoMcpAction", () => {
     expect(arg.amount.toCents()).toBe(500000n);
   });
 
+  it("undo de update de income preserva a moeda do snapshot", async () => {
+    const before = {
+      id: "i1",
+      userId: "u1",
+      label: "Salário",
+      amount: { cents: "500000", currency: "USD" },
+      frequency: "monthly",
+      startDate: "2026-06-01T00:00:00.000Z",
+      endDate: null,
+      isActive: true,
+      createdAt: "2026-06-01T00:00:00.000Z",
+      deletedAt: null,
+    };
+    const { deps, incomes } = makeDeps(
+      auditEntry({ toolName: "income_update", entityType: "income", beforeState: before }),
+    );
+    const r = await undoMcpAction(deps, { userId: "u1", auditId: "audit-1" });
+    expect(isOk(r)).toBe(true);
+    expect(incomes.update).toHaveBeenCalledOnce();
+    const arg = incomes.update.mock.calls[0]![0] as {
+      amount: { toCents(): bigint; currency: string };
+    };
+    expect(arg.amount.toCents()).toBe(500000n);
+    expect(arg.amount.currency).toBe("USD");
+  });
+
   it("undo de ação irreversível retorna erro", async () => {
     const { deps } = makeDeps(auditEntry({ reversible: false }));
     const r = await undoMcpAction(deps, { userId: "u1", auditId: "audit-1" });

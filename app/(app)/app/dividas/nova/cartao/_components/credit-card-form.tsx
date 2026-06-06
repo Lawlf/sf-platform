@@ -9,6 +9,8 @@ import { useId, useMemo, useState, useTransition } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import {
@@ -54,6 +56,7 @@ const installmentPurchaseSchema = z
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rotulo.").max(120),
+  currency: z.enum(CURRENCIES),
   creditLimitCents: z.bigint().nullable(),
   currentStatementCents: z.bigint().min(0n, "Não pode ser negativo."),
   statementDay: z.number().int().min(1).max(31),
@@ -96,9 +99,13 @@ const STEP4_FIELDS = ["installmentPurchases"] as const;
 
 interface CreditCardFormProps {
   existing?: boolean;
+  defaultCurrency?: Currency;
 }
 
-export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
+export function CreditCardForm({
+  existing = false,
+  defaultCurrency = "BRL",
+}: CreditCardFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
@@ -121,6 +128,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: "Cartão de crédito",
+      currency: defaultCurrency,
       creditLimitCents: null,
       currentStatementCents: 0n as unknown as bigint,
       statementDay: 1,
@@ -142,6 +150,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
 
   const values = form.watch();
   const errors = form.formState.errors;
+  const currency: Currency = values.currency ?? defaultCurrency;
 
   const monthlyInstallmentsTotal = useMemo(
     () => sumMonthlyCents(values.installmentPurchases),
@@ -193,6 +202,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
 
     const fd = new FormData();
     fd.set("label", v.label);
+    fd.set("currency", v.currency);
     fd.set("creditLimitCents", v.creditLimitCents ? v.creditLimitCents.toString() : "");
     fd.set("currentStatementCents", v.currentStatementCents.toString());
     fd.set("statementDay", String(v.statementDay));
@@ -329,6 +339,8 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
             name="creditLimitCents"
             id={limitId}
             placeholder="R$ 0,00"
+            currency={currency}
+            onCurrencyChange={(c) => form.setValue("currency", c)}
           />
         </WizardField>
 
@@ -342,6 +354,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
             name="currentStatementCents"
             id={statementId}
             placeholder="R$ 0,00"
+            currency={currency}
           />
         </WizardField>
 
@@ -425,6 +438,7 @@ export function CreditCardForm({ existing = false }: CreditCardFormProps = {}) {
             name="revolvingBalanceCents"
             id={revolvingBalanceId}
             placeholder="R$ 0,00"
+            currency={currency}
           />
         </WizardField>
 

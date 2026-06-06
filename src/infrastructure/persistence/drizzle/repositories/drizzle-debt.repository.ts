@@ -9,7 +9,7 @@ import type {
 } from "@/domain/entities/debt.entity";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
 import { getDb } from "../client";
@@ -43,8 +43,8 @@ function rowToEntity(row: DebtRow): DebtEntity {
     userId: row.userId,
     label: row.label,
     status: row.status,
-    originalPrincipal: Money.fromCents(row.originalPrincipalCents),
-    currentBalance: Money.fromCents(row.currentBalanceCents),
+    originalPrincipal: Money.fromCents(row.originalPrincipalCents, row.currency as Currency),
+    currentBalance: Money.fromCents(row.currentBalanceCents, row.currency as Currency),
     startDate: row.startDate,
     expectedEndDate: row.expectedEndDate,
     notes: row.notes,
@@ -67,10 +67,10 @@ function rowToEntity(row: DebtRow): DebtEntity {
         annualInterestRate: rate.value,
         termMonths: row.termMonths ?? 0,
         monthlyInsurance: row.monthlyInsuranceCents
-          ? Money.fromCents(row.monthlyInsuranceCents)
+          ? Money.fromCents(row.monthlyInsuranceCents, row.currency as Currency)
           : null,
         monthlyAdminFee: row.monthlyAdminFeeCents
-          ? Money.fromCents(row.monthlyAdminFeeCents)
+          ? Money.fromCents(row.monthlyAdminFeeCents, row.currency as Currency)
           : null,
       } as DebtEntity;
     }
@@ -83,8 +83,8 @@ function rowToEntity(row: DebtRow): DebtEntity {
         annualInterestRate: rate.value,
         termMonths: row.termMonths ?? 0,
         monthlyInstallment: row.monthlyInstallmentCents
-          ? Money.fromCents(row.monthlyInstallmentCents)
-          : Money.zero(),
+          ? Money.fromCents(row.monthlyInstallmentCents, row.currency as Currency)
+          : Money.zero(row.currency as Currency),
       } as DebtEntity;
     }
     case "credit_card": {
@@ -96,17 +96,19 @@ function rowToEntity(row: DebtRow): DebtEntity {
       return {
         ...base,
         kind: "credit_card",
-        creditLimit: row.creditLimitCents ? Money.fromCents(row.creditLimitCents) : null,
+        creditLimit: row.creditLimitCents
+          ? Money.fromCents(row.creditLimitCents, row.currency as Currency)
+          : null,
         statementDay: row.statementDay ?? 1,
         dueDay: row.dueDay ?? 1,
         currentStatement: row.currentStatementCents
-          ? Money.fromCents(row.currentStatementCents)
-          : Money.zero(),
+          ? Money.fromCents(row.currentStatementCents, row.currency as Currency)
+          : Money.zero(row.currency as Currency),
         revolvingBalance: row.revolvingBalanceCents
-          ? Money.fromCents(row.revolvingBalanceCents)
+          ? Money.fromCents(row.revolvingBalanceCents, row.currency as Currency)
           : null,
         revolvingMonthlyRate: revRate && isOk(revRate) ? revRate.value : null,
-        installmentPurchases: deserializeInstallments(row.installmentPurchases),
+        installmentPurchases: deserializeInstallments(row.installmentPurchases, row.currency as Currency),
       } as DebtEntity;
     }
     case "overdraft": {
@@ -159,6 +161,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
     status: entity.status,
     originalPrincipalCents: entity.originalPrincipal.toCents(),
     currentBalanceCents: entity.currentBalance.toCents(),
+    currency: entity.currentBalance.currency,
     startDate: entity.startDate,
     expectedEndDate: entity.expectedEndDate,
     notes: entity.notes,
@@ -224,14 +227,14 @@ interface SerializedInstallment {
   monthlyValueCents: string;
 }
 
-function deserializeInstallments(raw: unknown): InstallmentPurchase[] {
+function deserializeInstallments(raw: unknown, currency: Currency): InstallmentPurchase[] {
   if (!raw || !Array.isArray(raw)) return [];
   return (raw as SerializedInstallment[]).map((p) => ({
     description: p.description,
-    total: Money.fromCents(BigInt(p.totalCents)),
+    total: Money.fromCents(BigInt(p.totalCents), currency),
     installmentsTotal: p.installmentsTotal,
     installmentsRemaining: p.installmentsRemaining,
-    monthlyValue: Money.fromCents(BigInt(p.monthlyValueCents)),
+    monthlyValue: Money.fromCents(BigInt(p.monthlyValueCents), currency),
   }));
 }
 

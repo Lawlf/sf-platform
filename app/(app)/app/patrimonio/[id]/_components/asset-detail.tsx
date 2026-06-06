@@ -19,6 +19,7 @@ import { useForm } from "react-hook-form";
 
 
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+import type { Currency } from "@/domain/value-objects/money.vo";
 import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -96,6 +97,7 @@ export interface AssetDetailViewProps {
   category: "vehicle" | "real_estate" | "investment" | "cash" | "other";
   currentValueFormatted: string;
   currentValueCents: string;
+  currency: Currency;
   netWorthFormatted: string;
   netWorthIsNegative: boolean;
   fipeCode: string | null;
@@ -202,7 +204,11 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         </div>
       </section>
 
-      <EditValueSection assetId={props.assetId} currentValueCents={props.currentValueCents} />
+      <EditValueSection
+        assetId={props.assetId}
+        currentValueCents={props.currentValueCents}
+        currency={props.currency}
+      />
 
       {props.purchasePrice ? <PurchasePriceSection view={props.purchasePrice} /> : null}
 
@@ -286,9 +292,11 @@ interface EditValueFormValues {
 function EditValueSection({
   assetId,
   currentValueCents,
+  currency,
 }: {
   assetId: string;
   currentValueCents: string;
+  currency: Currency;
 }) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -334,7 +342,12 @@ function EditValueSection({
       </div>
       {open ? (
         <div className="mt-3 flex flex-col gap-2">
-          <WizardMoneyField control={form.control} name="currentValueCents" placeholder="R$ 0,00" />
+          <WizardMoneyField
+            control={form.control}
+            name="currentValueCents"
+            placeholder="R$ 0,00"
+            currency={currency}
+          />
           {error ? (
             <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
               {error}

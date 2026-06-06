@@ -58,7 +58,7 @@ export async function updateAsset(
     if (input.currentValueCents < 0n) {
       return err(new InvalidAssetValue("Valor do ativo não pode ser negativo."));
     }
-    nextValue = Money.fromCents(input.currentValueCents);
+    nextValue = Money.fromCents(input.currentValueCents, existing.currentValue.currency);
   }
 
   let nextMetadata = existing.metadata;

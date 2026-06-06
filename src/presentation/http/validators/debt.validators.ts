@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { CURRENCIES } from "@/domain/value-objects/money.vo";
+
 const bigintFromString = z
   .string()
   .min(1, "Campo obrigatório.")
@@ -17,6 +19,7 @@ const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Não pode ser
 
 export const financingFormSchema = z.object({
   kind: z.literal("financing"),
+  currency: z.enum(CURRENCIES).default("BRL"),
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
@@ -67,6 +70,7 @@ export const financingFormSchema = z.object({
 
 export const personalLoanFormSchema = z.object({
   kind: z.literal("personal_loan"),
+  currency: z.enum(CURRENCIES).default("BRL"),
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
@@ -145,6 +149,7 @@ const installmentPurchasesField = z
 
 export const creditCardFormSchema = z.object({
   kind: z.literal("credit_card"),
+  currency: z.enum(CURRENCIES).default("BRL"),
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
@@ -182,6 +187,7 @@ export const creditCardFormSchema = z.object({
 
 export const overdraftFormSchema = z.object({
   kind: z.literal("overdraft"),
+  currency: z.enum(CURRENCIES).default("BRL"),
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),

@@ -36,6 +36,7 @@ export async function createCashAccount(label: string): Promise<CreateCashAccoun
       category: "cash",
       label: trimmed,
       currentValueCents: 0n,
+      currency: "BRL",
       metadata: { kind: "cash", yieldType: "none" },
       fipeCode: null,
       acquiredAt: null,
@@ -46,5 +47,12 @@ export async function createCashAccount(label: string): Promise<CreateCashAccoun
   if (!isOk(result)) {
     return { ok: false, message: "Não foi possível criar a conta." };
   }
-  return { ok: true, account: { id: result.value.id, label: result.value.label } };
+  return {
+    ok: true,
+    account: {
+      id: result.value.id,
+      label: result.value.label,
+      currency: result.value.currentValue.currency,
+    },
+  };
 }

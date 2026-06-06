@@ -1,10 +1,16 @@
 import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
+import {
+  BASE_CURRENCY,
+  convertDebtToBase,
+} from "@/application/use-cases/fx/convert-entity-to-base";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import {
   monthlyDebtService,
   monthlyRateFor,
@@ -18,6 +24,8 @@ export interface BuildGoalMacroDeps {
   debts: DebtRepository;
   incomes: IncomeRepository;
   clock: Clock;
+  rates: ExchangeRateRepository;
+  overrides: UserFxOverrideRepository;
 }
 
 export interface BuildGoalMacroInput {
@@ -37,11 +45,24 @@ export async function buildGoalMacro(
 
   const [netWorthResult, snapshotResult, activeDebts] = await Promise.all([
     getNetWorth(
-      { assets: deps.assets, allocations: deps.allocations, debts: deps.debts },
+      {
+        assets: deps.assets,
+        allocations: deps.allocations,
+        debts: deps.debts,
+        rates: deps.rates,
+        overrides: deps.overrides,
+        clock: deps.clock,
+      },
       { userId },
     ),
     getDashboardSnapshot(
-      { debts: deps.debts, incomes: deps.incomes, clock: deps.clock },
+      {
+        debts: deps.debts,
+        incomes: deps.incomes,
+        clock: deps.clock,
+        rates: deps.rates,
+        overrides: deps.overrides,
+      },
       { userId },
     ),
     deps.debts.listForUser(userId, { status: "active" }),
@@ -77,7 +98,11 @@ export async function buildGoalMacro(
   // Monta GoalMacroDebt para cada divida ativa. Dívidas onde monthlyDebtService
   // retorna erro sao ignoradas (nao comprometem o macro).
   const debts: GoalMacroDebt[] = [];
-  for (const debt of activeDebts) {
+  for (const rawDebt of activeDebts) {
+    const convertedResult = await convertDebtToBase(deps, userId, rawDebt, BASE_CURRENCY);
+    if (!isOk(convertedResult)) continue;
+    const debt = convertedResult.value;
+
     const svcResult = monthlyDebtService(debt);
     if (!isOk(svcResult)) continue;
 

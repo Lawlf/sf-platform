@@ -4,13 +4,35 @@ import type { FinancingDebt, RecurringDebt } from "@/domain/entities/debt.entity
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { err, isErr, isOk } from "@/shared/errors/result";
 
 import { getDashboardSnapshot } from "./get-dashboard-snapshot.use-case";
+
+const NOW = new Date("2026-05-19T10:00:00Z");
+
+function makeRates(rate: string | null = null): ExchangeRateRepository {
+  return {
+    upsertDaily: vi.fn(),
+    findLatest: vi.fn(async () =>
+      rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null,
+    ),
+  };
+}
+
+function makeOverrides(): UserFxOverrideRepository {
+  return {
+    find: vi.fn(async () => null),
+    upsert: vi.fn(),
+    remove: vi.fn(),
+    listForUser: vi.fn(async () => []),
+  };
+}
 
 function makeDebtRepo(): DebtRepository {
   return {
@@ -127,7 +149,10 @@ describe("getDashboardSnapshot", () => {
     (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
     (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
-    const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-1" });
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
+      { userId: "user-1" },
+    );
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -145,7 +170,10 @@ describe("getDashboardSnapshot", () => {
     const incomes = makeIncomeRepo();
     const clock = makeClock();
 
-    const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-empty" });
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
+      { userId: "user-empty" },
+    );
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -165,7 +193,10 @@ describe("getDashboardSnapshot", () => {
     (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([housing]);
     (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
-    const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-1" });
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
+      { userId: "user-1" },
+    );
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -186,7 +217,10 @@ describe("getDashboardSnapshot", () => {
       .mockReturnValue(err(new InvalidAmortizationParamsError("forcado em teste")));
 
     try {
-      const result = await getDashboardSnapshot({ debts, incomes, clock }, { userId: "user-1" });
+      const result = await getDashboardSnapshot(
+        { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
+        { userId: "user-1" },
+      );
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
         expect(result.error).toBeInstanceOf(InvalidAmortizationParamsError);
@@ -194,5 +228,41 @@ describe("getDashboardSnapshot", () => {
     } finally {
       stub.mockRestore();
     }
+  });
+
+  it("renda em USD entra convertida no totalIncome (taxa 5.00)", async () => {
+    const debts = makeDebtRepo();
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+
+    const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates("5.00"), overrides: makeOverrides() },
+      { userId: "user-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.totalIncome.toCents()).toBe(100_000n);
+      expect(result.value.monthlyFreeCashFlow.toCents()).toBe(100_000n);
+    }
+  });
+
+  it("renda em USD sem taxa disponivel retorna isErr", async () => {
+    const debts = makeDebtRepo();
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+
+    const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates(null), overrides: makeOverrides() },
+      { userId: "user-1" },
+    );
+
+    expect(isErr(result)).toBe(true);
   });
 });

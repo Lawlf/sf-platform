@@ -91,6 +91,35 @@ describe("updateDebt", () => {
     }
   });
 
+  it("preserves the stored currency of a USD debt when updating its balance in USD", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    const existing: PersonalLoanDebt = {
+      ...makeDebt(),
+      originalPrincipal: Money.fromCents(500000n, "USD"),
+      currentBalance: Money.fromCents(500000n, "USD"),
+      monthlyInstallment: Money.fromCents(45000n, "USD"),
+    };
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+    (debts.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const result = await updateDebt(
+      { debts, clock },
+      {
+        userId: "user-1",
+        debtId: "debt-1",
+        currentBalance: Money.fromCents(400000n, "USD"),
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    if (isOk(result)) {
+      expect(result.value.currentBalance.currency).toBe("USD");
+      expect(result.value.currentBalance.toCents()).toBe(400000n);
+      expect(result.value.originalPrincipal.currency).toBe("USD");
+    }
+  });
+
   it("returns DebtNotFound when debt does not exist", async () => {
     const debts = makeDebtRepo();
     const clock = makeClock();

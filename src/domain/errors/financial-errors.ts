@@ -39,3 +39,7 @@ export class PaymentExceedsBalanceError extends DomainError {
 export class NotificationNotFound extends DomainError {
   readonly code = "NOTIFICATION_NOT_FOUND" as const;
 }
+
+export class FxRateUnavailableError extends DomainError {
+  readonly code = "FX_RATE_UNAVAILABLE" as const;
+}

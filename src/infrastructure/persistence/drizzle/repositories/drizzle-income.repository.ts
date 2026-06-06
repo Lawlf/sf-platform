@@ -2,7 +2,7 @@ import { and, desc, eq, isNull } from "drizzle-orm";
 
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { Money, type Currency } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import { incomes, type IncomeRow, type NewIncomeRow } from "../schema/incomes.schema";
@@ -12,7 +12,7 @@ function rowToEntity(row: IncomeRow): IncomeEntity {
     id: row.id,
     userId: row.userId,
     label: row.label,
-    amount: Money.fromCents(row.amountCents),
+    amount: Money.fromCents(row.amountCents, row.currency as Currency),
     frequency: row.frequency,
     startDate: row.startDate,
     endDate: row.endDate,
@@ -28,6 +28,7 @@ function entityToRow(entity: IncomeEntity): NewIncomeRow {
     userId: entity.userId,
     label: entity.label,
     amountCents: entity.amount.toCents(),
+    currency: entity.amount.currency,
     frequency: entity.frequency,
     startDate: entity.startDate,
     endDate: entity.endDate,

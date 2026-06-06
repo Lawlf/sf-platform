@@ -8,9 +8,11 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { isErr } from "@/shared/errors/result";
 
 import { text } from "./mcp-response";
@@ -49,6 +51,8 @@ export function registerMcpReadTools(server: McpServer): void {
           debts: new DrizzleDebtRepository(),
           incomes: new DrizzleIncomeRepository(),
           clock: new SystemClock(),
+          rates: new DrizzleExchangeRateRepository(),
+          overrides: new DrizzleUserFxOverrideRepository(),
         },
         { userId: ctx.userId, isPro: ctx.isPro },
       );
@@ -68,6 +72,8 @@ export function registerMcpReadTools(server: McpServer): void {
           debts: new DrizzleDebtRepository(),
           incomes: new DrizzleIncomeRepository(),
           clock: new SystemClock(),
+          rates: new DrizzleExchangeRateRepository(),
+          overrides: new DrizzleUserFxOverrideRepository(),
         },
         { userId: ctx.userId },
       );
@@ -90,6 +96,9 @@ export function registerMcpReadTools(server: McpServer): void {
           incomes: new DrizzleIncomeRepository(),
           assets: new DrizzleAssetRepository(),
           now: () => clock.now(),
+          rates: new DrizzleExchangeRateRepository(),
+          overrides: new DrizzleUserFxOverrideRepository(),
+          clock,
         },
         { userId: ctx.userId },
       );

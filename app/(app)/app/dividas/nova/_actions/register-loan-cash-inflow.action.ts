@@ -93,6 +93,7 @@ export async function registerLoanCashInflow(
       category: "cash",
       label: rawName,
       currentValueCents: totalCents,
+      currency: "BRL",
       metadata: { kind: "cash", yieldType: "none" },
       fipeCode: null,
       acquiredAt: deps.clock.now(),

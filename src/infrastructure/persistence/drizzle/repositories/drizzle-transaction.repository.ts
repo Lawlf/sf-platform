@@ -7,7 +7,7 @@ import type {
   TransactionStatus,
 } from "@/domain/entities/transaction.entity";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import { type NewTransactionRow, type TransactionRow, transactions } from "../schema/transactions.schema";
@@ -17,7 +17,7 @@ function rowToEntity(row: TransactionRow): TransactionEntity {
     id: row.id,
     userId: row.userId,
     direction: row.direction as TransactionDirection,
-    amount: Money.fromCents(row.amountCents),
+    amount: Money.fromCents(row.amountCents, row.currency as Currency),
     description: row.description,
     category: row.category ?? null,
     accountId: row.accountId ?? null,
@@ -36,6 +36,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
     userId: entity.userId,
     direction: entity.direction,
     amountCents: entity.amount.toCents(),
+    currency: entity.amount.currency,
     description: entity.description,
     category: entity.category,
     accountId: entity.accountId,

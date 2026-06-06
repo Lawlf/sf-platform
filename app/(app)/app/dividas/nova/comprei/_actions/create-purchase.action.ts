@@ -189,6 +189,7 @@ export async function executePurchase(
       category: "cash",
       label: cashName,
       currentValueCents: input.currentBalanceCents,
+      currency: "BRL",
       metadata: { kind: "cash", yieldType: "none" },
       fipeCode: null,
       acquiredAt: now,
@@ -246,6 +247,7 @@ export async function executePurchase(
       category: cfg.assetCategory,
       label: name,
       currentValueCents: input.valueCents,
+      currency: "BRL",
       metadata,
       fipeCode: null,
       acquiredAt: now,
@@ -284,10 +286,11 @@ export async function executePurchase(
       if (card.status !== "active") {
         return { ok: false, message: "Cartão selecionado não está ativo." };
       }
+      const purchaseValue = Money.fromCents(input.valueCents, card.currentStatement.currency);
       const updated = {
         ...card,
-        currentStatement: card.currentStatement.add(Money.fromCents(input.valueCents)),
-        currentBalance: card.currentBalance.add(Money.fromCents(input.valueCents)),
+        currentStatement: card.currentStatement.add(purchaseValue),
+        currentBalance: card.currentBalance.add(purchaseValue),
         updatedAt: now,
       };
       await deps.debts.update(updated);

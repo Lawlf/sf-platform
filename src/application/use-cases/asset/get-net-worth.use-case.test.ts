@@ -6,11 +6,15 @@ import type { DebtStatus, FinancingDebt } from "@/domain/entities/debt.entity";
 import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors/result";
+import { Money, type Currency } from "@/domain/value-objects/money.vo";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { getNetWorth } from "./get-net-worth.use-case";
+
+const NOW = new Date("2026-05-19T10:00:00Z");
 
 function rateAnnual(value: number): InterestRate {
   const r = InterestRate.fromAnnual(value);
@@ -19,14 +23,18 @@ function rateAnnual(value: number): InterestRate {
 }
 
 function makeAsset(
-  overrides: Partial<AssetEntity> & { id: string; currentValueCents: bigint },
+  overrides: Partial<AssetEntity> & {
+    id: string;
+    currentValueCents: bigint;
+    currency?: Currency;
+  },
 ): AssetEntity {
   return {
     id: overrides.id,
     userId: overrides.userId ?? "user-1",
     category: overrides.category ?? "vehicle",
     label: overrides.label ?? "Test asset",
-    currentValue: Money.fromCents(overrides.currentValueCents),
+    currentValue: Money.fromCents(overrides.currentValueCents, overrides.currency ?? "BRL"),
     metadata: overrides.metadata ?? null,
     fipeCode: overrides.fipeCode ?? null,
     fipeLastSyncedAt: overrides.fipeLastSyncedAt ?? null,
@@ -51,12 +59,14 @@ function makeFinancing({
   currentBalanceCents,
   status = "active",
   userId = "user-1",
+  currency = "BRL",
 }: {
   id: string;
   originalPrincipalCents: bigint;
   currentBalanceCents: bigint;
   status?: DebtStatus;
   userId?: string;
+  currency?: Currency;
 }): FinancingDebt {
   return {
     id,
@@ -64,8 +74,8 @@ function makeFinancing({
     kind: "financing",
     label: "Financiamento",
     status,
-    originalPrincipal: Money.fromCents(originalPrincipalCents),
-    currentBalance: Money.fromCents(currentBalanceCents),
+    originalPrincipal: Money.fromCents(originalPrincipalCents, currency),
+    currentBalance: Money.fromCents(currentBalanceCents, currency),
     startDate: new Date("2024-01-01"),
     expectedEndDate: null,
     notes: null,
@@ -83,12 +93,17 @@ function makeFinancing({
   };
 }
 
-function makeAllocation(assetId: string, debtId: string, cents: bigint): AssetDebtAllocation {
+function makeAllocation(
+  assetId: string,
+  debtId: string,
+  cents: bigint,
+  currency: Currency = "BRL",
+): AssetDebtAllocation {
   return {
     id: `alloc-${assetId}-${debtId}`,
     assetId,
     debtId,
-    allocationOriginal: Money.fromCents(cents),
+    allocationOriginal: Money.fromCents(cents, currency),
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
   };
@@ -98,9 +113,10 @@ interface BuildDepsOptions {
   assets: AssetEntity[];
   debts: FinancingDebt[];
   allocationsByAsset: Map<string, AssetDebtAllocation[]>;
+  rate?: string | null;
 }
 
-function buildDeps({ assets, debts, allocationsByAsset }: BuildDepsOptions) {
+function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDepsOptions) {
   const assetRepo: AssetRepository = {
     create: vi.fn(),
     update: vi.fn(),
@@ -139,7 +155,28 @@ function buildDeps({ assets, debts, allocationsByAsset }: BuildDepsOptions) {
     softDelete: vi.fn(),
   };
 
-  return { assets: assetRepo, allocations: allocationRepo, debts: debtRepo };
+  const rates: ExchangeRateRepository = {
+    upsertDaily: vi.fn(),
+    findLatest: vi.fn(async () =>
+      rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null,
+    ),
+  };
+  const overrides: UserFxOverrideRepository = {
+    find: vi.fn(async () => null),
+    upsert: vi.fn(),
+    remove: vi.fn(),
+    listForUser: vi.fn(async () => []),
+  };
+  const clock = { now: vi.fn(() => NOW) };
+
+  return {
+    assets: assetRepo,
+    allocations: allocationRepo,
+    debts: debtRepo,
+    rates,
+    overrides,
+    clock,
+  };
 }
 
 describe("getNetWorth", () => {
@@ -422,5 +459,64 @@ describe("getNetWorth", () => {
       expect(result.value.totalAssets.toCents()).toBe(5_000_000n);
       expect(result.value.totalDebtBalance.toCents()).toBe(800_000n);
     }
+  });
+
+  it("ativo em USD converte para BRL com a taxa resolvida (5.00)", async () => {
+    const usd = makeAsset({ id: "a1", currentValueCents: 10_000n, currency: "USD" });
+    const deps = buildDeps({
+      assets: [usd],
+      debts: [],
+      allocationsByAsset: new Map(),
+      rate: "5.00",
+    });
+
+    const result = await getNetWorth(deps, { userId: "user-1" });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.totalAssets.toCents()).toBe(50_000n);
+      expect(result.value.netWorth.toCents()).toBe(50_000n);
+    }
+  });
+
+  it("divida em USD alocada converte allocationOriginal junto (taxa 5.00)", async () => {
+    const asset = makeAsset({ id: "a1", currentValueCents: 5_000_000n });
+    const debt = makeFinancing({
+      id: "d1",
+      originalPrincipalCents: 4_000n,
+      currentBalanceCents: 3_000n,
+      currency: "USD",
+    });
+    const alloc = makeAllocation("a1", "d1", 4_000n, "USD");
+    const deps = buildDeps({
+      assets: [asset],
+      debts: [debt],
+      allocationsByAsset: new Map([["a1", [alloc]]]),
+      rate: "5.00",
+    });
+
+    const result = await getNetWorth(deps, { userId: "user-1" });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.totalDebtBalance.toCents()).toBe(15_000n);
+      expect(result.value.allocatedDebtBalance.toCents()).toBe(15_000n);
+      expect(result.value.unallocatedDebtBalance.toCents()).toBe(0n);
+      expect(result.value.netWorth.toCents()).toBe(4_985_000n);
+    }
+  });
+
+  it("ativo em USD sem taxa disponivel retorna isErr", async () => {
+    const usd = makeAsset({ id: "a1", currentValueCents: 10_000n, currency: "USD" });
+    const deps = buildDeps({
+      assets: [usd],
+      debts: [],
+      allocationsByAsset: new Map(),
+      rate: null,
+    });
+
+    const result = await getNetWorth(deps, { userId: "user-1" });
+
+    expect(isErr(result)).toBe(true);
   });
 });

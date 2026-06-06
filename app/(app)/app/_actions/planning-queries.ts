@@ -3,7 +3,6 @@
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { previewMonthClosing } from "@/application/use-cases/month-closing/preview-month-closing.use-case";
 import { assemblePlanningView } from "@/application/use-cases/planning/assemble-planning-view";
-import { buildProjectionDebtInputs } from "@/application/use-cases/planning/build-projection-debt-inputs";
 import { getAnnualReport } from "@/application/use-cases/transaction/get-annual-report.use-case";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
@@ -16,13 +15,16 @@ import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persisten
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { isOk } from "@/shared/errors/result";
 
 const HORIZON_MONTHS = 120;
 
@@ -81,21 +83,33 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
         debts: debtsRepo,
         incomes: new DrizzleIncomeRepository(),
         clock: new SystemClock(),
+        rates: new DrizzleExchangeRateRepository(),
+        overrides: new DrizzleUserFxOverrideRepository(),
       },
       { userId: user.id },
     ),
   ]);
 
   const monthlyFreeCashFlowCents = macro.contributionCents;
-  const view = assemblePlanningView({
-    goals,
-    macro,
-    assets,
-    debts: buildProjectionDebtInputs(debts),
-    liquidBucketAssetId: settings?.liquidBucketAssetId ?? null,
-    monthlyFreeCashFlowCents,
-    horizonMonths: HORIZON_MONTHS,
-  });
+  const viewResult = await assemblePlanningView(
+    {
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
+      clock: new SystemClock(),
+    },
+    {
+      userId: user.id,
+      goals,
+      macro,
+      assets,
+      debts,
+      liquidBucketAssetId: settings?.liquidBucketAssetId ?? null,
+      monthlyFreeCashFlowCents,
+      horizonMonths: HORIZON_MONTHS,
+    },
+  );
+  if (!isOk(viewResult)) return null;
+  const view = viewResult.value;
 
   const points: SerializedProjectionPoint[] = view.projection.points.map((p) => ({
     month: p.month,
@@ -238,6 +252,8 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
       incomes: new DrizzleIncomeRepository(),
       payments: new DrizzleDebtPaymentRepository(),
       clock: new SystemClock(),
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
     },
     { userId: user.id },
   );
