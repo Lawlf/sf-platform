@@ -146,6 +146,7 @@ export function InstallProvider({
       void surface;
       trackCtaClicked(env, plan, "custom_instruction");
       trackIosInstructions(env, plan);
+      setBannerVisible(false);
       setSheetOpen(true);
     },
     [env, plan],
