@@ -1,7 +1,28 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowDownLeft, ArrowUpRight, CalendarClock, Check } from "lucide-react";
+import {
+  ArrowDownLeft,
+  ArrowLeftRight,
+  ArrowUpRight,
+  Banknote,
+  CalendarClock,
+  Car,
+  Check,
+  CircleDashed,
+  GraduationCap,
+  Gift,
+  HeartPulse,
+  House,
+  ShoppingBag,
+  Store,
+  Tag,
+  Ticket,
+  Undo2,
+  Utensils,
+  Wallet,
+  type LucideIcon,
+} from "lucide-react";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -38,18 +59,30 @@ type Status = "paid" | "scheduled";
 const NO_CATEGORY_VALUE = "__none__";
 const NO_ACCOUNT_VALUE = "__none__";
 
-const OUT_CATEGORIES = [
-  "Alimentação",
-  "Transporte",
-  "Moradia",
-  "Saúde",
-  "Lazer",
-  "Educação",
-  "Compras",
-  "Outros",
+interface CategoryOption {
+  label: string;
+  icon: LucideIcon;
+}
+
+const OUT_CATEGORIES: CategoryOption[] = [
+  { label: "Alimentação", icon: Utensils },
+  { label: "Transporte", icon: Car },
+  { label: "Moradia", icon: House },
+  { label: "Saúde", icon: HeartPulse },
+  { label: "Lazer", icon: Ticket },
+  { label: "Educação", icon: GraduationCap },
+  { label: "Compras", icon: ShoppingBag },
+  { label: "Outros", icon: Tag },
 ];
 
-const IN_CATEGORIES = ["Salário", "Transferência", "Presente", "Reembolso", "Venda", "Outro"];
+const IN_CATEGORIES: CategoryOption[] = [
+  { label: "Salário", icon: Banknote },
+  { label: "Transferência", icon: ArrowLeftRight },
+  { label: "Presente", icon: Gift },
+  { label: "Reembolso", icon: Undo2 },
+  { label: "Venda", icon: Store },
+  { label: "Outro", icon: Tag },
+];
 
 const SEGMENT_TRACK =
   "grid grid-cols-2 gap-1.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1.5";
@@ -223,10 +256,28 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
             <SelectValue placeholder="Sem categoria" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={NO_CATEGORY_VALUE}>Sem categoria</SelectItem>
-            {categories.map((c) => (
-              <SelectItem key={c} value={c}>
-                {c}
+            <SelectItem value={NO_CATEGORY_VALUE}>
+              <span className="flex items-center gap-2">
+                <CircleDashed
+                  size={15}
+                  strokeWidth={2}
+                  className="text-[color:var(--text-muted)]"
+                  aria-hidden
+                />
+                Sem categoria
+              </span>
+            </SelectItem>
+            {categories.map(({ label, icon: Icon }) => (
+              <SelectItem key={label} value={label}>
+                <span className="flex items-center gap-2">
+                  <Icon
+                    size={15}
+                    strokeWidth={2}
+                    className="text-[color:var(--text-secondary)]"
+                    aria-hidden
+                  />
+                  {label}
+                </span>
               </SelectItem>
             ))}
           </SelectContent>
@@ -250,10 +301,28 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
               <SelectValue placeholder="Escolha a conta" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={NO_ACCOUNT_VALUE}>Sem conta</SelectItem>
+              <SelectItem value={NO_ACCOUNT_VALUE}>
+                <span className="flex items-center gap-2">
+                  <CircleDashed
+                    size={15}
+                    strokeWidth={2}
+                    className="text-[color:var(--text-muted)]"
+                    aria-hidden
+                  />
+                  Sem conta
+                </span>
+              </SelectItem>
               {accounts.map((a) => (
                 <SelectItem key={a.id} value={a.id}>
-                  {a.label}
+                  <span className="flex items-center gap-2">
+                    <Wallet
+                      size={15}
+                      strokeWidth={2}
+                      className="text-[color:var(--text-secondary)]"
+                      aria-hidden
+                    />
+                    {a.label}
+                  </span>
                 </SelectItem>
               ))}
             </SelectContent>
