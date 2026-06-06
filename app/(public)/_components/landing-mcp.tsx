@@ -3,7 +3,6 @@ import {
   KeyRound,
   ListChecks,
   MessageSquare,
-  Plug,
   ShieldCheck,
   Undo2,
 } from "lucide-react";
@@ -91,6 +90,12 @@ export function LandingMcp() {
                   <ArrowRight className="h-4 w-4" strokeWidth={2.5} />
                 </Link>
               </Button>
+              <Link
+                href="/financas-com-ia"
+                className="focus-ring text-sm font-semibold text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"
+              >
+                Veja como funciona
+              </Link>
               <Link
                 href="/entrar"
                 className="focus-ring text-sm font-semibold text-[color:var(--text-secondary)] underline-offset-4 hover:text-[color:var(--text-primary)] hover:underline"

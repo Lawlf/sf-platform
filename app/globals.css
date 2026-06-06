@@ -494,10 +494,38 @@
     animation: sf-fade-swap 240ms ease-out;
   }
 
+  @keyframes sf-bucket-rise {
+    from {
+      transform: translateY(64px);
+    }
+    to {
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sf-bucket-wave {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-40px);
+    }
+  }
+
+  .sf-bucket-rise {
+    animation: sf-bucket-rise 1.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  }
+
+  .sf-bucket-wave {
+    animation: sf-bucket-wave 2.6s linear infinite;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .sf-reveal,
     .sf-stagger > *,
-    .sf-fade-swap {
+    .sf-fade-swap,
+    .sf-bucket-rise,
+    .sf-bucket-wave {
       opacity: 1 !important;
       transform: none !important;
       animation: none !important;
