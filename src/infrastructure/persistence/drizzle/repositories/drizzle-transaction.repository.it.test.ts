@@ -39,10 +39,15 @@ function makeTransaction(
   return {
     id: randomUUID(),
     userId,
+    direction: "out" as const,
     occurredAt: new Date("2026-06-15T00:00:00Z"),
     amount: Money.fromCents(4000n),
     description: `${DESC_PREFIX}café`,
     category: "alimentação",
+    accountId: null,
+    status: "paid" as const,
+    source: "manual" as const,
+    externalId: null,
     deletedAt: null,
     ...overrides,
   };
