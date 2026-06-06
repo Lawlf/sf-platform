@@ -36,6 +36,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+} from "@/app/components/ui/sheet";
 
 import { createTransactionAction } from "../../_actions/planning-actions";
 import { MoneyInput } from "../../_components/money-input";
@@ -351,8 +358,29 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
               </SelectContent>
             </Select>
 
-            {showNewAccount ? (
-              <div className="flex flex-col gap-2">
+            <button
+              type="button"
+              onClick={() => setShowNewAccount(true)}
+              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              <Plus size={14} strokeWidth={2.5} aria-hidden />
+              Nova conta
+            </button>
+
+            <Sheet
+              open={showNewAccount}
+              onOpenChange={(open) => {
+                setShowNewAccount(open);
+                if (!open) setNewAccountName("");
+              }}
+            >
+              <SheetContent side="bottom" className="flex flex-col gap-4">
+                <SheetHeader>
+                  <SheetTitle>Nova conta</SheetTitle>
+                  <SheetDescription>
+                    Um lugar pra guardar e movimentar dinheiro: Nubank, carteira, dinheiro vivo.
+                  </SheetDescription>
+                </SheetHeader>
                 <input
                   type="text"
                   autoComplete="off"
@@ -367,37 +395,16 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
                   placeholder="Nome da conta, ex: Nubank"
                   className={wizardInputClass}
                 />
-                <div className="flex items-center gap-2">
-                  <Button
-                    type="button"
-                    variant="brand"
-                    loading={accountPending}
-                    onClick={handleCreateAccount}
-                  >
-                    Criar conta
-                  </Button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setShowNewAccount(false);
-                      setNewAccountName("");
-                    }}
-                    className="focus-ring rounded-lg px-2 py-1 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
-                  >
-                    Cancelar
-                  </button>
-                </div>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={() => setShowNewAccount(true)}
-                className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-              >
-                <Plus size={14} strokeWidth={2.5} aria-hidden />
-                Nova conta
-              </button>
-            )}
+                <Button
+                  type="button"
+                  variant="brand"
+                  loading={accountPending}
+                  onClick={handleCreateAccount}
+                >
+                  Criar conta
+                </Button>
+              </SheetContent>
+            </Sheet>
           </>
         ) : null}
       </div>

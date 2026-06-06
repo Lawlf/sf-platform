@@ -10,7 +10,8 @@ import type {
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
+import type { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface CreateTransactionDeps {
@@ -32,31 +33,6 @@ export interface CreateTransactionInput {
   externalId?: string | null;
 }
 
-function buildDefaultWallet(userId: string, now: Date): AssetEntity {
-  return {
-    id: crypto.randomUUID(),
-    userId,
-    category: "cash",
-    label: "Carteira",
-    currentValue: Money.zero(),
-    metadata: { kind: "cash", yieldType: "none" },
-    fipeCode: null,
-    fipeLastSyncedAt: null,
-    acquiredAt: null,
-    depreciationKind: "stable",
-    depreciationRatePctYear: 0,
-    purchaseDate: null,
-    purchasePriceCents: null,
-    createdAt: now,
-    updatedAt: now,
-    deactivatedAt: null,
-    deactivationKind: null,
-    salePriceCents: null,
-    deactivationReason: null,
-    deletedAt: null,
-  } as AssetEntity;
-}
-
 async function resolveAccount(
   deps: CreateTransactionDeps,
   userId: string,
@@ -68,7 +44,7 @@ async function resolveAccount(
   }
   const existing = await deps.assets.findActiveByUserAndCategory(userId, "cash");
   if (existing[0]) return existing[0];
-  const wallet = buildDefaultWallet(userId, deps.clock.now());
+  const wallet = buildDefaultWallet(userId, crypto.randomUUID(), deps.clock.now());
   await deps.assets.create(wallet);
   return wallet;
 }
