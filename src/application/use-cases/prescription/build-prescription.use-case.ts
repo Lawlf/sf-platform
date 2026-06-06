@@ -1,14 +1,23 @@
 import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { PrescriptionEngine } from "@/domain/services/prescription/prescription-engine.service";
 import type { Prescription } from "@/domain/services/prescription/prescription.types";
-import { isOk, ok, type Result } from "@/shared/errors/result";
+import { isErr, isOk, ok, type Result } from "@/shared/errors/result";
 
-export interface BuildPrescriptionDeps {
+import {
+  BASE_CURRENCY,
+  convertAssetToBase,
+  convertDebtToBase,
+  convertIncomeToBase,
+  type ConvertEntityDeps,
+} from "@/application/use-cases/fx/convert-entity-to-base";
+
+export interface BuildPrescriptionDeps extends ConvertEntityDeps {
   debts: Pick<DebtRepository, "listForUser">;
   incomes: Pick<IncomeRepository, "listForUser">;
   assets: Pick<AssetRepository, "findActiveByUser">;
@@ -22,14 +31,35 @@ export interface BuildPrescriptionInput {
 export async function buildPrescription(
   deps: BuildPrescriptionDeps,
   input: BuildPrescriptionInput,
-): Promise<Result<Prescription, never>> {
+): Promise<Result<Prescription, FxRateUnavailableError>> {
   const now = deps.now();
 
-  const [debts, incomes, assets] = await Promise.all([
+  const [rawDebts, rawIncomes, rawAssets] = await Promise.all([
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.incomes.listForUser(input.userId, { onlyActive: true }),
     deps.assets.findActiveByUser(input.userId),
   ]);
+
+  const debts: typeof rawDebts = [];
+  for (const d of rawDebts) {
+    const r = await convertDebtToBase(deps, input.userId, d, BASE_CURRENCY, now);
+    if (isErr(r)) return r;
+    debts.push(r.value);
+  }
+
+  const incomes: typeof rawIncomes = [];
+  for (const i of rawIncomes) {
+    const r = await convertIncomeToBase(deps, input.userId, i, BASE_CURRENCY, now);
+    if (isErr(r)) return r;
+    incomes.push(r.value);
+  }
+
+  const assets: typeof rawAssets = [];
+  for (const a of rawAssets) {
+    const r = await convertAssetToBase(deps, input.userId, a, BASE_CURRENCY, now);
+    if (isErr(r)) return r;
+    assets.push(r.value);
+  }
 
   const monthlyIncomeReais = incomes.reduce(
     (sum, i) => sum + monthlyIncomeOf(i, now),

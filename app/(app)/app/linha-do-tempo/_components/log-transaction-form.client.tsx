@@ -253,8 +253,8 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         control={form.control}
         name="amountCents"
         label="Valor"
-        placeholder="R$ 0,00"
         required
+        currency={accounts?.find((a) => a.id === accountId)?.currency ?? "BRL"}
       />
 
       <div className="flex flex-col gap-1.5">
@@ -351,6 +351,11 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
                           aria-hidden
                         />
                         {a.label}
+                        {a.currency !== "BRL" ? (
+                          <span className="rounded-md bg-[color:var(--surface-2)] px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+                            {a.currency}
+                          </span>
+                        ) : null}
                       </span>
                     </SelectItem>
                   ))

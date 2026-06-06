@@ -11,7 +11,7 @@ import type { GoalRepository } from "@/domain/ports/repositories/goal.repository
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { McpAuditLogRepository } from "@/domain/ports/repositories/mcp-audit-log.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { CURRENCIES, type Currency, Money } from "@/domain/value-objects/money.vo";
 import { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -354,8 +354,11 @@ function optBigint(value: unknown): bigint | null {
 
 function money(value: unknown): Money {
   if (value === null || typeof value !== "object") throw new McpUndoNotReversible();
-  const cents = (value as Record<string, unknown>).cents;
-  return Money.fromCents(bigintOf(cents));
+  const record = value as Record<string, unknown>;
+  const currency = (CURRENCIES as readonly string[]).includes(record.currency as string)
+    ? (record.currency as Currency)
+    : "BRL";
+  return Money.fromCents(bigintOf(record.cents), currency);
 }
 
 function optMoney(value: unknown): Money | null {

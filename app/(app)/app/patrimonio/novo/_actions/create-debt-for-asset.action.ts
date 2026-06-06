@@ -5,7 +5,7 @@ import { z } from "zod";
 
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { CURRENCIES, Money } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -18,6 +18,7 @@ const inputSchema = z.object({
   installments: z.coerce.number().int().min(1).max(420),
   monthlyRatePct: z.coerce.number().min(0).max(20),
   startDate: z.string().min(1, "Informe a data de início."),
+  currency: z.enum(CURRENCIES).default("BRL"),
 });
 
 export type CreateDebtForAssetInput = z.input<typeof inputSchema>;
@@ -89,7 +90,7 @@ export async function createDebtForAssetAction(
       startDate,
       expectedEndDate: null,
       kind: "financing",
-      originalPrincipal: Money.fromCents(principalCents),
+      originalPrincipal: Money.fromCents(principalCents, v.currency),
       annualInterestRate: annualRate,
       termMonths: v.installments,
       amortizationMethod: "PRICE",
@@ -117,10 +118,10 @@ export async function createDebtForAssetAction(
       startDate,
       expectedEndDate: null,
       kind: "personal_loan",
-      originalPrincipal: Money.fromCents(principalCents),
+      originalPrincipal: Money.fromCents(principalCents, v.currency),
       annualInterestRate: annualRate,
       termMonths: v.installments,
-      monthlyInstallment: Money.fromCents(installmentCents),
+      monthlyInstallment: Money.fromCents(installmentCents, v.currency),
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     revalidatePath("/app/dividas"); revalidatePath(`/app/dividas/${r.value.id}`); revalidatePath("/app"); revalidatePath("/app/linha-do-tempo");
@@ -140,8 +141,8 @@ export async function createDebtForAssetAction(
     startDate,
     expectedEndDate: null,
     kind: "credit_card",
-    creditLimit: Money.fromCents(principalCents * 2n),
-    currentStatement: Money.fromCents(principalCents),
+    creditLimit: Money.fromCents(principalCents * 2n, v.currency),
+    currentStatement: Money.fromCents(principalCents, v.currency),
     statementDay: day,
     dueDay,
     revolvingBalance: null,

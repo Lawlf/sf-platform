@@ -10,6 +10,7 @@ import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
 import type { DebtKind } from "@/domain/entities/debt.entity";
+import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
@@ -43,6 +44,7 @@ type FormValues = z.infer<typeof formSchema>;
 interface Props {
   debtId: string;
   kind: DebtKind;
+  currency: Currency;
   defaults: {
     label: string;
     notes: string | null;
@@ -65,7 +67,7 @@ interface Props {
   };
 }
 
-export function EditDebtForm({ debtId, kind, defaults }: Props) {
+export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
@@ -221,6 +223,7 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
             name="currentBalanceCents"
             label="Saldo devedor atual"
             helper="Valor que ainda falta pagar."
+            currency={currency}
           />
         </section>
       ) : null}
@@ -243,6 +246,7 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
               control={form.control}
               name="monthlyInstallmentCents"
               label="Parcela mensal"
+              currency={currency}
             />
           ) : null}
           {kind === "financing" ? (
@@ -251,11 +255,13 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
                 control={form.control}
                 name="monthlyInsuranceCents"
                 label="Seguro mensal"
+                currency={currency}
               />
               <MoneyInput
                 control={form.control}
                 name="monthlyAdminFeeCents"
                 label="Taxa administrativa mensal"
+                currency={currency}
               />
             </>
           ) : null}
@@ -264,11 +270,17 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
 
       {kind === "credit_card" ? (
         <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <MoneyInput control={form.control} name="creditLimitCents" label="Limite do cartão" />
+          <MoneyInput
+            control={form.control}
+            name="creditLimitCents"
+            label="Limite do cartão"
+            currency={currency}
+          />
           <MoneyInput
             control={form.control}
             name="currentStatementCents"
             label="Fatura atual"
+            currency={currency}
           />
           <div className="grid grid-cols-2 gap-2">
             <WizardField label="Dia de fechamento" htmlFor={statementDayId}>
@@ -299,6 +311,7 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
             name="revolvingBalanceCents"
             label="Saldo do rotativo"
             helper="Faturas anteriores arrastadas."
+            currency={currency}
           />
           <WizardField label="Taxa do rotativo (a.m.)" htmlFor={revolvingRateId}>
             <input
@@ -339,6 +352,7 @@ export function EditDebtForm({ debtId, kind, defaults }: Props) {
             control={form.control}
             name="recurringAmountCents"
             label="Valor por período"
+            currency={currency}
           />
           <WizardField label="Frequência" htmlFor={frequencyId}>
             <select

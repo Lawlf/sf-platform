@@ -39,6 +39,7 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     onboardingWizardSeenAt: null,
     homeTourDismissedAt: null,
     quickAccess: [],
+    baseCurrency: "BRL",
     createdAt: new Date("2030-01-01T00:00:00.000Z"),
     updatedAt: new Date("2030-01-01T00:00:00.000Z"),
     ...overrides,

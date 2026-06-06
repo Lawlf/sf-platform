@@ -7,11 +7,14 @@ import type {
 } from "@/application/use-cases/timeline/get-timeline-for-user.use-case";
 import type { StoryIconName, StoryCardKind } from "@/domain/services/story-detection.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-amount-adjustment.repository";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -74,6 +77,9 @@ export async function fetchTimelinePage(
       debtPayments: new DrizzleDebtPaymentRepository(),
       assets: new DrizzleAssetRepository(),
       debtAmountAdjustments: new DrizzleDebtAmountAdjustmentRepository(),
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
+      clock: new SystemClock(),
     },
     {
       userId: user.id,

@@ -8,7 +8,7 @@ import {
   type UpdateDebtInput,
 } from "@/application/use-cases/debt/update-debt.use-case";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -92,6 +92,63 @@ const installmentPurchasesPayloadSchema = z
 
 export type UpdateDebtResult = { ok: true; debtId: string } | { ok: false; message: string };
 
+type ParsedUpdate = z.infer<typeof schema>;
+
+// Constrói a parte monetária da entrada de update reaproveitando a moeda da
+// dívida carregada. NUNCA recai em BRL para uma dívida que já está em outra
+// moeda: rebuildar com a moeda default corromperia o registro (regressão).
+export function buildUpdateMoneyInput(
+  d: ParsedUpdate,
+  currency: Currency,
+): Pick<
+  UpdateDebtInput,
+  | "currentBalance"
+  | "monthlyInstallment"
+  | "monthlyInsurance"
+  | "monthlyAdminFee"
+  | "creditLimit"
+  | "currentStatement"
+  | "revolvingBalance"
+  | "installmentPurchases"
+> {
+  const out: Pick<
+    UpdateDebtInput,
+    | "currentBalance"
+    | "monthlyInstallment"
+    | "monthlyInsurance"
+    | "monthlyAdminFee"
+    | "creditLimit"
+    | "currentStatement"
+    | "revolvingBalance"
+    | "installmentPurchases"
+  > = {};
+  if (d.currentBalanceCents != null) {
+    out.currentBalance = Money.fromCents(d.currentBalanceCents, currency);
+  }
+  if (d.monthlyInstallmentCents != null) {
+    out.monthlyInstallment = Money.fromCents(d.monthlyInstallmentCents, currency);
+  }
+  if (d.monthlyInsuranceCents !== undefined) {
+    out.monthlyInsurance =
+      d.monthlyInsuranceCents !== null ? Money.fromCents(d.monthlyInsuranceCents, currency) : null;
+  }
+  if (d.monthlyAdminFeeCents !== undefined) {
+    out.monthlyAdminFee =
+      d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents, currency) : null;
+  }
+  if (d.creditLimitCents != null) {
+    out.creditLimit = Money.fromCents(d.creditLimitCents, currency);
+  }
+  if (d.currentStatementCents != null) {
+    out.currentStatement = Money.fromCents(d.currentStatementCents, currency);
+  }
+  if (d.revolvingBalanceCents !== undefined) {
+    out.revolvingBalance =
+      d.revolvingBalanceCents !== null ? Money.fromCents(d.revolvingBalanceCents, currency) : null;
+  }
+  return out;
+}
+
 export async function updateDebtAction(formData: FormData): Promise<UpdateDebtResult> {
   const user = await requireUser();
   const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
@@ -99,6 +156,13 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
   }
   const d = parsed.data;
+
+  const debts = new DrizzleDebtRepository();
+  const existing = await debts.findById(d.debtId);
+  if (!existing || existing.userId !== user.id) {
+    return { ok: false, message: "Dívida não encontrada." };
+  }
+  const currency = existing.currentBalance.currency;
 
   let annualInterestRate: InterestRate | undefined;
   if (d.annualRatePct != null) {
@@ -125,35 +189,13 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
     overdraftMonthlyRate = r.value;
   }
 
-  const input: UpdateDebtInput = { userId: user.id, debtId: d.debtId };
+  const input: UpdateDebtInput = { userId: user.id, debtId: d.debtId, ...buildUpdateMoneyInput(d, currency) };
   if (d.label !== undefined) input.label = d.label;
   if (d.notes !== undefined) input.notes = d.notes;
   if (d.expectedEndDate !== undefined) input.expectedEndDate = d.expectedEndDate;
-  if (d.currentBalanceCents != null) {
-    input.currentBalance = Money.fromCents(d.currentBalanceCents);
-  }
   if (annualInterestRate !== undefined) input.annualInterestRate = annualInterestRate;
-  if (d.monthlyInstallmentCents != null) {
-    input.monthlyInstallment = Money.fromCents(d.monthlyInstallmentCents);
-  }
-  if (d.monthlyInsuranceCents !== undefined) {
-    input.monthlyInsurance =
-      d.monthlyInsuranceCents !== null ? Money.fromCents(d.monthlyInsuranceCents) : null;
-  }
-  if (d.monthlyAdminFeeCents !== undefined) {
-    input.monthlyAdminFee =
-      d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents) : null;
-  }
-  if (d.creditLimitCents != null) input.creditLimit = Money.fromCents(d.creditLimitCents);
-  if (d.currentStatementCents != null) {
-    input.currentStatement = Money.fromCents(d.currentStatementCents);
-  }
   if (d.statementDay != null) input.statementDay = d.statementDay;
   if (d.dueDay != null) input.dueDay = d.dueDay;
-  if (d.revolvingBalanceCents !== undefined) {
-    input.revolvingBalance =
-      d.revolvingBalanceCents !== null ? Money.fromCents(d.revolvingBalanceCents) : null;
-  }
   if (revolvingMonthlyRate !== undefined) input.revolvingMonthlyRate = revolvingMonthlyRate;
   if (d.bankName !== undefined) input.bankName = d.bankName;
   if (overdraftMonthlyRate !== undefined) input.monthlyRate = overdraftMonthlyRate;
@@ -174,10 +216,10 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
         const monthlyCents = p.totalCents / BigInt(p.installmentsTotal);
         return {
           description: p.description,
-          total: Money.fromCents(p.totalCents),
+          total: Money.fromCents(p.totalCents, currency),
           installmentsTotal: p.installmentsTotal,
           installmentsRemaining: p.installmentsRemaining,
-          monthlyValue: Money.fromCents(monthlyCents),
+          monthlyValue: Money.fromCents(monthlyCents, currency),
         };
       });
     } catch {
@@ -185,10 +227,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
     }
   }
 
-  const r = await updateDebt(
-    { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
-    input,
-  );
+  const r = await updateDebt({ debts, clock: new SystemClock() }, input);
   if (isErr(r)) return { ok: false, message: r.error.message };
 
   await detectNotificationsForUser(user.id);

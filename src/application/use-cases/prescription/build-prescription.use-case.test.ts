@@ -1,11 +1,12 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
+import { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors/result";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { buildPrescription } from "./build-prescription.use-case";
 
@@ -15,6 +16,26 @@ const m = (r: number) => {
   if (!isOk(x)) throw new Error("m");
   return x.value;
 };
+const mUsd = (r: number) => {
+  const x = Money.from(r, "USD");
+  if (!isOk(x)) throw new Error("mUsd");
+  return x.value;
+};
+const fxDeps = (rateDecimal: string | null) => ({
+  rates: {
+    upsertDaily: vi.fn(),
+    findLatest: vi.fn().mockResolvedValue(
+      rateDecimal ? { rateDecimal, asOf: NOW } : null,
+    ),
+  },
+  overrides: {
+    find: vi.fn().mockResolvedValue(null),
+    upsert: vi.fn(),
+    remove: vi.fn(),
+    listForUser: vi.fn(),
+  },
+  clock: { now: vi.fn(() => NOW) },
+});
 const rate = (d: number) => {
   const x = InterestRate.fromMonthly(d);
   if (!isOk(x)) throw new Error("r");
@@ -69,6 +90,7 @@ const deps = {
   incomes: { listForUser: async () => [income] },
   assets: { findActiveByUser: async () => [cashAsset] },
   now: () => NOW,
+  ...fxDeps(null),
 };
 
 describe("buildPrescription", () => {
@@ -78,5 +100,36 @@ describe("buildPrescription", () => {
     if (!isOk(r)) return;
     expect(r.value.state).toBe("bleeding");
     expect(r.value.dominant?.targetDebtId).toBe("nubank");
+  });
+
+  it("converts foreign income to base before the figures", async () => {
+    const usdIncome = { ...income, id: "iUsd", amount: mUsd(1000) } as IncomeEntity;
+    const fxConverted = {
+      debts: { listForUser: async () => [] },
+      incomes: { listForUser: async () => [usdIncome] },
+      assets: { findActiveByUser: async () => [] },
+      now: () => NOW,
+      ...fxDeps("5.00"),
+    };
+    const r = await buildPrescription(fxConverted as never, { userId: "u1" });
+    expect(isOk(r)).toBe(true);
+    if (!isOk(r)) return;
+    expect(r.value.dominant?.type).toBe("invest");
+    expect(r.value.dominant?.metrics.monthlyContributionReais).toBe(5000);
+  });
+
+  it("returns the FX error when a foreign entity has no rate", async () => {
+    const usdAsset = { ...cashAsset, id: "aUsd", currentValue: mUsd(1000) } as AssetEntity;
+    const noRate = {
+      debts: { listForUser: async () => [] },
+      incomes: { listForUser: async () => [income] },
+      assets: { findActiveByUser: async () => [usdAsset] },
+      now: () => NOW,
+      ...fxDeps(null),
+    };
+    const r = await buildPrescription(noRate as never, { userId: "u1" });
+    expect(isErr(r)).toBe(true);
+    if (!isErr(r)) return;
+    expect(r.error).toBeInstanceOf(FxRateUnavailableError);
   });
 });

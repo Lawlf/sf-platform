@@ -13,6 +13,7 @@ export const transactions = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     direction: text("direction").notNull().default("out"),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     description: text("description").notNull(),
     category: text("category"),
     accountId: uuid("account_id").references(() => assets.id, { onDelete: "set null" }),

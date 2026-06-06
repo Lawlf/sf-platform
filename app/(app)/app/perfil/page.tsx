@@ -8,9 +8,11 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
 import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -65,6 +67,8 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       debts,
       incomes: new DrizzleIncomeRepository(),
       clock,
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
     },
     { userId },
   );
@@ -73,6 +77,9 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       assets: new DrizzleAssetRepository(),
       allocations: new DrizzleAssetDebtAllocationRepository(),
       debts,
+      rates: new DrizzleExchangeRateRepository(),
+      overrides: new DrizzleUserFxOverrideRepository(),
+      clock,
     },
     { userId },
   );

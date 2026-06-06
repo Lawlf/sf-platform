@@ -10,6 +10,7 @@ import type { ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
 
 import { Spinner } from "@/app/components/ui/spinner";
+import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
@@ -50,9 +51,13 @@ type Step = 2 | 3 | 4 | 5;
 
 interface FinancingFormProps {
   initialScenario?: "new" | "ongoing";
+  defaultCurrency?: Currency;
 }
 
-export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = {}) {
+export function FinancingForm({
+  initialScenario = "new",
+  defaultCurrency = "BRL",
+}: FinancingFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
@@ -80,6 +85,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       initialScenario === "ongoing"
         ? ({
             scenario: "ongoing",
+            currency: defaultCurrency,
             label: "Financiamento",
             originalPrincipalCents: 0n as unknown as bigint,
             currentBalanceCents: 0n as unknown as bigint,
@@ -97,6 +103,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
           } as FormValues)
         : ({
             scenario: "new",
+            currency: defaultCurrency,
             label: "Financiamento",
             principalCents: 0n as unknown as bigint,
             annualRatePct: 0,
@@ -115,6 +122,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
   const values = form.watch();
   const errors = form.formState.errors;
   const scenario = values.scenario;
+  const currency: Currency = values.currency ?? defaultCurrency;
 
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
@@ -122,6 +130,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       form.reset(
         {
           scenario: "new",
+          currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
           principalCents: 0n as unknown as bigint,
           annualRatePct: 0,
@@ -141,6 +150,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
       form.reset(
         {
           scenario: "ongoing",
+          currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
           originalPrincipalCents: 0n as unknown as bigint,
           currentBalanceCents: 0n as unknown as bigint,
@@ -250,6 +260,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
 
     const fd = new FormData();
     fd.set("label", v.label);
+    fd.set("currency", v.currency);
 
     let principalForServer: bigint;
     let termMonthsForServer: number;
@@ -402,6 +413,8 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 name={"principalCents" as never}
                 id={principalId}
                 placeholder="R$ 0,00"
+                currency={currency}
+                onCurrencyChange={(c) => form.setValue("currency" as never, c as never)}
               />
             </WizardField>
 
@@ -435,6 +448,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 name={"monthlyInstallmentCents" as never}
                 id={installmentId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
             </WizardField>
 
@@ -470,6 +484,8 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 name={"originalPrincipalCents" as never}
                 id={principalId}
                 placeholder="R$ 0,00"
+                currency={currency}
+                onCurrencyChange={(c) => form.setValue("currency" as never, c as never)}
               />
             </WizardField>
 
@@ -487,6 +503,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 name={"currentBalanceCents" as never}
                 id={balanceId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
             </WizardField>
 
@@ -520,6 +537,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
                 name={"monthlyInstallmentCents" as never}
                 id={installmentId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
             </WizardField>
 
@@ -628,6 +646,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
             name="monthlyInsuranceCents"
             id={insuranceId}
             placeholder="R$ 0,00"
+            currency={currency}
           />
         </WizardField>
 
@@ -641,6 +660,7 @@ export function FinancingForm({ initialScenario = "new" }: FinancingFormProps = 
             name="monthlyAdminFeeCents"
             id={adminFeeId}
             placeholder="R$ 0,00"
+            currency={currency}
           />
         </WizardField>
       </WizardShell>

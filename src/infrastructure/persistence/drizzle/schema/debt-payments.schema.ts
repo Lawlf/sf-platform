@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, boolean, index, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, boolean, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { debts } from "./debts.schema";
 
@@ -12,6 +12,7 @@ export const debtPayments = pgTable(
       .references(() => debts.id, { onDelete: "cascade" }),
     paidAt: timestamp("paid_at", { withTimezone: true }).notNull(),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     principalPortionCents: bigint("principal_portion_cents", { mode: "bigint" }).notNull(),
     interestPortionCents: bigint("interest_portion_cents", { mode: "bigint" }).notNull(),
     isExtra: boolean("is_extra").notNull().default(false),

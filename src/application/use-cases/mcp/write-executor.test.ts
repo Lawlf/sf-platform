@@ -101,6 +101,139 @@ describe("executeWrite", () => {
     expect(r.reversible).toBe(true);
   });
 
+  it("income_create com currency USD persiste amount em USD", async () => {
+    const deps = makeDeps();
+    const r = await executeWrite(deps, {
+      toolName: "income_create",
+      userId: "u1",
+      isPro: true,
+      args: {
+        label: "Salary",
+        amountCents: 500000,
+        frequency: "monthly",
+        startDate: "2026-06-01",
+        currency: "USD",
+      },
+    });
+
+    expect(r.after?.amount).toEqual({ cents: "500000", currency: "USD" });
+  });
+
+  it("asset_create com currency USD repassa currency para createAsset", async () => {
+    const deps = makeDeps();
+    const created = vi.fn(async (e) => e);
+    (deps.assets.create as ReturnType<typeof vi.fn>).mockImplementation(created);
+
+    await executeWrite(deps, {
+      toolName: "asset_create",
+      userId: "u1",
+      isPro: true,
+      args: {
+        category: "real_estate",
+        label: "Apartment",
+        currentValueCents: 30000000,
+        currency: "USD",
+      },
+    });
+
+    const entity = created.mock.calls[0]![0] as { currentValue: Money };
+    expect(entity.currentValue.currency).toBe("USD");
+  });
+
+  it("debt_create (financing) com currency USD constrói Money em USD", async () => {
+    const deps = makeDeps();
+    const created = vi.fn(async (e: DebtEntity) => e);
+    (deps.debts.create as ReturnType<typeof vi.fn>).mockImplementation(created);
+
+    await executeWrite(deps, {
+      toolName: "debt_create",
+      userId: "u1",
+      isPro: true,
+      args: {
+        kind: "financing",
+        label: "Apartment",
+        startDate: "2026-01-01",
+        originalPrincipalCents: 30000000,
+        annualInterestRate: 0.1,
+        termMonths: 360,
+        amortizationMethod: "SAC",
+        monthlyInsuranceCents: 5000,
+        monthlyAdminFeeCents: 2500,
+        currency: "USD",
+      },
+    });
+
+    const entity = created.mock.calls[0]![0] as DebtEntity;
+    if (entity.kind !== "financing") throw new Error("test: expected financing");
+    expect(entity.originalPrincipal.currency).toBe("USD");
+    expect(entity.currentBalance.currency).toBe("USD");
+    expect(entity.monthlyInsurance?.currency).toBe("USD");
+    expect(entity.monthlyAdminFee?.currency).toBe("USD");
+  });
+
+  it("income_update sem currency preserva a moeda da renda existente (USD)", async () => {
+    const existing: IncomeEntity = {
+      id: "i1",
+      userId: "u1",
+      label: "Salary",
+      amount: Money.fromCents(500000n, "USD"),
+      frequency: "monthly",
+      startDate: new Date("2026-06-01"),
+      endDate: null,
+      isActive: true,
+      createdAt: new Date("2026-06-01"),
+      deletedAt: null,
+    };
+    const deps = makeDeps();
+    (deps.incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+    (deps.incomes.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+
+    const r = await executeWrite(deps, {
+      toolName: "income_update",
+      userId: "u1",
+      isPro: true,
+      args: { incomeId: "i1", amountCents: 600000 },
+    });
+
+    expect(r.after?.amount).toEqual({ cents: "600000", currency: "USD" });
+  });
+
+  it("debt_update sem currency preserva a moeda da dívida existente (USD)", async () => {
+    const existing = {
+      id: "d1",
+      userId: "u1",
+      kind: "personal_loan",
+      label: "Loan",
+      status: "active",
+      originalPrincipal: Money.fromCents(1000000n, "USD"),
+      currentBalance: Money.fromCents(800000n, "USD"),
+      startDate: new Date("2026-01-01"),
+      expectedEndDate: null,
+      notes: null,
+      createdAt: new Date("2026-01-01"),
+      updatedAt: new Date("2026-01-01"),
+      deletedAt: null,
+      recurringFrequency: null,
+      recurringAmountCents: null,
+      expenseCategory: null,
+      annualInterestRate: rate(0.2),
+      termMonths: 24,
+      monthlyInstallment: Money.fromCents(50000n, "USD"),
+    } as unknown as DebtEntity;
+    const deps = makeDeps();
+    (deps.debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+    (deps.debts.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const r = await executeWrite(deps, {
+      toolName: "debt_update",
+      userId: "u1",
+      isPro: true,
+      args: { debtId: "d1", currentBalanceCents: 700000 },
+    });
+
+    expect(r.after?.currentBalance).toEqual({ cents: "700000", currency: "USD" });
+  });
+
   it("income_update captura before via findById e retorna after", async () => {
     const existing: IncomeEntity = {
       id: "i1",

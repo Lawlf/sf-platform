@@ -23,6 +23,7 @@ export const incomes = pgTable(
       .references(() => users.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     frequency: incomeFrequency("frequency").notNull(),
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),
     endDate: timestamp("end_date", { withTimezone: true }),

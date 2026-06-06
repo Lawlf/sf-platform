@@ -33,6 +33,7 @@ export default async function EditIncomePage({ params }: { params: Promise<{ id:
             id: income.id,
             label: income.label,
             amountCents: income.amount.toCents().toString(),
+            currency: income.amount.currency,
             frequency: income.frequency,
             startDateIso: income.startDate.toISOString().slice(0, 10),
             endDateIso: income.endDate ? income.endDate.toISOString().slice(0, 10) : null,

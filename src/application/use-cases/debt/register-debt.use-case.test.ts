@@ -250,6 +250,76 @@ describe("registerDebt", () => {
     }
   });
 
+  it("creates a credit_card debt in USD without throwing on statement + revolving sum", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const statement = Money.fromCents(150000n, "USD");
+    const revolving = Money.fromCents(80000n, "USD");
+    const limit = Money.fromCents(1000000n, "USD");
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        userId: "user-usd-cc",
+        label: "Amex USD",
+        notes: null,
+        startDate: new Date("2026-01-01"),
+        expectedEndDate: null,
+        kind: "credit_card",
+        creditLimit: limit,
+        currentStatement: statement,
+        statementDay: 5,
+        dueDay: 15,
+        revolvingBalance: revolving,
+        revolvingMonthlyRate: makeRate(0.15),
+        installmentPurchases: [],
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    expect(arg.kind).toBe("credit_card");
+    expect(arg.currentBalance.currency).toBe("USD");
+    expect(arg.originalPrincipal.currency).toBe("USD");
+    expect(arg.currentBalance.toCents()).toBe(230000n);
+    if (arg.kind === "credit_card") {
+      expect(arg.currentStatement.currency).toBe("USD");
+      expect(arg.revolvingBalance?.currency).toBe("USD");
+      expect(arg.creditLimit?.currency).toBe("USD");
+    }
+  });
+
+  it("creates a recurring debt in USD building its Money fields in USD", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        kind: "recurring",
+        userId: "user-r-usd",
+        label: "Spotify USD",
+        recurringFrequency: "monthly",
+        recurringAmountCents: 999n,
+        expenseCategory: "subscriptions",
+        startDate: new Date("2026-05-01"),
+        endDate: null,
+        notes: undefined,
+        currency: "USD",
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    expect(arg.kind).toBe("recurring");
+    expect(arg.originalPrincipal.currency).toBe("USD");
+    expect(arg.originalPrincipal.toCents()).toBe(999n);
+    expect(arg.currentBalance.currency).toBe("USD");
+  });
+
   it("creates an overdraft debt with originalPrincipal = currentBalance and lastChargeDate=null", async () => {
     const debts = makeDebtRepo();
     const clock = makeClock();

@@ -8,6 +8,8 @@ import { useRouter } from "next/navigation";
 import { useId, useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
+import type { Currency } from "@/domain/value-objects/money.vo";
+
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { computeCetAnnualText, computePriceInstallmentCents } from "../../../_lib/amortization";
@@ -67,9 +69,13 @@ const cashInflowDefaults = {
 
 interface PersonalLoanFormProps {
   initialScenario?: "new" | "ongoing";
+  defaultCurrency?: Currency;
 }
 
-export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormProps = {}) {
+export function PersonalLoanForm({
+  initialScenario = "new",
+  defaultCurrency = "BRL",
+}: PersonalLoanFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
@@ -98,6 +104,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       initialScenario === "ongoing"
         ? ({
             scenario: "ongoing",
+            currency: defaultCurrency,
             label: "Empréstimo",
             originalPrincipalCents: 0n as unknown as bigint,
             currentBalanceCents: 0n as unknown as bigint,
@@ -113,6 +120,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
           } as FormValues)
         : ({
             scenario: "new",
+            currency: defaultCurrency,
             label: "Empréstimo",
             netReceivedCents: 0n as unknown as bigint,
             principalCents: 0n as unknown as bigint,
@@ -130,6 +138,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
   const values = form.watch();
   const errors = form.formState.errors;
   const scenario = values.scenario;
+  const currency: Currency = values.currency ?? defaultCurrency;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formAny = form as UseFormReturn<any>;
 
@@ -218,6 +227,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       form.reset(
         {
           scenario: "new",
+          currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
           netReceivedCents: 0n as unknown as bigint,
           principalCents: 0n as unknown as bigint,
@@ -236,6 +246,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
       form.reset(
         {
           scenario: "ongoing",
+          currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
           originalPrincipalCents: 0n as unknown as bigint,
           currentBalanceCents: 0n as unknown as bigint,
@@ -323,6 +334,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
 
     const fd = new FormData();
     fd.set("label", v.label);
+    fd.set("currency", v.currency);
 
     // Map both scenarios onto the server-action's existing FormData contract.
     let principalForServer: bigint;
@@ -517,6 +529,8 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 name={"netReceivedCents" as never}
                 id={netReceivedId}
                 placeholder="R$ 0,00"
+                currency={currency}
+                onCurrencyChange={(c) => formAny.setValue("currency", c)}
               />
             </WizardField>
 
@@ -531,6 +545,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 name={"principalCents" as never}
                 id={principalId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
               {iofCents && iofPercentText ? (
                 <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
@@ -596,6 +611,8 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 name={"originalPrincipalCents" as never}
                 id={principalId}
                 placeholder="R$ 0,00"
+                currency={currency}
+                onCurrencyChange={(c) => formAny.setValue("currency", c)}
               />
             </WizardField>
 
@@ -613,6 +630,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 name={"currentBalanceCents" as never}
                 id={balanceId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
             </WizardField>
 
@@ -626,6 +644,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
                 name="monthlyInstallmentCents"
                 id={installmentId}
                 placeholder="R$ 0,00"
+                currency={currency}
               />
             </WizardField>
 
@@ -734,6 +753,7 @@ export function PersonalLoanForm({ initialScenario = "new" }: PersonalLoanFormPr
               name="monthlyInstallmentCents"
               id={installmentId}
               placeholder="R$ 0,00"
+              currency={currency}
             />
           </WizardField>
         ) : null}

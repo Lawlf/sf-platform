@@ -6,7 +6,7 @@ import type {
   PeriodAdjustment,
 } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtAmountAdjustmentRepository } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import {
@@ -20,7 +20,7 @@ function rowToEntity(row: DebtAmountAdjustmentRow): DebtAmountAdjustmentEntity {
     id: row.id,
     debtId: row.debtId,
     userId: row.userId,
-    amount: Money.fromCents(row.amountCents),
+    amount: Money.fromCents(row.amountCents, row.currency as Currency),
     note: row.note,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -52,6 +52,7 @@ function entityToRow(entity: DebtAmountAdjustmentEntity): NewDebtAmountAdjustmen
     debtId: entity.debtId,
     userId: entity.userId,
     amountCents: entity.amount.toCents(),
+    currency: entity.amount.currency,
     note: entity.note,
     createdAt: entity.createdAt,
     updatedAt: entity.updatedAt,

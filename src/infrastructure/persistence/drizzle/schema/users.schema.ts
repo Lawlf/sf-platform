@@ -19,6 +19,7 @@ export const users = pgTable(
     role: userRole("role").notNull().default("user"),
     plan: userPlan("plan").notNull().default("free"),
     isPro: boolean("is_pro").notNull().default(false),
+    baseCurrency: text("base_currency").notNull().default("BRL"),
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     deactivationReason: text("deactivation_reason"),
     contentDiagnosticAnswer: contentDiagnosticAnswer("content_diagnostic_answer"),

@@ -3,6 +3,8 @@
 import { useId } from "react";
 import { Controller } from "react-hook-form";
 
+import { formatCents } from "@/shared/format/money-format";
+
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { WizardField, wizardInputClass } from "../../../../dividas/nova/_components/wizard-field";
 import { WizardMoneyField } from "../../../../dividas/nova/_components/wizard-money-field";
@@ -38,11 +40,6 @@ const YIELD_TYPE_META: Record<YieldType, { title: string; description: string }>
   cdi: { title: "% do CDI", description: "Ex: 100% CDI, 110% CDI." },
   fixed_pct_year: { title: "Taxa fixa", description: "Ex: 8,5% ao ano." },
 };
-
-function formatCentsBRL(cents: bigint): string {
-  const reais = Number(cents) / 100;
-  return reais.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 export interface DetailsStepProps {
   form: AssetWizardForm;
@@ -83,6 +80,7 @@ export function DetailsStep({
 
   const category = form.watch("category");
   const investmentType = form.watch("investmentType");
+  const currency = form.watch("currency");
   const yieldType = form.watch("yieldType");
   const ticker = form.watch("ticker");
   const lastQuoteCents = form.watch("lastQuoteCents");
@@ -198,7 +196,7 @@ export function DetailsStep({
               {tickerCompanyName ? <div className="font-semibold">{tickerCompanyName}</div> : null}
               {lastQuoteCents !== null && lastQuoteCents !== undefined ? (
                 <div className="text-[0.6875rem] opacity-75">
-                  Última cotação salva: {formatCentsBRL(lastQuoteCents)}
+                  Última cotação salva: {formatCents(lastQuoteCents)}
                 </div>
               ) : null}
             </div>
@@ -417,7 +415,9 @@ export function DetailsStep({
           control={form.control}
           name="currentValueCents"
           id={valueInputId}
-          placeholder="R$ 0,00"
+          placeholder={formatCents(0n, currency ?? "BRL")}
+          currency={currency ?? "BRL"}
+          onCurrencyChange={(next) => form.setValue("currency", next, { shouldDirty: true })}
         />
       </WizardField>
 

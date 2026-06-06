@@ -26,7 +26,7 @@ export async function updateIncomeAction(
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
   }
   const data = parsed.data;
-  const amount = Money.fromCents(BigInt(data.amountCents));
+  const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 
   const r = await updateIncome(
     { incomes: new DrizzleIncomeRepository(), clock: new SystemClock() },

@@ -77,6 +77,19 @@ describe("DrizzleIncomeRepository (integration)", () => {
     expect(onlyActive[0]?.isActive).toBe(true);
   });
 
+  it("round-trips a non-BRL income currency", async () => {
+    const entity = makeIncome({
+      label: `${LABEL_PREFIX}usd`,
+      amount: Money.fromCents(500_000n, "USD"),
+    });
+    const created = await repo.create(entity);
+    expect(created.amount.currency).toBe("USD");
+
+    const found = await repo.findById(entity.id);
+    expect(found?.amount.currency).toBe("USD");
+    expect(found?.amount.toCents()).toBe(500_000n);
+  });
+
   it("setActive toggles the isActive flag", async () => {
     const entity = makeIncome();
     await repo.create(entity);

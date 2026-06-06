@@ -6,6 +6,7 @@ import type {
   SessionRepository,
   SessionWithUser,
 } from "@/domain/ports/repositories/session.repository";
+import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import { sessions } from "../schema/sessions.schema";
@@ -39,6 +40,7 @@ function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
+    baseCurrency: (row.baseCurrency as Currency | null) ?? "BRL",
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };

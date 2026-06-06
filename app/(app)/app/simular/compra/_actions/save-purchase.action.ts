@@ -93,6 +93,7 @@ export async function savePurchaseAction(formData: FormData): Promise<SavePurcha
       category: parsed.data.assetCategory,
       label: parsed.data.assetLabel,
       currentValueCents: parsed.data.amountCents,
+      currency: "BRL",
       metadata: assetMetadataForCategory(parsed.data.assetCategory),
       fipeCode: null,
       acquiredAt: purchaseDate,

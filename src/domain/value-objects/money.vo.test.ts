@@ -104,6 +104,21 @@ describe("Money value object", () => {
     }
   });
 
+  it("formats USD with the US$ symbol in pt-BR locale", () => {
+    expect(Money.fromCents(123456n, "USD").format()).toBe(
+      new Intl.NumberFormat("pt-BR", { style: "currency", currency: "USD" }).format(1234.56),
+    );
+  });
+
+  it("formats EUR and GBP by their own currency", () => {
+    expect(Money.fromCents(100000n, "EUR").format()).toContain("€");
+    expect(Money.fromCents(100000n, "GBP").format()).toContain("£");
+  });
+
+  it("still formats BRL as R$", () => {
+    expect(Money.fromCents(123456n, "BRL").format()).toContain("R$");
+  });
+
   it("equals matches by cents and currency", () => {
     const a = Money.from(10);
     const b = Money.from(10);

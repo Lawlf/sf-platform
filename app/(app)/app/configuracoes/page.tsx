@@ -12,12 +12,14 @@ import {
   Plug,
   ScrollText,
   ShieldCheck,
+  Trophy,
   UserCog,
 } from "lucide-react";
 import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
 import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -86,11 +88,10 @@ const SECTIONS: SettingSection[] = [
         icon: LayoutGrid,
       },
       {
-        href: "/app/configuracoes" as Route,
+        href: "/app/configuracoes/idioma-regiao" as Route,
         label: "Idioma e região",
-        description: "Em breve. Português (Brasil), moeda Real.",
+        description: "Português (Brasil). Escolha a moeda padrão dos seus lançamentos.",
         icon: Globe,
-        disabled: true,
       },
     ],
   },
@@ -144,12 +145,17 @@ const SECTIONS: SettingSection[] = [
 export default async function ConfiguracoesPage() {
   const user = await requireUser();
   const avatarUrl = await new DrizzleUserAvatarRepository().get(user.id);
+  const achievementCount = (await new DrizzleUserAchievementRepository().listForUser(user.id))
+    .length;
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;
 
   return (
     <PageShell title="Configurações" description="Ajuste a plataforma do seu jeito.">
-      <section className="flex items-center gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+      <Link
+        href={"/app/perfil" as Route}
+        className="focus-ring flex items-center gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl transition-colors hover:border-[color:var(--border-strong)] hover:bg-[color:var(--surface-2)]"
+      >
         <UserAvatar
           dataUrl={avatarUrl}
           displayName={displayName}
@@ -159,11 +165,20 @@ export default async function ConfiguracoesPage() {
           <div className="truncate text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
             {user.displayName ?? "Sem nome"}
           </div>
-          <div className="truncate text-[0.75rem] text-[color:var(--text-secondary)]">
-            {user.email}
-          </div>
+          {achievementCount > 0 ? (
+            <div className="mt-0.5 flex items-center gap-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
+              <Trophy size={13} strokeWidth={2.25} className="text-[#f28e25]" aria-hidden />
+              {achievementCount} {achievementCount === 1 ? "conquista" : "conquistas"}
+            </div>
+          ) : null}
         </div>
-      </section>
+        <ChevronRight
+          size={18}
+          strokeWidth={2}
+          className="flex-none text-[color:var(--text-muted)]"
+          aria-hidden
+        />
+      </Link>
 
       {SECTIONS.map((section) => (
         <section key={section.title} className="flex flex-col gap-2">

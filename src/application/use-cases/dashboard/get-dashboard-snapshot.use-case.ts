@@ -1,15 +1,29 @@
+import {
+  BASE_CURRENCY,
+  convertDebtToBase,
+  convertIncomeToBase,
+} from "@/application/use-cases/fx/convert-entity-to-base";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { FinancialSnapshotEntity } from "@/domain/entities/financial-snapshot.entity";
-import type { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type {
+  FxRateUnavailableError,
+  InvalidAmortizationParamsError,
+} from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
-import { err, isOk, ok, type Result } from "@/shared/errors/result";
+import { err, isErr, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface GetDashboardSnapshotDeps {
   debts: DebtRepository;
   incomes: IncomeRepository;
   clock: Clock;
+  rates: ExchangeRateRepository;
+  overrides: UserFxOverrideRepository;
 }
 
 /**
@@ -24,16 +38,33 @@ export type DashboardSnapshotResult = FinancialSnapshotEntity;
 export async function getDashboardSnapshot(
   deps: GetDashboardSnapshotDeps,
   input: { userId: string },
-): Promise<Result<DashboardSnapshotResult, InvalidAmortizationParamsError>> {
+): Promise<
+  Result<DashboardSnapshotResult, InvalidAmortizationParamsError | FxRateUnavailableError>
+> {
   const [debts, incomes] = await Promise.all([
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.incomes.listForUser(input.userId, { onlyActive: true }),
   ]);
   const now = deps.clock.now();
+
+  const convertedIncomes: IncomeEntity[] = [];
+  for (const income of incomes) {
+    const r = await convertIncomeToBase(deps, input.userId, income, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedIncomes.push(r.value);
+  }
+
+  const convertedDebts: DebtEntity[] = [];
+  for (const debt of debts) {
+    const r = await convertDebtToBase(deps, input.userId, debt, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedDebts.push(r.value);
+  }
+
   const r = FinancialHealthService.snapshot({
     userId: input.userId,
-    incomes,
-    debts,
+    incomes: convertedIncomes,
+    debts: convertedDebts,
     asOfDate: now,
   });
   if (!isOk(r)) return err(r.error);

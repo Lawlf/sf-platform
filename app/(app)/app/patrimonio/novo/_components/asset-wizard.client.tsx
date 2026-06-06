@@ -9,6 +9,8 @@ import { useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
+import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+
 import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
@@ -38,6 +40,7 @@ export const wizardFormSchema = z.object({
   category: z.enum(CATEGORIES),
   label: z.string().min(1, "Nome obrigatório.").max(120, "Máximo de 120 caracteres."),
   currentValueCents: z.bigint().nonnegative("Valor inválido."),
+  currency: z.enum(CURRENCIES),
   purchasePriceCents: z.bigint().nullable().optional(),
   acquiredAt: z.string().optional().nullable(),
 
@@ -128,7 +131,8 @@ const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
 export function AssetWizardClient({
   initialCategory,
-}: { initialCategory?: Category | undefined } = {}) {
+  defaultCurrency = "BRL",
+}: { initialCategory?: Category | undefined; defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<WizardStepId>(
@@ -143,6 +147,7 @@ export function AssetWizardClient({
       category: initialCategory ?? "vehicle",
       label: "",
       currentValueCents: 0n as unknown as bigint,
+      currency: defaultCurrency,
       purchasePriceCents: null,
       acquiredAt: "",
       brand: "",
@@ -383,6 +388,7 @@ export function AssetWizardClient({
         installments: installmentsNum,
         monthlyRatePct: monthlyRate,
         startDate,
+        currency: values.currency,
       });
       if (!debtResult.ok) {
         setServerError(debtResult.message);
@@ -400,6 +406,7 @@ export function AssetWizardClient({
       category: values.category,
       label: values.label.trim(),
       currentValueCents: currentValueCents.toString(),
+      currency: values.currency,
       metadataJson,
       acquiredAt: values.acquiredAt && values.acquiredAt.length > 0 ? values.acquiredAt : null,
       allocations: allocationsPayload,

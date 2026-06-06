@@ -7,11 +7,13 @@ import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { isOk } from "@/shared/errors/result";
+import { isErr, isOk } from "@/shared/errors/result";
 
 import { getTimelineForUser } from "./get-timeline-for-user.use-case";
 
@@ -180,6 +182,23 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   };
 }
 
+const NOW = new Date("2026-06-15T00:00:00Z");
+
+function makeFx(rate: string | null = null) {
+  const rates: ExchangeRateRepository = {
+    upsertDaily: vi.fn(),
+    findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
+  };
+  const overrides: UserFxOverrideRepository = {
+    find: vi.fn(async () => null),
+    upsert: vi.fn(),
+    remove: vi.fn(),
+    listForUser: vi.fn(async () => []),
+  };
+  const clock = { now: vi.fn(() => NOW) };
+  return { rates, overrides, clock };
+}
+
 function emptyRepos() {
   const incomes = makeIncomeRepo();
   const debts = makeDebtRepo();
@@ -189,7 +208,7 @@ function emptyRepos() {
   (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   (debtPayments.listForUserInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-  return { incomes, debts, debtPayments, assets };
+  return { incomes, debts, debtPayments, assets, ...makeFx() };
 }
 
 describe("getTimelineForUser (cursor pagination + stories)", () => {
@@ -266,7 +285,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       { userId: "user-1", before, limit: 3 },
     );
 
@@ -290,7 +309,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       { userId: "user-1", before, limit: 3 },
     );
 
@@ -315,7 +334,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const now = MonthYear.from(2026, 5);
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 5),
@@ -345,7 +364,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const now = MonthYear.from(2026, 5);
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 5),
@@ -380,7 +399,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 3),
@@ -414,7 +433,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 3),
@@ -461,7 +480,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 6),
@@ -496,7 +515,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([asset]);
 
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 6),
@@ -563,7 +582,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     });
 
     await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       { userId: "user-1", before: MonthYear.from(2026, 3), limit: 3 },
     );
 
@@ -589,7 +608,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
-      { incomes, debts, debtPayments, assets },
+      { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
         before: MonthYear.from(2026, 5),
@@ -602,5 +621,84 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     expect(isOk(result)).toBe(true);
     if (!isOk(result)) return;
     expect(result.value.olderMonthIso).toBe("2025-11");
+  });
+
+  it("converts USD income, USD recurring debt and USD payment to BRL at rate 5.00", async () => {
+    const incomes = makeIncomeRepo();
+    const debts = makeDebtRepo();
+    const debtPayments = makePaymentsRepo();
+    const assets = makeAssetRepo();
+
+    const income = makeIncome({
+      amount: Money.fromCents(100_000n, "USD" as Currency),
+      startDate: new Date("2025-01-01T00:00:00Z"),
+    });
+    const rec = makeRecurring({
+      originalPrincipal: Money.fromCents(0n, "USD" as Currency),
+      currentBalance: Money.fromCents(0n, "USD" as Currency),
+      recurringAmountCents: 30_000n,
+      startDate: new Date("2025-01-01T00:00:00Z"),
+    });
+    const payment = makePayment({
+      paidAt: new Date("2026-02-15T00:00:00Z"),
+      amount: Money.fromCents(20_000n, "USD" as Currency),
+      principalPortion: Money.fromCents(16_000n, "USD" as Currency),
+      interestPortion: Money.fromCents(4_000n, "USD" as Currency),
+    });
+
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([rec]);
+    (debtPayments.listForUserInRange as ReturnType<typeof vi.fn>).mockResolvedValue([payment]);
+    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const result = await getTimelineForUser(
+      { incomes, debts, debtPayments, assets, ...makeFx("5.00") },
+      {
+        userId: "user-1",
+        before: MonthYear.from(2026, 3),
+        limit: 3,
+      },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    for (const p of result.value.points) {
+      expect(p.totalIncome.toCents()).toBe(500_000n);
+    }
+    const nonFeb = result.value.points.filter((p) => p.month.toIso() !== "2026-02");
+    for (const p of nonFeb) {
+      expect(p.totalDebtPayments.toCents()).toBe(150_000n);
+      expect(p.freeBalance.toCents()).toBe(350_000n);
+    }
+    const feb = result.value.points.find((p) => p.month.toIso() === "2026-02");
+    expect(feb?.totalDebtPayments.toCents()).toBe(250_000n);
+  });
+
+  it("returns isErr when a foreign entity has no available rate", async () => {
+    const incomes = makeIncomeRepo();
+    const debts = makeDebtRepo();
+    const debtPayments = makePaymentsRepo();
+    const assets = makeAssetRepo();
+
+    const income = makeIncome({
+      amount: Money.fromCents(100_000n, "USD" as Currency),
+      startDate: new Date("2025-01-01T00:00:00Z"),
+    });
+
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (debtPayments.listForUserInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const result = await getTimelineForUser(
+      { incomes, debts, debtPayments, assets, ...makeFx(null) },
+      {
+        userId: "user-1",
+        before: MonthYear.from(2026, 3),
+        limit: 3,
+      },
+    );
+
+    expect(isErr(result)).toBe(true);
   });
 });

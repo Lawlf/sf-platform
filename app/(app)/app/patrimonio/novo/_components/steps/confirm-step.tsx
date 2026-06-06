@@ -1,14 +1,10 @@
 "use client";
 
+import { formatCents } from "@/shared/format/money-format";
+
 import { SummaryList } from "../../../../dividas/nova/_components/summary-list";
 import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";
 import type { AssetWizardForm, Category, InvestmentType, YieldType } from "../asset-wizard.client";
-
-function formatCentsBRL(cents: bigint | null | undefined): string {
-  if (cents === null || cents === undefined) return "R$ 0,00";
-  const reais = Number(cents) / 100;
-  return reais.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
-}
 
 function formatBRDate(iso: string | null | undefined): string | null {
   if (!iso || iso.length === 0) return null;
@@ -85,10 +81,10 @@ export function ConfirmStep({
       items.push({ label: "Quantidade", value: String(sharesNum) });
     }
     if (values.avgPriceCents && values.avgPriceCents > 0n) {
-      items.push({ label: "Preço médio", value: formatCentsBRL(values.avgPriceCents) });
+      items.push({ label: "Preço médio", value: formatCents(values.avgPriceCents) });
     }
     if (values.lastQuoteCents && values.lastQuoteCents > 0n) {
-      items.push({ label: "Última cotação", value: formatCentsBRL(values.lastQuoteCents) });
+      items.push({ label: "Última cotação", value: formatCents(values.lastQuoteCents) });
     }
   }
 
@@ -101,7 +97,7 @@ export function ConfirmStep({
   if (category === "real_estate") {
     if (values.addressCity) items.push({ label: "Cidade", value: values.addressCity });
     if (values.rentMonthlyCents && values.rentMonthlyCents > 0n) {
-      items.push({ label: "Aluguel mensal", value: formatCentsBRL(values.rentMonthlyCents) });
+      items.push({ label: "Aluguel mensal", value: formatCents(values.rentMonthlyCents) });
     }
   }
 
@@ -126,7 +122,7 @@ export function ConfirmStep({
     items.push({ label: "Descrição", value: values.description });
   }
 
-  items.push({ label: "Valor atual", value: formatCentsBRL(values.currentValueCents) });
+  items.push({ label: "Valor atual", value: formatCents(values.currentValueCents) });
 
   // Purchase price (não exibido para stocks, que já trazem avgPrice).
   const isStockCat = category === "investment" && investmentType === "stocks";
@@ -136,7 +132,7 @@ export function ConfirmStep({
     values.purchasePriceCents !== null &&
     values.purchasePriceCents > 0n
   ) {
-    items.push({ label: "Pagou", value: formatCentsBRL(values.purchasePriceCents) });
+    items.push({ label: "Pagou", value: formatCents(values.purchasePriceCents) });
   }
 
   const acquired = formatBRDate(values.acquiredAt ?? null);
@@ -147,7 +143,7 @@ export function ConfirmStep({
     const totalAlloc = linkedAllocations.reduce((acc, a) => acc + a.allocationCents, 0n);
     items.push({
       label: "Dívidas vinculadas",
-      value: `${linkedAllocations.length} (${formatCentsBRL(totalAlloc)} alocado)`,
+      value: `${linkedAllocations.length} (${formatCents(totalAlloc)} alocado)`,
     });
   }
 
@@ -156,7 +152,7 @@ export function ConfirmStep({
     const debtLabel = (values.newDebtLabel ?? "").trim() || "Sem nome";
     const debtPrincipal =
       values.newDebtPrincipalCents && values.newDebtPrincipalCents > 0n
-        ? formatCentsBRL(values.newDebtPrincipalCents)
+        ? formatCents(values.newDebtPrincipalCents)
         : "R$ 0,00";
     items.push({
       label: "Nova dívida",

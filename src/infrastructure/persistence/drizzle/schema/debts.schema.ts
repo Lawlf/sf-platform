@@ -37,6 +37,7 @@ export const debts = pgTable(
     // Money stored as cents in bigint
     originalPrincipalCents: bigint("original_principal_cents", { mode: "bigint" }).notNull(),
     currentBalanceCents: bigint("current_balance_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),
     expectedEndDate: timestamp("expected_end_date", { withTimezone: true }),
     notes: text("notes"),

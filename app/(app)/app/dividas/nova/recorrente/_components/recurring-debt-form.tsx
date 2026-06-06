@@ -21,6 +21,9 @@ import { type ReactNode, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+import { formatCents } from "@/shared/format/money-format";
+
 import { todayIso } from "../../../_lib/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "../../_components/summary-list";
@@ -86,6 +89,7 @@ const formSchema = z.object({
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]),
   label: z.string().min(1, "Informe um rótulo.").max(120),
   recurringAmountCents: z.bigint().positive("Valor deve ser positivo."),
+  currency: z.enum(CURRENCIES),
   startDate: z.string().min(1, "Informe a data de início."),
   endDate: z.string().nullable().optional(),
   notes: z.string().optional().nullable(),
@@ -99,13 +103,8 @@ type Step = 1 | 2 | 3 | 4;
 
 const STEP3_FIELDS = ["label", "recurringAmountCents", "startDate"] as const;
 
-function formatBRL(cents: bigint | null | undefined): string {
-  if (cents === null || cents === undefined) return "R$ 0,00";
-  const reais = Number(cents) / 100;
-  return reais.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+function formatAmount(cents: bigint | null | undefined, currency: Currency): string {
+  return formatCents(cents ?? 0n, currency);
 }
 
 function formatDateBR(iso: string | null | undefined): string {
@@ -177,7 +176,9 @@ function CategoryCard({ icon, title, description, active, pending, onSelect }: C
   );
 }
 
-export function RecurringDebtForm() {
+export function RecurringDebtForm({
+  defaultCurrency = "BRL",
+}: { defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
@@ -200,6 +201,7 @@ export function RecurringDebtForm() {
       recurringFrequency: undefined as unknown as Frequency,
       label: "",
       recurringAmountCents: 0n as unknown as bigint,
+      currency: defaultCurrency,
       startDate: todayIso(),
       endDate: null,
       notes: null,
@@ -244,6 +246,7 @@ export function RecurringDebtForm() {
     fd.set("label", v.label);
     fd.set("recurringFrequency", v.recurringFrequency);
     fd.set("recurringAmountCents", v.recurringAmountCents.toString());
+    fd.set("currency", v.currency);
     fd.set("expenseCategory", v.expenseCategory);
     fd.set("startDate", v.startDate);
     fd.set("endDate", v.endDate ?? "");
@@ -392,6 +395,8 @@ export function RecurringDebtForm() {
             name="recurringAmountCents"
             id={amountId}
             placeholder="R$ 0,00"
+            currency={values.currency}
+            onCurrencyChange={(c) => form.setValue("currency", c)}
           />
         </WizardField>
 
@@ -463,7 +468,7 @@ export function RecurringDebtForm() {
     { label: "Rótulo", value: values.label || "Sem rótulo" },
     {
       label: values.recurringFrequency === "monthly" ? "Valor mensal" : "Valor semanal",
-      value: formatBRL(values.recurringAmountCents),
+      value: formatAmount(values.recurringAmountCents, values.currency),
     },
     { label: "Início", value: formatDateBR(values.startDate) },
     { label: "Fim", value: values.endDate ? formatDateBR(values.endDate) : "Sem prazo" },

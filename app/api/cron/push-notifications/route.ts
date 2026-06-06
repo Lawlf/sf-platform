@@ -18,12 +18,14 @@ import { DrizzleAchievementProgressRepository } from "@/infrastructure/persisten
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
 import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
+import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { getWebPushService } from "@/infrastructure/push/web-push.service";
 import { isOk } from "@/shared/errors/result";
@@ -87,13 +89,18 @@ export async function GET(request: Request) {
     const debts = new DrizzleDebtRepository();
     const incomes = new DrizzleIncomeRepository();
     const clock = new SystemClock();
+    const rates = new DrizzleExchangeRateRepository();
+    const overrides = new DrizzleUserFxOverrideRepository();
 
     snapshotResult = await captureGoalSnapshots(
       {
         goals: new DrizzleGoalRepository(),
         snapshots: new DrizzleGoalSnapshotRepository(),
         buildMacro: (userId) =>
-          buildGoalMacro({ assets, allocations, debts, incomes, clock }, { userId }),
+          buildGoalMacro(
+            { assets, allocations, debts, incomes, clock, rates, overrides },
+            { userId },
+          ),
       },
       { now: today },
     );
@@ -105,7 +112,13 @@ export async function GET(request: Request) {
     const clock = new SystemClock();
     const debtsRepo = new DrizzleDebtRepository();
     const snapshotR = await getDashboardSnapshot(
-      { debts: debtsRepo, incomes: new DrizzleIncomeRepository(), clock },
+      {
+        debts: debtsRepo,
+        incomes: new DrizzleIncomeRepository(),
+        clock,
+        rates: new DrizzleExchangeRateRepository(),
+        overrides: new DrizzleUserFxOverrideRepository(),
+      },
       { userId },
     );
     const netWorthR = await getNetWorth(
@@ -113,6 +126,9 @@ export async function GET(request: Request) {
         assets: new DrizzleAssetRepository(),
         allocations: new DrizzleAssetDebtAllocationRepository(),
         debts: debtsRepo,
+        rates: new DrizzleExchangeRateRepository(),
+        overrides: new DrizzleUserFxOverrideRepository(),
+        clock,
       },
       { userId },
     );

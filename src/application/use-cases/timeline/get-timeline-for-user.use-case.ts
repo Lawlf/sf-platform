@@ -1,3 +1,17 @@
+import {
+  BASE_CURRENCY,
+  convertAdjustmentToBase,
+  convertAssetToBase,
+  convertDebtToBase,
+  convertIncomeToBase,
+  convertPaymentToBase,
+  type ConvertEntityDeps,
+} from "@/application/use-cases/fx/convert-entity-to-base";
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { DebtAmountAdjustmentRepository } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
@@ -7,7 +21,7 @@ import { StoryDetectionService, type StoryCard } from "@/domain/services/story-d
 import { TimelineService, type MonthlyDataPoint } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { type DomainError } from "@/shared/errors/domain-error";
-import { ok, type Result } from "@/shared/errors/result";
+import { isErr, ok, type Result } from "@/shared/errors/result";
 
 export type TimelineRange = "3" | "6" | "12" | "24" | "all";
 export type TimelineShow = "all" | "highlights" | "with-payments";
@@ -41,7 +55,7 @@ export interface TimelinePageResult {
   oldestUserDataIso: string | null;
 }
 
-export interface GetTimelineForUserDeps {
+export interface GetTimelineForUserDeps extends ConvertEntityDeps {
   incomes: IncomeRepository;
   debts: DebtRepository;
   debtPayments: DebtPaymentRepository;
@@ -105,19 +119,54 @@ export async function getTimelineForUser(
     deps.debtAmountAdjustments ? deps.debtAmountAdjustments.listForUser(input.userId) : Promise.resolve([]),
   ]);
 
+  const convertedIncomes: IncomeEntity[] = [];
+  for (const inc of incomes) {
+    const r = await convertIncomeToBase(deps, input.userId, inc, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedIncomes.push(r.value);
+  }
+
+  const convertedDebts: DebtEntity[] = [];
+  for (const d of debts) {
+    const r = await convertDebtToBase(deps, input.userId, d, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedDebts.push(r.value);
+  }
+
+  const convertedAssets: AssetEntity[] = [];
+  for (const a of assets) {
+    const r = await convertAssetToBase(deps, input.userId, a, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedAssets.push(r.value);
+  }
+
+  const convertedPayments: DebtPaymentEntity[] = [];
+  for (const p of payments) {
+    const r = await convertPaymentToBase(deps, input.userId, p, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedPayments.push(r.value);
+  }
+
+  const convertedAdjustments: DebtAmountAdjustmentEntity[] = [];
+  for (const adj of adjustments) {
+    const r = await convertAdjustmentToBase(deps, input.userId, adj, BASE_CURRENCY);
+    if (isErr(r)) return r;
+    convertedAdjustments.push(r.value);
+  }
+
   // oldestUserDataIso: data mais antiga conhecida do usuário.
-  const oldestDate = findOldestUserDate(incomes, debts, assets);
+  const oldestDate = findOldestUserDate(convertedIncomes, convertedDebts, convertedAssets);
   const oldestUserDataIso = oldestDate ? MonthYear.fromDate(oldestDate).toIso() : null;
 
   // Constrói a timeline incluindo o mês extra (para contexto).
   const timeline = TimelineService.buildTimeline({
-    incomes,
-    debts,
-    payments,
-    assets,
+    incomes: convertedIncomes,
+    debts: convertedDebts,
+    payments: convertedPayments,
+    assets: convertedAssets,
     from: fetchFrom,
     to,
-    adjustments,
+    adjustments: convertedAdjustments,
   });
   // points vem em ordem crescente; filtra para descartar o mês de contexto.
   const pagePoints = timeline.points.filter((p) => !p.month.isBefore(from));

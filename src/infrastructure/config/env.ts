@@ -26,6 +26,7 @@ const envSchema = z.object({
   BRAPI_TOKEN: emptyToUndefined,
   // Segredo do cron para a rota de atualização diária de cotações.
   CRON_SECRET: emptyToUndefined,
+  EXCHANGE_RATE_API_URL: emptyToUndefined,
 
   // Stripe billing
   STRIPE_SECRET_KEY: emptyToUndefined,

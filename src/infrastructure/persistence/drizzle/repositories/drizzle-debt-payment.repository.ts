@@ -2,7 +2,7 @@ import { and, asc, eq, gte, isNull, lte } from "drizzle-orm";
 
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import {
@@ -17,9 +17,9 @@ function rowToEntity(row: DebtPaymentRow): DebtPaymentEntity {
     id: row.id,
     debtId: row.debtId,
     paidAt: row.paidAt,
-    amount: Money.fromCents(row.amountCents),
-    principalPortion: Money.fromCents(row.principalPortionCents),
-    interestPortion: Money.fromCents(row.interestPortionCents),
+    amount: Money.fromCents(row.amountCents, row.currency as Currency),
+    principalPortion: Money.fromCents(row.principalPortionCents, row.currency as Currency),
+    interestPortion: Money.fromCents(row.interestPortionCents, row.currency as Currency),
     isExtra: row.isExtra,
     // Defaults to false for rows persisted before the column existed (migration
     // 0011). Drizzle should never return undefined here once the column is in
@@ -36,6 +36,7 @@ function entityToRow(entity: DebtPaymentEntity): NewDebtPaymentRow {
     amountCents: entity.amount.toCents(),
     principalPortionCents: entity.principalPortion.toCents(),
     interestPortionCents: entity.interestPortion.toCents(),
+    currency: entity.amount.currency,
     isExtra: entity.isExtra,
     isClosingPayment: entity.isClosingPayment,
   };

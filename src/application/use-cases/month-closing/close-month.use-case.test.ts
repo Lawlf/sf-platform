@@ -102,8 +102,17 @@ function makeDeps(args: {
   const payments = {
     listForUserInRange: async () => [],
   } as unknown as DebtPaymentRepository;
+  const rates = {
+    findLatest: async () => null,
+  } as unknown as MonthClosingDeps["rates"];
+  const overrides = {
+    find: async () => null,
+  } as unknown as MonthClosingDeps["overrides"];
 
-  return { deps: { closings, assets, allocations, debts, incomes, payments, clock }, upsert };
+  return {
+    deps: { closings, assets, allocations, debts, incomes, payments, clock, rates, overrides },
+    upsert,
+  };
 }
 
 describe("closeMonth", () => {

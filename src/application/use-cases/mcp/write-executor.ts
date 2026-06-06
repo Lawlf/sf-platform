@@ -16,7 +16,7 @@ import type { GoalRepository } from "@/domain/ports/repositories/goal.repository
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { Money } from "@/domain/value-objects/money.vo";
+import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { serialize } from "@/presentation/http/mcp/serialize";
 import { isErr } from "@/shared/errors/result";
 
@@ -72,12 +72,13 @@ export async function executeWrite(
 
   switch (input.toolName) {
     case "income_create": {
+      const currency: Currency = (args.currency as Currency) ?? "BRL";
       const result = await registerIncome(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
           label: str(args.label),
-          amount: money(args.amountCents),
+          amount: money(args.amountCents, currency),
           frequency: str(args.frequency) as IncomeFrequency,
           startDate: date(args.startDate),
           endDate: optDate(args.endDate),
@@ -92,13 +93,14 @@ export async function executeWrite(
       const id = str(args.incomeId);
       const existing = await deps.incomes.findById(id);
       const before = existing ? serialize(existing) : null;
+      const currency: Currency = (args.currency as Currency) ?? existing?.amount.currency ?? "BRL";
       const result = await updateIncome(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
           incomeId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
-          ...(args.amountCents !== undefined && { amount: money(args.amountCents) }),
+          ...(args.amountCents !== undefined && { amount: money(args.amountCents, currency) }),
           ...(args.frequency !== undefined && { frequency: str(args.frequency) as IncomeFrequency }),
           ...(args.startDate !== undefined && { startDate: date(args.startDate) }),
           ...(args.endDate !== undefined && { endDate: optDate(args.endDate) }),
@@ -122,12 +124,13 @@ export async function executeWrite(
     }
 
     case "transaction_create": {
+      const currency: Currency = (args.currency as Currency) ?? "BRL";
       const result = await createTransaction(
         { transactions: deps.transactions, assets: deps.assets, clock: deps.clock },
         {
           userId,
           direction: "out",
-          amount: money(args.amountCents),
+          amount: money(args.amountCents, currency),
           description: str(args.description),
           category: optStr(args.category),
           accountId: optStr(args.accountId) ?? null,
@@ -146,9 +149,10 @@ export async function executeWrite(
     }
 
     case "debt_create": {
+      const currency: Currency = (args.currency as Currency) ?? "BRL";
       const result = await registerDebt(
         { debts: deps.debts, clock: deps.clock },
-        buildRegisterDebtInput(userId, args),
+        buildRegisterDebtInput(userId, args, currency),
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
@@ -159,6 +163,8 @@ export async function executeWrite(
       const id = str(args.debtId);
       const existing = await deps.debts.findById(id);
       const before = existing ? serialize(existing) : null;
+      const currency: Currency =
+        (args.currency as Currency) ?? existing?.currentBalance.currency ?? "BRL";
       const result = await updateDebt(
         { debts: deps.debts, clock: deps.clock },
         {
@@ -167,16 +173,20 @@ export async function executeWrite(
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.notes !== undefined && { notes: optStr(args.notes) }),
           ...(args.expectedEndDate !== undefined && { expectedEndDate: optDate(args.expectedEndDate) }),
-          ...(args.currentBalanceCents !== undefined && { currentBalance: money(args.currentBalanceCents) }),
+          ...(args.currentBalanceCents !== undefined && {
+            currentBalance: money(args.currentBalanceCents, currency),
+          }),
           ...(args.annualInterestRate !== undefined && {
             annualInterestRate: annualRate(args.annualInterestRate),
           }),
           ...(args.monthlyInstallmentCents !== undefined && {
-            monthlyInstallment: money(args.monthlyInstallmentCents),
+            monthlyInstallment: money(args.monthlyInstallmentCents, currency),
           }),
-          ...(args.creditLimitCents !== undefined && { creditLimit: money(args.creditLimitCents) }),
+          ...(args.creditLimitCents !== undefined && {
+            creditLimit: money(args.creditLimitCents, currency),
+          }),
           ...(args.currentStatementCents !== undefined && {
-            currentStatement: money(args.currentStatementCents),
+            currentStatement: money(args.currentStatementCents, currency),
           }),
           ...(args.statementDay !== undefined && { statementDay: num(args.statementDay) }),
           ...(args.dueDay !== undefined && { dueDay: num(args.dueDay) }),
@@ -212,6 +222,7 @@ export async function executeWrite(
     }
 
     case "asset_create": {
+      const currency: Currency = (args.currency as Currency) ?? "BRL";
       const result = await createAsset(
         {
           assets: deps.assets,
@@ -224,6 +235,7 @@ export async function executeWrite(
           category: str(args.category) as AssetCategory,
           label: str(args.label),
           currentValueCents: cents(args.currentValueCents),
+          currency,
           metadata: (args.metadata as AssetMetadata | null | undefined) ?? null,
           fipeCode: optStr(args.fipeCode),
           acquiredAt: optDate(args.acquiredAt),
@@ -326,7 +338,11 @@ export async function executeWrite(
   }
 }
 
-function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): RegisterDebtInput {
+function buildRegisterDebtInput(
+  userId: string,
+  args: Record<string, unknown>,
+  currency: Currency,
+): RegisterDebtInput {
   const kind = str(args.kind);
   switch (kind) {
     case "financing":
@@ -337,14 +353,14 @@ function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): 
         notes: optStr(args.notes),
         startDate: date(args.startDate),
         expectedEndDate: optDate(args.expectedEndDate),
-        originalPrincipal: money(args.originalPrincipalCents),
+        originalPrincipal: money(args.originalPrincipalCents, currency),
         annualInterestRate: annualRate(args.annualInterestRate),
         termMonths: num(args.termMonths),
         amortizationMethod: str(args.amortizationMethod) as "PRICE" | "SAC",
-        monthlyInsurance: optMoney(args.monthlyInsuranceCents),
-        monthlyAdminFee: optMoney(args.monthlyAdminFeeCents),
+        monthlyInsurance: optMoney(args.monthlyInsuranceCents, currency),
+        monthlyAdminFee: optMoney(args.monthlyAdminFeeCents, currency),
         ...(args.currentBalanceCents !== undefined && {
-          currentBalance: optMoney(args.currentBalanceCents),
+          currentBalance: optMoney(args.currentBalanceCents, currency),
         }),
       };
     case "personal_loan":
@@ -355,12 +371,12 @@ function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): 
         notes: optStr(args.notes),
         startDate: date(args.startDate),
         expectedEndDate: optDate(args.expectedEndDate),
-        originalPrincipal: money(args.originalPrincipalCents),
+        originalPrincipal: money(args.originalPrincipalCents, currency),
         annualInterestRate: annualRate(args.annualInterestRate),
         termMonths: num(args.termMonths),
-        monthlyInstallment: money(args.monthlyInstallmentCents),
+        monthlyInstallment: money(args.monthlyInstallmentCents, currency),
         ...(args.currentBalanceCents !== undefined && {
-          currentBalance: optMoney(args.currentBalanceCents),
+          currentBalance: optMoney(args.currentBalanceCents, currency),
         }),
       };
     case "credit_card":
@@ -371,11 +387,11 @@ function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): 
         notes: optStr(args.notes),
         startDate: date(args.startDate),
         expectedEndDate: optDate(args.expectedEndDate),
-        creditLimit: money(args.creditLimitCents),
-        currentStatement: money(args.currentStatementCents),
+        creditLimit: money(args.creditLimitCents, currency),
+        currentStatement: money(args.currentStatementCents, currency),
         statementDay: num(args.statementDay),
         dueDay: num(args.dueDay),
-        revolvingBalance: optMoney(args.revolvingBalanceCents),
+        revolvingBalance: optMoney(args.revolvingBalanceCents, currency),
         revolvingMonthlyRate:
           args.revolvingMonthlyRate === undefined || args.revolvingMonthlyRate === null
             ? null
@@ -390,7 +406,7 @@ function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): 
         notes: optStr(args.notes),
         startDate: date(args.startDate),
         expectedEndDate: optDate(args.expectedEndDate),
-        currentBalance: money(args.currentBalanceCents),
+        currentBalance: money(args.currentBalanceCents, currency),
         bankName: str(args.bankName),
         monthlyRate: monthlyRate(args.monthlyRate),
       };
@@ -403,6 +419,7 @@ function buildRegisterDebtInput(userId: string, args: Record<string, unknown>): 
         recurringAmountCents: cents(args.recurringAmountCents),
         expenseCategory: str(args.expenseCategory) as ExpenseCategory,
         startDate: date(args.startDate),
+        currency,
         ...(args.endDate !== undefined && { endDate: optDate(args.endDate) }),
         ...(args.notes !== undefined && { notes: optStr(args.notes) ?? undefined }),
         ...(args.dueDay !== undefined && { dueDay: optNum(args.dueDay) }),
@@ -472,13 +489,13 @@ function optCents(value: unknown): bigint | null {
   return cents(value);
 }
 
-function money(value: unknown): Money {
-  return Money.fromCents(cents(value));
+function money(value: unknown, currency: Currency): Money {
+  return Money.fromCents(cents(value), currency);
 }
 
-function optMoney(value: unknown): Money | null {
+function optMoney(value: unknown, currency: Currency): Money | null {
   if (value === undefined || value === null) return null;
-  return money(value);
+  return money(value, currency);
 }
 
 function annualRate(value: unknown): InterestRate {

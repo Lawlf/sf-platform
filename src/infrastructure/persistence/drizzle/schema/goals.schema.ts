@@ -37,6 +37,7 @@ export const goals = pgTable(
     title: text("title").notNull(),
     status: goalStatus("status").notNull().default("active"),
     targetCents: bigint("target_cents", { mode: "bigint" }),
+    currency: text("currency").notNull().default("BRL"),
     deadline: date("deadline", { mode: "date" }),
     linkedDebtId: uuid("linked_debt_id").references(() => debts.id, { onDelete: "set null" }),
     linkedAssetId: uuid("linked_asset_id").references(() => assets.id, { onDelete: "set null" }),

@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { createAsset } from "@/application/use-cases/asset/create-asset.use-case";
 import type { AssetMetadata } from "@/domain/entities/asset.entity";
+import { CURRENCIES } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
@@ -23,6 +24,7 @@ const inputSchema = z.object({
   category: z.enum(["vehicle", "real_estate", "investment", "cash", "other"]),
   label: z.string().min(1).max(120),
   currentValueCents: z.string().regex(/^-?\d+$/, "Valor inválido."),
+  currency: z.enum(CURRENCIES).default("BRL"),
   metadataJson: z.string().nullable(),
   acquiredAt: z.string().nullable(),
   allocations: z.array(allocSchema),
@@ -99,6 +101,7 @@ export async function createAssetAction(formInput: unknown): Promise<CreateAsset
       category: parsed.data.category,
       label: parsed.data.label,
       currentValueCents,
+      currency: parsed.data.currency,
       metadata,
       fipeCode: null,
       acquiredAt,

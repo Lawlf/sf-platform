@@ -2,6 +2,7 @@ import { and, eq, isNull, sql } from "drizzle-orm";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
 import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
 import { users } from "../schema/users.schema";
@@ -22,6 +23,7 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
+    baseCurrency: (row.baseCurrency as Currency | null) ?? "BRL",
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -103,6 +105,7 @@ export class DrizzleUserRepository implements UserRepository {
         onboardingWizardSeenAt: user.onboardingWizardSeenAt,
         homeTourDismissedAt: user.homeTourDismissedAt,
         quickAccess: user.quickAccess,
+        baseCurrency: user.baseCurrency,
         updatedAt: user.updatedAt,
       })
       .where(eq(users.id, user.id));

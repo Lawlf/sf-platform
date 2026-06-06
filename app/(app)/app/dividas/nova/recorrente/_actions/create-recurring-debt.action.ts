@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
+import { CURRENCIES } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -15,6 +16,7 @@ const schema = z.object({
   label: z.string().min(1).max(120),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]),
   recurringAmountCents: z.coerce.bigint().positive(),
+  currency: z.enum(CURRENCIES).default("BRL"),
   expenseCategory: z.enum([
     "housing",
     "utilities",
@@ -46,6 +48,7 @@ export async function createRecurringDebtAction(
     label: formData.get("label"),
     recurringFrequency: formData.get("recurringFrequency"),
     recurringAmountCents: formData.get("recurringAmountCents"),
+    currency: formData.get("currency") ?? undefined,
     expenseCategory: formData.get("expenseCategory"),
     startDate: formData.get("startDate"),
     endDate: formData.get("endDate") || null,
@@ -63,6 +66,7 @@ export async function createRecurringDebtAction(
       label: parsed.data.label,
       recurringFrequency: parsed.data.recurringFrequency,
       recurringAmountCents: parsed.data.recurringAmountCents,
+      currency: parsed.data.currency,
       expenseCategory: parsed.data.expenseCategory,
       startDate: new Date(parsed.data.startDate),
       endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,

@@ -11,6 +11,7 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
+import { formatCents } from "@/shared/format/money-format";
 
 import { PageShell } from "../../_components/page-shell";
 
@@ -29,20 +30,11 @@ const DATETIME_FMT = new Intl.DateTimeFormat("pt-BR", {
   dateStyle: "short",
   timeStyle: "short",
 });
-const BRL_FMT = new Intl.NumberFormat("pt-BR", {
-  style: "currency",
-  currency: "BRL",
-  minimumFractionDigits: 2,
-});
 const PCT_FMT = new Intl.NumberFormat("pt-BR", {
   style: "percent",
   minimumFractionDigits: 2,
   maximumFractionDigits: 2,
 });
-
-function formatCentsBRL(cents: bigint): string {
-  return BRL_FMT.format(Number(cents) / 100);
-}
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -114,14 +106,14 @@ export default async function AssetDetailPage({ params }: PageProps) {
       const isNegative = delta < 0n;
       const abs = isNegative ? -delta : delta;
       const sign = isNegative ? "-" : "+";
-      const deltaFormatted = `${sign}${formatCentsBRL(abs)}`;
+      const deltaFormatted = `${sign}${formatCents(abs, asset.currentValue.currency)}`;
       let deltaPctFormatted: string | null = null;
       if (paid > 0n) {
         const pct = Number(delta) / Number(paid);
         deltaPctFormatted = PCT_FMT.format(pct);
       }
       purchasePrice = {
-        paidFormatted: formatCentsBRL(paid),
+        paidFormatted: formatCents(paid, asset.currentValue.currency),
         currentFormatted: asset.currentValue.format(),
         deltaFormatted,
         deltaPctFormatted,
@@ -156,7 +148,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
       gainLossIsNegative = diffCents < 0n;
       const abs = diffCents < 0n ? -diffCents : diffCents;
       const sign = diffCents < 0n ? "-" : "+";
-      gainLossFormatted = `${sign}${formatCentsBRL(abs)}`;
+      gainLossFormatted = `${sign}${formatCents(abs, asset.currentValue.currency)}`;
       if (avgPriceCents > 0n) {
         const pct = Number(lastQuoteCents - avgPriceCents) / Number(avgPriceCents);
         gainLossPctFormatted = PCT_FMT.format(pct);
@@ -166,9 +158,10 @@ export default async function AssetDetailPage({ params }: PageProps) {
     stock = {
       ticker,
       shares,
-      avgPriceFormatted: formatCentsBRL(avgPriceCents),
+      avgPriceFormatted: formatCents(avgPriceCents, asset.currentValue.currency),
       avgPriceCents: avgPriceCents.toString(),
-      lastQuoteFormatted: lastQuoteCents !== null ? formatCentsBRL(lastQuoteCents) : null,
+      lastQuoteFormatted:
+        lastQuoteCents !== null ? formatCents(lastQuoteCents, asset.currentValue.currency) : null,
       lastQuoteCents: lastQuoteCents !== null ? lastQuoteCents.toString() : null,
       lastQuoteAt: lastQuoteAt ? DATETIME_FMT.format(lastQuoteAt) : null,
       gainLossFormatted,
@@ -227,6 +220,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
         category={asset.category}
         currentValueFormatted={asset.currentValue.format()}
         currentValueCents={asset.currentValue.toCents().toString()}
+        currency={asset.currentValue.currency}
         netWorthFormatted={netWorth.format()}
         netWorthIsNegative={netWorth.isNegative()}
         fipeCode={asset.fipeCode}

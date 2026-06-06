@@ -82,7 +82,7 @@ async function applyToReserve(
   if (linked && linked.category === "cash") {
     await deps.assets.update({
       ...linked,
-      currentValue: linked.currentValue.add(Money.fromCents(amountCents)),
+      currentValue: linked.currentValue.add(Money.fromCents(amountCents, linked.currentValue.currency)),
       updatedAt: deps.clock.now(),
     });
     return;

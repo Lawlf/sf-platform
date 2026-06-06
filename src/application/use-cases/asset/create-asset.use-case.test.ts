@@ -114,6 +114,7 @@ describe("createAsset", () => {
         category: "vehicle",
         label: "Civic 2020",
         currentValueCents: 8_000_000n,
+        currency: "BRL",
         metadata: { kind: "vehicle", brand: "Honda", model: "Civic", year: 2020 },
         fipeCode: "001",
         acquiredAt: new Date("2025-01-01"),
@@ -148,6 +149,7 @@ describe("createAsset", () => {
         category: "other",
         label: "   ",
         currentValueCents: 1_000n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -175,6 +177,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: -1n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -201,6 +204,7 @@ describe("createAsset", () => {
         category: "vehicle",
         label: "Casa",
         currentValueCents: 100_000n,
+        currency: "BRL",
         metadata: { kind: "real_estate", addressCity: "Sao Paulo" },
         fipeCode: null,
         acquiredAt: null,
@@ -228,6 +232,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -255,6 +260,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -285,6 +291,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -314,6 +321,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -342,6 +350,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 200_000_000n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -375,6 +384,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100_000n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -405,6 +415,7 @@ describe("createAsset", () => {
         category: "other",
         label: "Coisa",
         currentValueCents: 100_000n,
+        currency: "BRL",
         metadata: null,
         fipeCode: null,
         acquiredAt: null,
@@ -427,5 +438,41 @@ describe("createAsset", () => {
       expect(persistedAsset.id).toBe(result.value.id);
       expect(persistedAsset.createdAt).toEqual(persistedAsset.updatedAt);
     }
+  });
+
+  it("persists currentValue and allocation in the chosen currency", async () => {
+    const assets = makeAssetRepo();
+    const allocations = makeAllocRepo(0n);
+    const debts = makeDebtRepo();
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeDebt({ originalPrincipal: Money.fromCents(10_000_000n, "USD") }),
+    );
+    const clock = makeClock();
+
+    const result = await createAsset(
+      { assets, allocations, debts, clock },
+      {
+        userId: "user-1",
+        category: "other",
+        label: "Conta nos EUA",
+        currentValueCents: 500_000n,
+        currency: "USD",
+        metadata: null,
+        fipeCode: null,
+        acquiredAt: null,
+        allocations: [{ debtId: "debt-1", allocationOriginalCents: 200_000n }],
+      },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.currentValue.currency).toBe("USD");
+      expect(result.value.currentValue.toCents()).toBe(500_000n);
+    }
+    const persistedAlloc = (allocations.upsert as ReturnType<typeof vi.fn>).mock.calls[0]![0] as {
+      allocationOriginal: Money;
+    };
+    expect(persistedAlloc.allocationOriginal.currency).toBe("USD");
+    expect(persistedAlloc.allocationOriginal.toCents()).toBe(200_000n);
   });
 });

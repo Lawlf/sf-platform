@@ -40,6 +40,7 @@ export const debtAmountAdjustments = pgTable(
     endMonth: text("end_month"),
     month: text("month"),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
+    currency: text("currency").notNull().default("BRL"),
     note: text("note"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()

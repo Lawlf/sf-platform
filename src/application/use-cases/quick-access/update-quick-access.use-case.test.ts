@@ -12,7 +12,7 @@ function user(): UserEntity {
     role: "user", plan: "pro", isPro: true, deactivatedAt: null, deactivationReason: null,
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: null, homeTourDismissedAt: null,
-    createdAt: NOW, updatedAt: NOW, quickAccess: [],
+    createdAt: NOW, updatedAt: NOW, quickAccess: [], baseCurrency: "BRL",
   };
 }
 

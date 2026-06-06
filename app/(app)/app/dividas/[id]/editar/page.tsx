@@ -41,6 +41,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
       <EditDebtForm
         debtId={debt.id}
         kind={debt.kind}
+        currency={debt.currentBalance.currency}
         defaults={{
           label: debt.label,
           notes: debt.notes,

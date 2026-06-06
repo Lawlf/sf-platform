@@ -9,6 +9,9 @@ import { useId, useMemo, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+import { formatCents } from "@/shared/format/money-format";
+
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
@@ -25,6 +28,7 @@ import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rotulo.").max(120),
+  currency: z.enum(CURRENCIES),
   currentBalanceCents: z.bigint().positive("Saldo deve ser positivo."),
   bankName: z.string().min(1, "Informe o banco.").max(120),
   monthlyRatePct: z.number().min(0).max(1000),
@@ -42,16 +46,11 @@ const STEP2_FIELDS = ["label", "bankName", "currentBalanceCents"] as const;
 
 const STEP3_FIELDS = ["monthlyRatePct", "startDate"] as const;
 
-function formatBRL(cents: bigint | null | undefined): string {
-  if (cents === null || cents === undefined) return "R$ 0,00";
-  const reais = Number(cents) / 100;
-  return reais.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  });
+function formatAmount(cents: bigint | null | undefined, currency: Currency): string {
+  return formatCents(cents ?? 0n, currency);
 }
 
-export function OverdraftForm() {
+export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
@@ -68,6 +67,7 @@ export function OverdraftForm() {
     resolver: zodResolver(formSchema),
     defaultValues: {
       label: "Cheque especial",
+      currency: defaultCurrency,
       currentBalanceCents: 0n as unknown as bigint,
       bankName: "",
       monthlyRatePct: 0,
@@ -79,6 +79,7 @@ export function OverdraftForm() {
 
   const values = form.watch();
   const errors = form.formState.errors;
+  const currency: Currency = values.currency ?? defaultCurrency;
 
   // juros_mensais = saldo × taxa_mensal / 100
   const monthlyInterestCents = useMemo(() => {
@@ -109,6 +110,7 @@ export function OverdraftForm() {
     const v = form.getValues();
     const fd = new FormData();
     fd.set("label", v.label);
+    fd.set("currency", v.currency);
     fd.set("currentBalanceCents", v.currentBalanceCents.toString());
     fd.set("bankName", v.bankName);
     fd.set("monthlyRatePct", String(v.monthlyRatePct));
@@ -180,6 +182,8 @@ export function OverdraftForm() {
             name="currentBalanceCents"
             id={balanceId}
             placeholder="R$ 0,00"
+            currency={currency}
+            onCurrencyChange={(c) => form.setValue("currency", c)}
           />
         </WizardField>
       </WizardShell>
@@ -237,7 +241,7 @@ export function OverdraftForm() {
 
   // step 4
   const interestText = monthlyInterestCents
-    ? formatBRL(monthlyInterestCents)
+    ? formatAmount(monthlyInterestCents, currency)
     : "Informe taxa para calcular";
 
   return (
@@ -267,7 +271,7 @@ export function OverdraftForm() {
           { label: "Rótulo", value: values.label || "Sem rótulo" },
           { label: "Tipo", value: "Cheque especial" },
           { label: "Banco", value: values.bankName || "Sem banco" },
-          { label: "Saldo devedor", value: formatBRL(values.currentBalanceCents) },
+          { label: "Saldo devedor", value: formatAmount(values.currentBalanceCents, currency) },
           { label: "Taxa", value: `${values.monthlyRatePct}% por mês` },
         ]}
       />

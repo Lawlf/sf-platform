@@ -8,6 +8,7 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Spinner } from "@/app/components/ui/spinner";
+import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../_components/money-input";
 import { queryKeys } from "../../_lib/query-keys";
@@ -16,6 +17,7 @@ import { createIncomeAction } from "../_actions/create-income.action";
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rótulo.").max(120),
   amountCents: z.bigint().positive("Valor deve ser positivo."),
+  currency: z.enum(CURRENCIES),
   frequency: z.enum(["monthly", "weekly", "one_off"]),
   startDate: z.string().min(1, "Informe a data inicial."),
   endDate: z.string().nullable().optional(),
@@ -31,7 +33,7 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
 
-export function IncomeForm() {
+export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
@@ -42,17 +44,21 @@ export function IncomeForm() {
     defaultValues: {
       label: "",
       amountCents: 0n as unknown as bigint,
+      currency: defaultCurrency,
       frequency: "monthly",
       startDate: TODAY,
       endDate: null,
     },
   });
 
+  const currency = form.watch("currency");
+
   async function onSubmit(values: FormValues) {
     setServerError(null);
     const fd = new FormData();
     fd.set("label", values.label);
     fd.set("amountCents", values.amountCents.toString());
+    fd.set("currency", values.currency);
     fd.set("frequency", values.frequency);
     fd.set("startDate", values.startDate);
     fd.set("endDate", values.endDate ?? "");
@@ -93,7 +99,14 @@ export function IncomeForm() {
         ) : null}
       </div>
 
-      <MoneyInput control={form.control} name="amountCents" label="Valor" required />
+      <MoneyInput
+        control={form.control}
+        name="amountCents"
+        label="Valor"
+        required
+        currency={currency}
+        onCurrencyChange={(v) => form.setValue("currency", v)}
+      />
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

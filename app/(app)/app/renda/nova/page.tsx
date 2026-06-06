@@ -9,7 +9,7 @@ import { IncomeForm } from "../_components/income-form";
 export const metadata: Metadata = { title: "Nova renda" };
 
 export default async function NovaRendaPage() {
-  await requireUser();
+  const user = await requireUser();
 
   return (
     <PageShell
@@ -18,7 +18,7 @@ export default async function NovaRendaPage() {
       backHref={"/app/renda" as Route}
     >
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-        <IncomeForm />
+        <IncomeForm defaultCurrency={user.baseCurrency} />
       </section>
     </PageShell>
   );

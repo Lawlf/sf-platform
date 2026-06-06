@@ -72,15 +72,20 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       startDate: d.startDate,
       expectedEndDate: d.expectedEndDate ?? null,
       kind: "financing",
-      originalPrincipal: Money.fromCents(d.principalCents),
+      originalPrincipal: Money.fromCents(d.principalCents, d.currency),
       annualInterestRate: annualRate.value,
       termMonths: d.termMonths,
       amortizationMethod: d.amortizationMethod,
       monthlyInsurance:
-        d.monthlyInsuranceCents !== null ? Money.fromCents(d.monthlyInsuranceCents) : null,
+        d.monthlyInsuranceCents !== null
+          ? Money.fromCents(d.monthlyInsuranceCents, d.currency)
+          : null,
       monthlyAdminFee:
-        d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents) : null,
-      currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
+        d.monthlyAdminFeeCents !== null
+          ? Money.fromCents(d.monthlyAdminFeeCents, d.currency)
+          : null,
+      currentBalance:
+        d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents, d.currency) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     await awardEventAchievement(user.id, "primeiro-passo");
@@ -114,11 +119,12 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       startDate: d.startDate,
       expectedEndDate: d.expectedEndDate ?? null,
       kind: "personal_loan",
-      originalPrincipal: Money.fromCents(d.principalCents),
+      originalPrincipal: Money.fromCents(d.principalCents, d.currency),
       annualInterestRate: annualRate.value,
       termMonths: d.termMonths,
-      monthlyInstallment: Money.fromCents(d.monthlyInstallmentCents),
-      currentBalance: d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents) : null,
+      monthlyInstallment: Money.fromCents(d.monthlyInstallmentCents, d.currency),
+      currentBalance:
+        d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents, d.currency) : null,
     });
     if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
     await awardEventAchievement(user.id, "primeiro-passo");
@@ -142,10 +148,10 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       const monthlyCents = p.totalCents / BigInt(p.installmentsTotal);
       return {
         description: p.description,
-        total: Money.fromCents(p.totalCents),
+        total: Money.fromCents(p.totalCents, d.currency),
         installmentsTotal: p.installmentsTotal,
         installmentsRemaining: p.installmentsRemaining,
-        monthlyValue: Money.fromCents(monthlyCents),
+        monthlyValue: Money.fromCents(monthlyCents, d.currency),
       };
     });
 
@@ -156,12 +162,15 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       startDate: d.startDate,
       expectedEndDate: d.expectedEndDate ?? null,
       kind: "credit_card",
-      creditLimit: d.creditLimitCents !== null ? Money.fromCents(d.creditLimitCents) : null,
-      currentStatement: Money.fromCents(d.currentStatementCents),
+      creditLimit:
+        d.creditLimitCents !== null ? Money.fromCents(d.creditLimitCents, d.currency) : null,
+      currentStatement: Money.fromCents(d.currentStatementCents, d.currency),
       statementDay: d.statementDay,
       dueDay: d.dueDay,
       revolvingBalance:
-        d.revolvingBalanceCents !== null ? Money.fromCents(d.revolvingBalanceCents) : null,
+        d.revolvingBalanceCents !== null
+          ? Money.fromCents(d.revolvingBalanceCents, d.currency)
+          : null,
       revolvingMonthlyRate: revolvingRate,
       installmentPurchases,
     });
@@ -186,7 +195,7 @@ export async function createDebtAction(kind: Kind, formData: FormData): Promise<
       startDate: d.startDate,
       expectedEndDate: d.expectedEndDate ?? null,
       kind: "overdraft",
-      currentBalance: Money.fromCents(d.currentBalanceCents),
+      currentBalance: Money.fromCents(d.currentBalanceCents, d.currency),
       bankName: d.bankName,
       monthlyRate: monthly.value,
     });

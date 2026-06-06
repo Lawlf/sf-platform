@@ -4,6 +4,7 @@ import { Search } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Spinner } from "@/app/components/ui/spinner";
+import { formatCents } from "@/shared/format/money-format";
 
 import {
   searchStockCatalogAction,
@@ -22,8 +23,7 @@ export interface TickerComboboxProps {
 function formatPrice(cents: string | null): string | null {
   if (cents === null) return null;
   try {
-    const reais = Number(BigInt(cents)) / 100;
-    return reais.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+    return formatCents(BigInt(cents));
   } catch {
     return null;
   }
