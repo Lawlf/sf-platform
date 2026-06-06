@@ -1,9 +1,14 @@
+import crypto from "node:crypto";
+
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { TooltipProvider } from "@/app/components/ui/tooltip";
+import { ensureDefaultWallet } from "@/application/use-cases/asset/ensure-default-wallet.use-case";
+import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
 import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -27,6 +32,19 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
   if (user.onboardingWizardSeenAt === null) {
     redirect("/comecar");
+  }
+
+  try {
+    await ensureDefaultWallet(
+      {
+        assets: new DrizzleAssetRepository(),
+        clock: new SystemClock(),
+        newId: () => crypto.randomUUID(),
+      },
+      user.id,
+    );
+  } catch {
+    // Best-effort: a criação da Carteira padrão não pode derrubar o app.
   }
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;

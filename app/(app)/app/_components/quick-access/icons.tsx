@@ -1,4 +1,5 @@
 import {
+  ArrowLeftRight,
   Banknote,
   Bell,
   BookOpen,
@@ -18,6 +19,7 @@ import {
 } from "lucide-react";
 
 export const QUICK_ACCESS_ICONS: Record<string, LucideIcon> = {
+  ArrowLeftRight,
   ShoppingBag,
   TrendingUp,
   Coins,

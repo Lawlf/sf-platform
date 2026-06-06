@@ -1,63 +1,146 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors/result";
 
-import { createTransaction } from "./create-transaction.use-case";
+import { createTransaction, type CreateTransactionDeps } from "./create-transaction.use-case";
 
-function fakeRepo() {
-  const rows: unknown[] = [];
+function cashAsset(over: Partial<AssetEntity> = {}): AssetEntity {
   return {
-    rows,
-    async create(t: {
-      id: string;
-      userId: string;
-      occurredAt: Date;
-      amount: Money;
-      description: string;
-      category: string | null;
-      deletedAt: Date | null;
-    }) {
-      const persisted = { ...t, createdAt: new Date("2026-06-15T00:00:00Z") };
-      rows.push(persisted);
-      return persisted;
+    id: "acc1",
+    userId: "u1",
+    category: "cash",
+    label: "Carteira",
+    currentValue: Money.fromCents(100000n),
+    metadata: { kind: "cash", yieldType: "none" },
+    fipeCode: null,
+    fipeLastSyncedAt: null,
+    acquiredAt: null,
+    depreciationKind: "stable",
+    depreciationRatePctYear: 0,
+    purchaseDate: null,
+    purchasePriceCents: null,
+    createdAt: new Date("2026-06-01T00:00:00Z"),
+    updatedAt: new Date("2026-06-01T00:00:00Z"),
+    deactivatedAt: null,
+    deactivationKind: null,
+    salePriceCents: null,
+    deactivationReason: null,
+    deletedAt: null,
+    ...over,
+  } as AssetEntity;
+}
+
+function makeDeps(over: Partial<CreateTransactionDeps> = {}): CreateTransactionDeps {
+  return {
+    transactions: {
+      create: vi.fn(async (t: Omit<TransactionEntity, "createdAt">) => ({
+        ...t,
+        createdAt: new Date("2026-06-05T00:00:00Z"),
+      })),
     },
-    async listForUserInRange() {
-      return [];
+    assets: {
+      findById: vi.fn(async () => cashAsset()),
+      findActiveByUserAndCategory: vi.fn(async () => [cashAsset()]),
+      create: vi.fn(async () => undefined),
+      update: vi.fn(async () => undefined),
     },
-  };
+    clock: { now: () => new Date("2026-06-05T00:00:00Z") },
+    ...over,
+  } as unknown as CreateTransactionDeps;
 }
 
 describe("createTransaction", () => {
-  it("persists an expense transaction with amount, description, category, and date", async () => {
-    const repo = fakeRepo();
-    const clock = { now: () => new Date("2026-06-15T00:00:00Z") };
-    const amount = Money.fromCents(4000n);
-    const result = await createTransaction(
-      { transactions: repo, clock },
-      { userId: "u1", amount, description: "café", category: "alimentação", occurredAt: null },
-    );
-    expect(isOk(result)).toBe(true);
-    if (isOk(result)) {
-      expect(result.value.amount.toCents()).toBe(4000n);
-      expect(result.value.description).toBe("café");
-      expect(result.value.category).toBe("alimentação");
-      expect(result.value.userId).toBe("u1");
-    }
-    expect(repo.rows).toHaveLength(1);
+  it("usa a conta informada e decrementa saldo numa saída paga", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      direction: "out",
+      amount: Money.fromCents(30000n),
+      description: "Mercado",
+      category: "Alimentação",
+      accountId: "acc1",
+      occurredAt: null,
+      status: "paid",
+    });
+    expect(r._tag).toBe("ok");
+    const upd = (deps.assets.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as AssetEntity;
+    expect(upd.currentValue.toCents()).toBe(70000n);
   });
 
-  it("defaults occurredAt to now and category to null when omitted", async () => {
-    const repo = fakeRepo();
-    const now = new Date("2026-06-15T00:00:00Z");
-    const result = await createTransaction(
-      { transactions: repo, clock: { now: () => now } },
-      { userId: "u1", amount: Money.fromCents(1000n), description: "x", category: null, occurredAt: null },
-    );
-    expect(isOk(result)).toBe(true);
-    if (isOk(result)) {
-      expect(result.value.occurredAt.getTime()).toBe(now.getTime());
-      expect(result.value.category).toBeNull();
-    }
+  it("entrada paga incrementa saldo", async () => {
+    const deps = makeDeps();
+    await createTransaction(deps, {
+      userId: "u1",
+      direction: "in",
+      amount: Money.fromCents(50000n),
+      description: "Pix",
+      category: "transfer",
+      accountId: "acc1",
+      occurredAt: null,
+      status: "paid",
+    });
+    const upd = (deps.assets.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as AssetEntity;
+    expect(upd.currentValue.toCents()).toBe(150000n);
+  });
+
+  it("scheduled não move saldo", async () => {
+    const deps = makeDeps();
+    await createTransaction(deps, {
+      userId: "u1",
+      direction: "out",
+      amount: Money.fromCents(30000n),
+      description: "Conta futura",
+      category: "Outros",
+      accountId: "acc1",
+      occurredAt: null,
+      status: "scheduled",
+    });
+    expect(deps.assets.update).not.toHaveBeenCalled();
+  });
+
+  it("sem conta e sem ativo cash, cria Carteira default", async () => {
+    const created: AssetEntity[] = [];
+    const deps = makeDeps({
+      assets: {
+        findById: vi.fn(async () => null),
+        findActiveByUserAndCategory: vi.fn(async () => []),
+        create: vi.fn(async (a: AssetEntity) => {
+          created.push(a);
+        }),
+        update: vi.fn(async () => undefined),
+      } as unknown as CreateTransactionDeps["assets"],
+    });
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      direction: "out",
+      amount: Money.fromCents(1000n),
+      description: "x",
+      category: null,
+      accountId: null,
+      occurredAt: null,
+      status: "paid",
+    });
+    expect(r._tag).toBe("ok");
+    expect(created).toHaveLength(1);
+    expect(created[0]?.label).toBe("Carteira");
+  });
+
+  it("sem conta mas com ativo cash existente, usa o primeiro", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      direction: "out",
+      amount: Money.fromCents(1000n),
+      description: "x",
+      category: null,
+      accountId: null,
+      occurredAt: null,
+      status: "paid",
+    });
+    expect(r._tag).toBe("ok");
+    expect(deps.assets.create).not.toHaveBeenCalled();
+    if (r._tag === "ok") expect(r.value.accountId).toBe("acc1");
   });
 });

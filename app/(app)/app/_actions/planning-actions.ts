@@ -129,6 +129,9 @@ export interface CreateTransactionActionInput {
   description: string;
   category?: string | null;
   occurredAtIso?: string | null;
+  direction?: "in" | "out";
+  accountId?: string | null;
+  status?: "paid" | "scheduled";
 }
 
 export async function createTransactionAction(
@@ -165,14 +168,18 @@ export async function createTransactionAction(
   await createTransaction(
     {
       transactions: new DrizzleTransactionRepository(),
+      assets: new DrizzleAssetRepository(),
       clock: new SystemClock(),
     },
     {
       userId: user.id,
+      direction: input.direction ?? "out",
       amount: Money.fromCents(amountCents),
       description,
       category,
+      accountId: input.accountId ?? null,
       occurredAt,
+      status: input.status ?? "paid",
     },
   );
 

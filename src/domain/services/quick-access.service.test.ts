@@ -9,5 +9,5 @@ describe("normalizeQuickAccess", () => {
   it("returns empty for empty input", () => { expect(normalizeQuickAccess([], ALLOWED, MAX_QUICK_ACCESS)).toEqual([]); });
 });
 describe("constants", () => {
-  it("MAX is 8 and default is the three add actions plus metas", () => { expect(MAX_QUICK_ACCESS).toBe(8); expect(DEFAULT_QUICK_ACCESS).toEqual(["add_debt","add_income","add_asset","metas"]); });
+  it("MAX is 8 and default is the add actions plus metas", () => { expect(MAX_QUICK_ACCESS).toBe(8); expect(DEFAULT_QUICK_ACCESS).toEqual(["add_debt","add_income","add_asset","add_transaction","metas"]); });
 });
