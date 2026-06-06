@@ -19,4 +19,9 @@ describe("sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls.some((u) => u.endsWith("/alternativas/mobills"))).toBe(true);
   });
+
+  it("inclui a pagina de financas com IA", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls.some((u) => u.endsWith("/financas-com-ia"))).toBe(true);
+  });
 });

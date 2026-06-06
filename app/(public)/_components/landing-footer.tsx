@@ -8,17 +8,18 @@ const groups = [
     links: [
       { label: "Funcionalidades", href: "#produto" },
       { label: "Como funciona", href: "#como" },
-      { label: "Calculadoras", href: "/calculadora" },
       { label: "Privacidade", href: "#privacidade" },
       { label: "Preços", href: "#precos" },
       { label: "Dúvidas", href: "#faq" },
+      { label: "Entrar", href: "/entrar" },
     ],
   },
   {
-    label: "Conta",
+    label: "Recursos",
     links: [
-      { label: "Entrar", href: "/entrar" },
-      { label: "Criar conta", href: "/cadastrar" },
+      { label: "Calculadoras", href: "/calculadora" },
+      { label: "Comparar apps", href: "/alternativas" },
+      { label: "Finanças com IA", href: "/financas-com-ia" },
     ],
   },
   {

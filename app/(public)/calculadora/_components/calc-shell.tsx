@@ -58,7 +58,7 @@ export function CalcShell({
               Entrar
             </Link>
             <Link
-              href="/cadastrar"
+              href="/entrar"
               className="sf-lift focus-ring rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2 font-semibold text-white shadow-[0_10px_26px_-10px_rgba(239,122,26,0.6)]"
             >
               Criar conta
@@ -131,7 +131,7 @@ export function CalcAccountCta() {
         a cada mês. Crie uma conta gratuita e transforme este cálculo num acompanhamento contínuo.
       </p>
       <Link
-        href="/cadastrar"
+        href="/entrar"
         className="sf-lift mt-4 inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-10px_rgba(239,122,26,0.6)]"
       >
         Criar conta gratuita

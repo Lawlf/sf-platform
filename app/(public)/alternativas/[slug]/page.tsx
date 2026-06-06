@@ -1,4 +1,4 @@
-import { Check } from "lucide-react";
+import { ArrowUpRight, Check } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -6,6 +6,10 @@ import { notFound } from "next/navigation";
 import { BreadcrumbJsonLd, FaqPageJsonLd } from "../../_components/json-ld";
 import { RevealOnScroll } from "../../_components/reveal-on-scroll";
 import { CalcShell } from "../../calculadora/_components/calc-shell";
+import { GuiabolsoContrast } from "../_components/guiabolso-contrast";
+import { OrganizzeContrast } from "../_components/organizze-contrast";
+import { PlanilhaContrast } from "../_components/planilha-contrast";
+import { WayContrast } from "../_components/way-contrast";
 import { competitorSlugs, getCompetitor } from "../_lib/competitors";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
@@ -41,14 +45,19 @@ export default async function AlternativaPage({
   if (!c) notFound();
 
   const path = `/alternativas/${c.slug}`;
+  const others = competitorSlugs()
+    .filter((s) => s !== c.slug)
+    .map((s) => getCompetitor(s))
+    .filter((x): x is NonNullable<typeof x> => Boolean(x));
 
   return (
-    <CalcShell back={{ href: "/", label: "Início" }}>
+    <CalcShell back={{ href: "/alternativas", label: "Comparações" }}>
       <FaqPageJsonLd items={c.faq} />
       <BreadcrumbJsonLd
         items={[
           { name: "Início", url: "/" },
-          { name: `Alternativa ao ${c.competitorName}`, url: path },
+          { name: "Comparações", url: "/alternativas" },
+          { name: c.competitorName, url: path },
         ]}
       />
 
@@ -64,6 +73,31 @@ export default async function AlternativaPage({
             {c.answerBlock}
           </p>
         </header>
+
+        {c.slug === "organizze" ? (
+          <OrganizzeContrast />
+        ) : c.slug === "planilha" ? (
+          <PlanilhaContrast />
+        ) : c.slug === "guiabolso" ? (
+          <GuiabolsoContrast />
+        ) : (
+          <WayContrast />
+        )}
+
+        <div className="flex flex-wrap gap-2.5">
+          <Link
+            href="/entrar"
+            className="sf-lift inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-10px_rgba(239,122,26,0.6)]"
+          >
+            Criar conta grátis
+          </Link>
+          <Link
+            href="/precos"
+            className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-soft)] px-5 py-2.5 text-sm font-semibold text-[color:var(--text-primary)]"
+          >
+            Ver planos
+          </Link>
+        </div>
 
         <section className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] backdrop-blur-xl">
           <div className="grid grid-cols-3 border-b border-[color:var(--border-soft)] px-4 py-2.5 text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
@@ -86,7 +120,7 @@ export default async function AlternativaPage({
         <div className="grid gap-3 sm:grid-cols-2">
           <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
             <h2 className="mb-2 text-[0.875rem] font-bold text-[color:var(--text-primary)]">
-              Quando o {c.competitorName} é a escolha certa
+              {c.whenCompetitorTitle ?? `Quando ${c.competitorName} faz mais sentido`}
             </h2>
             <ul className="flex flex-col gap-1.5">
               {c.whenCompetitor.map((item) => (
@@ -147,7 +181,7 @@ export default async function AlternativaPage({
             Crie uma conta grátis, coloque seus números e veja seu quadro do mês em poucos minutos.
           </p>
           <div className="mt-4 flex flex-wrap gap-2.5">
-            <Link href="/cadastrar" className="sf-lift inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-10px_rgba(239,122,26,0.6)]">
+            <Link href="/entrar" className="sf-lift inline-flex items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_-10px_rgba(239,122,26,0.6)]">
               Criar conta grátis
             </Link>
             <Link href="/precos" className="inline-flex items-center justify-center rounded-full border border-[color:var(--border-soft)] px-5 py-2.5 text-sm font-semibold text-[color:var(--text-primary)]">
@@ -155,6 +189,34 @@ export default async function AlternativaPage({
             </Link>
           </div>
         </section>
+
+        {others.length > 0 ? (
+          <section>
+            <h2 className="mb-3 text-base font-bold text-[color:var(--text-primary)]">
+              Mais comparações
+            </h2>
+            <ul className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
+              {others.map((o) => (
+                <li key={o.slug}>
+                  <Link
+                    href={`/alternativas/${o.slug}`}
+                    className="sf-lift focus-ring group flex items-center justify-between gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 backdrop-blur-xl"
+                  >
+                    <span className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">
+                      Sabor vs {o.competitorName}
+                    </span>
+                    <ArrowUpRight
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden
+                      className="text-[color:var(--text-muted)] transition-colors group-hover:text-[color:var(--color-brand-700)]"
+                    />
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
       </RevealOnScroll>
     </CalcShell>
   );
