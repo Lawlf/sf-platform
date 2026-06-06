@@ -18,6 +18,7 @@ import { BottomNavGate } from "./app/_components/bottom-nav-gate";
 import { CommandPalette } from "./app/_components/command-palette.client";
 import { MobileTopBar } from "./app/_components/mobile-top-bar";
 import { MoneyVisibilityProvider } from "./app/_components/money-visibility/money-visibility-provider.client";
+import { InstallProvider } from "./app/_components/pwa/install-provider.client";
 import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
@@ -66,6 +67,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     <TooltipProvider delayDuration={150} skipDelayDuration={0}>
       <AppLockProvider enabled={appLockEnabled} timeoutSeconds={appLockTimeout} hasPasskey={hasPasskey}>
         <MoneyVisibilityProvider initialHidden={hideValues}>
+          <InstallProvider isPro={user.isPro}>
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
@@ -85,6 +87,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               <BottomNavGate />
             </div>
           </div>
+          </InstallProvider>
         </MoneyVisibilityProvider>
       </AppLockProvider>
     </TooltipProvider>
