@@ -123,12 +123,14 @@ export async function executeWrite(
 
     case "transaction_create": {
       const result = await createTransaction(
-        { transactions: deps.transactions, clock: deps.clock },
+        { transactions: deps.transactions, assets: deps.assets, clock: deps.clock },
         {
           userId,
+          direction: "out",
           amount: money(args.amountCents),
           description: str(args.description),
           category: optStr(args.category),
+          accountId: optStr(args.accountId) ?? null,
           occurredAt: optDate(args.occurredAt),
         },
       );
