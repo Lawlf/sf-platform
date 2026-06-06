@@ -21,6 +21,7 @@ import { NextStepCard } from "./_components/next-step-card";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
 import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { PageShell } from "./_components/page-shell";
+import { MarkValueMoment } from "./_components/pwa/mark-value-moment.client";
 import { QuickAccessRow } from "./_components/quick-access-row";
 import {
   type HomeCardKey,
@@ -174,6 +175,7 @@ export default async function DashboardPage() {
       title={`${greeting}, ${user.displayName ?? "bem-vindo"}`}
       description="Aqui está sua situação agora."
     >
+      <MarkValueMoment active={hasPlan} />
       <div className="grid gap-4 md:grid-cols-2">
         <HomeCoachmarks
           active={onboardingState.wizardSeen && !onboardingState.tourDismissed}

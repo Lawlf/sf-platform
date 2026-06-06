@@ -22,6 +22,7 @@ import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzl
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../_components/page-shell";
+import { InstallSettingsButton } from "../_components/pwa/install-settings-button.client";
 import { UserAvatar } from "../_components/user-avatar";
 
 export const metadata: Metadata = { title: "Configurações" };
@@ -222,6 +223,13 @@ export default async function ConfiguracoesPage() {
           </div>
         </section>
       ))}
+
+      <section className="flex flex-col gap-2">
+        <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          Aplicativo
+        </h2>
+        <InstallSettingsButton />
+      </section>
 
       <form action="/api/auth/sign-out" method="post" className="mt-4">
         <button

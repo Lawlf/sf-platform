@@ -9,6 +9,7 @@ import { toast } from "sonner";
 import { Spinner } from "@/app/components/ui/spinner";
 import { cn } from "@/lib/utils";
 
+import { useInstall } from "../../../_components/pwa/install-context";
 import { PrefSection } from "../../acessibilidade/_components/pref-section";
 import { sendTestPushAction } from "../_actions/send-test-push.action";
 import { subscribePushAction } from "../_actions/subscribe-push.action";
@@ -72,6 +73,7 @@ export function NotificationSettings({
   // single action is offered (activate when off, deactivate when on) instead of
   // always showing both and blindly incrementing the count.
   const [deviceState, setDeviceState] = useState<"checking" | "active" | "inactive">("checking");
+  const install = useInstall();
 
   const supported =
     typeof window !== "undefined" && "serviceWorker" in navigator && "PushManager" in window;
@@ -226,10 +228,20 @@ export function NotificationSettings({
           }
         >
           {!supported ? (
-            <p className="mt-4 rounded-lg bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-              Este navegador não suporta Web Push. No iPhone, instale o app na tela inicial
-              (Compartilhar -&gt; Adicionar à Tela de Início) e tente de novo.
-            </p>
+            install?.env?.canInstallIos ? (
+              <button
+                type="button"
+                onClick={() => install.openIosSheet("push_gate")}
+                className="sf-lift focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)]"
+              >
+                Instalar na tela pra receber o lembrete
+              </button>
+            ) : (
+              <p className="mt-4 rounded-lg bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
+                Este navegador não suporta Web Push. No iPhone, instale o app na tela inicial
+                (Compartilhar -&gt; Adicionar à Tela de Início) e tente de novo.
+              </p>
+            )
           ) : deviceState === "checking" ? (
             <div className="mt-4 flex justify-center py-2"><Spinner size={18} /></div>
           ) : deviceState === "active" ? (

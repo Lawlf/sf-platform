@@ -32,6 +32,22 @@ export default function manifest(): MetadataRoute.Manifest {
         url: "/app/simular",
       },
     ],
+    screenshots: [
+      {
+        src: "/screenshots/home-narrow.png",
+        sizes: "860x1854",
+        type: "image/png",
+        form_factor: "narrow",
+        label: "Painel mensal de patrimônio, dívida e renda",
+      },
+      {
+        src: "/screenshots/home-wide.png",
+        sizes: "3228x2058",
+        type: "image/png",
+        form_factor: "wide",
+        label: "Painel mensal de patrimônio, dívida e renda",
+      },
+    ],
     icons: [
       {
         src: "/icons/icon-192.png",
