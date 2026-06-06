@@ -14,6 +14,7 @@ import {
   Gift,
   HeartPulse,
   House,
+  Plus,
   ShoppingBag,
   Store,
   Tag,
@@ -39,6 +40,7 @@ import {
 import { createTransactionAction } from "../../_actions/planning-actions";
 import { MoneyInput } from "../../_components/money-input";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
+import { createCashAccount } from "../_actions/create-cash-account.action";
 import {
   listCashAccounts,
   type CashAccountOption,
@@ -57,7 +59,7 @@ type Direction = "out" | "in";
 type Status = "paid" | "scheduled";
 
 const NO_CATEGORY_VALUE = "__none__";
-const NO_ACCOUNT_VALUE = "__none__";
+const DEFAULT_ACCOUNT_VALUE = "__default__";
 
 interface CategoryOption {
   label: string;
@@ -126,7 +128,10 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const [category, setCategory] = useState<string>(NO_CATEGORY_VALUE);
   const [occurredAt, setOccurredAt] = useState<string>(() => todayIso(defaultMonthIso));
   const [accounts, setAccounts] = useState<CashAccountOption[] | null>(null);
-  const [accountId, setAccountId] = useState<string>(NO_ACCOUNT_VALUE);
+  const [accountId, setAccountId] = useState<string>(DEFAULT_ACCOUNT_VALUE);
+  const [showNewAccount, setShowNewAccount] = useState(false);
+  const [newAccountName, setNewAccountName] = useState("");
+  const [accountPending, startAccountTransition] = useTransition();
   const dateId = useId();
   const categoryId = useId();
   const accountFieldId = useId();
@@ -138,7 +143,10 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   useEffect(() => {
     let active = true;
     void listCashAccounts().then((result) => {
-      if (active) setAccounts(result);
+      if (!active) return;
+      setAccounts(result);
+      const first = result[0];
+      if (first) setAccountId(first.id);
     });
     return () => {
       active = false;
@@ -151,8 +159,24 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     setCategory(NO_CATEGORY_VALUE);
   }
 
+  function handleCreateAccount() {
+    const name = newAccountName.trim();
+    if (name.length === 0) return;
+    setServerError(null);
+    startAccountTransition(async () => {
+      const result = await createCashAccount(name);
+      if (!result.ok) {
+        setServerError(result.message);
+        return;
+      }
+      setAccounts((prev) => [...(prev ?? []), result.account]);
+      setAccountId(result.account.id);
+      setNewAccountName("");
+      setShowNewAccount(false);
+    });
+  }
+
   const categories = direction === "in" ? IN_CATEGORIES : OUT_CATEGORIES;
-  const hasAccounts = accounts !== null && accounts.length > 0;
 
   function onSubmit(values: FormValues) {
     setServerError(null);
@@ -171,8 +195,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         description,
         direction,
         status,
-        accountId:
-          accountId === NO_ACCOUNT_VALUE || !hasAccounts ? null : accountId,
+        accountId: accountId === DEFAULT_ACCOUNT_VALUE ? null : accountId,
         category: category === NO_CATEGORY_VALUE ? null : category,
         occurredAtIso: occurredAt
           ? new Date(`${occurredAt}T12:00:00.000Z`).toISOString()
@@ -291,42 +314,91 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         >
           Conta
         </span>
-        {accounts !== null && !hasAccounts ? (
-          <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-muted)]">
-            Vamos criar uma Carteira no primeiro lançamento.
-          </p>
-        ) : accounts !== null ? (
-          <Select value={accountId} onValueChange={setAccountId}>
-            <SelectTrigger aria-labelledby={accountFieldId} className={SELECT_TRIGGER_CLASS}>
-              <SelectValue placeholder="Escolha a conta" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_ACCOUNT_VALUE}>
-                <span className="flex items-center gap-2">
-                  <CircleDashed
-                    size={15}
-                    strokeWidth={2}
-                    className="text-[color:var(--text-muted)]"
-                    aria-hidden
-                  />
-                  Sem conta
-                </span>
-              </SelectItem>
-              {accounts.map((a) => (
-                <SelectItem key={a.id} value={a.id}>
-                  <span className="flex items-center gap-2">
-                    <Wallet
-                      size={15}
-                      strokeWidth={2}
-                      className="text-[color:var(--text-secondary)]"
-                      aria-hidden
-                    />
-                    {a.label}
-                  </span>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        {accounts !== null ? (
+          <>
+            <Select value={accountId} onValueChange={setAccountId}>
+              <SelectTrigger aria-labelledby={accountFieldId} className={SELECT_TRIGGER_CLASS}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {accounts.length === 0 ? (
+                  <SelectItem value={DEFAULT_ACCOUNT_VALUE}>
+                    <span className="flex items-center gap-2">
+                      <Wallet
+                        size={15}
+                        strokeWidth={2}
+                        className="text-[color:var(--text-secondary)]"
+                        aria-hidden
+                      />
+                      Carteira
+                    </span>
+                  </SelectItem>
+                ) : (
+                  accounts.map((a) => (
+                    <SelectItem key={a.id} value={a.id}>
+                      <span className="flex items-center gap-2">
+                        <Wallet
+                          size={15}
+                          strokeWidth={2}
+                          className="text-[color:var(--text-secondary)]"
+                          aria-hidden
+                        />
+                        {a.label}
+                      </span>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+
+            {showNewAccount ? (
+              <div className="flex flex-col gap-2">
+                <input
+                  type="text"
+                  autoComplete="off"
+                  value={newAccountName}
+                  onChange={(e) => setNewAccountName(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleCreateAccount();
+                    }
+                  }}
+                  placeholder="Nome da conta, ex: Nubank"
+                  className={wizardInputClass}
+                />
+                <div className="flex items-center gap-2">
+                  <Button
+                    type="button"
+                    variant="brand"
+                    loading={accountPending}
+                    onClick={handleCreateAccount}
+                  >
+                    Criar conta
+                  </Button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowNewAccount(false);
+                      setNewAccountName("");
+                    }}
+                    className="focus-ring rounded-lg px-2 py-1 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]"
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowNewAccount(true)}
+                className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+              >
+                <Plus size={14} strokeWidth={2.5} aria-hidden />
+                Nova conta
+              </button>
+            )}
+          </>
         ) : null}
       </div>
 

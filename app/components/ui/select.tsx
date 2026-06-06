@@ -1,7 +1,7 @@
 "use client";
 
 import * as SelectPrimitive from "@radix-ui/react-select";
-import { Check, ChevronDown } from "lucide-react";
+import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -49,15 +49,16 @@ const SelectContent = React.forwardRef<
       )}
       {...props}
     >
+      <SelectScrollUpButton />
       <SelectPrimitive.Viewport
         className={cn(
           "p-1",
-          position === "popper" &&
-            "h-[var(--radix-select-trigger-height)] w-full min-w-[var(--radix-select-trigger-width)]",
+          position === "popper" && "w-full min-w-[var(--radix-select-trigger-width)]",
         )}
       >
         {children}
       </SelectPrimitive.Viewport>
+      <SelectScrollDownButton />
     </SelectPrimitive.Content>
   </SelectPrimitive.Portal>
 ));
@@ -86,4 +87,47 @@ const SelectItem = React.forwardRef<
 ));
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
-export { Select, SelectGroup, SelectValue, SelectTrigger, SelectContent, SelectItem };
+const SelectScrollUpButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollUpButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollUpButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollUpButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1 text-[color:var(--text-muted)]",
+      className,
+    )}
+    {...props}
+  >
+    <ChevronUp size={14} strokeWidth={2} aria-hidden />
+  </SelectPrimitive.ScrollUpButton>
+));
+SelectScrollUpButton.displayName = SelectPrimitive.ScrollUpButton.displayName;
+
+const SelectScrollDownButton = React.forwardRef<
+  React.ElementRef<typeof SelectPrimitive.ScrollDownButton>,
+  React.ComponentPropsWithoutRef<typeof SelectPrimitive.ScrollDownButton>
+>(({ className, ...props }, ref) => (
+  <SelectPrimitive.ScrollDownButton
+    ref={ref}
+    className={cn(
+      "flex cursor-default items-center justify-center py-1 text-[color:var(--text-muted)]",
+      className,
+    )}
+    {...props}
+  >
+    <ChevronDown size={14} strokeWidth={2} aria-hidden />
+  </SelectPrimitive.ScrollDownButton>
+));
+SelectScrollDownButton.displayName = SelectPrimitive.ScrollDownButton.displayName;
+
+export {
+  Select,
+  SelectGroup,
+  SelectValue,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectScrollUpButton,
+  SelectScrollDownButton,
+};
