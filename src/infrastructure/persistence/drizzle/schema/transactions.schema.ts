@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import { bigint, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+import { assets } from "./assets.schema";
 import { users } from "./users.schema";
 
 export const transactions = pgTable(
@@ -10,16 +11,22 @@ export const transactions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    direction: text("direction").notNull().default("out"),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
     description: text("description").notNull(),
     category: text("category"),
+    accountId: uuid("account_id").references(() => assets.id, { onDelete: "set null" }),
+    occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
+    status: text("status").notNull().default("paid"),
+    source: text("source").notNull().default("manual"),
+    externalId: text("external_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`now()`),
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
   },
   (t) => ({
     byUser: index("transactions_user_idx").on(t.userId),
     byUserOccurred: index("transactions_user_occurred_idx").on(t.userId, t.occurredAt),
+    byAccount: index("transactions_account_idx").on(t.accountId),
   }),
 );
 
