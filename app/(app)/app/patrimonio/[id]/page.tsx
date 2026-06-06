@@ -3,15 +3,18 @@ import { notFound } from "next/navigation";
 
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
+import { listTransactionsByAccount } from "@/application/use-cases/transaction/list-transactions-by-account.use-case";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../../_components/page-shell";
 
+import { AccountTransactionsSection } from "./_components/account-transactions";
 import {
   AssetDetailView,
   type AvailableDebtView,
@@ -176,6 +179,14 @@ export default async function AssetDetailPage({ params }: PageProps) {
 
   const linkedGoals = await fetchGoalsLinkedToAsset(id);
 
+  const accountTransactions =
+    asset.category === "cash"
+      ? await listTransactionsByAccount(
+          { transactions: new DrizzleTransactionRepository() },
+          { userId: user.id, accountId: asset.id },
+        )
+      : [];
+
   // Description (apenas para categoria "other" com metadata.description).
   let description: string | null = null;
   if (
@@ -230,6 +241,9 @@ export default async function AssetDetailPage({ params }: PageProps) {
         depreciation={depreciation}
         linkedGoals={linkedGoals}
       />
+      {asset.category === "cash" ? (
+        <AccountTransactionsSection transactions={accountTransactions} />
+      ) : null}
     </PageShell>
   );
 }
