@@ -72,8 +72,7 @@ function segmentClass(active: boolean, tone: keyof typeof SEGMENT_ACTIVE): strin
   return `${SEGMENT_BASE} ${SEGMENT_ACTIVE[tone]}`;
 }
 
-const SELECT_TRIGGER_CLASS =
-  "h-11 rounded-xl border-[1.5px] bg-[color:var(--surface-1)] backdrop-blur-xl";
+const SELECT_TRIGGER_CLASS = "h-11 rounded-xl border-[1.5px]";
 
 function todayIso(defaultMonthIso?: string): string {
   if (defaultMonthIso) {
