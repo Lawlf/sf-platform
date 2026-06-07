@@ -234,6 +234,21 @@ export function DetailsStep({
               placeholder="R$ 0,00"
             />
           </WizardField>
+
+          <button
+            type="button"
+            onClick={() => {
+              // Atalho: quem não sabe ticker/quantidade cadastra como
+              // investimento genérico, capturando só o valor atual.
+              form.setValue("ticker", "", { shouldDirty: false, shouldValidate: false });
+              form.setValue("lastQuoteCents", null, { shouldDirty: false });
+              form.setValue("tickerCompanyName", "", { shouldDirty: false });
+              form.setValue("investmentType", "other", { shouldDirty: true });
+            }}
+            className="focus-ring w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Não sei os detalhes, só sei quanto vale
+          </button>
         </section>
       ) : null}
 
