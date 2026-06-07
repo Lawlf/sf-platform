@@ -9,6 +9,7 @@ import type { AssetCategory } from "@/domain/entities/asset.entity";
 import { fetchAssetsWithAllocations, fetchNetWorth } from "../../_actions/asset-queries";
 import { queryKeys } from "../../_lib/query-keys";
 
+import { CarteiraBalanceCard } from "./carteira-balance-card.client";
 import { CategorySection, type CategoryAssetItem } from "./category-section";
 import { PatrimonyEmptyState } from "./empty-state";
 import { PatrimonyHero } from "./patrimony-hero";
@@ -57,6 +58,8 @@ export function PatrimonioContentClient() {
         totalAssetsFormatted={snapshot.totalAssets.formatted}
         totalDebtFormatted={snapshot.totalDebtBalance.formatted}
       />
+
+      <CarteiraBalanceCard />
 
       <Link
         href={"/app/patrimonio/novo" as Route}

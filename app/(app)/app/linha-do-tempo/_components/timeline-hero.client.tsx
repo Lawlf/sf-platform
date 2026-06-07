@@ -27,11 +27,9 @@ function hasNonDefaultFilters(params: URLSearchParams): boolean {
   const range = params.get("range");
   const show = params.get("show");
   const focus = params.get("focus");
-  const q = params.get("q");
   if (range && range !== "all") return true;
   if (show && show !== "all") return true;
   if (focus && focus !== "balance") return true;
-  if (q && q.length > 0) return true;
   return false;
 }
 

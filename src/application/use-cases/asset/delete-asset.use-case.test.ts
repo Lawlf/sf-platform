@@ -61,6 +61,7 @@ function makeAsset(userId = "user-1"): AssetEntity {
     purchasePriceCents: null,
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

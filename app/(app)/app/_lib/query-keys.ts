@@ -2,6 +2,7 @@ export const queryKeys = {
   dashboardSnapshot: ["dashboardSnapshot"] as const,
   netWorth: ["netWorth"] as const,
   assetsWithAllocations: ["assetsWithAllocations"] as const,
+  walletBalance: ["walletBalance"] as const,
   debts: (status: string) => ["debts", status] as const,
   incomes: ["incomes"] as const,
   expenses: ["expenses"] as const,

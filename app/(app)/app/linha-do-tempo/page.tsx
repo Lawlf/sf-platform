@@ -20,7 +20,6 @@ interface PageProps {
     range?: string;
     show?: string;
     focus?: string;
-    q?: string;
     jumpTo?: string;
   }>;
 }

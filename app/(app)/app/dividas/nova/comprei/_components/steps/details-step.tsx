@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useId } from "react";
+import { useEffect, useId, useRef } from "react";
 import {
   type Control,
   type FieldErrors,
@@ -36,6 +36,51 @@ export interface DetailsStepProps {
   watch: UseFormWatch<NewPurchaseFormValues>;
   onSelectCreditCardOption: (id: string | null) => void;
   onSelectCashOnboarding: (choice: "create" | "skip") => void;
+}
+
+interface SingleCashAccountOptInProps {
+  account: CashAssetPayload;
+  selected: boolean;
+  onChoose: (useAccount: boolean) => void;
+}
+
+function SingleCashAccountOptIn({ account, selected, onChoose }: SingleCashAccountOptInProps) {
+  const fromCashAssetId = account.id;
+  const primedFor = useRef<string | null>(null);
+
+  // Só tem uma carteira: pré-seleciona "Sim" (debita a conta) ao entrar nesse
+  // ramo. Só faz isso uma vez por conta para não sobrescrever um "Não" que o
+  // usuário escolheu de propósito.
+  useEffect(() => {
+    if (primedFor.current === fromCashAssetId) return;
+    primedFor.current = fromCashAssetId;
+    onChoose(true);
+  }, [fromCashAssetId, onChoose]);
+
+  return (
+    <div className="mt-3">
+      <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
+        Saiu da sua conta?
+      </div>
+      <div className="mb-2 text-[0.75rem] leading-[1.4] text-[color:var(--text-primary)] opacity-65">
+        {account.label} · Saldo atual: {account.currentValue.formatted}
+      </div>
+      <div className="grid grid-cols-2 gap-2">
+        <WizardRadioCard
+          title="Sim"
+          description="Descontar da conta."
+          active={selected}
+          onSelect={() => onChoose(true)}
+        />
+        <WizardRadioCard
+          title="Não"
+          description="Não mexer no saldo."
+          active={!selected}
+          onSelect={() => onChoose(false)}
+        />
+      </div>
+    </div>
+  );
 }
 
 export function DetailsStep({
@@ -81,7 +126,9 @@ export function DetailsStep({
   });
 
   if (paymentMethod === "cash") {
-    const hasCash = (cashAssets ?? []).length > 0;
+    const accounts = cashAssets ?? [];
+    const hasCash = accounts.length > 0;
+    const singleAccount = accounts.length === 1 ? accounts[0] : null;
     return (
       <>
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-[0.8125rem] text-[color:var(--text-primary)]">
@@ -90,13 +137,21 @@ export function DetailsStep({
 
         {loadingCash ? (
           <div className="mt-3 flex justify-center py-4"><Spinner size={20} /></div>
+        ) : singleAccount ? (
+          <SingleCashAccountOptIn
+            account={singleAccount}
+            selected={fromCashAssetId === singleAccount.id}
+            onChoose={(useAccount) =>
+              onSelectCreditCardOption(useAccount ? singleAccount.id : null)
+            }
+          />
         ) : hasCash ? (
           <div className="mt-3">
             <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
               De qual conta saiu?
             </div>
             <div className="flex flex-col gap-2">
-              {(cashAssets ?? []).map((asset) => {
+              {accounts.map((asset) => {
                 const active = fromCashAssetId === asset.id;
                 return (
                   <WizardRadioCard

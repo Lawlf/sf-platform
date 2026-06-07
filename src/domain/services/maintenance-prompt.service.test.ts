@@ -22,6 +22,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     purchasePriceCents: null,
     createdAt: new Date("2025-01-01T00:00:00Z"),
     updatedAt: new Date("2025-01-01T00:00:00Z"),
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

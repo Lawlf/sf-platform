@@ -63,7 +63,7 @@ export function MovementCard({
       />
 
       <ResultLine
-        head="Saldo livre do mês"
+        head="Este mês"
         sub="O que sobrou pra você"
         value={saldoFormatted}
         tone={saldoIsNegative ? "negative" : "positive"}

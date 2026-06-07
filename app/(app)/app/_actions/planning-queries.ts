@@ -6,6 +6,8 @@ import { assemblePlanningView } from "@/application/use-cases/planning/assemble-
 import { getAnnualReport } from "@/application/use-cases/transaction/get-annual-report.use-case";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
+import type { IncomeSettlementStatus } from "@/domain/entities/income-settlement.entity";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementStatus } from "@/domain/entities/recurring-settlement.entity";
 import { recurringMonthlyEquivalent } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -18,6 +20,7 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
+import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
@@ -207,6 +210,16 @@ export interface MonthClosingCommitment {
   status: MonthCommitmentStatus;
 }
 
+export type MonthIncomeStatus = IncomeSettlementStatus;
+
+export interface MonthClosingIncome {
+  incomeId: string;
+  label: string;
+  amountFormatted: string;
+  amountCents: string;
+  status: MonthIncomeStatus;
+}
+
 export interface MonthClosingPayload {
   open: boolean;
   monthIso?: string;
@@ -216,6 +229,7 @@ export interface MonthClosingPayload {
   leakAbsFormatted?: string;
   status?: MonthClosingStatus;
   commitments?: MonthClosingCommitment[];
+  incomes?: MonthClosingIncome[];
 }
 
 function isRecurringActiveInMonth(debt: DebtEntity, month: MonthYear): boolean {
@@ -229,6 +243,35 @@ function isRecurringActiveInMonth(debt: DebtEntity, month: MonthYear): boolean {
     return false;
   }
   return true;
+}
+
+const WEEKS_PER_MONTH = 4.33;
+
+/**
+ * Valor-base mensal de uma renda no mês informado (sem aplicar settlement),
+ * espelhando `incomeMonthlyEquivalent` da timeline. Retorna `null` quando a
+ * renda não está ativa no mês (não deve aparecer na confirmação).
+ */
+function incomeBaseCentsInMonth(income: IncomeEntity, month: MonthYear): bigint | null {
+  const startMonth = MonthYear.fromDate(income.startDate);
+  if (month.isBefore(startMonth)) return null;
+  if (income.endDate) {
+    const endMonth = MonthYear.fromDate(income.endDate);
+    if (month.isAfter(endMonth)) return null;
+  } else if (!income.isActive) {
+    return null;
+  }
+
+  switch (income.frequency) {
+    case "monthly":
+      return income.amount.toCents();
+    case "weekly":
+      return BigInt(Math.round(Number(income.amount.toCents()) * WEEKS_PER_MONTH));
+    case "one_off":
+      return startMonth.equals(month) ? income.amount.toCents() : null;
+    default:
+      return null;
+  }
 }
 
 function monthLabelFromIso(monthIso: string): string {
@@ -262,9 +305,13 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
 
   const month = MonthYear.fromIso(preview.monthIso);
   const settlementsRepo = new DrizzleRecurringSettlementRepository();
-  const [debts, settlements] = await Promise.all([
+  const incomeSettlementsRepo = new DrizzleIncomeSettlementRepository();
+  const incomesRepo = new DrizzleIncomeRepository();
+  const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
     debtsRepo.listForUser(user.id, { status: "all" }),
     settlementsRepo.listForUserMonth(user.id, month.firstDay()),
+    incomesRepo.listForUser(user.id),
+    incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),
   ]);
 
   const statusByDebtId = new Map<string, RecurringSettlementStatus>(
@@ -280,6 +327,21 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
       status: statusByDebtId.get(d.id) ?? "open",
     }));
 
+  const incomeStatusById = new Map<string, IncomeSettlementStatus>(
+    incomeSettlements.map((s) => [s.incomeId, s.status] as const),
+  );
+
+  const incomesForMonth: MonthClosingIncome[] = incomes
+    .map((inc) => ({ inc, baseCents: incomeBaseCentsInMonth(inc, month) }))
+    .filter((entry): entry is { inc: IncomeEntity; baseCents: bigint } => entry.baseCents !== null)
+    .map(({ inc, baseCents }) => ({
+      incomeId: inc.id,
+      label: inc.label,
+      amountFormatted: Money.fromCents(baseCents).format(),
+      amountCents: baseCents.toString(),
+      status: incomeStatusById.get(inc.id) ?? "received",
+    }));
+
   const deltaCents = preview.endNetWorthCents - preview.baselineNetWorthCents;
   const leakAbsCents = preview.leakCents < 0n ? -preview.leakCents : preview.leakCents;
 
@@ -292,6 +354,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
     leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
     status: preview.status,
     commitments,
+    incomes: incomesForMonth,
   };
 }
 

@@ -3,6 +3,7 @@ import {
   bigint,
   boolean,
   index,
+  integer,
   pgEnum,
   pgTable,
   text,
@@ -28,6 +29,10 @@ export const incomes = pgTable(
     startDate: timestamp("start_date", { withTimezone: true }).notNull(),
     endDate: timestamp("end_date", { withTimezone: true }),
     isActive: boolean("is_active").notNull().default(true),
+    // Dia do mês (1-31) em que a renda cai. null = usar o dia de start_date.
+    // Alimenta o saldo reativo da Carteira (crédito na data real, não no
+    // começo do mês).
+    paymentDay: integer("payment_day"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

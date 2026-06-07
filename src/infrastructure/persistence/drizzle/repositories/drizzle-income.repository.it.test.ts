@@ -41,6 +41,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     amount: Money.fromCents(500_000n),
     frequency: "monthly",
     startDate: new Date("2024-01-01T00:00:00Z"),
+    paymentDay: null,
     endDate: null,
     isActive: true,
     createdAt: new Date("2024-01-01T00:00:00Z"),

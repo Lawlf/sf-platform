@@ -131,6 +131,7 @@ function makeIncome(userId = "user-1"): IncomeEntity {
     amount: makeMoney(8000),
     frequency: "monthly",
     startDate: new Date("2026-01-01"),
+    paymentDay: null,
     endDate: null,
     isActive: true,
     createdAt: new Date("2026-01-01T00:00:00Z"),

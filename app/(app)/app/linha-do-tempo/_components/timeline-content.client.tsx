@@ -49,7 +49,7 @@ interface TimelineItem {
   key: string;
 }
 
-function buildItems(pages: SerializedTimelinePage[], query: string): TimelineItem[] {
+function buildItems(pages: SerializedTimelinePage[]): TimelineItem[] {
   const points: SerializedMonthlyDataPoint[] = [];
   const stories: SerializedStoryCard[] = [];
   for (const page of pages) {
@@ -93,36 +93,24 @@ function buildItems(pages: SerializedTimelinePage[], query: string): TimelineIte
     }
   }
 
-  const q = query.trim().toLowerCase();
-  const matchedPoints = q
-    ? pointsDesc.filter(
-        (p) => p.monthLabel.toLowerCase().includes(q) || p.monthIso.toLowerCase().includes(q),
-      )
-    : pointsDesc;
-  const matchedStories = q
-    ? storiesAll.filter(
-        (s) => s.eyebrow.toLowerCase().includes(q) || s.line.toLowerCase().includes(q),
-      )
-    : storiesAll;
-
   const items: TimelineItem[] = [];
-  for (let i = 0; i < matchedPoints.length; i++) {
-    const current = matchedPoints[i]!;
-    const olderInList = matchedPoints[i + 1] ?? null;
+  for (let i = 0; i < pointsDesc.length; i++) {
+    const current = pointsDesc[i]!;
+    const olderInList = pointsDesc[i + 1] ?? null;
 
     items.push({
       kind: "month",
       key: `month-${current.monthIso}`,
       monthPoint: current,
       previousPoint: olderInList,
-      isCurrent: i === 0 && !q,
-      isFeatured: bestMonthIso === current.monthIso && !q,
+      isCurrent: i === 0,
+      isFeatured: bestMonthIso === current.monthIso,
     });
 
     if (olderInList) {
       // Stories whose monthIso lives strictly between current and the next older month.
       // Visually these appear right under the current month section and above the older one.
-      const between = matchedStories.filter(
+      const between = storiesAll.filter(
         (s) => s.monthIso > olderInList.monthIso && s.monthIso < current.monthIso,
       );
       between.forEach((s, idx) => {
@@ -149,7 +137,6 @@ export function TimelineContent() {
     ? (params.get("focus") as TimelineFocus)
     : "balance";
   const jumpTo = params.get("jumpTo");
-  const query = params.get("q") ?? "";
 
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage } = useInfiniteQuery<
     SerializedTimelinePage | null,
@@ -204,12 +191,8 @@ export function TimelineContent() {
   }, [jumpTo, pages]);
 
   const items = useMemo(
-    () =>
-      buildItems(
-        pages.filter((p): p is SerializedTimelinePage => Boolean(p)),
-        query,
-      ),
-    [pages, query],
+    () => buildItems(pages.filter((p): p is SerializedTimelinePage => Boolean(p))),
+    [pages],
   );
 
   // First page null means unauthenticated; render nothing.

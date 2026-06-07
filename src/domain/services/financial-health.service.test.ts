@@ -34,6 +34,7 @@ function income(over: Partial<IncomeEntity> = {}): IncomeEntity {
     amount: moneyOf(5000),
     frequency: "monthly",
     startDate: new Date("2024-01-01"),
+    paymentDay: null,
     endDate: null,
     isActive: true,
     createdAt: new Date("2024-01-01"),

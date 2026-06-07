@@ -32,6 +32,7 @@ function makeAsset(id: string, currentValueCents: bigint, currency: Currency = "
     purchasePriceCents: null,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

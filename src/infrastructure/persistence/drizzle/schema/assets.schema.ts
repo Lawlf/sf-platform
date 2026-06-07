@@ -56,6 +56,10 @@ export const assets = pgTable(
     updatedAt: timestamp("updated_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
+    // Para a Carteira default (balde líquido): momento em que currentValueCents
+    // foi fixado como âncora. O saldo reativo acumula só eventos com data >
+    // anchor_at. null para os demais ativos.
+    anchorAt: timestamp("anchor_at", { withTimezone: true }),
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     deactivationKind: text("deactivation_kind"),
     salePriceCents: bigint("sale_price_cents", { mode: "bigint" }),

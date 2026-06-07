@@ -31,6 +31,7 @@ export async function registerIncome(
     frequency: input.frequency,
     startDate: input.startDate,
     endDate: input.endDate,
+    paymentDay: null,
     isActive: true,
     createdAt: now,
     deletedAt: null,
