@@ -355,8 +355,8 @@ export function FinancingForm({
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={6}
+        currentStep={1}
+        totalSteps={5}
         title="Valor e taxa"
         description="Use os dados do contrato."
         onBack={() => router.push("/app/dividas/nova" as Route)}
@@ -588,10 +588,10 @@ export function FinancingForm({
   if (step === 3) {
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={6}
+        currentStep={2}
+        totalSteps={5}
         title="Detalhes"
-        description="Sistema de amortização e taxas extras."
+        description="Como é a parcela e taxas extras."
         onBack={() => setStep(2)}
         primary={{
           label: "Continuar",
@@ -606,19 +606,19 @@ export function FinancingForm({
           name="amortizationMethod"
           render={({ field }) => (
             <WizardField
-              label="Sistema de amortização"
+              label="Como é a parcela?"
               helpLink={<HowItWorksSheet topic="price-vs-sac" variant="brand" />}
             >
               <div className="grid grid-cols-2 gap-2">
                 <WizardRadioCard
                   title="Parcela fixa"
-                  description="Sistema Price"
+                  description="Não muda do começo ao fim"
                   active={field.value === "PRICE"}
                   onSelect={() => field.onChange("PRICE")}
                 />
                 <WizardRadioCard
                   title="Parcela que diminui"
-                  description="Sistema SAC"
+                  description="Começa maior e vai caindo"
                   active={field.value === "SAC"}
                   onSelect={() => field.onChange("SAC")}
                 />
@@ -671,8 +671,8 @@ export function FinancingForm({
     const canAdvance = canAdvanceLinkAssetStep(values);
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={6}
+        currentStep={3}
+        totalSteps={5}
         title="Esse compromisso é por causa de um bem?"
         description="Carro, imóvel ou outro patrimônio. Você pode pular e vincular depois."
         onBack={() => setStep(3)}
@@ -703,7 +703,7 @@ export function FinancingForm({
         ? preview.firstInstallmentFormatted
         : "Não foi possível calcular";
 
-  const systemLabel = values.amortizationMethod === "PRICE" ? "Price" : "SAC";
+  const systemLabel = values.amortizationMethod === "PRICE" ? "parcela fixa" : "parcela que cai";
 
   const computedSub =
     preview && preview !== "pending" && preview.ok
@@ -731,10 +731,10 @@ export function FinancingForm({
 
   return (
     <WizardShell
-      currentStep={5}
-      totalSteps={6}
+      currentStep={4}
+      totalSteps={5}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(4)}
       primary={{
         label: "Salvar dívida",

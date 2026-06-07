@@ -123,7 +123,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
         )}
         {goal.type === "emergency_fund" && goal.monthlyCostCents === null && (
           <p className="mt-1 text-[0.7rem] text-[color:var(--text-muted)]">
-            Reserva estimada com base em ~75% da sua renda mensal.
+            Reserva estimada a partir da sua renda (cerca de 75% dela). Você ajusta depois.
           </p>
         )}
       </ResultCard>
@@ -245,10 +245,7 @@ function EtaHero({
   if (reached) {
     return (
       <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
-        <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
-          Situação
-        </span>
-        <div className="mt-1 text-[1.625rem] font-extrabold leading-tight">Meta atingida</div>
+        <div className="text-[1.625rem] font-extrabold leading-tight">Meta atingida</div>
         <p className="mt-2 text-[0.75rem] font-medium text-white/85">
           Parabéns! Você chegou ao alvo desta meta.
         </p>
@@ -276,7 +273,7 @@ function EtaHero({
           href={"/app/configuracoes/planos" as Route}
           className="focus-ring mt-3 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
         >
-          Se tornar Pro
+          Virar Pro
           <Crown size={12} strokeWidth={2.25} aria-hidden />
         </Link>
       </section>
@@ -290,7 +287,7 @@ function EtaHero({
           Previsão
         </span>
         <div className="mt-1 text-[1.375rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
-          Fora do horizonte
+          Sem previsão ainda
         </div>
         <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
           No ritmo atual, a meta não fecha num prazo que dá pra projetar. Aumente o quanto guarda por

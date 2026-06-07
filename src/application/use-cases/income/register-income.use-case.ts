@@ -16,6 +16,7 @@ export interface RegisterIncomeInput {
   frequency: IncomeFrequency;
   startDate: Date;
   endDate: Date | null;
+  paymentDay?: number | null;
 }
 
 export async function registerIncome(
@@ -31,7 +32,7 @@ export async function registerIncome(
     frequency: input.frequency,
     startDate: input.startDate,
     endDate: input.endDate,
-    paymentDay: null,
+    paymentDay: input.frequency === "monthly" ? (input.paymentDay ?? null) : null,
     isActive: true,
     createdAt: now,
     deletedAt: null,

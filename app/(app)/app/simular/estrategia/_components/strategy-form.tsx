@@ -151,22 +151,22 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
           <section className="flex flex-col gap-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <StrategyCard
-                title="Snowball"
-                subtitle="Menor saldo primeiro"
+                title="Menor saldo primeiro"
+                subtitle="Quita a dívida menor antes"
                 plan={result.snowball}
                 labelById={labelById}
               />
               <StrategyCard
-                title="Avalanche"
-                subtitle="Maior juro primeiro"
+                title="Juro mais alto primeiro"
+                subtitle="Ataca o juro mais caro antes"
                 plan={result.avalanche}
                 labelById={labelById}
               />
             </div>
             {interestDelta !== null && interestDelta > 0 ? (
               <ResultHighlight>
-                Avalanche poupa <strong>{BRL.format(interestDelta)}</strong> em juros frente à
-                Snowball.
+                Pagar o juro mais alto primeiro economiza{" "}
+                <strong>{BRL.format(interestDelta)}</strong> em juros.
               </ResultHighlight>
             ) : null}
           </section>
@@ -197,14 +197,16 @@ function StrategyCard({
   return (
     <ResultCard title={title} subtitle={subtitle}>
       <ResultHeadline
-        value={plan.monthsToFreedom !== null ? `${plan.monthsToFreedom} meses` : "Fora do horizonte"}
-        caption="Até a liberdade."
+        value={
+          plan.monthsToFreedom !== null ? `${plan.monthsToFreedom} meses` : "Não quita nesse orçamento"
+        }
+        caption="para zerar todas."
       />
       <ResultStat label="Total pago" value={plan.totalPaid} />
       <ResultStat label="Total de juros" value={plan.totalInterest} />
       <div>
         <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-          Ordem de ataque
+          Ordem de pagamento
         </span>
         <ol className="mt-1 list-decimal pl-5 text-[0.75rem] text-[color:var(--text-primary)]">
           {plan.order.map((id, idx) => (

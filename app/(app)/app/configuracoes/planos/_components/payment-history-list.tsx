@@ -97,7 +97,7 @@ export function PaymentHistoryList({ payments, page, pageCount, totalCount }: Pr
                       <ExternalLink size={11} strokeWidth={2.2} aria-hidden />
                     </a>
                   ) : (
-                    <span className="text-[0.75rem] text-[color:var(--text-muted)]">—</span>
+                    <span className="text-[0.75rem] text-[color:var(--text-muted)]">·</span>
                   )}
                 </td>
               </tr>

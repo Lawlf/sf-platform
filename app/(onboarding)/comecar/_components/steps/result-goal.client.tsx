@@ -54,7 +54,7 @@ export function ResultGoal({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title={error ? "Sua reserva de emergência" : skipped ? "Você pulou a meta" : "Sua meta está criada"}
+      title={error ? "Sua reserva de emergência" : skipped ? "Ainda falta sua reserva" : "Sua meta está criada"}
       description={
         error
           ? "Acompanhe sua reserva no início."

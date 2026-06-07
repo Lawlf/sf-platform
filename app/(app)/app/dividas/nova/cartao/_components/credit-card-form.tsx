@@ -287,8 +287,8 @@ export function CreditCardForm({
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={6}
+        currentStep={1}
+        totalSteps={5}
         title={existing ? "Cartão com saldo antigo" : "Limites e fatura"}
         description={
           existing
@@ -394,8 +394,8 @@ export function CreditCardForm({
   if (step === 3) {
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={6}
+        currentStep={2}
+        totalSteps={5}
         title="Taxas"
         description="Taxa do rotativo e data de início."
         onBack={() => setStep(2)}
@@ -457,8 +457,8 @@ export function CreditCardForm({
   if (step === 4) {
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={6}
+        currentStep={3}
+        totalSteps={5}
         title="Compras parceladas"
         description="Compras ainda sendo pagas no cartão. Opcional."
         onBack={() => setStep(3)}
@@ -489,8 +489,8 @@ export function CreditCardForm({
     const canAdvance = canAdvanceLinkAssetStep(values);
     return (
       <WizardShell
-        currentStep={5}
-        totalSteps={6}
+        currentStep={4}
+        totalSteps={5}
         title="Esse compromisso é por causa de um bem?"
         description="Carro, imóvel ou outro patrimônio parcelado no cartão."
         onBack={() => setStep(4)}
@@ -527,10 +527,10 @@ export function CreditCardForm({
 
   return (
     <WizardShell
-      currentStep={6}
-      totalSteps={6}
+      currentStep={5}
+      totalSteps={5}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(5)}
       primary={{
         label: "Salvar dívida",

@@ -133,7 +133,7 @@ export function CarteiraBalanceCard() {
             style={{ animation: "sf-reveal-up 600ms cubic-bezier(0.22,1,0.36,1) both" }}
           >
             <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-              Saldo livre na Carteira
+              Saldo da Carteira
             </span>
             <span className="text-3xl font-bold tabular-nums leading-none text-[color:var(--text-primary)]">
               <HideableValue>{data.reactiveBalance.formatted}</HideableValue>

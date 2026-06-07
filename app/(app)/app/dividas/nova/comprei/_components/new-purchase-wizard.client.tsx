@@ -4,7 +4,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { useForm, useWatch } from "react-hook-form";
 
 import { WizardShell } from "../../_components/wizard-shell";
 import {
@@ -25,7 +25,6 @@ import { CategoryStep } from "./steps/category-step";
 import { ConfirmStep } from "./steps/confirm-step";
 import { DetailsStep } from "./steps/details-step";
 import { HowStep } from "./steps/how-step";
-import { ValueBehaviorStep } from "./steps/value-behavior-step";
 import { WhatStep } from "./steps/what-step";
 
 // "new" sinaliza que o usuário escolheu cadastrar um cartão novo inline. UUIDs
@@ -37,8 +36,8 @@ export type CreditCardChoice = string | "new" | null;
 // ("skip"). `null` = nenhuma escolha (Step 4 fica bloqueado).
 export type CashOnboardingChoice = "create" | "skip" | null;
 
-// Comportamento do valor do item ao longo do tempo. Substitui o auto-mapping
-// por categoria; agora o usuário escolhe explicitamente.
+// Comportamento do valor do item ao longo do tempo. Definido silenciosamente
+// pelo default por categoria na criação; não há mais step no wizard.
 export type ValueBehavior = "depreciating" | "appreciating" | "stable";
 
 export interface NewPurchaseFormValues {
@@ -69,9 +68,9 @@ export interface NewPurchaseFormValues {
   financingTermMonths: number;
 }
 
-// Passos internos. Quando a categoria não gera patrimônio (travel/education),
-// o Step 3 é pulado mas a numeração interna continua 1..6 para mantermos uma
-// máquina de estados simples. A renderização visual usa um índice mapeado.
+// Passos internos. O Step 3 (comportamento de valor) foi removido do fluxo; a
+// curva é definida pelo default por categoria na criação. O número 3 nunca é
+// usado, mas mantemos o tipo 1..6 para não renumerar a máquina de estados.
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
 // Categorias que geram patrimônio. Espelha CATEGORY_CONFIG do action.
@@ -82,7 +81,8 @@ const ASSET_CATEGORIES: ReadonlySet<PurchaseCategory> = new Set<PurchaseCategory
   "other",
 ]);
 
-// Default da taxa de depreciação por categoria (% positivo).
+// Default da taxa de depreciação por categoria (% positivo). Aplicado
+// silenciosamente quando a categoria gera patrimônio.
 const DEFAULT_DEPRECIATION_RATE: Record<PurchaseCategory, number> = {
   electronics: 25,
   furniture: 10,
@@ -92,14 +92,9 @@ const DEFAULT_DEPRECIATION_RATE: Record<PurchaseCategory, number> = {
   education: 0,
 };
 
-function generatesAsset(category: PurchaseCategory | null): boolean {
-  return category !== null && ASSET_CATEGORIES.has(category);
-}
-
 function titleFor(step: Step, method: PaymentMethod | null, hasCashAssets: boolean): string {
   if (step === 1) return "O que você comprou?";
   if (step === 2) return "Qual o tipo?";
-  if (step === 3) return "Como o valor desse item se comporta?";
   if (step === 4) return "Como você pagou?";
   if (step === 5) {
     if (method === "cash") {
@@ -116,7 +111,6 @@ function titleFor(step: Step, method: PaymentMethod | null, hasCashAssets: boole
 function descriptionFor(step: Step, method: PaymentMethod | null, hasCashAssets: boolean): string {
   if (step === 1) return "Nome e valor.";
   if (step === 2) return "Categoria da compra.";
-  if (step === 3) return "A maioria das coisas perde valor com o tempo, mas tem exceções.";
   if (step === 4) return "Como saiu o dinheiro.";
   if (step === 5) {
     if (method === "cash") {
@@ -130,18 +124,14 @@ function descriptionFor(step: Step, method: PaymentMethod | null, hasCashAssets:
   return "Confira antes de salvar.";
 }
 
-// Mapeia o step interno para a posição visível na barra de progresso. Quando o
-// Step 3 está pulado, os passos 4..6 aparecem como 3..5.
-function visibleStepInfo(
-  step: Step,
-  category: PurchaseCategory | null,
-): { currentStep: 1 | 2 | 3 | 4 | 5 | 6; totalSteps: number } {
-  const includesBehavior = generatesAsset(category);
-  const total = includesBehavior ? 6 : 5;
-  if (!includesBehavior && step >= 4) {
+// Mapeia o step interno para a posição visível na barra de progresso. O Step 3
+// nunca é usado, então os passos 4..6 sempre aparecem como 3..5 (5 no total).
+function visibleStepInfo(step: Step): { currentStep: 1 | 2 | 3 | 4 | 5; totalSteps: number } {
+  const total = 5;
+  if (step >= 4) {
     return { currentStep: (step - 1) as 1 | 2 | 3 | 4 | 5, totalSteps: total };
   }
-  return { currentStep: step, totalSteps: total };
+  return { currentStep: step as 1 | 2 | 3 | 4 | 5, totalSteps: total };
 }
 
 export function NewPurchaseWizard() {
@@ -177,20 +167,24 @@ export function NewPurchaseWizard() {
   });
 
   const { control, register, watch, formState, getValues, setValue } = form;
-  const values = watch();
+  // Assina só os campos lidos neste render (título/progresso/CTA). Evita o
+  // re-render da wizard inteira a cada tecla, que somava lag ao avançar.
+  const watchedName = useWatch({ control, name: "name" });
+  const watchedValueCents = useWatch({ control, name: "valueCents" });
+  const watchedPaymentMethod = useWatch({ control, name: "paymentMethod" });
 
   // Pre-fetch listas no step 5 para construir o resumo. Tem cache via useQuery, então
   // se um step anterior já fetchou, isso vira no-op.
   const { data: cashAssets } = useQuery<CashAssetPayload[]>({
     queryKey: ["comprei", "cash-assets"],
     queryFn: () => listCashAssetsForPurchase(),
-    enabled: values.paymentMethod === "cash" && step >= 5,
+    enabled: watchedPaymentMethod === "cash" && step >= 5,
     staleTime: 30_000,
   });
   const { data: creditCards } = useQuery<CreditCardDebtPayload[]>({
     queryKey: ["comprei", "credit-cards"],
     queryFn: () => listCreditCardsForPurchase(),
-    enabled: values.paymentMethod === "credit_card" && step >= 5,
+    enabled: watchedPaymentMethod === "credit_card" && step >= 5,
     staleTime: 30_000,
   });
 
@@ -199,38 +193,15 @@ export function NewPurchaseWizard() {
   function selectCategory(category: PurchaseCategory) {
     setValue("category", category, { shouldDirty: true });
     if (ASSET_CATEGORIES.has(category)) {
-      // Pré-popula behavior=depreciating + taxa default para reduzir fricção.
-      // O usuário pode trocar se quiser.
+      // Curva de valor definida pelo default por categoria, sem perguntar.
       setValue("valueBehavior", "depreciating", { shouldDirty: true });
       setValue("annualRatePct", DEFAULT_DEPRECIATION_RATE[category], { shouldDirty: true });
-      setStep(3);
     } else {
-      // travel/education: skip Step 3.
+      // travel/education: não gera patrimônio.
       setValue("valueBehavior", null, { shouldDirty: true });
       setValue("annualRatePct", null, { shouldDirty: true });
-      setStep(4);
     }
-  }
-
-  function selectValueBehavior(behavior: ValueBehavior) {
-    setValue("valueBehavior", behavior, { shouldDirty: true });
-    const cat = getValues("category");
-    if (behavior === "stable") {
-      setValue("annualRatePct", 0, { shouldDirty: true });
-    } else if (behavior === "appreciating") {
-      // Default 3% pra appreciation.
-      const current = getValues("annualRatePct");
-      if (current === null || current === undefined || current === 0) {
-        setValue("annualRatePct", 3, { shouldDirty: true });
-      }
-    } else {
-      // depreciating: usa default por categoria se ainda não preencheu.
-      const current = getValues("annualRatePct");
-      if (current === null || current === undefined || current === 0) {
-        const def = cat ? DEFAULT_DEPRECIATION_RATE[cat] : 10;
-        setValue("annualRatePct", def, { shouldDirty: true });
-      }
-    }
+    setStep(4);
   }
 
   function selectMethod(method: PaymentMethod) {
@@ -247,9 +218,10 @@ export function NewPurchaseWizard() {
   }
 
   function selectCreditCardOrCashOption(id: string | null) {
-    if (values.paymentMethod === "cash") {
+    const method = getValues("paymentMethod");
+    if (method === "cash") {
       setValue("fromCashAssetId", id, { shouldDirty: true });
-    } else if (values.paymentMethod === "credit_card") {
+    } else if (method === "credit_card") {
       setValue("creditCardChoice", id as CreditCardChoice, { shouldDirty: true });
     }
   }
@@ -262,19 +234,6 @@ export function NewPurchaseWizard() {
     const v = getValues();
     if (!v.name || v.name.trim().length === 0) return "Informe o nome da compra.";
     if (typeof v.valueCents !== "bigint" || v.valueCents <= 0n) return "Informe o valor da compra.";
-    return null;
-  }
-
-  function validateStep3(): string | null {
-    const v = getValues();
-    if (!v.valueBehavior) return "Escolha como o valor se comporta.";
-    if (v.valueBehavior === "stable") return null;
-    const rate = v.annualRatePct;
-    if (rate === null || rate === undefined || !Number.isFinite(rate)) {
-      return "Informe a taxa anual.";
-    }
-    if (rate <= 0) return "A taxa deve ser maior que zero.";
-    if (rate > 100) return "A taxa deve ser no máximo 100%.";
     return null;
   }
 
@@ -364,16 +323,6 @@ export function NewPurchaseWizard() {
     setStep(2);
   }
 
-  function goToStep4FromBehavior() {
-    const err = validateStep3();
-    if (err) {
-      setServerError(err);
-      return;
-    }
-    setServerError(null);
-    setStep(4);
-  }
-
   function goToStep6() {
     const err = validateStep5();
     if (err) {
@@ -385,10 +334,9 @@ export function NewPurchaseWizard() {
   }
 
   // Step 5 back: volta pra Step 4 (how) sempre.
-  // Step 4 back: se categoria gera asset, volta pra Step 3 (behavior). Senão, volta pra Step 2.
+  // Step 4 back: volta pra Step 2 (categoria) sempre, já que não há mais Step 3.
   function backFromStep4() {
-    const cat = getValues("category");
-    setStep(generatesAsset(cat) ? 3 : 2);
+    setStep(2);
   }
 
   async function handleSubmit() {
@@ -482,9 +430,9 @@ export function NewPurchaseWizard() {
     });
   }
 
-  const title = titleFor(step, values.paymentMethod, hasCashAssets);
-  const description = descriptionFor(step, values.paymentMethod, hasCashAssets);
-  const { currentStep, totalSteps } = visibleStepInfo(step, values.category);
+  const title = titleFor(step, watchedPaymentMethod, hasCashAssets);
+  const description = descriptionFor(step, watchedPaymentMethod, hasCashAssets);
+  const { currentStep, totalSteps } = visibleStepInfo(step);
 
   if (step === 1) {
     return (
@@ -498,10 +446,10 @@ export function NewPurchaseWizard() {
           label: "Continuar",
           onClick: goToStep2,
           disabled:
-            !values.name ||
-            values.name.trim().length === 0 ||
-            typeof values.valueCents !== "bigint" ||
-            values.valueCents <= 0n,
+            !watchedName ||
+            watchedName.trim().length === 0 ||
+            typeof watchedValueCents !== "bigint" ||
+            watchedValueCents <= 0n,
         }}
       >
         <WhatStep control={control} register={register} errors={formState.errors} />
@@ -527,38 +475,6 @@ export function NewPurchaseWizard() {
         onBack={() => setStep(1)}
       >
         <CategoryStep onSelectCategory={selectCategory} />
-      </WizardShell>
-    );
-  }
-
-  if (step === 3) {
-    return (
-      <WizardShell
-        currentStep={currentStep}
-        totalSteps={totalSteps}
-        title={title}
-        description={description}
-        onBack={() => setStep(2)}
-        primary={{
-          label: "Continuar",
-          onClick: goToStep4FromBehavior,
-          disabled: !values.valueBehavior,
-        }}
-      >
-        <ValueBehaviorStep
-          control={control}
-          errors={formState.errors}
-          selected={values.valueBehavior}
-          onSelectBehavior={selectValueBehavior}
-        />
-        {serverError ? (
-          <div
-            role="alert"
-            className="mt-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/10 px-3 py-2 text-[0.8125rem] text-[color:var(--semantic-negative)]"
-          >
-            {serverError}
-          </div>
-        ) : null}
       </WizardShell>
     );
   }
@@ -627,7 +543,7 @@ export function NewPurchaseWizard() {
       }}
     >
       <ConfirmStep
-        values={values}
+        values={getValues()}
         cashAssets={cashAssets}
         creditCards={creditCards}
         serverError={serverError}

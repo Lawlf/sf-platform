@@ -22,9 +22,9 @@ interface Props {
 const fmtBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 
 const HIGHLIGHTS = [
-  "Histórico completo da linha do tempo",
-  "Ações da B3, criptos e valorização automática",
-  "Comparações avançadas e avisos contextuais",
+  "Veja seus meses anteriores na linha do tempo",
+  "Cripto e ações atualizam de valor sozinhas",
+  "A gente avisa quando uma parcela vence",
 ];
 
 interface Meta {
@@ -46,7 +46,7 @@ function metaFor(plan: Plan, monthly: Plan | null): Meta {
       tabLabel: "Anual",
       cadence: "por ano",
       hint: `Equivale a ${fmtBRL.format(yearlyPerMonth / 100)} por mês.`,
-      badge: discount > 0 ? `Economize ${discount}%` : "Mais popular",
+      badge: discount > 0 ? "2 meses grátis" : "Mais popular",
       icon: Sparkles,
       tone: "popular",
     };
@@ -117,7 +117,7 @@ export function PlanPicker({ plans }: Props) {
       <div className="flex items-baseline justify-between gap-3">
         <div>
           <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Vire Pro
+            Virar Pro
           </p>
           <h2 className="mt-1 text-[1.25rem] font-extrabold leading-none text-[color:var(--text-primary)]">
             Escolha como assinar
@@ -274,7 +274,7 @@ export function PlanPicker({ plans }: Props) {
       </div>
 
       <p className="mt-4 text-center text-[0.6875rem] leading-relaxed text-[color:var(--text-muted)]">
-        Pagamento processado pela Stripe. Cartão e Pix aceitos.
+        Pagamento seguro. Cartão de crédito ou débito, Apple Pay e Google Pay.
       </p>
     </section>
   );

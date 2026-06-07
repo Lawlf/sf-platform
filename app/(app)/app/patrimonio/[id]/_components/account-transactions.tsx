@@ -10,7 +10,7 @@ export function AccountTransactionsSection({ transactions }: { transactions: Tra
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Lançamentos</h2>
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Movimentações recentes</h2>
         <Link
           href={"/app/lancar" as Route}
           className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"

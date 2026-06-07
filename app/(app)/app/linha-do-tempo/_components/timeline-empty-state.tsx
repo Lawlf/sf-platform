@@ -33,7 +33,7 @@ export function TimelineEmptyState() {
           href={"/app/patrimonio/novo" as Route}
           className="focus-ring inline-flex items-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.8125rem] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-1)]"
         >
-          Adicionar ativo
+          Adicionar um bem
         </Link>
       </div>
     </section>

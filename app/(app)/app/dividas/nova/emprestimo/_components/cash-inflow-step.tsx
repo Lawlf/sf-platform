@@ -77,7 +77,7 @@ export function CashInflowStep({
                 <WizardRadioCard
                   key={asset.id}
                   title={asset.label}
-                  description={`Saldo atual: ${asset.currentValue.formatted} — vai somar o empréstimo`}
+                  description={`Saldo atual: ${asset.currentValue.formatted}, vai somar o empréstimo`}
                   active={cashTarget === "existing" && existingCashAssetId === asset.id}
                   onSelect={() => onTargetChange("existing", asset.id)}
                 />

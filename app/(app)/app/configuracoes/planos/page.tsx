@@ -175,7 +175,7 @@ export default async function ConfiguracoesPlanosPage({ searchParams }: PageProp
               </span>
               <div>
                 <p className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-                  Cartão via Stripe
+                  Cartão de crédito
                 </p>
                 <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
                   Cobrança automática no método salvo.

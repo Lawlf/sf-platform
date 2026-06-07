@@ -33,6 +33,7 @@ export async function createIncomeAction(
       frequency: data.frequency,
       startDate: data.startDate,
       endDate: data.endDate,
+      paymentDay: data.paymentDay,
     },
   );
 

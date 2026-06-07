@@ -65,7 +65,7 @@ export function SwapPlanCard({ plan, isCurrent, blocked, blockedReason, iconName
     }
     if (r.ok) {
       toast.success(`Trocado pra ${title}.`, {
-        description: "Stripe rateou o valor proporcional.",
+        description: "A gente só cobra a diferença proporcional aos dias que faltavam.",
       });
     } else {
       toast.error("Não rolou trocar plano.", {
@@ -90,7 +90,7 @@ export function SwapPlanCard({ plan, isCurrent, blocked, blockedReason, iconName
       const r = await swapPlanAction(slug);
       if (r.ok) {
         toast.success(`Trocado pra ${title}.`, {
-          description: "Stripe rateou o valor proporcional.",
+          description: "A gente só cobra a diferença proporcional aos dias que faltavam.",
         });
       } else {
         toast.error("Não rolou trocar plano.", {

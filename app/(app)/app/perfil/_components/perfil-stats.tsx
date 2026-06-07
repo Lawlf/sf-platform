@@ -12,13 +12,14 @@ export interface PerfilStatsProps {
 
 function healthLabel(pct: number | null): { label: string; color: string } {
   if (pct === null) return { label: "Sem dados", color: "var(--text-muted)" };
-  if (pct < 0.3) return { label: "Saudável", color: "var(--semantic-positive)" };
-  if (pct < 0.5) return { label: "Atenção", color: "var(--semantic-warning)" };
-  return { label: "Crítico", color: "var(--semantic-negative)" };
+  if (pct < 0.3) return { label: "Folga boa", color: "var(--semantic-positive)" };
+  if (pct < 0.5) return { label: "Apertado", color: "var(--semantic-warning)" };
+  return { label: "Folga curta", color: "var(--semantic-negative)" };
 }
 
 function consistencyValue(c: ConsistencyCardView): string {
-  return c.monthsActive === 0 ? "Começo" : c.tier;
+  if (c.monthsActive === 0) return "Começo";
+  return `${c.monthsActive} ${c.monthsActive === 1 ? "mês" : "meses"}`;
 }
 
 function tierLabelAt(milestone: number): string {
@@ -36,7 +37,7 @@ function consistencySubline(c: ConsistencyCardView): string {
     if (d.lever === "committed") {
       const sign = d.direction === "positive" ? "-" : "+";
       const points = String((d.pointsBps ?? 0) / 100).replace(".", ",");
-      return `Comprometido: ${sign}${points} pontos desde ${d.sinceLabel}`;
+      return `Renda presa em parcela: ${sign}${points} pontos desde ${d.sinceLabel}`;
     }
     const money = Money.fromCents(d.amountCents ?? 0n).format();
     if (d.lever === "debt") {
@@ -70,7 +71,7 @@ export function PerfilStats({ incomeCommittedPct, consistency }: PerfilStatsProp
           {health.label}
         </div>
         <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-          {pctDisplay} da renda comprometida
+          {pctDisplay} da renda já tem dono
         </div>
       </div>
       <Link

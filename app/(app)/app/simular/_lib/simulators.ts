@@ -128,8 +128,8 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "estrategia",
     href: "/app/simular/estrategia" as Route,
-    title: "Snowball vs Avalanche",
-    desc: "Qual ordem rende mais?",
+    title: "Qual dívida pagar primeiro",
+    desc: "Menor saldo ou juro mais alto?",
     icon: Layers,
     category: "dividas",
     keywords: ["snowball", "avalanche", "bola de neve", "ordem", "estrategia", "dividas"],
@@ -211,8 +211,8 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "margem-markup",
     href: "/app/simular/margem" as Route,
-    title: "Margem e markup",
-    desc: "Quanto você ganha em cada venda?",
+    title: "Preço e lucro por venda",
+    desc: "Quanto você ganha em cada venda (markup)?",
     icon: Tag,
     category: "negocio",
     keywords: ["margem", "markup", "preco", "lucro", "revenda", "produto", "remarcacao"],
@@ -220,7 +220,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "ebitda",
     href: "/app/simular/ebitda" as Route,
-    title: "EBITDA",
+    title: "Caixa da operação (EBITDA)",
     desc: "Quanto sua operação gera de caixa?",
     icon: Activity,
     category: "negocio",

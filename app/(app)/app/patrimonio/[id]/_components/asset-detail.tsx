@@ -451,7 +451,7 @@ function StockSection({
             {stock.lastQuoteFormatted ? (
               <HideableValue>{stock.lastQuoteFormatted}</HideableValue>
             ) : (
-              "—"
+              "Sem cotação ainda"
             )}
             {stock.lastQuoteAt ? (
               <span className="ml-1 text-[0.625rem] font-normal text-[color:var(--text-muted)]">
@@ -864,7 +864,7 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
               setOpen(true);
             }}
           >
-            Desativar
+            Vendi ou saiu
           </Button>
           <DeleteAssetButton assetId={assetId} label={label} />
         </div>

@@ -26,7 +26,7 @@ const SECTIONS: { detection: AchievementDetection; title: string; subtitle: stri
   },
   {
     detection: "tenure",
-    title: "Tempo de jornada",
+    title: "Tempo de uso",
     subtitle: "Sua constância acompanhando as finanças por aqui.",
   },
 ];
@@ -46,7 +46,7 @@ export default async function ConquistasPage() {
   return (
     <PageShell
       title="Conquistas"
-      description="Marcos da sua jornada financeira."
+      description="O que você já desbloqueou e o que falta."
       backHref={"/app/perfil" as Route}
     >
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useId } from "react";
+import { useId, useState } from "react";
 import { Controller } from "react-hook-form";
 
 import { formatCents } from "@/shared/format/money-format";
@@ -76,6 +76,9 @@ export function DetailsStep({
   const depreciationRateId = useId();
   const tickerId = useId();
   const sharesId = useId();
+  // O valor já vem com a curva default por categoria (carro deprecia, imóvel
+  // aprecia). Só quem quer ajustar abre a seção; o caso comum nem vê.
+  const [showValueCurve, setShowValueCurve] = useState(false);
   const avgPriceId = useId();
 
   const category = form.watch("category");
@@ -109,7 +112,7 @@ export function DetailsStep({
 
   const description =
     category === "investment" && investmentType === "stocks"
-      ? "Cadastre o ticker, a quantidade e o preço médio."
+      ? "O código da ação (tipo PETR4), quantas você tem e quanto pagou em média."
       : category === "vehicle"
         ? "Marca, modelo e ano (opcionais) ajudam a identificar."
         : category === "real_estate"
@@ -455,8 +458,19 @@ export function DetailsStep({
         />
       </WizardField>
 
-      {/* Depreciation section, hidden for cash and investment */}
-      {shouldShowDepreciationSection(category) ? (
+      {/* Depreciation section, hidden for cash and investment. Colapsada por
+          padrão: a curva default por categoria já é aplicada pelo wizard. */}
+      {shouldShowDepreciationSection(category) && !showValueCurve ? (
+        <button
+          type="button"
+          onClick={() => setShowValueCurve(true)}
+          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          O valor muda com o tempo? Ajustar
+        </button>
+      ) : null}
+
+      {shouldShowDepreciationSection(category) && showValueCurve ? (
         <section className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <div>
             <div className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
@@ -496,9 +510,9 @@ export function DetailsStep({
           />
 
           <WizardField
-            label="Taxa anual (%)"
+            label="Quanto muda por ano (%)"
             htmlFor={depreciationRateId}
-            helper="Quanto o valor muda por ano. Use negativo para apreciar."
+            helper="Quanto o valor muda por ano. Carro costuma cair uns 15%."
             error={errors.depreciationRatePctYear?.message}
           >
             <input

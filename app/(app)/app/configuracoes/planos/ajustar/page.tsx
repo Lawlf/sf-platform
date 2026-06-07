@@ -42,7 +42,7 @@ export default async function AjustarPlanoPage() {
   return (
     <PageShell
       title="Ajustar plano"
-      description="Troque a cadência da sua assinatura. Stripe faz o rateio (proration) automaticamente."
+      description="Troque entre mensal e anual. A gente cobra só a diferença proporcional aos dias que faltavam."
       backHref={"/app/configuracoes/planos" as Route}
     >
       {isLifetime && (

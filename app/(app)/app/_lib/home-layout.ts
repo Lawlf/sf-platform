@@ -8,8 +8,7 @@ export type HomeCardKey =
   | "projection"
   | "goal"
   | "monthClosing"
-  | "maintenance"
-  | "mais";
+  | "maintenance";
 
 export type PrescriptionState =
   | "incomplete"
@@ -28,9 +27,9 @@ export function resolveHomeState(input: {
 }
 
 const ORDER_BY_STATE: Record<HomeState, HomeCardKey[]> = {
-  com_divida: ["hero", "quickAccess", "nextStep", "commitment", "goal", "monthClosing", "maintenance", "mais"],
-  sem_reserva: ["hero", "quickAccess", "nextStep", "goal", "commitment", "monthClosing", "maintenance", "mais"],
-  com_patrimonio: ["hero", "quickAccess", "nextStep", "commitment", "projection", "goal", "monthClosing", "maintenance", "mais"],
+  com_divida: ["hero", "quickAccess", "nextStep", "commitment", "goal", "monthClosing", "maintenance"],
+  sem_reserva: ["hero", "quickAccess", "nextStep", "goal", "commitment", "monthClosing", "maintenance"],
+  com_patrimonio: ["hero", "quickAccess", "nextStep", "commitment", "projection", "goal", "monthClosing", "maintenance"],
 };
 
 export function homeCardOrder(state: HomeState): HomeCardKey[] {

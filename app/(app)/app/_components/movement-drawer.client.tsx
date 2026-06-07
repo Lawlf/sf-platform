@@ -108,8 +108,8 @@ function MovementBody({ monthIso }: { monthIso: string }) {
   return (
     <div className="mt-4">
       <ResultLine
-        head="Saldo livre"
-        sub="Renda menos despesas menos parcelas"
+        head="Saldo da Carteira"
+        sub="Renda menos contas menos parcelas"
         value={formatBrl(freeBalanceCents)}
         tone={freeBalanceCents < 0n ? "negative" : "positive"}
       />

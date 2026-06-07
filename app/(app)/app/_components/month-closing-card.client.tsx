@@ -89,10 +89,10 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         <span style={{ color: "var(--semantic-warning)" }}>
           <HideableValue>{leakAbsFormatted}</HideableValue>
         </span>{" "}
-        não viraram patrimônio
+        sobraram, mas não apareceram no seu patrimônio
       </p>
       <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-        Saldo que saiu em algo fora do que você acompanha. No ritmo atual, dá pra direcionar mais.
+        Pode ter sido um gasto que você ainda não registrou.
       </p>
     </div>
   );
@@ -174,7 +174,7 @@ function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) 
             {pending && pendingAction === "convert_to_debt" ? (
               <Spinner size={16} decorative />
             ) : (
-              "Não paguei → vira dívida"
+              "Não paguei"
             )}
           </Button>
           <Button
@@ -498,7 +498,7 @@ export function MonthClosingCard({ initialData }: Props) {
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                Saldo livre no mês
+                Saldo da Carteira no mês
               </span>
               <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                 <HideableValue>{data.theoreticalFormatted}</HideableValue>

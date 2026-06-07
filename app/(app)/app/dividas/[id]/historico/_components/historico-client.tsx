@@ -49,9 +49,9 @@ function formatBRL(cents: bigint): string {
 }
 
 function formatDueDayMonth(iso: string | null): string {
-  if (!iso) return "—";
+  if (!iso) return "·";
   const d = new Date(iso);
-  if (Number.isNaN(d.getTime())) return "—";
+  if (Number.isNaN(d.getTime())) return "·";
   const day = String(d.getUTCDate()).padStart(2, "0");
   const monthIdx = d.getUTCMonth();
   const month = MONTH_NAMES_PT[monthIdx] ?? "";

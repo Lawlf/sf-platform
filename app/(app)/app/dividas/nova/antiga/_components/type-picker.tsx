@@ -47,8 +47,8 @@ export function TypePicker() {
 
   return (
     <WizardShell
-      currentStep={2}
-      totalSteps={3}
+      hideSteps
+      currentStep={1}
       title="Que tipo de dívida antiga?"
       description="Cartão, empréstimo ou financiamento que já começou antes do app."
       onBack={() => router.push("/app/dividas/nova" as Route)}

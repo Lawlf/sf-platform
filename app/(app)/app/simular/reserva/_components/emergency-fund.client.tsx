@@ -157,7 +157,7 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
         <ResultCard title="Pra completar" subtitle="Com seu aporte mensal">
           <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
             {result.monthsToComplete === null
-              ? "—"
+              ? "Sem previsão"
               : result.monthsToComplete === 0
                 ? "Pronto!"
                 : `${result.monthsToComplete} ${result.monthsToComplete === 1 ? "mês" : "meses"}`}

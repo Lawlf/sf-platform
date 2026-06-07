@@ -50,7 +50,7 @@ function FreeLock() {
         href={"/app/configuracoes/planos" as Route}
         className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
       >
-        Se tornar Pro
+        Virar Pro
         <Crown size={14} strokeWidth={2.25} aria-hidden />
       </Link>
     </section>

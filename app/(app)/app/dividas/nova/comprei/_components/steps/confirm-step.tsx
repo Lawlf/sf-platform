@@ -32,19 +32,7 @@ export function ConfirmStep({ values, cashAssets, creditCards, serverError }: Co
   const lines: string[] = [];
 
   if (generatesAsset) {
-    lines.push(`Vamos cadastrar ${purchaseName} no seu patrimônio.`);
-
-    // Resumo do comportamento de valor escolhido no Step 3. Só aparece para
-    // categorias que geram patrimônio.
-    if (values.valueBehavior === "depreciating") {
-      const rate = values.annualRatePct ?? 0;
-      lines.push(`Esse item perde ${rate}%/ano de valor.`);
-    } else if (values.valueBehavior === "appreciating") {
-      const rate = values.annualRatePct ?? 0;
-      lines.push(`Esse item ganha ${rate}%/ano de valor.`);
-    } else if (values.valueBehavior === "stable") {
-      lines.push("Esse item mantém o valor com o tempo.");
-    }
+    lines.push(`Vamos cadastrar ${purchaseName} no seu patrimônio (o valor diminui com o tempo).`);
   }
 
   if (values.paymentMethod === "credit_card") {
@@ -113,7 +101,7 @@ export function ConfirmStep({ values, cashAssets, creditCards, serverError }: Co
         `Vamos cadastrar ${name} com saldo de ${formatBRL(balance)} (cai para ${formatBRL(clamped)} após a compra).`,
       );
     } else {
-      lines.push("Lembra de adicionar sua conta corrente em Patrimônio para acompanhar saldo.");
+      lines.push("A compra fica registrada. O saldo das suas contas não muda.");
     }
   }
 

@@ -21,6 +21,7 @@ const formSchema = z.object({
   frequency: z.enum(["monthly", "weekly", "one_off"]),
   startDate: z.string().min(1, "Informe a data inicial."),
   endDate: z.string().nullable().optional(),
+  paymentDay: z.number().int().min(1).max(31).nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -40,6 +41,7 @@ export interface EditIncomeFormProps {
     frequency: "monthly" | "weekly" | "one_off";
     startDateIso: string;
     endDateIso: string | null;
+    paymentDay: number | null;
   };
 }
 
@@ -58,10 +60,13 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       frequency: income.frequency,
       startDate: income.startDateIso,
       endDate: income.endDateIso,
+      paymentDay: income.paymentDay ?? 5,
     },
   });
 
   const currency = form.watch("currency");
+  const frequency = form.watch("frequency");
+  const [showEnd, setShowEnd] = useState(Boolean(income.endDateIso));
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -73,6 +78,10 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
     fd.set("frequency", values.frequency);
     fd.set("startDate", values.startDate);
     fd.set("endDate", values.endDate ?? "");
+    fd.set(
+      "paymentDay",
+      values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
+    );
     startTransition(async () => {
       const r = await updateIncomeAction(fd);
       if (!r.ok) {
@@ -90,12 +99,12 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
       <div>
         <label className={labelClass} htmlFor="renda-edit-label">
-          Rótulo
+          Nome
         </label>
         <input
           id="renda-edit-label"
           {...form.register("label")}
-          placeholder="Ex: Salário, freelance, dividendos"
+          placeholder="Ex: Salário, freela, aluguel, comissão"
           className={fieldClass}
         />
         {form.formState.errors.label ? (
@@ -111,7 +120,6 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         label="Valor"
         required
         currency={currency}
-        onCurrencyChange={(v) => form.setValue("currency", v)}
       />
 
       <div className="grid gap-3 sm:grid-cols-2">
@@ -122,34 +130,63 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
           <select id="renda-edit-frequency" {...form.register("frequency")} className={fieldClass}>
             <option value="monthly">Mensal</option>
             <option value="weekly">Semanal</option>
-            <option value="one_off">Pontual</option>
+            <option value="one_off">Uma vez só</option>
           </select>
         </div>
 
+        {frequency === "monthly" ? (
+          <div>
+            <label className={labelClass} htmlFor="renda-edit-payment-day">
+              Que dia costuma cair?
+            </label>
+            <select
+              id="renda-edit-payment-day"
+              {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
+              className={fieldClass}
+            >
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>
+                  Dia {d}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className={labelClass} htmlFor="renda-edit-start">
+              Início
+            </label>
+            <input
+              id="renda-edit-start"
+              type="date"
+              {...form.register("startDate")}
+              className={fieldClass}
+            />
+          </div>
+        )}
+      </div>
+
+      {showEnd ? (
         <div>
-          <label className={labelClass} htmlFor="renda-edit-start">
-            Início
+          <label className={labelClass} htmlFor="renda-edit-end">
+            Quando essa renda acaba?
           </label>
           <input
-            id="renda-edit-start"
+            id="renda-edit-end"
             type="date"
-            {...form.register("startDate")}
+            {...form.register("endDate")}
             className={fieldClass}
           />
         </div>
-      </div>
-
-      <div>
-        <label className={labelClass} htmlFor="renda-edit-end">
-          Término (opcional)
-        </label>
-        <input
-          id="renda-edit-end"
-          type="date"
-          {...form.register("endDate")}
-          className={fieldClass}
-        />
-      </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowEnd(true)}
+          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          Essa renda tem prazo? (ex: contrato, freela)
+        </button>
+      )}
 
       {serverError ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">

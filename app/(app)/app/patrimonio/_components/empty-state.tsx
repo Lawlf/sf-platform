@@ -10,11 +10,11 @@ export function PatrimonyEmptyState() {
       </span>
       <div>
         <h3 className="text-base font-bold text-[color:var(--text-primary)]">
-          Comece cadastrando um ativo
+          Comece pelo que você já tem
         </h3>
         <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-          Carro, imóvel, investimento ou qualquer bem com valor. Vincule a uma dívida correspondente
-          e veja seu patrimônio real.
+          Carro, celular, dinheiro guardado, investimento. Cadastre um bem e veja seu patrimônio
+          crescer.
         </p>
       </div>
       <Link

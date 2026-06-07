@@ -116,8 +116,8 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
 
   const eyebrow =
     todayMode === "projection"
-      ? `Saldo livre · no fim de ${CURRENT_MONTH_NAME}`
-      : "Saldo livre · hoje";
+      ? `Saldo da Carteira · no fim de ${CURRENT_MONTH_NAME}`
+      : "Saldo da Carteira · hoje";
 
   const bigFormatted = useWallet
     ? walletBal.reactiveBalance.formatted

@@ -53,7 +53,7 @@ export function ResultNetWorth({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title={empty ? "Você pulou o patrimônio" : "Seu resumo financeiro"}
+      title={empty ? "Ainda falta seu primeiro bem" : "Seu resumo financeiro"}
       description={
         empty
           ? "Sem problema. Cadastre um bem ou sua reserva no início pra montar seu resumo."

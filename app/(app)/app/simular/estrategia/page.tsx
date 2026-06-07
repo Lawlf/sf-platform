@@ -11,7 +11,7 @@ import { SimHowItWorks } from "../_components/sim-how-it-works";
 
 import { StrategyForm } from "./_components/strategy-form";
 
-export const metadata: Metadata = { title: "Snowball vs Avalanche" };
+export const metadata: Metadata = { title: "Qual dívida pagar primeiro" };
 
 export default async function EstrategiaPage() {
   const user = await requireUser();
@@ -29,13 +29,13 @@ export default async function EstrategiaPage() {
 
   return (
     <PageShell
-      title="Snowball vs Avalanche"
-      description="Qual ordem rende mais com seu orçamento?"
+      title="Qual dívida pagar primeiro"
+      description="Menor saldo ou juro mais alto: qual ordem economiza mais?"
       backHref="/app/simular"
     >
       <SimHowItWorks
         topic="snowball-avalanche"
-        summary="Com várias dívidas e um orçamento fixo, a ordem que você ataca muda o total de juros. A gente compara as duas estratégias com o mesmo orçamento."
+        summary="Com várias dívidas e um orçamento fixo, a ordem que você paga muda o total de juros. A gente compara as duas formas com o mesmo orçamento."
       />
       {debts.length === 0 ? (
         <SimEmptyState

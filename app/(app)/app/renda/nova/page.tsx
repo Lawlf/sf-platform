@@ -14,7 +14,7 @@ export default async function NovaRendaPage() {
   return (
     <PageShell
       title="Adicionar renda"
-      description="Salário, dividendos, freelances. Cadastre uma nova fonte."
+      description="Salário, freela, aluguel, comissão. Cadastre uma nova fonte."
       backHref={"/app/renda" as Route}
     >
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">

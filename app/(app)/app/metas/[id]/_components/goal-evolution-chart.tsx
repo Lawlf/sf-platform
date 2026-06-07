@@ -29,7 +29,7 @@ export function GoalEvolutionChart({ snapshots }: GoalEvolutionChartProps) {
   if (sorted.length === 0) {
     return (
       <p className="text-center text-[0.8125rem] text-[color:var(--text-muted)]">
-        Nenhum dado de evolução ainda.
+        A curva aparece a partir do primeiro mês que você guardar aqui.
       </p>
     );
   }

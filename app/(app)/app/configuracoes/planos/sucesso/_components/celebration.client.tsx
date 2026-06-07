@@ -189,8 +189,7 @@ export function CelebrationClient({
         </h1>
 
         <p className="sf-reveal-4 mt-4 max-w-md text-[0.9375rem] leading-relaxed text-[color:var(--text-secondary)]">
-          Tudo desbloqueado. Seu cockpit financeiro tá completo. Hora de pôr a casa em ordem
-          do jeito Sabor.
+          Tudo liberado. Agora você vê patrimônio, dívida e renda no mesmo lugar, mês a mês.
         </p>
 
         <div className="sf-reveal-5 mt-8 grid w-full max-w-md grid-cols-1 gap-2 sm:grid-cols-2">

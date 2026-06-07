@@ -14,7 +14,7 @@ export interface CatalogEntry {
 export const QUICK_ACCESS_CATALOG: CatalogEntry[] = [
   { key: "add_debt", label: "Adicionar dívida", shortLabel: "Dívida", href: "/app/dividas/nova", category: "adicionar", icon: "ShoppingBag" },
   { key: "add_income", label: "Adicionar renda", shortLabel: "Renda", href: "/app/renda/nova", category: "adicionar", icon: "TrendingUp" },
-  { key: "add_asset", label: "Adicionar ativo", shortLabel: "Ativo", href: "/app/patrimonio/novo", category: "adicionar", icon: "Coins" },
+  { key: "add_asset", label: "Adicionar um bem", shortLabel: "Bem", href: "/app/patrimonio/novo", category: "adicionar", icon: "Coins" },
   { key: "add_transaction", label: "Lançar", shortLabel: "Lançar", href: "/app/lancar", category: "adicionar", icon: "ArrowLeftRight" },
   { key: "sim_quitacao", label: "Simular quitação", shortLabel: "Quitação", href: "/app/simular/quitacao", category: "simular", icon: "Target" },
   { key: "sim_extra", label: "Simular pagamento extra", shortLabel: "Extra", href: "/app/simular/extra", category: "simular", icon: "Plus" },

@@ -118,13 +118,13 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
         </div>
         <div className="flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[0.8125rem]">
-            <span className="text-[color:var(--text-secondary)]">Saldo do extrato</span>
+            <span className="text-[color:var(--text-secondary)]">Saldo da conta no extrato</span>
             <span className="font-semibold text-[color:var(--text-primary)]">
               R$ {formatBrl(preview.ledgerBalance)}
             </span>
           </div>
           <div className="flex items-center justify-between text-[0.8125rem]">
-            <span className="text-[color:var(--text-secondary)]">Transações novas</span>
+            <span className="text-[color:var(--text-secondary)]">Movimentações novas</span>
             <span className="font-semibold text-[color:var(--text-primary)]">
               {preview.newTransactionCount}
             </span>
@@ -138,7 +138,7 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
             </div>
           ) : null}
           <div className="flex items-center justify-between text-[0.8125rem]">
-            <span className="text-[color:var(--text-secondary)]">Saldo líquido</span>
+            <span className="text-[color:var(--text-secondary)]">Entrou menos saiu</span>
             <span
               className={`font-semibold ${netPositive ? "text-[color:var(--semantic-positive)]" : "text-[color:var(--semantic-negative)]"}`}
             >
@@ -161,7 +161,7 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
               key={inc.fitId}
               fitId={inc.fitId}
               label={inc.label}
-              sublabel={`R$ ${formatBrl(inc.amount)} — dia ${inc.dayOfMonth}`}
+              sublabel={`R$ ${formatBrl(inc.amount)}, todo dia ${inc.dayOfMonth}`}
               checked={acceptedIncomes.has(inc.fitId)}
               onToggle={toggleIncome}
             />
@@ -211,9 +211,8 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
         </button>
         {advanced ? (
           <p className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3 text-[0.8125rem] text-[color:var(--text-secondary)]">
-            A edição individual de cada transação antes da importação será disponibilizada em uma
-            versão futura. Por enquanto, todas as transações novas do extrato são importadas; as
-            sugestões acima permitem cadastrar rendas e dívidas a partir dos padrões detectados.
+            Todas as movimentações novas do extrato são importadas. As sugestões acima permitem
+            cadastrar rendas e dívidas a partir dos padrões detectados.
           </p>
         ) : null}
       </div>
@@ -221,7 +220,7 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
       {accountLimit ? (
         <div className="flex flex-col gap-3 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/[0.08] px-4 py-3">
           <p className="text-[0.8125rem] font-semibold text-[color:var(--semantic-negative)]">
-            No plano gratuito você conecta 1 conta. Para importar de outra conta, assine o Pro.
+            No plano gratuito você importa de 1 conta. Para importar de outra, assine o Pro.
           </p>
           <Link
             href="/app/configuracoes/planos"
@@ -245,10 +244,7 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
         className="focus-ring flex w-full items-center justify-center rounded-2xl bg-[color:var(--color-brand-800)] px-4 py-3 text-[0.9375rem] font-bold text-white transition-opacity disabled:opacity-60"
       >
         {pending ? (
-          <span className="flex items-center gap-2">
-            <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
-            Importando...
-          </span>
+          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white/30 border-t-white" />
         ) : (
           "Confirmar importação"
         )}
@@ -303,8 +299,28 @@ export function ImportOfx() {
             Extrato importado
           </div>
           <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-            As transações foram registradas e as rendas e dívidas selecionadas foram cadastradas.
+            As movimentações foram registradas e as rendas e dívidas selecionadas foram cadastradas.
           </p>
+        </div>
+        <div className="flex w-full flex-col gap-2">
+          <Link
+            href="/app/linha-do-tempo"
+            className="focus-ring flex w-full items-center justify-center rounded-2xl bg-[color:var(--color-brand-800)] px-4 py-3 text-[0.9375rem] font-bold text-white transition-opacity hover:opacity-90"
+          >
+            Ver na linha do tempo
+          </Link>
+          <button
+            type="button"
+            onClick={() => {
+              setStep("upload");
+              setPreview(null);
+              setContent("");
+              setError(null);
+            }}
+            className="focus-ring w-full rounded-2xl border border-[color:var(--border-soft)] px-4 py-3 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
+          >
+            Importar outro extrato
+          </button>
         </div>
       </div>
     );

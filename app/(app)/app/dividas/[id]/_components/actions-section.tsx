@@ -69,7 +69,7 @@ export function ActionsSection({
             </Button>
             {isRecurring ? (
               <Button asChild size="sm" variant="outline">
-                <Link href={"/app/metas/nova" as Route}>Juntar o que eu economizo</Link>
+                <Link href={"/app/metas/nova" as Route}>Guardar esse valor</Link>
               </Button>
             ) : hasPayoffGoal ? (
               <Button asChild size="sm" variant="outline">

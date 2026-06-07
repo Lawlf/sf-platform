@@ -38,6 +38,7 @@ export async function updateIncomeAction(
       frequency: data.frequency,
       startDate: data.startDate,
       endDate: data.endDate,
+      paymentDay: data.paymentDay,
     },
   );
   if (!isOk(r)) {

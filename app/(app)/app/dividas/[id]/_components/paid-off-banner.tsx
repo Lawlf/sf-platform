@@ -70,7 +70,7 @@ function RecurringBanner({ debt }: { debt: Extract<DebtEntity, { kind: "recurrin
       </p>
       <div className="mt-4 flex flex-wrap gap-2">
         <Button asChild size="sm">
-          <Link href={"/app/metas/nova" as Route}>Juntar o que sobra</Link>
+          <Link href={"/app/metas/nova" as Route}>Guardar esse valor</Link>
         </Button>
         <Button asChild size="sm" variant="outline">
           <Link href={"/app/dividas" as Route}>Ver minhas assinaturas</Link>
