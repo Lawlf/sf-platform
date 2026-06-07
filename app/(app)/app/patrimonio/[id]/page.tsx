@@ -1,10 +1,10 @@
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
+import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { listTransactionsByAccount } from "@/application/use-cases/transaction/list-transactions-by-account.use-case";
-import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
@@ -14,6 +14,7 @@ import { isOk } from "@/shared/errors/result";
 import { formatCents } from "@/shared/format/money-format";
 
 import { PageShell } from "../../_components/page-shell";
+import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
 
 import { AccountTransactionsSection } from "./_components/account-transactions";
 import {
@@ -56,6 +57,11 @@ export default async function AssetDetailPage({ params }: PageProps) {
   if (!isOk(detail)) notFound();
 
   const { asset, netWorth, linkedDebts } = detail.value;
+
+  // A Carteira não é um bem comum: é a conta líquida reativa. Ela ganha tela
+  // própria (saldo reativo + projeção + ajustar/ancorar + extrato), não o
+  // detalhe genérico de bem (que traria "vincular dívida", "vendi ou saiu", etc).
+  const isWallet = asset.category === "cash" && asset.label === "Carteira";
 
   const allDebtsResult = await listDebts(
     { debts: new DrizzleDebtRepository() },
@@ -179,6 +185,17 @@ export default async function AssetDetailPage({ params }: PageProps) {
           { userId: user.id, accountId: asset.id },
         )
       : [];
+
+  // Carteira: tela própria. Saldo reativo + projeção + ajustar/ancorar
+  // (CarteiraBalanceCard, mesmo do dashboard) + extrato. Sem detalhe de bem.
+  if (isWallet) {
+    return (
+      <PageShell title="Carteira" backHref={"/app/patrimonio" as Route}>
+        <CarteiraBalanceCard asDetail />
+        <AccountTransactionsSection transactions={accountTransactions} />
+      </PageShell>
+    );
+  }
 
   // Description (apenas para categoria "other" com metadata.description).
   let description: string | null = null;

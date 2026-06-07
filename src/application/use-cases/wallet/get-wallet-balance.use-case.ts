@@ -5,13 +5,17 @@ import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
+import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 import { WalletBalanceService } from "@/domain/services/wallet-balance.service";
 import { type EventWindow, WalletEventGenerator } from "@/domain/services/wallet-event-generator.service";
 import type { Money } from "@/domain/value-objects/money.vo";
-import { err, ok, type Result } from "@/shared/errors/result";
+import { ok, type Result } from "@/shared/errors/result";
 
 export interface GetWalletBalanceDeps {
-  assets: { findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]> };
+  assets: {
+    findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]>;
+    createDefaultWallet(asset: AssetEntity): Promise<void>;
+  };
   incomes: { listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
   debts: { listForUser(userId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
   settlements: { listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> };
@@ -67,8 +71,16 @@ export async function getWalletBalance(
   input: GetWalletBalanceInput,
 ): Promise<Result<WalletBalanceResult, NoWalletError>> {
   const cash = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
-  const walletAsset = cash.find((a) => a.label === "Carteira") ?? cash[0];
-  if (!walletAsset) return err(new NoWalletError());
+  // A Carteira é um ativo DEDICADO (label "Carteira"). Nunca caímos no primeiro
+  // cash qualquer (ex.: Reserva), senão editar a Reserva mexeria no saldo da
+  // Carteira. Se não existe, cria a Carteira vazia (idempotente) e usa ela.
+  let walletAsset = cash.find((a) => a.label === "Carteira");
+  if (!walletAsset) {
+    const fresh = buildDefaultWallet(input.userId, crypto.randomUUID(), deps.clock.now());
+    await deps.assets.createDefaultWallet(fresh);
+    const after = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+    walletAsset = after.find((a) => a.label === "Carteira") ?? fresh;
+  }
 
   const asOf = deps.clock.now();
   const anchorAt = walletAsset.anchorAt ?? walletAsset.createdAt;
