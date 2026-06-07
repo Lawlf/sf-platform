@@ -15,14 +15,15 @@ import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
 
+import { CATEGORIES, type Category } from "./asset-categories";
 import { CategoryStep } from "./steps/category-step";
 import { ConfirmStep } from "./steps/confirm-step";
 import { DetailsStep } from "./steps/details-step";
 import { InvestmentTypeStep } from "./steps/investment-type-step";
 import { LinkedDebtStep } from "./steps/linked-debt-step";
 
-export const CATEGORIES = ["vehicle", "real_estate", "investment", "cash", "other"] as const;
-export type Category = (typeof CATEGORIES)[number];
+export { CATEGORIES };
+export type { Category };
 
 export const INVESTMENT_TYPES = ["stocks", "fund", "fixed_income", "crypto", "other"] as const;
 export type InvestmentType = (typeof INVESTMENT_TYPES)[number];

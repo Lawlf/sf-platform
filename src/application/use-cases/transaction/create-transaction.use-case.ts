@@ -45,12 +45,15 @@ async function resolveAccount(
     const found = await deps.assets.findById(accountId, userId);
     if (found && found.category === "cash") return found;
   }
+  // Sem conta escolhida, o destino padrão é a Carteira dedicada (não um cash
+  // qualquer como a Reserva). Cria se faltar.
   const existing = await deps.assets.findActiveByUserAndCategory(userId, "cash");
-  if (existing[0]) return existing[0];
+  const carteira = existing.find((a) => a.label === "Carteira");
+  if (carteira) return carteira;
   const wallet = buildDefaultWallet(userId, crypto.randomUUID(), deps.clock.now());
   await deps.assets.createDefaultWallet(wallet);
   const after = await deps.assets.findActiveByUserAndCategory(userId, "cash");
-  return after[0] ?? wallet;
+  return after.find((a) => a.label === "Carteira") ?? wallet;
 }
 
 export async function createTransaction(

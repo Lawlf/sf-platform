@@ -2,6 +2,8 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Pencil, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useState } from "react";
 
 import { Button } from "@/app/components/ui/button";
@@ -44,7 +46,8 @@ function CardHeading() {
   );
 }
 
-export function CarteiraBalanceCard() {
+// asDetail = já está na tela de detalhe da Carteira (não vira link pra si mesma).
+export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean } = {}) {
   const [sheet, setSheet] = useState<SheetState>({ open: false, mode: "capture" });
 
   const { data, isPending } = useQuery({
@@ -74,10 +77,18 @@ export function CarteiraBalanceCard() {
     }
   })();
 
+  // Link pra tela da Carteira (some quando já estamos nela). Stretched link:
+  // cobre o card; os botões ficam acima (z-10) pra abrir o sheet sem navegar.
+  const detailHref: Route | null = asDetail ? null : (`/app/patrimonio/${data.walletId}` as Route);
+  const cardLink = detailHref ? (
+    <Link href={detailHref} aria-label="Ver Carteira" className="absolute inset-0 z-[1]" />
+  ) : null;
+
   if (data.needsAnchor) {
     return (
       <>
         <CardShell>
+          {cardLink}
           <div className="relative flex flex-col gap-3">
             <CardHeading />
             <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
@@ -86,7 +97,7 @@ export function CarteiraBalanceCard() {
             <Button
               variant="brand"
               size="sm"
-              className="self-start"
+              className="relative z-10 self-start"
               onClick={() => setSheet({ open: true, mode: "capture" })}
             >
               <Wallet size={16} strokeWidth={2} aria-hidden />
@@ -114,13 +125,14 @@ export function CarteiraBalanceCard() {
   return (
     <>
       <CardShell>
+        {cardLink}
         <div className="relative flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <CardHeading />
             <Button
               variant="ghost"
               size="sm"
-              className="-mr-1.5 -mt-1.5 h-8 gap-1.5 px-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
+              className="relative z-10 -mr-1.5 -mt-1.5 h-8 gap-1.5 px-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
               onClick={() => setSheet({ open: true, mode: "adjust" })}
             >
               <Pencil size={14} strokeWidth={2} aria-hidden />

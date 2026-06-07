@@ -87,12 +87,16 @@ export async function fetchAssetsWithAllocations(): Promise<AssetWithNetWorthPay
   const activeDebts = await debtsRepo.listForUser(userId, { status: "active" });
   const debtsById = new Map<string, DebtEntity>(activeDebts.map((d) => [d.id, d]));
 
-  return assetsWithAllocs.map(({ asset, allocations }) => {
-    const nw = assetNetWorth({ asset, allocations, debtsById });
-    return {
-      id: asset.id,
-      category: asset.category,
-      label: asset.label,
+  return assetsWithAllocs
+    // A Carteira não entra na lista de bens: ela é o card próprio no topo. O
+    // valor dela continua no patrimônio total (fetchNetWorth soma tudo).
+    .filter(({ asset }) => !(asset.category === "cash" && asset.label === "Carteira"))
+    .map(({ asset, allocations }) => {
+      const nw = assetNetWorth({ asset, allocations, debtsById });
+      return {
+        id: asset.id,
+        category: asset.category,
+        label: asset.label,
       valueFormatted: asset.currentValue.format(),
       netWorthFormatted: nw.format(),
       netWorthIsNegative: nw.isNegative(),

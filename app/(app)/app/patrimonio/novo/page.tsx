@@ -1,6 +1,7 @@
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { AssetWizardClient, CATEGORIES, type Category } from "./_components/asset-wizard.client";
+import { CATEGORIES, type Category } from "./_components/asset-categories";
+import { AssetWizardClient } from "./_components/asset-wizard.client";
 
 export default async function NovoAtivoPage({
   searchParams,

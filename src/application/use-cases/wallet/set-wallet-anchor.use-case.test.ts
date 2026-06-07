@@ -32,6 +32,7 @@ describe("setWalletAnchor", () => {
       assets: {
         findActiveByUserAndCategory: async () => [wallet({})],
         update: async (a) => { saved = a; },
+        createDefaultWallet: async () => {},
       },
       clock: { now: () => utc(2026, 6, 7) },
     };
@@ -41,12 +42,21 @@ describe("setWalletAnchor", () => {
     expect(saved!.anchorAt).toEqual(utc(2026, 6, 7));
   });
 
-  it("errors when the user has no cash wallet", async () => {
+  it("creates a dedicated Carteira and anchors it when the user has none", async () => {
+    let saved: AssetEntity | null = null;
+    let created = false;
     const deps: SetWalletAnchorDeps = {
-      assets: { findActiveByUserAndCategory: async () => [], update: async () => {} },
+      assets: {
+        findActiveByUserAndCategory: async () => [],
+        update: async (a) => { saved = a; },
+        createDefaultWallet: async () => { created = true; },
+      },
       clock: { now: () => utc(2026, 6, 7) },
     };
     const r = await setWalletAnchor(deps, { userId: "u1", valueCents: 100n });
-    expect(isOk(r)).toBe(false);
+    expect(isOk(r)).toBe(true);
+    expect(created).toBe(true);
+    expect(saved!.label).toBe("Carteira");
+    expect(saved!.currentValue.toCents()).toBe(100n);
   });
 });

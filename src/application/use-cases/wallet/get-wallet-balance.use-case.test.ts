@@ -80,7 +80,10 @@ function recurringDebt(over: Partial<DebtEntity>): DebtEntity {
 
 function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
   return {
-    assets: { findActiveByUserAndCategory: async () => [wallet({})] },
+    assets: {
+      findActiveByUserAndCategory: async () => [wallet({})],
+      createDefaultWallet: async () => {},
+    },
     incomes: { listForUser: async () => [income({})] },
     debts: { listForUser: async () => [] },
     settlements: { listForUserMonth: async () => [] },
@@ -107,15 +110,17 @@ describe("getWalletBalance", () => {
     expect(r.value.monthEndProjection.toNumber()).toBe(5500);
   });
 
-  it("returns null-ish error when the user has no cash wallet", async () => {
-    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [] } }), {
-      userId: "u1",
-    });
-    expect(isOk(r)).toBe(false);
+  it("creates a dedicated Carteira (needsAnchor) when the user has none", async () => {
+    const r = await getWalletBalance(
+      deps({ assets: { findActiveByUserAndCategory: async () => [], createDefaultWallet: async () => {} } }),
+      { userId: "u1" },
+    );
+    if (!isOk(r)) throw new Error("expected ok");
+    expect(r.value.needsAnchor).toBe(true);
   });
 
   it("flags needsAnchor when the wallet has never been anchored", async () => {
-    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })] } }), { userId: "u1" });
+    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });
