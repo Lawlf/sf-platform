@@ -27,7 +27,7 @@ export function MovementCard({
     <button
       type="button"
       onClick={onClick}
-      aria-label={`Movimento de ${monthLabel}. Saldo livre ${saldoFormatted}. Toque para ver detalhes.`}
+      aria-label={`Movimento de ${monthLabel}. Saldo da Carteira ${saldoFormatted}. Toque para ver detalhes.`}
       className="focus-ring group w-full rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[18px] text-left backdrop-blur-md transition-all hover:bg-[color:var(--surface-1)] hover:shadow-[0_8px_24px_rgba(31,29,28,0.06)]"
     >
       <header className="mb-[14px] flex items-center justify-between">

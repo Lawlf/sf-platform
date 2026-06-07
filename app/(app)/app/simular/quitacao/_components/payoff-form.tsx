@@ -110,7 +110,7 @@ export function PayoffForm({
             <ResultCard title="Resultado">
               <ResultHeadline
                 value={
-                  result.payoffMonth !== null ? `${result.payoffMonth} meses` : "Fora do horizonte"
+                  result.payoffMonth !== null ? `${result.payoffMonth} meses` : "Sem previsão"
                 }
                 tone={result.negativeAmortization ? "negative" : "positive"}
                 caption={

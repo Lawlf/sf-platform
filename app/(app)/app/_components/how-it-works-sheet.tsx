@@ -20,7 +20,7 @@ const TOPICS = {
       "Patrimônio líquido = soma dos bens (valor atual de cada um) menos a soma dos saldos devedores das dívidas. Pode ser negativo quando as dívidas superam os bens.",
   },
   "saldo-livre": {
-    title: "Saldo livre por mês",
+    title: "Saldo da Carteira",
     tag: "Conceito",
     body: "É o que sobra da renda depois das parcelas e contas fixas. Quanto maior, mais espaço pra guardar, investir ou quitar dívida.",
     technical:

@@ -64,7 +64,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
   if (!monthDetail) {
     return (
       <p className="text-sm text-[color:var(--text-secondary)]">
-        Cadastre renda e dívidas para ver seu saldo livre.
+        Cadastre renda e dívidas para ver seu saldo da Carteira.
       </p>
     );
   }

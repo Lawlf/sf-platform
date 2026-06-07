@@ -31,7 +31,7 @@ const RANGE_OPTIONS = [
 ] as const;
 
 const FOCUS_OPTIONS = [
-  { value: "balance", label: "Saldo livre" },
+  { value: "balance", label: "Saldo da Carteira" },
   { value: "networth", label: "Patrimônio" },
   { value: "income", label: "Renda" },
 ] as const;

@@ -195,7 +195,7 @@ export function AssetDetailView(props: AssetDetailViewProps) {
           </div>
           <div>
             <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
-              Patrimônio líquido
+              Patrimônio
             </div>
             <div className={`mt-0.5 font-bold ${nwColor}`}>
               <HideableValue>{props.netWorthFormatted}</HideableValue>

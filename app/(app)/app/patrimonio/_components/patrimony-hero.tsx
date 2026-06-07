@@ -25,7 +25,7 @@ export function PatrimonyHero({
         <div>
           <div className="flex items-center gap-1.5 text-white">
             <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
-              Patrimônio líquido
+              Patrimônio
             </div>
             <HowItWorksSheet topic="patrimonio" variant="chip" />
           </div>

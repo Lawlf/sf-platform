@@ -165,7 +165,7 @@ function shortMonthLabel(label: string): string {
 }
 
 function ariaLabelFor(point: SerializedMonthlyDataPoint): string {
-  return `${point.monthLabel}. Saldo livre ${point.freeBalance.formatted}. Renda ${point.totalIncome.formatted}. Dívidas pagas ${point.totalDebtPayments.formatted}. Patrimônio ${point.netWorth.formatted}.`;
+  return `${point.monthLabel}. Saldo da Carteira ${point.freeBalance.formatted}. Renda ${point.totalIncome.formatted}. Dívidas pagas ${point.totalDebtPayments.formatted}. Patrimônio ${point.netWorth.formatted}.`;
 }
 
 // Avoid unused import warning if ReactNode unused

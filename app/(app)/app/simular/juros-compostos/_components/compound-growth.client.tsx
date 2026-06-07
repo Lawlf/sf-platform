@@ -76,7 +76,7 @@ export function CompoundGrowthClient({ prefill }: PrefillProps) {
             control={form.control}
             name="contributionCents"
             label="Aporte mensal"
-            helper="Quanto você investe por mês. Pré-preenchido com seu saldo livre."
+            helper="Quanto você investe por mês. Pré-preenchido com seu saldo da Carteira."
           />
           <SimSlider
             label="Rendimento esperado"

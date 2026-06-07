@@ -28,7 +28,7 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 function payoffLabel(month: number | null): string {
-  return month !== null ? `${month} meses` : "Fora do horizonte";
+  return month !== null ? `${month} meses` : "Sem previsão";
 }
 
 export function ExtraForm({

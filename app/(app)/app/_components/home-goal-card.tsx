@@ -88,7 +88,7 @@ export async function HomeGoalCard() {
             </span>
           </span>
         ) : (
-          <span className="text-[color:var(--text-muted)]">Fora do horizonte</span>
+          <span className="text-[color:var(--text-muted)]">Sem previsão</span>
         )}
       </div>
     </Link>

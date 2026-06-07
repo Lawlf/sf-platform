@@ -87,7 +87,7 @@ export function IndependenceSimulatorClient({ prefill }: PrefillProps) {
             control={form.control}
             name="contributionCents"
             label="Aporte mensal"
-            helper="Quanto você investe por mês. Pré-preenchido com seu saldo livre."
+            helper="Quanto você investe por mês. Pré-preenchido com seu saldo da Carteira."
           />
           <MoneyInput
             control={form.control}
@@ -174,7 +174,7 @@ function FreedomHero({
               Liberdade financeira
             </span>
             <div className="mt-1 text-[1.375rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
-              Fora do horizonte
+              Sem previsão
             </div>
             <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
               Com esses números, o alvo não é atingido em 100 anos. Aumente o aporte ou ajuste o

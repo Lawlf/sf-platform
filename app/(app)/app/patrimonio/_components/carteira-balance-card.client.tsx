@@ -81,7 +81,7 @@ export function CarteiraBalanceCard() {
           <div className="relative flex flex-col gap-3">
             <CardHeading />
             <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
-              Pra acompanhar seu saldo livre de verdade, diz quanto você tem na conta hoje.
+              Pra acompanhar seu saldo da Carteira de verdade, diz quanto você tem na conta hoje.
             </p>
             <Button
               variant="brand"

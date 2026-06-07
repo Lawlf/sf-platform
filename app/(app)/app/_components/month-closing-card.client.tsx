@@ -61,7 +61,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         className="text-[0.9375rem] font-semibold leading-snug"
         style={{ color: "var(--semantic-positive)" }}
       >
-        Tudo bateu: o saldo livre virou patrimônio.
+        Tudo bateu: o saldo da Carteira virou patrimônio.
       </p>
     );
   }
@@ -74,7 +74,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
           <span style={{ color: "var(--semantic-positive)" }}>
             <HideableValue>{leakAbsFormatted}</HideableValue>
           </span>{" "}
-          além do saldo livre
+          além do saldo da Carteira
         </p>
         <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
           Pode ser rendimento, valorização ou uma entrada extra.
@@ -491,7 +491,7 @@ export function MonthClosingCard({ initialData }: Props) {
           <SheetHeader className="mb-5">
             <SheetTitle>Fechar {monthLabel}</SheetTitle>
             <SheetDescription>
-              Veja como o saldo livre do mês se reflete no seu patrimônio.
+              Veja como o saldo da Carteira do mês se reflete no seu patrimônio.
             </SheetDescription>
           </SheetHeader>
 

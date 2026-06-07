@@ -39,7 +39,7 @@ export function StickyPreview() {
           </span>
         </div>
         <p className="text-[0.75rem] leading-[1.5] text-[color:var(--text-muted)]">
-          Seu saldo livre do mês cobre as contas com folga.
+          Seu saldo da Carteira do mês cobre as contas com folga.
         </p>
         <div className="flex flex-col gap-1.5 pt-0.5">
           <span className="sf-skeleton relative h-2.5 w-2/3 overflow-hidden rounded-full" />
