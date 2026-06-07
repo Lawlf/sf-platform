@@ -8,6 +8,9 @@ export interface MonthClosingEntity {
   endNetWorthCents: bigint;
   theoreticalFreeCashFlowCents: bigint;
   leakCents: bigint;
+  endDebtBalanceCents?: bigint | null;
+  endReserveCents?: bigint | null;
+  committedPctBps?: number | null;
   closedAt: Date;
 }
 

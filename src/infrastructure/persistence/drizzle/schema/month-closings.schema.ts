@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   date,
+  integer,
   pgTable,
   primaryKey,
   timestamp,
@@ -25,6 +26,9 @@ export const monthClosings = pgTable(
       mode: "bigint",
     }).notNull(),
     leakCents: bigint("leak_cents", { mode: "bigint" }).notNull(),
+    endDebtBalanceCents: bigint("end_debt_balance_cents", { mode: "bigint" }),
+    endReserveCents: bigint("end_reserve_cents", { mode: "bigint" }),
+    committedPctBps: integer("committed_pct_bps"),
     closedAt: timestamp("closed_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

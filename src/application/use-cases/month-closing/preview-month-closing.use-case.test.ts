@@ -39,6 +39,7 @@ function makeAsset(currentValueCents: bigint, currency: Currency = "BRL"): Asset
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 

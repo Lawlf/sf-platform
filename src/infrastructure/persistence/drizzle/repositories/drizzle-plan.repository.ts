@@ -27,6 +27,11 @@ function toEntity(row: PlanRow): Plan {
 }
 
 export class DrizzlePlanRepository implements PlanRepository {
+  async findById(id: string): Promise<Plan | null> {
+    const rows = await getDb().select().from(plans).where(eq(plans.id, id)).limit(1);
+    return rows[0] ? toEntity(rows[0]) : null;
+  }
+
   async findBySlug(slug: string): Promise<Plan | null> {
     const rows = await getDb().select().from(plans).where(eq(plans.slug, slug)).limit(1);
     return rows[0] ? toEntity(rows[0]) : null;

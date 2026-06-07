@@ -7,6 +7,7 @@ type Deps = Parameters<typeof deactivateAccount>[0];
 function makeDeps(): Deps {
   const users = {
     findById: vi.fn(),
+    findByUsername: vi.fn(),
     findByEmail: vi.fn(),
     create: vi.fn(),
     markEmailVerified: vi.fn(),

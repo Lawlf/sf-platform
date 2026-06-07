@@ -40,6 +40,7 @@ function makeAsset(currentValueCents: bigint): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 
@@ -134,6 +135,9 @@ describe("closeMonth", () => {
       endNetWorthCents: 80_000n,
       theoreticalFreeCashFlowCents: 100_000n,
       leakCents: 100_000n,
+      endDebtBalanceCents: 0n,
+      endReserveCents: 0n,
+      committedPctBps: 0,
       closedAt: new Date("2026-06-15T00:00:00Z"),
     });
   });

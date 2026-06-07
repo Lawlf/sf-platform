@@ -24,6 +24,8 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     onboardingWizardSeenAt: null,
     homeTourDismissedAt: null,
     quickAccess: [],
+    username: null,
+    profileFlair: null,
     baseCurrency: "BRL",
     createdAt: new Date("2025-01-01T00:00:00Z"),
     updatedAt: new Date("2025-01-01T00:00:00Z"),
@@ -35,6 +37,7 @@ function makeDeps(user: UserEntity | null): Deps {
   const fixedNow = new Date("2026-05-19T12:00:00Z");
   const users = {
     findById: vi.fn().mockResolvedValue(user),
+    findByUsername: vi.fn(),
     findByEmail: vi.fn(),
     create: vi.fn(),
     markEmailVerified: vi.fn(),

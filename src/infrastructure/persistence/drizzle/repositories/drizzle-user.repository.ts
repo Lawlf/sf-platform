@@ -23,6 +23,8 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
+    username: row.username,
+    profileFlair: row.profileFlair,
     baseCurrency: (row.baseCurrency as Currency | null) ?? "BRL",
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -32,6 +34,11 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
 export class DrizzleUserRepository implements UserRepository {
   async findById(id: string): Promise<UserEntity | null> {
     const rows = await getDb().select().from(users).where(eq(users.id, id)).limit(1);
+    return rows[0] ? toEntity(rows[0]) : null;
+  }
+
+  async findByUsername(username: string): Promise<UserEntity | null> {
+    const rows = await getDb().select().from(users).where(eq(users.username, username)).limit(1);
     return rows[0] ? toEntity(rows[0]) : null;
   }
 
@@ -105,6 +112,8 @@ export class DrizzleUserRepository implements UserRepository {
         onboardingWizardSeenAt: user.onboardingWizardSeenAt,
         homeTourDismissedAt: user.homeTourDismissedAt,
         quickAccess: user.quickAccess,
+        username: user.username,
+        profileFlair: user.profileFlair,
         baseCurrency: user.baseCurrency,
         updatedAt: user.updatedAt,
       })

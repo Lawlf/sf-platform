@@ -49,6 +49,9 @@ export interface ComputedMonthClosing {
   endNetWorthCents: bigint;
   leakCents: bigint;
   status: ReconciliationStatus;
+  endDebtBalanceCents: bigint;
+  endReserveCents: bigint;
+  committedPctBps: number;
 }
 
 export type PreviewMonthClosingResult =
@@ -100,6 +103,18 @@ export async function computeMonthClosing(
     ? netWorthResult.value.netWorth.toCents()
     : 0n;
 
+  const endDebtBalanceCents = isOk(snapshotResult)
+    ? snapshotResult.value.totalDebtBalance.toCents()
+    : 0n;
+  const committedPctBps = isOk(snapshotResult)
+    ? clampCommittedBps(snapshotResult.value.incomeCommittedPct)
+    : 0;
+
+  const assetsForReserve = await deps.assets.findActiveByUser(input.userId);
+  const endReserveCents = assetsForReserve
+    .filter((a) => a.category === "cash")
+    .reduce((sum, a) => sum + a.currentValue.toCents(), 0n);
+
   const baselineNetWorthCents = await resolveBaseline(deps, input.userId, open.openMonthIso);
 
   const { leakCents, status } = ReconciliationService.compute({
@@ -114,6 +129,9 @@ export async function computeMonthClosing(
     endNetWorthCents,
     leakCents,
     status,
+    endDebtBalanceCents,
+    endReserveCents,
+    committedPctBps,
   };
 }
 
@@ -123,6 +141,14 @@ export async function computeMonthClosing(
  * que precede o aberto; caso contrário (primeiro fechamento), computa via
  * timeline o patrimônio do mês anterior.
  */
+const COMMITTED_BPS_CAP = 100000;
+
+function clampCommittedBps(fraction: number): number {
+  if (!Number.isFinite(fraction)) return COMMITTED_BPS_CAP;
+  const bps = Math.round(fraction * 10000);
+  return Math.max(0, Math.min(COMMITTED_BPS_CAP, bps));
+}
+
 async function resolveBaseline(
   deps: MonthClosingDeps,
   userId: string,

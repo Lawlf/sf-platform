@@ -3,20 +3,47 @@
 import { Camera, Check, Pencil, Trash2, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 
+import type { ProfileBadge, SupporterTier } from "@/domain/services/profile-identity.service";
+
 import { UserAvatar } from "../../_components/user-avatar";
 import { removeAvatarAction } from "../_actions/remove-avatar.action";
 import { updateAvatarAction } from "../_actions/update-avatar.action";
 import { updateDisplayNameAction } from "../_actions/update-display-name.action";
 
 import { AvatarEditModal } from "./avatar-edit-modal.client";
+import { ProfileBadges } from "./profile-badges.client";
 
 export interface PerfilHeroProps {
   initialDisplayName: string;
   initialAvatarUrl?: string | null | undefined;
-  email: string;
+  username: string | null;
+  supporterTier: SupporterTier;
+  badges: ProfileBadge[];
+  memberSince: number;
 }
 
-export function PerfilHero({ initialDisplayName, initialAvatarUrl, email }: PerfilHeroProps) {
+const heroToneClass: Record<SupporterTier, string> = {
+  free: "bg-[color:var(--surface-1)] text-[color:var(--text-primary)]",
+  pro_month: "glass-tier-1 text-white",
+  pro_year: "glass-tier-1 text-white",
+  founder: "glass-tier-1 text-white border border-[#d8b06a]",
+};
+
+const avatarRingClass: Record<SupporterTier, string> = {
+  free: "",
+  pro_month: "ring-2 ring-[color:var(--color-brand-500)]",
+  pro_year: "ring-2 ring-[color:var(--color-brand-500)]",
+  founder: "",
+};
+
+export function PerfilHero({
+  initialDisplayName,
+  initialAvatarUrl,
+  username,
+  supporterTier,
+  badges,
+  memberSince,
+}: PerfilHeroProps) {
   const [displayName, setDisplayName] = useState(initialDisplayName);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(initialDisplayName);
@@ -95,11 +122,20 @@ export function PerfilHero({ initialDisplayName, initialAvatarUrl, email }: Perf
   }
 
   return (
-    <section className="glass-tier-1 relative overflow-hidden p-[22px]">
-      <div
-        className="absolute -bottom-12 -right-10 h-40 w-40 rounded-full bg-white/[0.12]"
-        aria-hidden
-      />
+    <section
+      className={`${heroToneClass[supporterTier]} relative overflow-hidden rounded-[var(--radius-card)] p-[22px]`}
+    >
+      {supporterTier !== "free" ? (
+        <div
+          className="absolute -bottom-12 -right-10 h-40 w-40 rounded-full bg-white/[0.12]"
+          aria-hidden
+        />
+      ) : (
+        <div
+          className="absolute -bottom-16 -left-16 h-48 w-48 rounded-full bg-white/[0.07] blur-2xl"
+          aria-hidden
+        />
+      )}
       <div className="relative flex items-center gap-4">
         <div className="relative flex-none">
           <button
@@ -109,11 +145,20 @@ export function PerfilHero({ initialDisplayName, initialAvatarUrl, email }: Perf
             aria-label="Trocar foto de perfil"
             className="focus-ring block rounded-2xl disabled:opacity-60"
           >
-            <UserAvatar
-              dataUrl={avatarUrl}
-              displayName={displayName || "??"}
-              className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-xl font-extrabold backdrop-blur-sm"
-            />
+            <span
+              className={`block rounded-2xl ${avatarRingClass[supporterTier]}`}
+              style={
+                supporterTier === "founder"
+                  ? { boxShadow: "0 0 0 2px var(--color-brand-500), 0 0 0 4px #d8b06a" }
+                  : undefined
+              }
+            >
+              <UserAvatar
+                dataUrl={avatarUrl}
+                displayName={displayName || "??"}
+                className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/20 text-xl font-extrabold backdrop-blur-sm"
+              />
+            </span>
             <span className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full bg-white text-[color:var(--color-brand-600)] shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
               <Camera size={12} strokeWidth={2.25} aria-hidden />
             </span>
@@ -176,7 +221,13 @@ export function PerfilHero({ initialDisplayName, initialAvatarUrl, email }: Perf
                   <Pencil size={12} strokeWidth={2} aria-hidden />
                 </button>
               </div>
-              <div className="mt-1 truncate text-[0.75rem] opacity-90">{email}</div>
+              {username ? (
+                <div className="mt-1 truncate text-[0.75rem] opacity-90">@{username}</div>
+              ) : null}
+              <ProfileBadges
+                badges={badges}
+                tone={supporterTier === "free" ? "light" : "onGradient"}
+              />
               {avatarUrl ? (
                 <button
                   type="button"
@@ -194,6 +245,10 @@ export function PerfilHero({ initialDisplayName, initialAvatarUrl, email }: Perf
             </>
           )}
         </div>
+      </div>
+
+      <div className="relative mt-3 text-[0.6875rem] text-current opacity-70">
+        Membro desde {memberSince}
       </div>
 
       {source ? (
