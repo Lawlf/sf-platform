@@ -231,7 +231,7 @@ export function LinkedDebtStep({
                     </span>
                   </button>
 
-                  {selected && idx >= 0 ? (
+                  {selected && idx >= 0 && debts.length > 1 ? (
                     <div className="mt-3">
                       <label
                         htmlFor={`alloc-${debt.id}`}
@@ -244,6 +244,10 @@ export function LinkedDebtStep({
                         name={`allocations.${idx}.allocationCents`}
                         id={`alloc-${debt.id}`}
                       />
+                    </div>
+                  ) : selected && idx >= 0 ? (
+                    <div className="mt-2 text-[0.6875rem] text-[color:var(--text-primary)] opacity-65">
+                      Vinculada por inteiro a este bem.
                     </div>
                   ) : null}
                 </div>
