@@ -26,6 +26,7 @@ function asset(partial: Partial<AssetEntity> & Pick<AssetEntity, "metadata">): A
     purchasePriceCents: null,
     createdAt: new Date(0),
     updatedAt: new Date(0),
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

@@ -12,6 +12,11 @@ export interface IncomeEntity {
   endDate: Date | null;
   isActive: boolean;
   /**
+   * Dia do mês (1-31) em que a renda cai. `null` significa "usar o dia de
+   * `startDate`". Alimenta o saldo reativo da Carteira.
+   */
+  paymentDay: number | null;
+  /**
    * Momento em que a renda foi cadastrada no sistema. Distinto de `startDate`
    * (data em que a renda começa a valer pro usuário), permite que a linha do
    * tempo posicione o evento "Nova renda" no mês de criação real mesmo

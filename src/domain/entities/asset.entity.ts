@@ -87,6 +87,12 @@ export interface AssetEntity {
   purchasePriceCents: bigint | null;
   createdAt: Date;
   updatedAt: Date;
+  /**
+   * Para a Carteira default: quando `currentValue` foi fixado como âncora. O
+   * saldo reativo acumula só eventos com data > `anchorAt`. `null` para os
+   * demais ativos.
+   */
+  anchorAt: Date | null;
   deactivatedAt: Date | null;
   /**
    * Categoria estruturada do motivo da desativação. `null` para ativos

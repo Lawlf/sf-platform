@@ -11,7 +11,7 @@ function asset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "metadata">): 
     userId: "u1", category: "cash", label: "x", currentValue: Money.fromCents(100000n),
     fipeCode: null, fipeLastSyncedAt: null, acquiredAt: null, depreciationKind: "stable",
     depreciationRatePctYear: 0, purchaseDate: null, purchasePriceCents: null,
-    createdAt: new Date(0), updatedAt: new Date(0), deactivatedAt: null, deactivationKind: null,
+    createdAt: new Date(0), updatedAt: new Date(0), anchorAt: null, deactivatedAt: null, deactivationKind: null,
     salePriceCents: null, deactivationReason: null, deletedAt: null, externalAccountKey: null, ...p,
   };
 }

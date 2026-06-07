@@ -41,6 +41,7 @@ function makeAsset(
     purchasePriceCents: overrides.purchasePriceCents ?? null,
     createdAt: overrides.createdAt ?? new Date("2026-01-01"),
     updatedAt: overrides.updatedAt ?? new Date("2026-01-01"),
+    anchorAt: overrides.anchorAt ?? null,
     deactivatedAt: overrides.deactivatedAt ?? null,
     deactivationKind: overrides.deactivationKind ?? null,
     salePriceCents: overrides.salePriceCents ?? null,

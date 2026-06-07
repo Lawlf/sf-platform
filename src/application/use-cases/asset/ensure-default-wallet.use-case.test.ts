@@ -20,6 +20,7 @@ function cashAsset(): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    anchorAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     deactivatedAt: null,

@@ -23,6 +23,7 @@ export function buildDefaultWallet(userId: string, id: string, now: Date): Asset
     purchasePriceCents: null,
     createdAt: now,
     updatedAt: now,
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

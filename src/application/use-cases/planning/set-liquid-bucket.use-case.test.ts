@@ -22,6 +22,7 @@ function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" |
     purchasePriceCents: null,
     createdAt: new Date(0),
     updatedAt: new Date(0),
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,

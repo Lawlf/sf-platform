@@ -98,6 +98,7 @@ describe("registerIncome", () => {
       amount,
       frequency: "weekly",
       startDate: new Date("2026-01-01"),
+      paymentDay: null,
       endDate: null,
       isActive: true,
       createdAt: new Date("2026-01-15T10:00:00Z"),

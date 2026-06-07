@@ -35,6 +35,7 @@ function makeExisting(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     amount: amt.value,
     frequency: "monthly",
     startDate: new Date("2026-01-01"),
+    paymentDay: null,
     endDate: null,
     isActive: false,
     createdAt: new Date("2026-01-01T00:00:00Z"),

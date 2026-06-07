@@ -49,6 +49,7 @@ const income: IncomeEntity = {
   amount: m(5000),
   frequency: "monthly",
   startDate: NOW,
+  paymentDay: null,
   endDate: null,
   isActive: true,
   createdAt: NOW,

@@ -134,6 +134,7 @@ export async function createAsset(
     purchasePriceCents: input.purchasePriceCents ?? null,
     createdAt: now,
     updatedAt: now,
+    anchorAt: null,
     deactivatedAt: null,
     deactivationKind: null,
     salePriceCents: null,
