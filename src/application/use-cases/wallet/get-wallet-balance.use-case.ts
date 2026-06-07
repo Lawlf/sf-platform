@@ -1,5 +1,7 @@
 import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
@@ -13,6 +15,10 @@ export interface GetWalletBalanceDeps {
   incomes: { listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
   debts: { listForUser(userId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
   settlements: { listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> };
+  incomeSettlements: { listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]> };
+  debtPayments: {
+    listForUserInRange(userId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
+  };
   transactions: { listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
   clock: { now(): Date };
 }
@@ -25,6 +31,7 @@ export interface WalletBalanceResult {
   walletId: string;
   reactiveBalance: Money;
   monthEndProjection: Money;
+  needsAnchor: boolean;
 }
 
 export class NoWalletError extends Error {
@@ -67,21 +74,27 @@ export async function getWalletBalance(
   const anchorAt = walletAsset.anchorAt ?? walletAsset.createdAt;
   const window: EventWindow = { from: anchorAt, to: endOfMonthUtc(asOf) };
 
-  const [incomes, debts, transactions] = await Promise.all([
+  const [incomes, debts, transactions, payments] = await Promise.all([
     deps.incomes.listForUser(input.userId, { onlyActive: true }),
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
+    deps.debtPayments.listForUserInRange(input.userId, { from: anchorAt, to: endOfMonthUtc(asOf) }),
   ]);
 
-  const settlementLists = await Promise.all(
-    monthsInWindow(window).map((month) => deps.settlements.listForUserMonth(input.userId, month)),
-  );
+  const months = monthsInWindow(window);
+  const [settlementLists, incomeSettlementLists] = await Promise.all([
+    Promise.all(months.map((month) => deps.settlements.listForUserMonth(input.userId, month))),
+    Promise.all(months.map((month) => deps.incomeSettlements.listForUserMonth(input.userId, month))),
+  ]);
   const settlements = settlementLists.flat();
+  const incomeSettlements = incomeSettlementLists.flat();
 
   const events = WalletEventGenerator.generate({
     incomes,
     debts,
     settlements,
+    incomeSettlements,
+    payments,
     transactions,
     walletId: walletAsset.id,
     window,
@@ -92,5 +105,6 @@ export async function getWalletBalance(
     walletId: walletAsset.id,
     reactiveBalance: WalletBalanceService.reactiveBalance(base),
     monthEndProjection: WalletBalanceService.monthEndProjection({ ...base, expectedEvents: events }),
+    needsAnchor: walletAsset.anchorAt === null,
   });
 }

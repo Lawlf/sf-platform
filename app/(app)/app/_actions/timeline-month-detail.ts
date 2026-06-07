@@ -2,8 +2,8 @@
 
 import type { AssetCategory } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
-import type { IncomeFrequency } from "@/domain/entities/income.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
+import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
 import {
   StoryDetectionService,
   type StoryCardKind,
@@ -16,6 +16,7 @@ import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/rep
 import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-amount-adjustment.repository";
 import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
@@ -41,6 +42,8 @@ export interface SerializedIncomeRow {
   frequency: "monthly" | "weekly" | "one_off";
   dateIso: string;
   isNew: boolean;
+  /** A renda foi confirmada como não recebida no fechar-mês daquele mês. */
+  notReceived?: boolean;
 }
 
 /**
@@ -55,6 +58,7 @@ export interface SerializedExpenseRow {
   frequency: "monthly" | "weekly" | "annual";
   category: ExpenseCategory;
   dateIso: string;
+  isNew: boolean;
 }
 
 export interface SerializedStoryRow {
@@ -122,12 +126,6 @@ const DEBT_KIND_LABEL: Record<DebtKind, string> = {
   recurring: "Compromisso recorrente",
 };
 
-const INCOME_FREQUENCY_LABEL: Record<IncomeFrequency, string> = {
-  monthly: "Mensal",
-  weekly: "Semanal",
-  one_off: "Pontual",
-};
-
 const DATE_FMT = dateOnlyFormat({ day: "2-digit", month: "short" });
 
 const WEEKS_PER_MONTH = 4.33;
@@ -180,6 +178,7 @@ export async function fetchMonthDetail(input: {
   const assets = new DrizzleAssetRepository();
   const debtAmountAdjustmentsRepo = new DrizzleDebtAmountAdjustmentRepository();
   const settlementsRepo = new DrizzleRecurringSettlementRepository();
+  const incomeSettlementsRepo = new DrizzleIncomeSettlementRepository();
 
   // Para detectar conquistas/marcos do mês, precisamos rodar a detecção
   // numa janela maior (24 meses antes até o mês alvo) e filtrar pra este.
@@ -197,6 +196,7 @@ export async function fetchMonthDetail(input: {
     paymentsForTimeline,
     adjustmentsRaw,
     settlementsRaw,
+    incomeSettlementsRaw,
   ] = await Promise.all([
     debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForUser(user.id, { status: "all" }),
@@ -208,6 +208,7 @@ export async function fetchMonthDetail(input: {
     }),
     debtAmountAdjustmentsRepo.listForUser(user.id),
     settlementsRepo.listForUser(user.id),
+    incomeSettlementsRepo.listForUser(user.id),
   ]);
 
   const settlements: TimelineSettlement[] = settlementsRaw.map((s) => ({
@@ -254,20 +255,29 @@ export async function fetchMonthDetail(input: {
     return true;
   });
 
+  const monthTarget = { year: firstDay.getUTCFullYear(), month: firstDay.getUTCMonth() };
   const serializedIncomes: SerializedIncomeRow[] = activeIncomes.map((inc) => {
     let date: Date;
     if (inc.frequency === "one_off") {
       date = inc.startDate;
     } else {
-      date = dateInMonthFromDay(inc.startDate.getUTCDate());
+      date = dateInMonthFromDay(inc.paymentDay ?? inc.startDate.getUTCDate());
     }
+    const effectiveCents = effectiveIncomeCentsForMonth(
+      inc.id,
+      inc.amount.toCents(),
+      monthTarget,
+      incomeSettlementsRaw,
+    );
+    const notReceived = effectiveCents === 0n && inc.amount.toCents() > 0n;
     return {
       id: inc.id,
       label: inc.label,
-      amount: serializeMoney(inc.amount),
+      amount: serializeMoney(Money.fromCents(effectiveCents)),
       frequency: inc.frequency,
       dateIso: date.toISOString(),
       isNew: MonthYear.fromDate(inc.createdAt).equals(month),
+      notReceived,
     };
   });
 
@@ -285,6 +295,7 @@ export async function fetchMonthDetail(input: {
       frequency: frequencyFor(d),
       category: d.expenseCategory ?? "other",
       dateIso: date.toISOString(),
+      isNew: MonthYear.fromDate(d.createdAt).equals(month),
     };
   });
 
@@ -298,6 +309,7 @@ export async function fetchMonthDetail(input: {
     to: month,
     adjustments: adjustmentsRaw,
     settlements,
+    incomeSettlements: incomeSettlementsRaw,
   });
 
   const allStories = StoryDetectionService.detect(timeline.points);
@@ -363,33 +375,23 @@ export async function fetchMonthDetail(input: {
     });
   }
 
-  const activeIncomeIds = new Set(activeIncomes.map((i) => i.id));
-  for (const inc of incomesRaw) {
-    const createdMonth = MonthYear.fromDate(inc.createdAt);
-    if (!createdMonth.equals(month)) continue;
-    if (activeIncomeIds.has(inc.id)) continue;
-    events.push({
-      id: `income-${inc.id}`,
-      kind: "income_added",
-      label: inc.label,
-      detail: `${INCOME_FREQUENCY_LABEL[inc.frequency]} ${inc.amount.format()}`,
-      dateIso: inc.createdAt.toISOString(),
-      href: `/app/renda`,
-    });
-  }
+  // Eventos "Nova renda" (`income_added`) não são mais emitidos: a própria
+  // linha de renda já carrega o estado "Nova renda" via `isNew`, então o event
+  // duplicaria a mesma informação no mesmo dia.
 
-  // Só geramos event "Nova dívida" pra dívidas em curso (status `active`).
-  // Dívidas já quitadas ou baixadas geram payment rows redundantes na timeline
-  // (com `isClosingPayment` quando aplicável); o event de criação fica
-  // suprimido pra não duplicar informação no mesmo dia.
+  // Só geramos event "Nova dívida" pra dívidas reais (financiamento, empréstimo,
+  // cartão, cheque especial) em curso (status `active`). Compromissos
+  // recorrentes (`recurring`) já aparecem como linha de despesa do mês; emitir
+  // também o event duplicaria a mesma informação. Dívidas já quitadas ou baixadas
+  // geram payment rows redundantes na timeline (com `isClosingPayment` quando
+  // aplicável); o event de criação fica suprimido pra não duplicar.
   for (const debt of debtsRaw) {
     if (debt.status !== "active") continue;
+    if (debt.kind === "recurring") continue;
     const createdMonth = MonthYear.fromDate(debt.createdAt);
     if (!createdMonth.equals(month)) continue;
     const detailParts: string[] = [DEBT_KIND_LABEL[debt.kind]];
-    if (debt.kind === "recurring" && debt.recurringAmountCents !== null) {
-      detailParts.push(Money.fromCents(debt.recurringAmountCents).format());
-    } else if (debt.originalPrincipal.toCents() > 0n) {
+    if (debt.originalPrincipal.toCents() > 0n) {
       detailParts.push(debt.originalPrincipal.format());
     }
     events.push({

@@ -108,6 +108,10 @@ export function MonthCard({
   isFeatured = false,
 }: MonthCardProps) {
   const focusVal = pickFocusValue(point, focus);
+  // Renda R$0 = "sem dado", não "ganhou R$0". No modo saldo, não enquadramos
+  // como déficit vermelho; estado neutro e factual.
+  const noIncome = BigInt(point.totalIncome.cents) === 0n;
+  const balanceNoIncome = (focus === "balance" || focus === "income") && noIncome;
   const cardClass = isCurrent
     ? "border-[1.5px] border-[color:var(--color-brand-500)]/40 bg-[color:var(--surface-1)] shadow-[0_8px_24px_rgba(239,122,26,0.12)]"
     : isFeatured
@@ -141,14 +145,27 @@ export function MonthCard({
 
   return (
     <article className={`rounded-2xl px-4 py-4 backdrop-blur-md md:px-5 ${cardClass}`}>
-      <p className="text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
-        <CoachLine monthLabel={point.monthLabel} focus={focus} isCurrent={isCurrent} />
-      </p>
-      <div
-        className={`mt-1 text-[1.625rem] font-extrabold leading-none tracking-[-0.6px] ${valueColor(focus, focusVal.isNegative)}`}
-      >
-        <HideableValue>{focusVal.formatted}</HideableValue>
-      </div>
+      {balanceNoIncome ? (
+        <>
+          <p className="text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
+            <strong>{point.monthLabel.split(" ")[0] ?? point.monthLabel}</strong>
+          </p>
+          <div className="mt-1 text-[1.0625rem] font-semibold leading-snug tracking-[-0.2px] text-[color:var(--text-muted)]">
+            Sem renda registrada
+          </div>
+        </>
+      ) : (
+        <>
+          <p className="text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
+            <CoachLine monthLabel={point.monthLabel} focus={focus} isCurrent={isCurrent} />
+          </p>
+          <div
+            className={`mt-1 text-[1.625rem] font-extrabold leading-none tracking-[-0.6px] ${valueColor(focus, focusVal.isNegative)}`}
+          >
+            <HideableValue>{focusVal.formatted}</HideableValue>
+          </div>
+        </>
+      )}
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <BarBlock

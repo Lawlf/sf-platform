@@ -3,7 +3,9 @@
 import { getWalletBalance } from "@/application/use-cases/wallet/get-wallet-balance.use-case";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
@@ -16,6 +18,7 @@ export interface WalletBalancePayload {
   walletId: string;
   reactiveBalance: SerializedMoney;
   monthEndProjection: SerializedMoney;
+  needsAnchor: boolean;
 }
 
 export async function fetchWalletBalance(): Promise<WalletBalancePayload | null> {
@@ -28,6 +31,8 @@ export async function fetchWalletBalance(): Promise<WalletBalancePayload | null>
       incomes: new DrizzleIncomeRepository(),
       debts: new DrizzleDebtRepository(),
       settlements: new DrizzleRecurringSettlementRepository(),
+      incomeSettlements: new DrizzleIncomeSettlementRepository(),
+      debtPayments: new DrizzleDebtPaymentRepository(),
       transactions: new DrizzleTransactionRepository(),
       clock: new SystemClock(),
     },
@@ -40,5 +45,6 @@ export async function fetchWalletBalance(): Promise<WalletBalancePayload | null>
     walletId: v.walletId,
     reactiveBalance: serializeMoney(v.reactiveBalance),
     monthEndProjection: serializeMoney(v.monthEndProjection),
+    needsAnchor: v.needsAnchor,
   };
 }

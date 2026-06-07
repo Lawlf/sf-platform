@@ -1,6 +1,6 @@
 "use client";
 
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -9,6 +9,8 @@ import { useMemo } from "react";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
 import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
+import { fetchWalletBalance } from "../_actions/wallet-queries";
+import { queryKeys } from "../_lib/query-keys";
 
 import { HowItWorksSheet } from "./how-it-works-sheet";
 import { HideableValue } from "./money-visibility/hideable-value.client";
@@ -21,25 +23,23 @@ function formatBrl(cents: bigint): string {
   return `${negative ? "-" : ""}${fmt}`;
 }
 
-type HealthStatus = "Excelente" | "Saudável" | "Atenção" | "Crítico";
-
-interface HealthInfo {
-  label: HealthStatus;
-  dotClass: string;
+function stripMinus(formatted: string): string {
+  return formatted.replace(/^[-−]\s*/, "");
 }
 
-function computeHealth(committedPct: number): HealthInfo {
-  if (committedPct < 15) {
-    return { label: "Excelente", dotClass: "bg-[color:var(--semantic-positive)]" };
-  }
-  if (committedPct < 30) {
-    return { label: "Saudável", dotClass: "bg-[color:var(--semantic-positive)]" };
-  }
-  if (committedPct < 50) {
-    return { label: "Atenção", dotClass: "bg-[color:var(--semantic-warning)]" };
-  }
-  return { label: "Crítico", dotClass: "bg-[color:var(--semantic-negative)]" };
+/**
+ * Verbo do "sobra/falta" com concordância de número: singular só quando o valor
+ * é exatamente R$ 1,00 (100 centavos); caso contrário, plural.
+ */
+function leftover(projCents: bigint): { verb: string; positive: boolean } {
+  const positive = projCents >= 0n;
+  const abs = projCents < 0n ? -projCents : projCents;
+  const singular = abs === 100n;
+  const verb = positive ? (singular ? "sobra" : "sobram") : singular ? "falta" : "faltam";
+  return { verb, positive };
 }
+
+const CURRENT_MONTH_NAME = new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(new Date());
 
 interface Props {
   monthIso: string;
@@ -56,6 +56,11 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     initialData,
   });
 
+  const { data: walletBal, isError: walletError } = useQuery({
+    queryKey: queryKeys.walletBalance,
+    queryFn: () => fetchWalletBalance(),
+  });
+
   if (!monthDetail) {
     return (
       <p className="text-sm text-[color:var(--text-secondary)]">
@@ -70,50 +75,174 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     monthDetail.payments.reduce((a, p) => a + BigInt(p.amount.cents), 0n);
   const freeBalanceCents = incomeCents - outflowCents;
 
-  const saldoFormatted = formatBrl(freeBalanceCents);
-  const committedPct = incomeCents > 0n ? (Number(outflowCents) / Number(incomeCents)) * 100 : 0;
-  const hasHealth = incomeCents > 0n;
-  const health = hasHealth ? computeHealth(committedPct) : null;
+  const useWallet = !walletError && walletBal != null && !walletBal.needsAnchor;
+
+  // Mês atual sem renda registrada: R$0 aqui significa "sem dado", não déficit
+  // nem zero oco. Suprimimos a moldura de projeção/falta. Quando a carteira está
+  // ancorada o reactiveBalance é um saldo real (o que a pessoa tem), então segue
+  // normal; o estado honesto vale só pra moldura de fallback/projeção.
+  const noIncome = incomeCents === 0n;
+  const noIncomeState = noIncome && !useWallet;
+
+  // Projeção do mês inteiro (o "buraco" ou a sobra se nada mudar).
+  const projCents = useWallet ? BigInt(walletBal.monthEndProjection.cents) : freeBalanceCents;
+  const projFormatted = useWallet
+    ? stripMinus(walletBal.monthEndProjection.formatted)
+    : stripMinus(formatBrl(freeBalanceCents));
+  const { verb, positive } = leftover(projCents);
+
+  // Valor "hoje" do herói, por prioridade:
+  //   a) carteira ancorada → saldo reativo;
+  //   b) sem carteira mas com datas nas linhas → realizado até hoje;
+  //   c) sem datas → não rotula projeção como "hoje" (degradação honesta).
+  const hasRowDates =
+    monthDetail.incomes.every((i) => i.dateIso) &&
+    monthDetail.expenses.every((e) => e.dateIso) &&
+    monthDetail.payments.every((p) => p.dateIso);
+
+  const todayKey = new Date().toISOString().slice(0, 10);
+  const realizedTodayCents =
+    monthDetail.incomes
+      .filter((i) => i.dateIso.slice(0, 10) <= todayKey)
+      .reduce((a, i) => a + BigInt(i.amount.cents), 0n) -
+    (monthDetail.expenses
+      .filter((e) => e.dateIso.slice(0, 10) <= todayKey)
+      .reduce((a, e) => a + BigInt(e.amount.cents), 0n) +
+      monthDetail.payments
+        .filter((p) => p.dateIso.slice(0, 10) <= todayKey)
+        .reduce((a, p) => a + BigInt(p.amount.cents), 0n));
+
+  const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
+
+  const eyebrow =
+    todayMode === "projection"
+      ? `Saldo livre · no fim de ${CURRENT_MONTH_NAME}`
+      : "Saldo livre · hoje";
+
+  const bigFormatted = useWallet
+    ? walletBal.reactiveBalance.formatted
+    : todayMode === "realized"
+      ? formatBrl(realizedTodayCents)
+      : formatBrl(projCents);
+
+  // Sub-linha de projeção só nos casos a/b; no caso c o número grande já é a
+  // projeção (evita duplicar). Sem renda registrada também não é déficit: nunca
+  // dispara a moldura negativa nem a linha "faltam R$X"; usamos um empurrão calmo.
+  const showProjectionLine = todayMode !== "projection" && !noIncome;
+  const showNudge = noIncome;
+
+  const negative = !positive && !noIncome;
+
+  // Tratamento de estado negativo (buraco): herói escuro/alerta em vez do
+  // laranja, com acento vermelho na linha "falta" e no selo.
+  const heroSurface = negative
+    ? "border border-[color:var(--border-soft)] bg-[linear-gradient(135deg,#2a221d_0%,#231c18_100%)] shadow-[0_12px_28px_rgba(0,0,0,0.4)]"
+    : "border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#d96813_0%,#c25d15_55%,#ba5717_100%)] shadow-[0_12px_28px_rgba(239,122,26,0.28)]";
+
+  const bigColor = negative ? "text-white" : "text-white";
+  const eyebrowColor = negative ? "text-white/[0.92]" : "text-white";
+  const chevronColor = negative ? "text-white/60" : "text-white/85";
+  const ruleColor = negative ? "bg-white/[0.18]" : "bg-white/[0.22]";
+  const sublineColor = negative ? "text-[#fca5a5]" : "text-white/90";
+  const badgeClass = negative
+    ? "bg-[#fca5a5]/[0.16] text-[#fca5a5]"
+    : "bg-white/20 text-white";
+  const badgeLabel = positive ? "Sobra esse mês" : "Falta esse mês";
+  const showBadge = !noIncome;
+
+  // No fallback sem renda, o valor grande vira texto-estado (não é dinheiro).
+  const showStateText = noIncomeState;
+  const stateText = "Sem renda registrada";
+  const nudgeText = "Cadastre sua renda pra ver como o mês fecha.";
+
+  const heroHref = noIncomeState ? ("/app/renda/nova" as Route) : timelineHref;
+  const ariaLabel = noIncomeState
+    ? `${stateText}. ${nudgeText}`
+    : noIncome
+      ? `Ver detalhes de ${month.format()}. ${bigFormatted}. ${nudgeText}`
+      : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
     <div className="relative">
       <Link
-        href={timelineHref}
-        aria-label={`Ver detalhes de ${month.format()}. Saldo livre ${saldoFormatted}.`}
-        className="focus-ring relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#d96813_0%,#c25d15_55%,#ba5717_100%)] px-5 py-5 text-left shadow-[0_12px_28px_rgba(239,122,26,0.28)] transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6"
+        href={heroHref}
+        aria-label={ariaLabel}
+        className={`focus-ring relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
       >
-        <span
-          aria-hidden
-          className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.20),transparent_70%)]"
-        />
-        <span
-          aria-hidden
-          className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(40,18,0,0.22),transparent_75%)]"
-        />
+        {!negative ? (
+          <>
+            <span
+              aria-hidden
+              className="pointer-events-none absolute -right-12 -top-16 h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(255,255,255,0.20),transparent_70%)]"
+            />
+            <span
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-[linear-gradient(90deg,rgba(40,18,0,0.22),transparent_75%)]"
+            />
+          </>
+        ) : null}
         <div className="relative flex w-full items-center justify-between gap-3">
           <div className="flex-1">
-            <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white">
-              Saldo livre do mês
+            <span
+              className={`text-[0.625rem] font-bold uppercase tracking-[0.7px] ${eyebrowColor}`}
+            >
+              {eyebrow}
             </span>
-            <div className="mt-1.5 text-[1.875rem] font-extrabold leading-none text-white md:text-[2.25rem]">
-              <HideableValue>{saldoFormatted}</HideableValue>
-            </div>
-            {health ? (
-              <span className="mt-2.5 inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-bold text-white backdrop-blur">
-                <span className={`h-2 w-2 rounded-full ${health.dotClass}`} aria-hidden />
-                {health.label}
+            {showStateText ? (
+              <div className="mt-1.5 text-[1.375rem] font-bold leading-tight text-white/80 md:text-[1.5rem]">
+                {stateText}
+              </div>
+            ) : (
+              <div
+                className={`mt-1.5 text-[1.875rem] font-extrabold leading-none md:text-[2.25rem] ${bigColor}`}
+              >
+                <HideableValue>{bigFormatted}</HideableValue>
+              </div>
+            )}
+            {showProjectionLine ? (
+              <>
+                <span
+                  aria-hidden
+                  className={`mt-3 block h-px w-full max-w-[15rem] ${ruleColor}`}
+                />
+                <span
+                  className={`mt-3 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}
+                >
+                  Se nada mudar, {verb} <HideableValue>{projFormatted}</HideableValue> no fim de{" "}
+                  {CURRENT_MONTH_NAME}
+                </span>
+              </>
+            ) : null}
+            {showNudge ? (
+              <>
+                <span
+                  aria-hidden
+                  className="mt-3 block h-px w-full max-w-[15rem] bg-white/[0.22]"
+                />
+                <span className="mt-3 block text-[0.8125rem] font-medium leading-snug text-white/80">
+                  {nudgeText}
+                </span>
+              </>
+            ) : null}
+            {showBadge ? (
+              <span
+                className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold backdrop-blur ${badgeClass}`}
+              >
+                {badgeLabel}
               </span>
             ) : null}
           </div>
           <ChevronRight
             size={22}
             strokeWidth={2.25}
-            className="shrink-0 text-white/85"
+            className={`shrink-0 ${chevronColor}`}
             aria-hidden
           />
         </div>
       </Link>
-      <div className="pointer-events-none absolute right-3 top-3 z-10 text-white md:right-4 md:top-4">
+      <div
+        className={`pointer-events-none absolute right-3 top-3 z-10 md:right-4 md:top-4 ${negative ? "text-white/80" : "text-white"}`}
+      >
         <div className="pointer-events-auto">
           <HowItWorksSheet topic="saldo-livre" variant="chip" />
         </div>

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
@@ -59,12 +60,32 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
   } as unknown as IncomeEntity;
 }
 
+function recurringDebt(over: Partial<DebtEntity>): DebtEntity {
+  return {
+    id: "d1",
+    userId: "u1",
+    kind: "recurring",
+    label: "Aluguel",
+    status: "active",
+    currentBalance: moneyOf(0),
+    recurringFrequency: "monthly",
+    recurringAmountCents: 120000n,
+    expenseCategory: "housing",
+    dueDay: 10,
+    createdAt: utc(2026, 1, 1),
+    deletedAt: null,
+    ...over,
+  } as unknown as DebtEntity;
+}
+
 function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
   return {
     assets: { findActiveByUserAndCategory: async () => [wallet({})] },
     incomes: { listForUser: async () => [income({})] },
     debts: { listForUser: async () => [] },
     settlements: { listForUserMonth: async () => [] },
+    incomeSettlements: { listForUserMonth: async () => [] },
+    debtPayments: { listForUserInRange: async () => [] },
     transactions: { listForUserInRange: async () => [] },
     clock: { now: () => utc(2026, 6, 4) },
     ...over,
@@ -91,5 +112,37 @@ describe("getWalletBalance", () => {
       userId: "u1",
     });
     expect(isOk(r)).toBe(false);
+  });
+
+  it("flags needsAnchor when the wallet has never been anchored", async () => {
+    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })] } }), { userId: "u1" });
+    if (!isOk(r)) throw new Error("expected ok");
+    expect(r.value.needsAnchor).toBe(true);
+  });
+
+  it("needsAnchor is false once anchored", async () => {
+    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    if (!isOk(r)) throw new Error("expected ok");
+    expect(r.value.needsAnchor).toBe(false);
+  });
+
+  it("does not subtract a debt before its due day", async () => {
+    const d = deps({
+      debts: { listForUser: async () => [recurringDebt({})] },
+      clock: { now: () => utc(2026, 6, 7) },
+    });
+    const r = await getWalletBalance(d, { userId: "u1" });
+    if (!isOk(r)) throw new Error("expected ok");
+    expect(r.value.reactiveBalance.toNumber()).toBe(5500);
+  });
+
+  it("includes a due-this-month debt in the projection", async () => {
+    const d = deps({
+      debts: { listForUser: async () => [recurringDebt({})] },
+      clock: { now: () => utc(2026, 6, 7) },
+    });
+    const r = await getWalletBalance(d, { userId: "u1" });
+    if (!isOk(r)) throw new Error("expected ok");
+    expect(r.value.monthEndProjection.toNumber()).toBe(4300);
   });
 });

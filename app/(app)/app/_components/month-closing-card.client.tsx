@@ -5,6 +5,7 @@ import { CalendarCheck, ChevronRight, Receipt } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
@@ -20,15 +21,20 @@ import type { SettleAction } from "@/application/use-cases/month-closing/settle-
 
 import {
   closeMonthAction,
+  settleIncomeAction,
   settleRecurringCommitmentAction,
 } from "../_actions/planning-actions";
 import {
   fetchMonthClosing,
   type MonthClosingCommitment,
+  type MonthClosingIncome,
   type MonthClosingPayload,
   type MonthClosingStatus,
+  type MonthIncomeStatus,
 } from "../_actions/planning-queries";
+import { queryKeys } from "../_lib/query-keys";
 
+import { MoneyInput } from "./money-input";
 import { HideableValue } from "./money-visibility/hideable-value.client";
 
 interface Props {
@@ -231,6 +237,184 @@ function CommitmentsList({
   );
 }
 
+interface IncomeAdjustFormValues {
+  amountCents: bigint;
+}
+
+interface IncomeAdjustFormProps {
+  initialCents: bigint;
+  pending: boolean;
+  onConfirm: (cents: bigint) => void;
+  onCancel: () => void;
+}
+
+function IncomeAdjustForm({ initialCents, pending, onConfirm, onCancel }: IncomeAdjustFormProps) {
+  const { control, handleSubmit } = useForm<IncomeAdjustFormValues>({
+    defaultValues: { amountCents: initialCents },
+  });
+
+  return (
+    <form
+      className="mt-3 flex flex-col gap-2"
+      onSubmit={handleSubmit((values) => onConfirm(values.amountCents))}
+    >
+      <MoneyInput
+        control={control}
+        name="amountCents"
+        label="Quanto você recebeu"
+        required
+      />
+      <div className="flex flex-wrap gap-2">
+        <Button type="submit" variant="brand" size="sm" loading={pending}>
+          Confirmar valor
+        </Button>
+        <Button
+          type="button"
+          variant="ghost"
+          size="sm"
+          disabled={pending}
+          onClick={onCancel}
+        >
+          Voltar
+        </Button>
+      </div>
+    </form>
+  );
+}
+
+const INCOME_CHOICES: { status: MonthIncomeStatus; label: string }[] = [
+  { status: "received", label: "Recebi" },
+  { status: "not_received", label: "Não recebi" },
+  { status: "adjusted", label: "Valor diferente" },
+];
+
+interface IncomeRowProps {
+  income: MonthClosingIncome;
+  monthIso: string;
+  onSettled: () => void;
+}
+
+function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
+  const [error, setError] = useState<string | null>(null);
+  const [adjusting, setAdjusting] = useState(false);
+  const [pendingStatus, setPendingStatus] = useState<MonthIncomeStatus | null>(null);
+  const [pending, startTransition] = useTransition();
+
+  function run(status: MonthIncomeStatus, adjustedValueCents: bigint | null, successMessage: string) {
+    setError(null);
+    setPendingStatus(status);
+    startTransition(async () => {
+      const result = await settleIncomeAction({
+        incomeId: income.incomeId,
+        monthIso,
+        status,
+        ...(adjustedValueCents !== null
+          ? { adjustedValueCents: adjustedValueCents.toString() }
+          : {}),
+      });
+      if (!result.ok) {
+        setPendingStatus(null);
+        setError(result.message ?? "Não foi possível registrar.");
+        return;
+      }
+      setAdjusting(false);
+      toast.success(successMessage);
+      onSettled();
+    });
+  }
+
+  return (
+    <li className="rounded-xl border border-[color:var(--border-soft)] p-3">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="truncate text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+            {income.label}
+          </p>
+          <p className="mt-0.5 text-[0.8125rem] text-[color:var(--text-secondary)]">
+            <HideableValue>{income.amountFormatted}</HideableValue>
+          </p>
+        </div>
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-2">
+        {INCOME_CHOICES.map((choice) => {
+          const active = income.status === choice.status;
+          const isPending = pending && pendingStatus === choice.status;
+          return (
+            <Button
+              key={choice.status}
+              variant={active ? "brand" : "outline"}
+              size="sm"
+              disabled={pending}
+              onClick={() => {
+                if (choice.status === "adjusted") {
+                  setError(null);
+                  setAdjusting(true);
+                  return;
+                }
+                setAdjusting(false);
+                run(choice.status, null, `${income.label}: ${choice.label.toLowerCase()}.`);
+              }}
+            >
+              {isPending ? <Spinner size={16} decorative /> : choice.label}
+            </Button>
+          );
+        })}
+      </div>
+
+      {adjusting ? (
+        <IncomeAdjustForm
+          initialCents={BigInt(income.amountCents)}
+          pending={pending && pendingStatus === "adjusted"}
+          onConfirm={(cents) =>
+            run("adjusted", cents, `${income.label}: valor ajustado.`)
+          }
+          onCancel={() => {
+            setError(null);
+            setAdjusting(false);
+          }}
+        />
+      ) : null}
+
+      {error ? (
+        <p
+          className="mt-2 text-[0.8125rem] font-medium"
+          style={{ color: "var(--semantic-negative)" }}
+        >
+          {error}
+        </p>
+      ) : null}
+    </li>
+  );
+}
+
+interface IncomesListProps {
+  incomes: MonthClosingIncome[];
+  monthIso: string;
+  onSettled: () => void;
+}
+
+function IncomesList({ incomes, monthIso, onSettled }: IncomesListProps) {
+  if (incomes.length === 0) return null;
+  return (
+    <div className="flex flex-col gap-2">
+      <p className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+        Recebeu sua renda esse mês?
+      </p>
+      <ul className="flex flex-col gap-2">
+        {incomes.map((inc) => (
+          <IncomeRow
+            key={inc.incomeId}
+            income={inc}
+            monthIso={monthIso}
+            onSettled={onSettled}
+          />
+        ))}
+      </ul>
+    </div>
+  );
+}
+
 export function MonthClosingCard({ initialData }: Props) {
   const queryClient = useQueryClient();
   const { data } = useSuspenseQuery({
@@ -250,6 +434,15 @@ export function MonthClosingCard({ initialData }: Props) {
 
   async function handleCommitmentSettled() {
     await queryClient.invalidateQueries({ queryKey: ["month-closing"] });
+  }
+
+  async function handleIncomeSettled() {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ["month-closing"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance }),
+      queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      queryClient.invalidateQueries({ queryKey: queryKeys.netWorth }),
+    ]);
   }
 
   function handleClose() {
@@ -361,6 +554,16 @@ export function MonthClosingCard({ initialData }: Props) {
                   aria-hidden
                 />
               </Link>
+            ) : null}
+
+            {data.incomes && data.incomes.length > 0 ? (
+              <div className="border-t border-[color:var(--border-soft)] pt-4">
+                <IncomesList
+                  incomes={data.incomes}
+                  monthIso={data.monthIso ?? ""}
+                  onSettled={handleIncomeSettled}
+                />
+              </div>
             ) : null}
 
             {data.commitments && data.commitments.length > 0 ? (

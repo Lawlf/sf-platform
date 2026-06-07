@@ -1,6 +1,6 @@
 "use client";
 
-import { Search, Star } from "lucide-react";
+import { Star } from "lucide-react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -55,7 +55,6 @@ export function TimelineFilterDrawer({
   const [range, setRange] = useState<string>(params.get("range") ?? "all");
   const [focus, setFocus] = useState<string>(params.get("focus") ?? "balance");
   const [show, setShow] = useState<string>(params.get("show") ?? "all");
-  const [q, setQ] = useState<string>(params.get("q") ?? "");
   const [jumpTo, setJumpTo] = useState<string | null>(params.get("jumpTo"));
 
   function apply() {
@@ -63,7 +62,6 @@ export function TimelineFilterDrawer({
     if (range !== "all") next.set("range", range);
     if (focus !== "balance") next.set("focus", focus);
     if (show !== "all") next.set("show", show);
-    if (q.trim().length > 0) next.set("q", q.trim());
     if (jumpTo) next.set("jumpTo", jumpTo);
     const query = next.toString();
     const href = (
@@ -84,28 +82,11 @@ export function TimelineFilterDrawer({
         />
 
         <SheetHeader className="gap-1">
-          <SheetTitle>Explorar linha do tempo</SheetTitle>
+          <SheetTitle>Ver de outro jeito</SheetTitle>
           <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
-            Busque um mês, filtre por foco ou ajuste o período.
+            Pula pra um mês ou troca a lente: saldo, patrimônio ou renda.
           </SheetDescription>
         </SheetHeader>
-
-        <div className="mt-5 flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
-          <Search
-            size={16}
-            strokeWidth={2}
-            className="text-[color:var(--text-muted)]"
-            aria-hidden
-          />
-          <input
-            type="text"
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Buscar mês ou conquista..."
-            aria-label="Buscar"
-            className="flex-1 border-none bg-transparent text-[0.875rem] text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-muted)]"
-          />
-        </div>
 
         <FilterSection title="Período">
           <ChipRow>

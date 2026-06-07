@@ -8,8 +8,10 @@ import type {
 import { periodCovers } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
+import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
@@ -72,6 +74,12 @@ export interface BuildTimelineInput {
    * backward compat com os testes/chamadas existentes.
    */
   settlements?: TimelineSettlement[];
+  /**
+   * Confirmações de renda no fechar-mês. `not_received` zera a renda daquele
+   * mês; `adjusted` substitui pelo valor confirmado; `received`/ausente mantém
+   * o valor cadastrado. Opcional para backward compat.
+   */
+  incomeSettlements?: IncomeSettlementEntity[];
 }
 
 // 52 semanas / 12 meses = 4.333...
@@ -88,7 +96,11 @@ const WEEKS_PER_MONTH = 4.33;
  * intervalo. `isActive=false` zera meses posteriores a `endDate` (ou todos,
  * se `endDate` for null).
  */
-function incomeMonthlyEquivalent(income: IncomeEntity, month: MonthYear): Money {
+function incomeMonthlyEquivalent(
+  income: IncomeEntity,
+  month: MonthYear,
+  incomeSettlements?: IncomeSettlementEntity[],
+): Money {
   const startMonth = MonthYear.fromDate(income.startDate);
   if (month.isBefore(startMonth)) return Money.fromCents(0n);
   if (income.endDate) {
@@ -98,18 +110,28 @@ function incomeMonthlyEquivalent(income: IncomeEntity, month: MonthYear): Money 
     // Sem endDate explícito mas inativa => trata como já encerrada.
     return Money.fromCents(0n);
   }
+
+  let baseCents: bigint;
   switch (income.frequency) {
     case "monthly":
-      return income.amount;
-    case "weekly": {
-      const cents = Number(income.amount.toCents()) * WEEKS_PER_MONTH;
-      return Money.fromCents(BigInt(Math.round(cents)));
-    }
+      baseCents = income.amount.toCents();
+      break;
+    case "weekly":
+      baseCents = BigInt(Math.round(Number(income.amount.toCents()) * WEEKS_PER_MONTH));
+      break;
     case "one_off":
-      return startMonth.equals(month) ? income.amount : Money.fromCents(0n);
+      baseCents = startMonth.equals(month) ? income.amount.toCents() : 0n;
+      break;
     default:
-      return Money.fromCents(0n);
+      baseCents = 0n;
   }
+
+  if (incomeSettlements && incomeSettlements.length > 0) {
+    const monthDate = month.firstDay();
+    const target = { year: monthDate.getUTCFullYear(), month: monthDate.getUTCMonth() };
+    return Money.fromCents(effectiveIncomeCentsForMonth(income.id, baseCents, target, incomeSettlements));
+  }
+  return Money.fromCents(baseCents);
 }
 
 /**
@@ -257,7 +279,7 @@ export class TimelineService {
     let m = input.from;
     while (m.isAtOrBefore(input.to)) {
       const totalIncome = input.incomes.reduce(
-        (acc, inc) => acc.add(incomeMonthlyEquivalent(inc, m)),
+        (acc, inc) => acc.add(incomeMonthlyEquivalent(inc, m, input.incomeSettlements)),
         Money.fromCents(0n),
       );
       const installmentPayments = paymentsForMonth(input.payments, m);

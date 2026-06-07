@@ -1,9 +1,13 @@
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
+
+import { effectiveIncomeCentsForMonth } from "./income-settlement.service";
 
 import { monthlyDebtService } from "./financial-health.service";
 import type { WalletEvent } from "./wallet-balance.service";
@@ -83,7 +87,11 @@ function isSettledAway(
 }
 
 export class WalletEventGenerator {
-  static incomeEvents(incomes: IncomeEntity[], window: EventWindow): WalletEvent[] {
+  static incomeEvents(
+    incomes: IncomeEntity[],
+    window: EventWindow,
+    incomeSettlements: IncomeSettlementEntity[] = [],
+  ): WalletEvent[] {
     const events: WalletEvent[] = [];
     for (const income of incomes) {
       if (income.deletedAt !== null) continue;
@@ -92,12 +100,15 @@ export class WalletEventGenerator {
           if (!sameMonth(m, income.startDate)) continue;
         }
         if (!isIncomeActiveInMonth(income, m)) continue;
+        const baseCents = incomeMonthlyAmount(income).toCents();
+        const effectiveCents = effectiveIncomeCentsForMonth(income.id, baseCents, m, incomeSettlements);
+        if (effectiveCents <= 0n) continue;
         const day = income.paymentDay ?? income.startDate.getUTCDate();
         const date =
           income.frequency === "one_off" && income.paymentDay === null
             ? income.startDate
             : dateInMonth(m.year, m.month, day);
-        events.push({ date, amount: incomeMonthlyAmount(income), direction: "in" });
+        events.push({ date, amount: Money.fromCents(effectiveCents), direction: "in" });
       }
     }
     return events;
@@ -112,6 +123,7 @@ export class WalletEventGenerator {
   static debtEvents(
     debts: DebtEntity[],
     settlements: RecurringSettlementEntity[],
+    payments: DebtPaymentEntity[],
     window: EventWindow,
   ): WalletEvent[] {
     const events: WalletEvent[] = [];
@@ -126,6 +138,13 @@ export class WalletEventGenerator {
       const day = debtDueDay(debt);
       for (const m of monthStarts(window)) {
         if (isSettledAway(settlements, debt.id, m)) continue;
+        const paymentsThisMonth = payments.filter((p) => p.debtId === debt.id && sameMonth(m, p.paidAt));
+        if (paymentsThisMonth.length > 0) {
+          for (const p of paymentsThisMonth) {
+            events.push({ date: p.paidAt, amount: p.amount, direction: "out" });
+          }
+          continue;
+        }
         events.push({ date: dateInMonth(m.year, m.month, day), amount, direction: "out" });
       }
     }
@@ -136,13 +155,15 @@ export class WalletEventGenerator {
     incomes: IncomeEntity[];
     debts: DebtEntity[];
     settlements: RecurringSettlementEntity[];
+    incomeSettlements?: IncomeSettlementEntity[];
+    payments: DebtPaymentEntity[];
     transactions: TransactionEntity[];
     walletId: string;
     window: EventWindow;
   }): WalletEvent[] {
     return [
-      ...WalletEventGenerator.incomeEvents(input.incomes, input.window),
-      ...WalletEventGenerator.debtEvents(input.debts, input.settlements, input.window),
+      ...WalletEventGenerator.incomeEvents(input.incomes, input.window, input.incomeSettlements ?? []),
+      ...WalletEventGenerator.debtEvents(input.debts, input.settlements, input.payments, input.window),
       ...WalletEventGenerator.transactionEvents(input.transactions, input.walletId),
     ];
   }

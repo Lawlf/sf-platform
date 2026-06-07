@@ -1,9 +1,11 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { updateGoalCascadeConfig } from "@/application/use-cases/goal/update-goal-cascade-config.use-case";
 import { closeMonth } from "@/application/use-cases/month-closing/close-month.use-case";
+import { settleIncome } from "@/application/use-cases/month-closing/settle-income.use-case";
 import {
   settleRecurringCommitment,
   type SettleAction,
@@ -20,6 +22,7 @@ import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repo
 import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
 import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
 import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
+import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
 import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
 import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
 import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
@@ -97,6 +100,57 @@ export async function settleRecurringCommitmentAction(
       clock: new SystemClock(),
     },
     { userId: user.id, debtId, monthIso, action },
+  );
+  if (result._tag === "err") {
+    return { ok: false, message: result.error.message };
+  }
+  revalidatePath("/app/linha-do-tempo");
+  revalidatePath("/app");
+  return { ok: true };
+}
+
+const settleIncomeSchema = z
+  .object({
+    incomeId: z.string().min(1),
+    monthIso: z.string().regex(/^\d{4}-\d{2}$/, "Mês inválido."),
+    status: z.enum(["received", "not_received", "adjusted"]),
+    adjustedValueCents: z.coerce.bigint().nonnegative().optional(),
+  })
+  .refine(
+    (v) => v.status !== "adjusted" || (v.adjustedValueCents ?? 0n) > 0n,
+    { message: "Informe o valor recebido.", path: ["adjustedValueCents"] },
+  );
+
+export interface SettleIncomeActionInput {
+  incomeId: string;
+  monthIso: string;
+  status: "received" | "not_received" | "adjusted";
+  adjustedValueCents?: string;
+}
+
+export async function settleIncomeAction(
+  input: SettleIncomeActionInput,
+): Promise<PlanningActionResult> {
+  const parsed = settleIncomeSchema.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+  }
+
+  const user = await requireUser();
+  const result = await settleIncome(
+    {
+      incomes: new DrizzleIncomeRepository(),
+      settlements: new DrizzleIncomeSettlementRepository(),
+      clock: new SystemClock(),
+    },
+    {
+      userId: user.id,
+      incomeId: parsed.data.incomeId,
+      monthIso: parsed.data.monthIso,
+      action: parsed.data.status,
+      adjustedAmountCents:
+        parsed.data.status === "adjusted" ? (parsed.data.adjustedValueCents ?? 0n) : null,
+    },
   );
   if (result._tag === "err") {
     return { ok: false, message: result.error.message };

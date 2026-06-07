@@ -666,3 +666,99 @@ describe("TimelineService.buildTimeline com settlements (anti double-count)", ()
     expect(tl.points[0]?.totalDebtPayments.toCents()).toBe(150_000n);
   });
 });
+
+describe("TimelineService.buildTimeline com incomeSettlements", () => {
+  it("renda confirmada not_received no mês: zera a renda daquele mês", () => {
+    const income = makeIncome({ id: "inc-1", amountCents: 500_000n, frequency: "monthly" });
+    const tl = TimelineService.buildTimeline({
+      incomes: [income],
+      debts: [],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 3),
+      incomeSettlements: [
+        {
+          userId: "user-1",
+          incomeId: "inc-1",
+          month: new Date(Date.UTC(2026, 2, 1)),
+          status: "not_received",
+          adjustedAmountCents: null,
+          createdAt: new Date(Date.UTC(2026, 2, 31)),
+        },
+      ],
+    });
+    expect(tl.points[0]?.totalIncome.toCents()).toBe(0n);
+  });
+
+  it("renda confirmada adjusted: usa o valor confirmado", () => {
+    const income = makeIncome({ id: "inc-1", amountCents: 500_000n, frequency: "monthly" });
+    const tl = TimelineService.buildTimeline({
+      incomes: [income],
+      debts: [],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 3),
+      incomeSettlements: [
+        {
+          userId: "user-1",
+          incomeId: "inc-1",
+          month: new Date(Date.UTC(2026, 2, 1)),
+          status: "adjusted",
+          adjustedAmountCents: 320_000n,
+          createdAt: new Date(Date.UTC(2026, 2, 31)),
+        },
+      ],
+    });
+    expect(tl.points[0]?.totalIncome.toCents()).toBe(320_000n);
+  });
+
+  it("renda confirmada received ou sem settlement: valor cheio", () => {
+    const income = makeIncome({ id: "inc-1", amountCents: 500_000n, frequency: "monthly" });
+    const tl = TimelineService.buildTimeline({
+      incomes: [income],
+      debts: [],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 4),
+      incomeSettlements: [
+        {
+          userId: "user-1",
+          incomeId: "inc-1",
+          month: new Date(Date.UTC(2026, 2, 1)),
+          status: "received",
+          adjustedAmountCents: null,
+          createdAt: new Date(Date.UTC(2026, 2, 31)),
+        },
+      ],
+    });
+    // mar received (cheio) e abr sem settlement (cheio).
+    expect(tl.points.map((p) => p.totalIncome.toCents())).toEqual([500_000n, 500_000n]);
+  });
+
+  it("settlement de uma renda só afeta aquele mês", () => {
+    const income = makeIncome({ id: "inc-1", amountCents: 500_000n, frequency: "monthly" });
+    const tl = TimelineService.buildTimeline({
+      incomes: [income],
+      debts: [],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 3),
+      to: MonthYear.from(2026, 5),
+      incomeSettlements: [
+        {
+          userId: "user-1",
+          incomeId: "inc-1",
+          month: new Date(Date.UTC(2026, 3, 1)),
+          status: "not_received",
+          adjustedAmountCents: null,
+          createdAt: new Date(Date.UTC(2026, 3, 30)),
+        },
+      ],
+    });
+    // mar cheio, abr zerado, mai cheio.
+    expect(tl.points.map((p) => p.totalIncome.toCents())).toEqual([500_000n, 0n, 500_000n]);
+  });
+});
