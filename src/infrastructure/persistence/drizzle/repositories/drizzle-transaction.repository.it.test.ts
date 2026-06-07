@@ -93,4 +93,20 @@ describe("DrizzleTransactionRepository (integration)", () => {
     );
     expect(found).toHaveLength(0);
   });
+
+  it("existingExternalIds returns only ids already stored for the user", async () => {
+    await repo.create(
+      makeTransaction({
+        description: `${DESC_PREFIX}ofx-A1`,
+        externalId: "A1",
+        source: "ofx_import",
+      }),
+    );
+
+    const hits = await repo.existingExternalIds(userId, ["A1", "NOPE"]);
+    expect(hits).toEqual(["A1"]);
+
+    const empty = await repo.existingExternalIds(userId, []);
+    expect(empty).toEqual([]);
+  });
 });

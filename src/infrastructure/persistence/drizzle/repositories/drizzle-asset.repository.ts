@@ -1,4 +1,4 @@
-import { and, eq, inArray, isNull } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type {
@@ -132,6 +132,7 @@ function toEntity(row: AssetRow): AssetEntity {
     salePriceCents: row.salePriceCents ?? null,
     deactivationReason: row.deactivationReason,
     deletedAt: row.deletedAt ?? null,
+    externalAccountKey: row.externalAccountKey ?? null,
   };
 }
 
@@ -172,6 +173,7 @@ export class DrizzleAssetRepository implements AssetRepository {
         salePriceCents: asset.salePriceCents,
         deactivationReason: asset.deactivationReason,
         deletedAt: asset.deletedAt,
+        externalAccountKey: asset.externalAccountKey ?? null,
       });
   }
 
@@ -196,6 +198,7 @@ export class DrizzleAssetRepository implements AssetRepository {
         deactivationKind: asset.deactivationKind,
         salePriceCents: asset.salePriceCents,
         deactivationReason: asset.deactivationReason,
+        externalAccountKey: asset.externalAccountKey ?? null,
       })
       .where(eq(assets.id, asset.id));
   }
@@ -282,5 +285,29 @@ export class DrizzleAssetRepository implements AssetRepository {
 
   async softDelete(id: string, deletedAt: Date): Promise<void> {
     await getDb().update(assets).set({ deletedAt, updatedAt: deletedAt }).where(eq(assets.id, id));
+  }
+
+  async findByExternalAccountKey(userId: string, key: string): Promise<AssetEntity | null> {
+    const rows = await getDb()
+      .select()
+      .from(assets)
+      .where(
+        and(
+          eq(assets.userId, userId),
+          eq(assets.externalAccountKey, key),
+          isNull(assets.deletedAt),
+        ),
+      )
+      .limit(1);
+    const row = rows[0];
+    return row ? toEntity(row) : null;
+  }
+
+  async listExternalAccountKeys(userId: string): Promise<string[]> {
+    const rows = await getDb()
+      .select({ key: assets.externalAccountKey })
+      .from(assets)
+      .where(and(eq(assets.userId, userId), isNotNull(assets.externalAccountKey), isNull(assets.deletedAt)));
+    return rows.map((r) => r.key).filter((v): v is string => v !== null);
   }
 }

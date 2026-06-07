@@ -43,6 +43,7 @@ function makeAsset(
     salePriceCents: overrides.salePriceCents ?? null,
     deactivationReason: overrides.deactivationReason ?? null,
     deletedAt: overrides.deletedAt ?? null,
+    externalAccountKey: overrides.externalAccountKey ?? null,
   };
 }
 

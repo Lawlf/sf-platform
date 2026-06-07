@@ -7,4 +7,5 @@ export interface TransactionRepository {
   listByAccount(accountId: string, userId: string): Promise<TransactionEntity[]>;
   listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]>;
   softDelete(id: string, deletedAt: Date): Promise<void>;
+  existingExternalIds(userId: string, externalIds: string[]): Promise<string[]>;
 }

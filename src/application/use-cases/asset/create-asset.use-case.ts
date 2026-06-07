@@ -139,6 +139,7 @@ export async function createAsset(
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 
   await deps.assets.create(asset);

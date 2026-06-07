@@ -31,6 +31,7 @@ function asset(partial: Partial<AssetEntity> & Pick<AssetEntity, "metadata">): A
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...partial,
   };
 }

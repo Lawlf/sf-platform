@@ -46,6 +46,9 @@ function fakeRepo(rows: TransactionEntity[]): TransactionRepository {
     async softDelete() {
       throw new Error("not used");
     },
+    async existingExternalIds() {
+      throw new Error("not used");
+    },
     async listForUserInRange(_userId, from, to) {
       return rows.filter((r) => r.occurredAt >= from && r.occurredAt <= to);
     },

@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, isNull, lte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
 
 import type {
   TransactionDirection,
@@ -103,5 +103,19 @@ export class DrizzleTransactionRepository implements TransactionRepository {
 
   async softDelete(id: string, deletedAt: Date): Promise<void> {
     await getDb().update(transactions).set({ deletedAt }).where(eq(transactions.id, id));
+  }
+
+  async existingExternalIds(userId: string, externalIds: string[]): Promise<string[]> {
+    if (externalIds.length === 0) return [];
+    const rows = await getDb()
+      .select({ externalId: transactions.externalId })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.userId, userId),
+          inArray(transactions.externalId, externalIds),
+        ),
+      );
+    return rows.map((r) => r.externalId).filter((v): v is string => v !== null);
   }
 }

@@ -22,6 +22,8 @@ function makeAssetRepo(): AssetRepository {
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
+    findByExternalAccountKey: vi.fn(),
+    listExternalAccountKeys: vi.fn(async () => []),
   };
 }
 
@@ -63,6 +65,7 @@ function makeAsset(userId = "user-1"): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 

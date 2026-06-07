@@ -289,6 +289,7 @@ function deserializeAsset(s: Record<string, unknown>): AssetEntity {
     salePriceCents: optBigint(s.salePriceCents),
     deactivationReason: optStr(s.deactivationReason),
     deletedAt: optDate(s.deletedAt),
+    externalAccountKey: optStr(s.externalAccountKey),
   };
 }
 

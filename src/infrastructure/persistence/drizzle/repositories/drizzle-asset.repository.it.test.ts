@@ -92,6 +92,7 @@ function makeVehicle(overrides: Partial<AssetEntity> = {}): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...overrides,
   };
 }
@@ -118,6 +119,7 @@ function makeRealEstate(overrides: Partial<AssetEntity> = {}): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...overrides,
   };
 }
@@ -235,6 +237,27 @@ describe("DrizzleAssetRepository (integration)", () => {
     expect(result?.allocations).toHaveLength(1);
     expect(result?.allocations[0]?.allocationOriginal.toCents()).toBe(300_000n);
     expect(result?.allocations[0]?.debtId).toBe(debtId);
+  });
+
+  it("findByExternalAccountKey returns the matching asset or null", async () => {
+    const entity = makeVehicle({ externalAccountKey: "341:12345-6" });
+    await repo.create(entity);
+
+    const found = await repo.findByExternalAccountKey(userId, "341:12345-6");
+    expect(found?.id).toBe(entity.id);
+
+    const missing = await repo.findByExternalAccountKey(userId, "000:0");
+    expect(missing).toBeNull();
+  });
+
+  it("listExternalAccountKeys returns only non-null keys for user", async () => {
+    const withKey = makeVehicle({ externalAccountKey: "341:1" });
+    const withoutKey = makeRealEstate({ externalAccountKey: null });
+    await repo.create(withKey);
+    await repo.create(withoutKey);
+
+    const keys = await repo.listExternalAccountKeys(userId);
+    expect(keys).toEqual(["341:1"]);
   });
 
   it("findActiveWithAllocations groups allocations per asset", async () => {
