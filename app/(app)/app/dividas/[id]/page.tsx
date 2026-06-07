@@ -1,6 +1,7 @@
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
+import { fetchGoalsLinkedToDebt } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { computeInstallmentDueDates } from "@/domain/services/debt-calendar.service";
 import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calendar-link";
@@ -27,8 +28,6 @@ function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
   }
 }
 
-import { fetchGoalsLinkedToDebt } from "@/app/(app)/app/metas/_actions/goal-queries";
-
 import { PageShell } from "../../_components/page-shell";
 
 import { ActionsSection } from "./_components/actions-section";
@@ -36,6 +35,7 @@ import { AmortizationSection } from "./_components/amortization-section";
 import { DebtHeader } from "./_components/debt-header";
 import { InstallmentPurchasesSection } from "./_components/installment-purchases-section";
 import { NoScheduleSection } from "./_components/no-schedule-section";
+import { PaidOffBanner } from "./_components/paid-off-banner";
 import { PaymentsSection } from "./_components/payments-section";
 
 interface PageProps {
@@ -72,6 +72,8 @@ export default async function DebtDetailPage({ params }: PageProps) {
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader debt={debt} />
+
+      {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
 
       <ActionsSection
         debt={debt}

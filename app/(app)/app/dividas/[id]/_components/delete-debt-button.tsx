@@ -17,8 +17,8 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/app/components/ui/alert-dialog";
+import { Button } from "@/app/components/ui/button";
 import { Spinner } from "@/app/components/ui/spinner";
-import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import { queryKeys } from "../../../_lib/query-keys";
 import { deleteDebtAction } from "../_actions/delete-debt.action";
@@ -63,17 +63,17 @@ export function DeleteDebtButton({ debtId, label }: DeleteDebtButtonProps) {
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <SimpleTooltip label="Apagar dívida">
-        <AlertDialogTrigger asChild>
-          <button
-            type="button"
-            aria-label={aria}
-            className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
-          >
-            <Trash2 size={15} strokeWidth={2} aria-hidden />
-          </button>
-        </AlertDialogTrigger>
-      </SimpleTooltip>
+      <AlertDialogTrigger asChild>
+        <Button
+          variant="ghost"
+          size="sm"
+          aria-label={aria}
+          className="w-full text-[color:var(--text-muted)] hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)] sm:w-auto"
+        >
+          <Trash2 size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
+          Apagar dívida
+        </Button>
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Apagar essa dívida?</AlertDialogTitle>

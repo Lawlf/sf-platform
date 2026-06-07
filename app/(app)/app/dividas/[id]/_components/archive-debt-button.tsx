@@ -1,20 +1,40 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { Archive } from "lucide-react";
+import { CheckCircle2, CircleSlash } from "lucide-react";
 import { useState, useTransition } from "react";
 
-import { SimpleTooltip } from "@/app/components/ui/tooltip";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/app/components/ui/alert-dialog";
+import { Button } from "@/app/components/ui/button";
+import { Spinner } from "@/app/components/ui/spinner";
 
 import { queryKeys } from "../../../_lib/query-keys";
 import { archiveDebtAction } from "../_actions/archive-debt.action";
 
-export function ArchiveDebtButton({ debtId, label }: { debtId: string; label?: string }) {
+interface Props {
+  debtId: string;
+  label?: string;
+  recurring?: boolean;
+  valueLabel?: string | undefined;
+}
+
+export function ArchiveDebtButton({ debtId, label, recurring = false, valueLabel }: Props) {
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  function onClick() {
+  function onConfirm() {
     setError(null);
     startTransition(async () => {
       const r = await archiveDebtAction(debtId, "paid_off");
@@ -22,34 +42,68 @@ export function ArchiveDebtButton({ debtId, label }: { debtId: string; label?: s
         setError(r.message);
         return;
       }
-      await queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") });
-      await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
-      await queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
+        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+      ]);
+      setOpen(false);
     });
   }
 
-  const aria = label ? `Arquivar ${label}` : "Marcar como quitada";
+  const buttonLabel = recurring ? "Encerrei esse compromisso" : "Já quitei essa dívida";
+  const dialogTitle = recurring ? "Encerrar esse compromisso?" : "Quitou essa dívida?";
+  const named = label ? `"${label}"` : "isso";
+  const dialogDescription = recurring
+    ? `A gente para de contar ${named} no seu orçamento mensal, e ${
+        valueLabel ? `o valor de ${valueLabel}` : "esse valor"
+      } volta a ficar livre. Se voltar a pagar, é só reativar.`
+    : `${
+        label ? `Vamos marcar "${label}" como quitada` : "Vamos marcar como quitada"
+      } e tirar das ativas. Se foi engano, dá pra reativar depois.`;
+  const confirmLabel = recurring ? "Sim, encerrei" : "Sim, quitei";
 
   return (
-    <div className="flex flex-col items-end gap-1">
-      <SimpleTooltip label="Marcar como quitada">
-        <button
-          type="button"
-          disabled={pending}
-          onClick={onClick}
-          aria-label={aria}
-          className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)] disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          <Archive size={15} strokeWidth={2} aria-hidden />
-        </button>
-      </SimpleTooltip>
-      {error ? (
-        <span role="alert" className="text-xs text-[color:var(--semantic-negative)]">
-          {error}
-        </span>
-      ) : null}
-    </div>
+    <AlertDialog open={open} onOpenChange={setOpen}>
+      <AlertDialogTrigger asChild>
+        <Button variant="positive" size="sm" className="w-full sm:w-auto">
+          {recurring ? (
+            <CircleSlash size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
+          ) : (
+            <CheckCircle2 size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
+          )}
+          {buttonLabel}
+        </Button>
+      </AlertDialogTrigger>
+      <AlertDialogContent>
+        <AlertDialogHeader>
+          <AlertDialogTitle>{dialogTitle}</AlertDialogTitle>
+          <AlertDialogDescription>{dialogDescription}</AlertDialogDescription>
+        </AlertDialogHeader>
+        {error ? (
+          <p role="alert" className="text-sm text-[color:var(--semantic-negative)]">
+            {error}
+          </p>
+        ) : null}
+        <AlertDialogFooter>
+          <AlertDialogCancel disabled={pending}>Ainda não</AlertDialogCancel>
+          <AlertDialogAction
+            disabled={pending}
+            aria-busy={pending || undefined}
+            onClick={onConfirm}
+            className="relative"
+          >
+            <span className={pending ? "opacity-0" : "opacity-100"}>{confirmLabel}</span>
+            {pending ? (
+              <span className="absolute inset-0 flex items-center justify-center">
+                <Spinner size={16} />
+              </span>
+            ) : null}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
   );
 }

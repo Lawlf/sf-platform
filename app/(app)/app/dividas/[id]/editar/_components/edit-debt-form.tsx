@@ -9,11 +9,12 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
-import type { DebtKind } from "@/domain/entities/debt.entity";
+import type { DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
+import { EXPENSE_CATEGORIES } from "../../../_lib/expense-categories";
 import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
 import { updateDebtAction } from "../../_actions/update-debt.action";
 
@@ -37,6 +38,19 @@ const formSchema = z.object({
   monthlyRatePct: z.number().min(0).max(1000).nullable(),
   recurringAmountCents: z.bigint().nonnegative().nullable(),
   recurringFrequency: z.enum(["monthly", "weekly"]).nullable(),
+  expenseCategory: z
+    .enum([
+      "housing",
+      "utilities",
+      "food",
+      "transport",
+      "health",
+      "leisure",
+      "subscriptions",
+      "education",
+      "other",
+    ])
+    .nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -64,6 +78,7 @@ interface Props {
     monthlyRatePct: number | null;
     recurringAmountCents: string | null;
     recurringFrequency: "monthly" | "weekly" | null;
+    expenseCategory: ExpenseCategory | null;
   };
 }
 
@@ -83,6 +98,7 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
   const revolvingRateId = useId();
   const overdraftRateId = useId();
   const frequencyId = useId();
+  const categoryId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -119,6 +135,7 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
         ? BigInt(defaults.recurringAmountCents)
         : null,
       recurringFrequency: defaults.recurringFrequency,
+      expenseCategory: defaults.expenseCategory,
     },
   });
 
@@ -170,6 +187,7 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
         fd.set("recurringAmountCents", v.recurringAmountCents.toString());
       }
       if (v.recurringFrequency) fd.set("recurringFrequency", v.recurringFrequency);
+      if (v.expenseCategory) fd.set("expenseCategory", v.expenseCategory);
       if (v.dueDay != null) fd.set("dueDay", String(v.dueDay));
     }
 
@@ -348,6 +366,19 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
 
       {kind === "recurring" ? (
         <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+          <WizardField label="Categoria" htmlFor={categoryId}>
+            <select
+              id={categoryId}
+              {...form.register("expenseCategory")}
+              className={wizardInputClass}
+            >
+              {EXPENSE_CATEGORIES.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.label}
+                </option>
+              ))}
+            </select>
+          </WizardField>
           <MoneyInput
             control={form.control}
             name="recurringAmountCents"

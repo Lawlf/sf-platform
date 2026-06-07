@@ -16,6 +16,7 @@ import { installmentPurchaseItemSchema } from "@/presentation/http/validators/de
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
+
 import { buildUpdateMoneyInput } from "./update-debt.money";
 
 const bigintFromString = z
@@ -80,6 +81,19 @@ const schema = z.object({
     .union([positiveBigint, z.literal("").transform(() => null)])
     .optional(),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]).optional(),
+  expenseCategory: z
+    .enum([
+      "housing",
+      "utilities",
+      "food",
+      "transport",
+      "health",
+      "leisure",
+      "subscriptions",
+      "education",
+      "other",
+    ])
+    .optional(),
   installmentPurchasesJson: z.string().optional(),
 });
 
@@ -147,6 +161,7 @@ export async function updateDebtAction(formData: FormData): Promise<UpdateDebtRe
   if (overdraftMonthlyRate !== undefined) input.monthlyRate = overdraftMonthlyRate;
   if (d.recurringAmountCents != null) input.recurringAmountCents = d.recurringAmountCents;
   if (d.recurringFrequency !== undefined) input.recurringFrequency = d.recurringFrequency;
+  if (d.expenseCategory !== undefined) input.expenseCategory = d.expenseCategory;
 
   if (d.installmentPurchasesJson !== undefined) {
     try {
