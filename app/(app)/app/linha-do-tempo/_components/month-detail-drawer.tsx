@@ -62,7 +62,7 @@ export function MonthDetailDrawer({ point, open, onOpenChange }: MonthDetailDraw
           />
           <KPI
             icon={<Wallet size={14} strokeWidth={2} aria-hidden />}
-            label="Saldo livre"
+            label="Saldo da Carteira"
             value={point.freeBalance.formatted}
             tone={BigInt(point.freeBalance.cents) >= 0n ? "positive" : "negative"}
           />

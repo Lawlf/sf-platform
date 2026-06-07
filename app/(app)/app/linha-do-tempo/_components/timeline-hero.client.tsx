@@ -1,6 +1,6 @@
 "use client";
 
-import { Flame, Search } from "lucide-react";
+import { Flame, SlidersHorizontal } from "lucide-react";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 
@@ -58,16 +58,16 @@ export function TimelineHero({
           aria-label="Resumo do patrimônio"
           className="relative rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-5 py-4 backdrop-blur-md"
         >
-          <SimpleTooltip label="Buscar e filtrar" side="left">
+          <SimpleTooltip label="Mudar a visão" side="left">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
-              aria-label="Buscar e filtrar"
+              aria-label="Mudar a visão"
               aria-haspopup="dialog"
               aria-expanded={drawerOpen}
               className="focus-ring absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-secondary)]"
             >
-              <Search size={15} strokeWidth={2.25} aria-hidden />
+              <SlidersHorizontal size={15} strokeWidth={2.25} aria-hidden />
               {hasFilters ? (
                 <span
                   aria-hidden
@@ -78,7 +78,7 @@ export function TimelineHero({
           </SimpleTooltip>
 
           <div className="text-[0.625rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
-            Patrimônio líquido
+            Patrimônio
           </div>
           <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
             <HideableValue>{patrimonyFormatted}</HideableValue>
@@ -96,7 +96,7 @@ export function TimelineHero({
                 }`}
               >
                 <Flame size={12} strokeWidth={2.25} aria-hidden />
-                {streakCount} no verde
+                {streakCount} meses com sobra
               </span>
             ) : null}
             <span className="text-[0.6875rem] font-semibold text-[color:var(--text-muted)]">

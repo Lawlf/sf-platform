@@ -133,8 +133,8 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={4}
+        currentStep={1}
+        totalSteps={3}
         title="Saldo devedor"
         description="Quanto está usando do cheque especial agora."
         onBack={() => router.push("/app/dividas/nova" as Route)}
@@ -193,8 +193,8 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
   if (step === 3) {
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={4}
+        currentStep={2}
+        totalSteps={3}
         title="Taxa"
         description="Taxa do banco e data de início."
         onBack={() => setStep(2)}
@@ -246,10 +246,10 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
 
   return (
     <WizardShell
-      currentStep={4}
-      totalSteps={4}
+      currentStep={3}
+      totalSteps={3}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(3)}
       primary={{
         label: "Salvar dívida",

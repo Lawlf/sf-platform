@@ -29,7 +29,7 @@ const TYPE_ICON = {
 const TYPE_LABEL: Record<string, string> = {
   debt_payoff: "Quitação de dívida",
   emergency_fund: "Reserva de emergência",
-  savings: "Poupança",
+  savings: "Juntar um valor",
   financial_independence: "Independência financeira",
 };
 
@@ -115,7 +115,7 @@ export function GoalCard({ data }: GoalCardProps) {
             </span>
           </span>
         ) : (
-          <span className="text-[color:var(--text-muted)]">Fora do horizonte</span>
+          <span className="text-[color:var(--text-muted)]">Sem previsão ainda</span>
         )}
       </div>
     </Link>

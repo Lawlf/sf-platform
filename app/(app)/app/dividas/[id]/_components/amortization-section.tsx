@@ -53,7 +53,7 @@ export function AmortizationSection({ debt, amortization }: Props) {
             value={<HideableValue>{Money.fromCents(totalInterestCents).format()}</HideableValue>}
           />
           <Stat
-            label="Já amortizado"
+            label="Já pago do valor"
             value={
               <HideableValue>
                 {Money.fromCents(paidPrincipalCents > 0n ? paidPrincipalCents : 0n).format()}
@@ -76,7 +76,7 @@ export function AmortizationSection({ debt, amortization }: Props) {
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <div className="flex items-baseline justify-between gap-3">
           <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
-            Cronograma de amortização
+            Cronograma de parcelas
           </h2>
           <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
             {installments.length} parcelas

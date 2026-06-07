@@ -472,8 +472,8 @@ export function PersonalLoanForm({
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={6}
+        currentStep={1}
+        totalSteps={5}
         title="Valores"
         description="Use os dados do contrato."
         onBack={() => router.push("/app/dividas/nova" as Route)}
@@ -535,7 +535,7 @@ export function PersonalLoanForm({
             </WizardField>
 
             <WizardField
-              label="Valor total contratado (com IOF)"
+              label="Quanto você vai pagar no total (com taxas)"
               htmlFor={principalId}
               error={(errors as { principalCents?: { message?: string } }).principalCents?.message}
               helpLink={<HowItWorksSheet topic="iof" variant="brand" />}
@@ -572,7 +572,7 @@ export function PersonalLoanForm({
               {cetAnnualText ? (
                 <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
                   <Calculator size={11} strokeWidth={2.25} aria-hidden />
-                  CET real: {cetAnnualText}
+                  Custo real dos juros por ano: {cetAnnualText}
                 </div>
               ) : null}
             </WizardField>
@@ -598,7 +598,7 @@ export function PersonalLoanForm({
         ) : (
           <>
             <WizardField
-              label="Valor original contratado (com IOF)"
+              label="Quanto você pegou emprestado (com taxas)"
               htmlFor={principalId}
               error={
                 (errors as { originalPrincipalCents?: { message?: string } }).originalPrincipalCents
@@ -715,8 +715,8 @@ export function PersonalLoanForm({
 
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={6}
+        currentStep={2}
+        totalSteps={5}
         title="Detalhes"
         description="Parcela e data de início do contrato."
         onBack={() => setStep(2)}
@@ -729,7 +729,7 @@ export function PersonalLoanForm({
         }}
       >
         <div className="mb-[14px] rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-primary)] opacity-80">
-          Empréstimo ou crediário usa Price, parcela fixa.
+          Empréstimo costuma ter parcela fixa do começo ao fim.
         </div>
 
         <WizardField label="Data de início" htmlFor={startDateId} error={errors.startDate?.message}>
@@ -772,10 +772,10 @@ export function PersonalLoanForm({
 
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={6}
+        currentStep={3}
+        totalSteps={5}
         title="Esse dinheiro caiu numa conta?"
-        description="Assim o saldo livre fica correto desde o cadastro."
+        description="Assim o saldo da Carteira fica certo desde o começo."
         onBack={() => setStep(3)}
         primary={
           canAdvanceCash
@@ -818,8 +818,8 @@ export function PersonalLoanForm({
         : ((values as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents ?? 0n);
     return (
       <WizardShell
-        currentStep={5}
-        totalSteps={6}
+        currentStep={4}
+        totalSteps={5}
         title="Esse compromisso é por causa de um bem?"
         description="Carro, imóvel ou outro patrimônio. Você pode pular e vincular depois."
         onBack={() => setStep(scenario === "ongoing" ? 3 : 4)}
@@ -865,10 +865,10 @@ export function PersonalLoanForm({
 
   return (
     <WizardShell
-      currentStep={6}
-      totalSteps={6}
+      currentStep={5}
+      totalSteps={5}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(5)}
       primary={{
         label: "Salvar dívida",
@@ -882,7 +882,7 @@ export function PersonalLoanForm({
       <ComputedCard
         label={scenario === "new" ? "Sua parcela mensal" : "Parcela mensal"}
         value={installmentText}
-        sub={`por ${termsForCard} meses · Price`}
+        sub={`por ${termsForCard} meses · parcela fixa`}
       />
 
       <SummaryList items={summary} />

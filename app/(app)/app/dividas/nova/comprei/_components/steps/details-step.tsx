@@ -405,7 +405,7 @@ export function DetailsStep({
               {formatBRL(principal)}
             </div>
             <div className="mt-0.5 text-[0.6875rem] opacity-85">
-              Valor da compra menos a entrada. Sistema PRICE (parcela fixa).
+              Valor da compra menos a entrada. Parcela fixa do começo ao fim.
             </div>
           </div>
         ) : null}

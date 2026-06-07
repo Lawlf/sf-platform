@@ -20,7 +20,7 @@ const TOPICS = {
       "Patrimônio líquido = soma dos bens (valor atual de cada um) menos a soma dos saldos devedores das dívidas. Pode ser negativo quando as dívidas superam os bens.",
   },
   "saldo-livre": {
-    title: "Saldo livre por mês",
+    title: "Saldo da Carteira",
     tag: "Conceito",
     body: "É o que sobra da renda depois das parcelas e contas fixas. Quanto maior, mais espaço pra guardar, investir ou quitar dívida.",
     technical:
@@ -97,11 +97,11 @@ const TOPICS = {
       "Faça você mesmo: projete a quitação duas vezes, com e sem o extra. A diferença de meses e de juros entre as duas projeções é o seu ganho. Como o extra abate direto no saldo, ele derruba os juros dos meses seguintes, e esse efeito cresce quanto antes você começa.",
   },
   "snowball-avalanche": {
-    title: "Snowball vs Avalanche",
+    title: "Qual dívida pagar primeiro",
     tag: "Simulador",
-    body: "Com várias dívidas e um valor fixo por mês pra atacá-las, a ordem muda o resultado. Quitar a menor primeiro dá uma vitória rápida pra manter o ânimo. Atacar a de juros mais alto economiza mais no fim. A gente compara as duas estratégias com o mesmo dinheiro pra você ver a diferença em meses e em juros.",
+    body: "Com várias dívidas e um valor fixo por mês pra pagá-las, a ordem muda o resultado. Quitar a menor primeiro dá uma vitória rápida pra manter o ânimo. Pagar a de juros mais alto economiza mais no fim. A gente compara as duas formas com o mesmo dinheiro pra você ver a diferença em meses e em juros.",
     technical:
-      "Faça você mesmo: pague o mínimo de todas e jogue o que sobra do orçamento numa única dívida. Snowball: a de menor saldo. Avalanche: a de maior juro. Quando ela zera, o valor que ia pra ela vai pra próxima (efeito bola de neve). Avalanche costuma pagar menos juros no total.",
+      "Faça você mesmo: pague o mínimo de todas e jogue o que sobra do orçamento numa única dívida. Menor saldo primeiro: a de menor valor. Juro mais alto primeiro: a mais cara. Quando ela zera, o valor que ia pra ela vai pra próxima (efeito bola de neve). Pagar a de juro mais alto costuma sair mais barato no total.",
   },
   "compra-vs-investir": {
     title: "Vale a pena comprar?",

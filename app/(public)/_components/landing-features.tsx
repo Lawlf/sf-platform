@@ -22,7 +22,7 @@ const features = [
   {
     icon: TrendingDown,
     label: "Projeção de quitação.",
-    title: "A data exata em que você sai do vermelho.",
+    title: "A data prevista pra dívida acabar.",
     body: "Mantendo o ritmo atual, o sistema projeta o mês de quitação total. Aumente o aporte e veja a data se aproximar em tempo real.",
     accent: "from-[#16a34a] to-[#0f7a37]",
   },
@@ -30,7 +30,7 @@ const features = [
     icon: Zap,
     label: "Simuladores.",
     title: "E se eu pagar R$ 200 a mais por mês?",
-    body: "Em que ordem quito as dívidas pra economizar mais juros? Quanto antes saio do vermelho? Posso comprar essa parcela sem atrasar tudo? A gente responde em segundos, lado a lado.",
+    body: "Em que ordem quito as dívidas pra economizar mais juros? Em quanto tempo elas devem acabar? Posso comprar essa parcela sem atrasar tudo? A gente faz a conta em segundos, lado a lado.",
     accent: "from-[#ca8a04] to-[#a16207]",
   },
   {

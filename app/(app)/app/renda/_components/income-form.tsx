@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -21,6 +23,7 @@ const formSchema = z.object({
   frequency: z.enum(["monthly", "weekly", "one_off"]),
   startDate: z.string().min(1, "Informe a data inicial."),
   endDate: z.string().nullable().optional(),
+  paymentDay: z.number().int().min(1).max(31).nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -48,10 +51,13 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       frequency: "monthly",
       startDate: TODAY,
       endDate: null,
+      paymentDay: 5,
     },
   });
 
   const currency = form.watch("currency");
+  const frequency = form.watch("frequency");
+  const [showEnd, setShowEnd] = useState(false);
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -62,6 +68,10 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
     fd.set("frequency", values.frequency);
     fd.set("startDate", values.startDate);
     fd.set("endDate", values.endDate ?? "");
+    fd.set(
+      "paymentDay",
+      values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
+    );
     startTransition(async () => {
       const r = await createIncomeAction(fd);
       if (!r.ok) {
@@ -79,12 +89,12 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
       <div>
         <label className={labelClass} htmlFor="renda-label">
-          Rótulo
+          Nome
         </label>
         <input
           id="renda-label"
           {...form.register("label")}
-          placeholder="Ex: Salário, freelance, dividendos"
+          placeholder="Ex: Salário, freela, aluguel, comissão"
           className={fieldClass}
           aria-invalid={form.formState.errors.label ? true : undefined}
           aria-describedby={form.formState.errors.label ? "renda-label-error" : undefined}
@@ -106,8 +116,13 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         label="Valor"
         required
         currency={currency}
-        onCurrencyChange={(v) => form.setValue("currency", v)}
       />
+      <Link
+        href={"/app/simular/salario-clt" as Route}
+        className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+      >
+        Não sabe o líquido? Calcular a partir do bruto
+      </Link>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -117,29 +132,58 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
           <select id="renda-frequency" {...form.register("frequency")} className={fieldClass}>
             <option value="monthly">Mensal</option>
             <option value="weekly">Semanal</option>
-            <option value="one_off">Pontual</option>
+            <option value="one_off">Uma vez só</option>
           </select>
         </div>
 
-        <div>
-          <label className={labelClass} htmlFor="renda-start">
-            Início
-          </label>
-          <input
-            id="renda-start"
-            type="date"
-            {...form.register("startDate")}
-            className={fieldClass}
-          />
-        </div>
+        {frequency === "monthly" ? (
+          <div>
+            <label className={labelClass} htmlFor="renda-payment-day">
+              Que dia costuma cair?
+            </label>
+            <select
+              id="renda-payment-day"
+              {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
+              className={fieldClass}
+            >
+              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                <option key={d} value={d}>
+                  Dia {d}
+                </option>
+              ))}
+            </select>
+          </div>
+        ) : (
+          <div>
+            <label className={labelClass} htmlFor="renda-start">
+              Início
+            </label>
+            <input
+              id="renda-start"
+              type="date"
+              {...form.register("startDate")}
+              className={fieldClass}
+            />
+          </div>
+        )}
       </div>
 
-      <div>
-        <label className={labelClass} htmlFor="renda-end">
-          Término (opcional)
-        </label>
-        <input id="renda-end" type="date" {...form.register("endDate")} className={fieldClass} />
-      </div>
+      {showEnd ? (
+        <div>
+          <label className={labelClass} htmlFor="renda-end">
+            Quando essa renda acaba?
+          </label>
+          <input id="renda-end" type="date" {...form.register("endDate")} className={fieldClass} />
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => setShowEnd(true)}
+          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          Essa renda tem prazo? (ex: contrato, freela)
+        </button>
+      )}
 
       {serverError ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">

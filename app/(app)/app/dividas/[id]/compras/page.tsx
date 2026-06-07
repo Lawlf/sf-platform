@@ -31,7 +31,7 @@ export default async function ComprasPage({ params }: PageProps) {
 
   return (
     <PageShell
-      title={`Compras parceladas — ${debt.label}`}
+      title={`Compras parceladas de ${debt.label}`}
       description="Adicione, edite ou remova compras parceladas desse cartão."
       backHref={`/app/dividas/${debt.id}` as Route}
     >

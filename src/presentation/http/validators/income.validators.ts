@@ -12,6 +12,15 @@ export const incomeFormSchema = z.object({
     .union([z.coerce.date(), z.literal("").transform(() => null)])
     .nullable()
     .default(null),
+  // Dia do mês em que a renda mensal cai (1-31). Sem isso, a Carteira e a
+  // timeline derivam do dia do cadastro e erram a data pra sempre.
+  paymentDay: z
+    .union([
+      z.coerce.number().int().min(1, "Dia inválido.").max(31, "Dia inválido."),
+      z.literal("").transform(() => null),
+    ])
+    .nullable()
+    .default(null),
 });
 
 export type IncomeFormInput = z.infer<typeof incomeFormSchema>;

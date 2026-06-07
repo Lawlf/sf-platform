@@ -223,7 +223,7 @@ export function PurchaseSimulatorClient() {
                 Registrar como compra
               </h2>
               <p className="mt-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-                Cria um ativo no seu patrimônio.
+                Cria um bem no seu patrimônio.
               </p>
             </div>
             <button

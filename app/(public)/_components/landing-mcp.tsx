@@ -16,7 +16,7 @@ const bullets = [
   {
     icon: KeyRound,
     title: "Você escolhe o que liberar.",
-    body: "A conexão é por OAuth com escopos granulares. Você concede só o que quiser, leitura ou ação, e nada além disso.",
+    body: "Você concede só o que quiser, leitura ou ação, item por item, e nada além disso.",
   },
   {
     icon: ShieldCheck,

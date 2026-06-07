@@ -58,7 +58,7 @@ export const MCP_SCOPE_DESCRIPTIONS: Record<McpScope, string> = {
   "goals:write": "Criar e atualizar metas.",
   "goals:delete": "Excluir metas.",
   "reports:read": "Gerar relatórios.",
-  "insights:read": "Ver anomalias e recomendações.",
+  "insights:read": "Ver alertas e recomendações.",
   "achievements:read": "Ver suas conquistas.",
   "simulations:read": "Rodar simuladores financeiros (sem alterar seus dados).",
 };

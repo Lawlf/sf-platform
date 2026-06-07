@@ -5,8 +5,8 @@ import {
   ArrowDownLeft,
   ArrowLeftRight,
   ArrowUpRight,
-  Banknote,
   CalendarClock,
+  CalendarDays,
   Car,
   Check,
   CircleDashed,
@@ -24,6 +24,8 @@ import {
   Wallet,
   type LucideIcon,
 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -84,13 +86,14 @@ const OUT_CATEGORIES: CategoryOption[] = [
   { label: "Outros", icon: Tag },
 ];
 
+// "Salário" sai daqui de propósito: renda recorrente tem porta própria
+// (/app/renda/nova). Deixar salário como avulso era o overlap que confundia.
 const IN_CATEGORIES: CategoryOption[] = [
-  { label: "Salário", icon: Banknote },
   { label: "Transferência", icon: ArrowLeftRight },
   { label: "Presente", icon: Gift },
   { label: "Reembolso", icon: Undo2 },
   { label: "Venda", icon: Store },
-  { label: "Outro", icon: Tag },
+  { label: "Outros", icon: Tag },
 ];
 
 const SEGMENT_TRACK =
@@ -138,6 +141,13 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const [accountId, setAccountId] = useState<string>(DEFAULT_ACCOUNT_VALUE);
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [newAccountName, setNewAccountName] = useState("");
+  // Progressive disclosure: agendado e data ficam escondidos atrás de links. O
+  // caminho feliz é "já paguei/recebi" + hoje, sem campos competindo.
+  const [showSchedule, setShowSchedule] = useState(false);
+  const [showDate, setShowDate] = useState(false);
+  // Quando só existe a Carteira, o campo Conta some atrás de um link. O caminho
+  // feliz não escolhe conta.
+  const [showAccount, setShowAccount] = useState(false);
   const [accountPending, startAccountTransition] = useTransition();
   const dateId = useId();
   const categoryId = useId();
@@ -185,6 +195,12 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
 
   const categories = direction === "in" ? IN_CATEGORIES : OUT_CATEGORIES;
 
+  // Nudge macro: se a pessoa tenta lançar "salário" como entrada avulsa, lembra
+  // que renda recorrente tem porta própria e entra na projeção.
+  const descriptionValue = form.watch("description");
+  const looksLikeRecurringIncome =
+    direction === "in" && /sal[áa]rio|sal[áa]rios/i.test(descriptionValue ?? "");
+
   function onSubmit(values: FormValues) {
     setServerError(null);
     if (values.amountCents <= 0n) {
@@ -216,6 +232,8 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       setCategory(NO_CATEGORY_VALUE);
       setStatus("paid");
       setOccurredAt(todayIso(defaultMonthIso));
+      setShowSchedule(false);
+      setShowDate(false);
       await queryClient.invalidateQueries({ queryKey: ["annual-report"] });
       toast.success(direction === "in" ? "Entrada registrada." : "Saída registrada.");
     });
@@ -245,8 +263,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       </div>
 
       <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-        Pense numa gota caindo no balde: cada lançamento muda o nível do que você tem ou deve. É
-        pontual e opcional, não um diário de gastos. Use quando fizer diferença.
+        Registre uma entrada ou saída avulsa. Conta que se repete todo mês? Use Renda ou Dívidas.
       </p>
 
       <MoneyInput
@@ -268,10 +285,22 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
           id={`${dateId}-desc`}
           type="text"
           autoComplete="off"
-          placeholder={direction === "in" ? "Freela extra" : "Fatura do cartão"}
+          placeholder={direction === "in" ? "Freela extra" : "Mercado da semana"}
           {...form.register("description")}
           className={wizardInputClass}
         />
+        {looksLikeRecurringIncome ? (
+          <p className="animate-in text-[0.75rem] leading-relaxed text-[color:var(--text-secondary)] fade-in-0 duration-150">
+            Recebe todo mês?{" "}
+            <Link
+              href={"/app/renda/nova" as Route}
+              className="font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              Cadastre como renda
+            </Link>{" "}
+            pra entrar na sua projeção.
+          </p>
+        ) : null}
       </div>
 
       <div className="flex flex-col gap-1.5">
@@ -279,7 +308,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
           id={categoryId}
           className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
         >
-          Categoria
+          Categoria (opcional)
         </span>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger aria-labelledby={categoryId} className={SELECT_TRIGGER_CLASS}>
@@ -314,7 +343,21 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         </Select>
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      {accounts !== null && accounts.length <= 1 && !showAccount ? (
+        <button
+          type="button"
+          onClick={() => setShowAccount(true)}
+          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          Outra conta
+        </button>
+      ) : null}
+
+      <div
+        className={`flex flex-col gap-1.5 ${
+          accounts !== null && accounts.length <= 1 && !showAccount ? "hidden" : ""
+        }`}
+      >
         <span
           id={accountFieldId}
           className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
@@ -414,47 +457,79 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-1.5">
-        <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-          Situação
-        </span>
-        <div role="group" aria-label="Situação do lançamento" className={SEGMENT_TRACK}>
-          <button
-            type="button"
-            aria-pressed={status === "paid"}
-            onClick={() => setStatus("paid")}
-            className={segmentClass(status === "paid", "brand")}
-          >
-            <Check size={15} strokeWidth={2.5} aria-hidden />
-            {direction === "in" ? "Já recebi" : "Já paguei"}
-          </button>
-          <button
-            type="button"
-            aria-pressed={status === "scheduled"}
-            onClick={() => setStatus("scheduled")}
-            className={segmentClass(status === "scheduled", "brand")}
-          >
-            <CalendarClock size={15} strokeWidth={2.25} aria-hidden />
-            Agendado
-          </button>
+      {showSchedule ? (
+        <div className="flex animate-in flex-col gap-1.5 fade-in-0 duration-150">
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+            Situação
+          </span>
+          <div role="group" aria-label="Situação do lançamento" className={SEGMENT_TRACK}>
+            <button
+              type="button"
+              aria-pressed={status === "paid"}
+              onClick={() => setStatus("paid")}
+              className={segmentClass(status === "paid", "brand")}
+            >
+              <Check size={15} strokeWidth={2.5} aria-hidden />
+              {direction === "in" ? "Já recebi" : "Já paguei"}
+            </button>
+            <button
+              type="button"
+              aria-pressed={status === "scheduled"}
+              onClick={() => setStatus("scheduled")}
+              className={segmentClass(status === "scheduled", "brand")}
+            >
+              <CalendarClock size={15} strokeWidth={2.25} aria-hidden />
+              Agendado
+            </button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
-      <div className="flex flex-col gap-1.5">
-        <label
-          htmlFor={dateId}
-          className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-        >
-          Data
-        </label>
-        <input
-          id={dateId}
-          type="date"
-          value={occurredAt}
-          onChange={(e) => setOccurredAt(e.target.value)}
-          className={wizardInputClass}
-        />
-      </div>
+      {showDate ? (
+        <div className="flex animate-in flex-col gap-1.5 fade-in-0 duration-150">
+          <label
+            htmlFor={dateId}
+            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+          >
+            Data
+          </label>
+          <input
+            id={dateId}
+            type="date"
+            value={occurredAt}
+            onChange={(e) => setOccurredAt(e.target.value)}
+            className={wizardInputClass}
+          />
+        </div>
+      ) : null}
+
+      {!showSchedule || !showDate ? (
+        <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {!showSchedule ? (
+            <button
+              type="button"
+              onClick={() => {
+                setShowSchedule(true);
+                setStatus("scheduled");
+              }}
+              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              <CalendarClock size={14} strokeWidth={2.25} aria-hidden />
+              Agendar pra depois
+            </button>
+          ) : null}
+          {!showDate ? (
+            <button
+              type="button"
+              onClick={() => setShowDate(true)}
+              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              <CalendarDays size={14} strokeWidth={2.25} aria-hidden />
+              Outra data
+            </button>
+          ) : null}
+        </div>
+      ) : null}
 
       {serverError ? (
         <span role="alert" className="text-[0.8125rem] text-[color:var(--semantic-negative)]">

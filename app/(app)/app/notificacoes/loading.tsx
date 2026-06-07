@@ -4,7 +4,7 @@ import { PageShell } from "../_components/page-shell";
 
 export default function Loading() {
   return (
-    <PageShell title="Notificações" description="Avisos do sistema.">
+    <PageShell title="Notificações" description="O que mudou nas suas contas, dívidas e metas.">
       <div className="flex flex-col gap-4">
         <Skeleton className="h-[80px] rounded-2xl" />
         <div className="flex gap-2">

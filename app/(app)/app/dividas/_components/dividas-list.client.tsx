@@ -16,7 +16,7 @@ const KIND_LABEL: Record<DebtKind, string> = {
   personal_loan: "Empréstimo ou crediário",
   credit_card: "Cartão de crédito",
   overdraft: "Cheque especial",
-  recurring: "Compromisso recorrente",
+  recurring: "Conta fixa do mês",
 };
 
 const KIND_ICON: Record<DebtKind, typeof Home> = {
@@ -79,8 +79,34 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
     );
   }
 
+  // Total do que ainda se deve hoje: soma o saldo das dívidas ativas (sem as
+  // contas fixas, que são mensais e não um saldo). Some quando há saldo real.
+  const owedDebts = debts.filter((d) => d.status === "active" && d.kind !== "recurring");
+  const totalOwedCents = owedDebts.reduce((acc, d) => acc + BigInt(d.currentBalance.cents), 0n);
+  const showTotal = statusFilter === "active" && owedDebts.length > 0 && totalOwedCents > 0n;
+  const totalOwedFormatted = (Number(totalOwedCents) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return (
-    <div className="grid gap-2 md:grid-cols-2">
+    <div className="flex flex-col gap-3">
+      {showTotal ? (
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+            Você deve hoje
+          </div>
+          <div className="mt-0.5 flex items-baseline gap-2">
+            <span className="text-[1.5rem] font-bold tabular-nums text-[color:var(--text-primary)]">
+              <HideableValue>{totalOwedFormatted}</HideableValue>
+            </span>
+            <span className="text-[0.75rem] text-[color:var(--text-muted)]">
+              em {owedDebts.length} {owedDebts.length === 1 ? "dívida" : "dívidas"}
+            </span>
+          </div>
+        </div>
+      ) : null}
+      <div className="grid gap-2 md:grid-cols-2">
       {debts.map((d) => {
         const Icon = KIND_ICON[d.kind] ?? Wallet;
         const tone: StatusTone = STATUS_TONE[d.status] ?? DEFAULT_STATUS_TONE;
@@ -95,6 +121,9 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
           isRecurring && d.recurringFrequency
             ? ` / ${FREQUENCY_LABEL[d.recurringFrequency]}`
             : "";
+        // "falta" deixa claro que o número é o saldo que ainda resta, não o valor
+        // original nem a parcela.
+        const amountPrefix = !isRecurring && d.status === "active" ? "falta " : "";
         return (
           <Link
             key={d.id}
@@ -125,6 +154,7 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
                 </span>
                 <span className="text-[color:var(--text-muted)]">·</span>
                 <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
+                  {amountPrefix}
                   <HideableValue>{amountValue}</HideableValue>
                   {amountSuffix}
                 </span>
@@ -139,6 +169,7 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
           </Link>
         );
       })}
+      </div>
     </div>
   );
 }

@@ -27,10 +27,11 @@ export default async function ImportacaoDeDadosPage() {
         </span>
         <div className="flex-1">
           <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-            Importar extrato (OFX)
+            Importar extrato do banco
           </div>
           <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-            Conecte 1 conta no plano gratuito. Várias contas no Pro.
+            Pega o arquivo de extrato que seu banco exporta. 1 conta no plano gratuito, várias no
+            Pro.
           </div>
         </div>
         <ChevronRight

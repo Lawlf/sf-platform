@@ -134,6 +134,15 @@ export function MonthCard({
   const debtFgWidth = pctWidth(currentDebt, maxDebt);
   const debtGhostWidth = pctWidth(prevDebt, maxDebt);
 
+  // Vocabulário por tempo, igual o detalhe do mês (fonte da verdade): passado
+  // "Entrou"/"Saiu", futuro "Vai entrar"/"Vai sair", atual "Entrou"/"Vai sair".
+  const nowMonth = new Date().toISOString().slice(0, 7);
+  const cardMonth = point.monthIso.slice(0, 7);
+  const isFuture = !isCurrent && cardMonth > nowMonth;
+  const isPast = !isCurrent && cardMonth < nowMonth;
+  const incomeLabel = isFuture ? "Vai entrar" : "Entrou";
+  const outLabel = isPast ? "Saiu" : "Vai sair";
+
   // Patrimônio delta
   const deltaCents = previousPoint
     ? BigInt(point.netWorth.cents) - BigInt(previousPoint.netWorth.cents)
@@ -169,7 +178,7 @@ export function MonthCard({
 
       <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
         <BarBlock
-          label="Renda"
+          label={incomeLabel}
           value={point.totalIncome.formatted}
           colorClass="text-[color:var(--semantic-positive)]"
           ghostWidth={incomeGhostWidth}
@@ -177,7 +186,7 @@ export function MonthCard({
           fgClass="bg-[color:var(--semantic-positive)]"
         />
         <BarBlock
-          label="Saídas"
+          label={outLabel}
           value={point.totalDebtPayments.formatted}
           colorClass="text-[color:var(--semantic-negative)]"
           ghostWidth={debtGhostWidth}

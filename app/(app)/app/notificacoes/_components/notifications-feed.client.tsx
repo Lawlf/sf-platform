@@ -1,5 +1,7 @@
 "use client";
 
+import type { Route } from "next";
+import Link from "next/link";
 import { useEffect, useRef } from "react";
 
 import type { SerializedNotification } from "../_actions/list-notifications.action";
@@ -36,6 +38,14 @@ export function NotificationsFeed({ notifications, hasUnread }: NotificationsFee
 
   return (
     <div className="flex flex-col gap-5">
+      <div className="flex justify-end">
+        <Link
+          href={"/app/perfil/notificacoes" as Route}
+          className="focus-ring text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          Ajustar quais avisos você recebe
+        </Link>
+      </div>
       {groups.map((g) => (
         <div key={g.label} className="flex flex-col gap-2">
           <h2 className="px-1 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">

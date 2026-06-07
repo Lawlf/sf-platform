@@ -50,7 +50,7 @@ function FreeLock() {
         href={"/app/configuracoes/planos" as Route}
         className="focus-ring inline-flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
       >
-        Se tornar Pro
+        Virar Pro
         <Crown size={14} strokeWidth={2.25} aria-hidden />
       </Link>
     </section>
@@ -67,11 +67,10 @@ function EmptyReport() {
         </span>
         <div>
           <h3 className="text-base font-bold text-[color:var(--text-primary)]">
-            Você ainda não detalhou nenhum gasto este ano
+            Quer ver pra onde foi o dinheiro do ano?
           </h3>
           <p className="mt-1 max-w-md text-sm text-[color:var(--text-secondary)]">
-            Detalhar é opcional. Você pode contar pela IA, tipo &ldquo;gastei 40 no café&rdquo;, ou
-            registrar manualmente aqui pra ver pra onde foi.
+            É opcional. Conte pela IA, tipo &ldquo;gastei 40 no café&rdquo;, ou registre aqui na mão.
           </p>
         </div>
         {open ? null : (

@@ -30,6 +30,9 @@ export interface WizardShellProps {
   primary?: WizardShellCtaProps | undefined;
   secondary?: WizardShellSecondaryCtaProps | undefined;
   totalSteps?: number | undefined;
+  // Esconde a barra de progresso. Use em telas de bifurcação (escolha de tipo),
+  // que não são uma etapa numerada do fluxo.
+  hideSteps?: boolean | undefined;
 }
 
 export function WizardShell({
@@ -41,6 +44,7 @@ export function WizardShell({
   primary,
   secondary,
   totalSteps = 4,
+  hideSteps = false,
 }: WizardShellProps) {
   const router = useRouter();
   const handleBack = onBack ?? (() => router.back());
@@ -63,35 +67,41 @@ export function WizardShell({
         >
           <ArrowLeft size={16} strokeWidth={2} aria-hidden />
         </button>
-        <div className="flex flex-1 gap-1" aria-hidden>
-          {Array.from({ length: totalSteps }, (_, i) => i + 1).map((n) => {
-            const cls =
-              n < currentStep
-                ? "bg-[color:var(--color-brand-800)]"
-                : n === currentStep
-                  ? "bg-[color:var(--color-brand-500)]"
-                  : "bg-[color:var(--border-strong)]";
-            return (
-              <span
-                key={n}
-                className={`h-1 flex-1 rounded transition-colors duration-300 ${cls}`}
-              />
-            );
-          })}
-        </div>
-        <span
-          role="status"
-          aria-live="polite"
-          className="text-[0.6875rem] font-semibold text-[color:var(--text-primary)] opacity-60"
-          aria-label={`Etapa ${currentStep} de ${totalSteps}`}
-        >
-          {currentStep}/{totalSteps}
-        </span>
+        {hideSteps ? (
+          <div className="flex-1" />
+        ) : (
+          <>
+            <div className="flex flex-1 gap-1" aria-hidden>
+              {Array.from({ length: totalSteps }, (_, i) => i + 1).map((n) => {
+                const cls =
+                  n < currentStep
+                    ? "bg-[color:var(--color-brand-800)]"
+                    : n === currentStep
+                      ? "bg-[color:var(--color-brand-500)]"
+                      : "bg-[color:var(--border-strong)]";
+                return (
+                  <span
+                    key={n}
+                    className={`h-1 flex-1 rounded transition-colors duration-300 ${cls}`}
+                  />
+                );
+              })}
+            </div>
+            <span
+              role="status"
+              aria-live="polite"
+              className="text-[0.6875rem] font-semibold text-[color:var(--text-primary)] opacity-60"
+              aria-label={`Etapa ${currentStep} de ${totalSteps}`}
+            >
+              {currentStep}/{totalSteps}
+            </span>
+          </>
+        )}
       </div>
 
       <div
         key={currentStep}
-        className="relative z-10 mt-8 animate-in fade-in-0 slide-in-from-right-4 duration-300 md:mt-10"
+        className="relative z-10 mt-8 animate-in fade-in-0 duration-150 md:mt-10"
       >
         <h1
           ref={headingRef}

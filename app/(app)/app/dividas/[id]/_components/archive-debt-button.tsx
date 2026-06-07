@@ -62,7 +62,7 @@ export function ArchiveDebtButton({ debtId, label, recurring = false, valueLabel
       } volta a ficar livre. Se voltar a pagar, é só reativar.`
     : `${
         label ? `Vamos marcar "${label}" como quitada` : "Vamos marcar como quitada"
-      } e tirar das ativas. Se foi engano, dá pra reativar depois.`;
+      } e tirar ela da sua lista de dívidas. Se foi engano, dá pra reativar depois.`;
   const confirmLabel = recurring ? "Sim, encerrei" : "Sim, quitei";
 
   return (

@@ -83,11 +83,11 @@ function BucketPicker({
             aria-hidden
           />
           <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-            Onde seu saldo livre fica
+            Onde seu saldo da Carteira fica
           </span>
         </div>
         <p className="mt-1.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Seu saldo livre já fica num caixa automático que não rende. Aponta pra uma reserva
+          Seu saldo da Carteira já fica num caixa automático que não rende. Aponta pra uma reserva
           que rende pra ele crescer mais.{" "}
           <Link
             href={"/app/patrimonio/novo" as Route}
@@ -124,7 +124,7 @@ function BucketPicker({
           aria-hidden
         />
         <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-          Onde seu saldo livre fica
+          Onde seu saldo da Carteira fica
         </span>
         {pending ? <Spinner size={14} className="text-[color:var(--text-muted)]" /> : null}
       </div>
@@ -137,7 +137,7 @@ function BucketPicker({
           onValueChange={onChange}
           disabled={pending}
         >
-          <SelectTrigger className="w-full" aria-label="Onde seu saldo livre fica">
+          <SelectTrigger className="w-full" aria-label="Onde seu saldo da Carteira fica">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
@@ -175,7 +175,7 @@ function CascadeEditor({
             href={"/app/configuracoes/planos" as Route}
             className="focus-ring inline-flex shrink-0 items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
           >
-            Se tornar Pro
+            Virar Pro
             <Crown size={12} strokeWidth={2.25} aria-hidden />
           </Link>
         </div>
@@ -317,7 +317,7 @@ function CascadeQueue({ goals }: { goals: PlanningGoalConfig[] }) {
         Ordem das metas
       </h3>
       <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
-        A primeira da fila recebe o saldo livre primeiro. Em paralelo, ela divide uma fatia desde já.
+        A primeira da fila recebe o saldo da Carteira primeiro. Em paralelo, ela divide uma fatia desde já.
       </p>
       <ul className="flex flex-col gap-2">
         {goals.map((goal, i) => {
@@ -383,7 +383,7 @@ function CascadeQueue({ goals }: { goals: PlanningGoalConfig[] }) {
                       aria-label={`Fatia em paralelo de ${goal.title}`}
                       className="focus-ring h-8 w-16 rounded-md border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-2 text-right text-[0.8125rem] text-[color:var(--text-primary)] disabled:opacity-40"
                     />
-                    <span>% do saldo livre</span>
+                    <span>% do saldo da Carteira</span>
                   </span>
                 ) : null}
               </div>

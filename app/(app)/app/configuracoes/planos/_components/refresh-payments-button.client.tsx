@@ -28,7 +28,7 @@ export function RefreshPaymentsButton() {
         );
       } else {
         toast.info("Tudo em dia.", {
-          description: "Nada novo na Stripe.",
+          description: "Nada novo por aqui.",
         });
       }
     });

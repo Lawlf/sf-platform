@@ -107,9 +107,9 @@ export function ResultPrescription({
         </div>
       ) : debts.length === 0 ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="font-semibold">Você pulou o cadastro da dívida.</p>
+          <p className="font-semibold">Ainda falta cadastrar sua dívida.</p>
           <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-            Quando você cadastrar uma dívida no início, eu te mostro por onde atacar primeiro.
+            Quando você cadastrar uma dívida, a gente mostra por onde começar.
           </p>
         </div>
       ) : (
@@ -150,7 +150,7 @@ export function ResultPrescription({
           ) : null}
 
           <p className="text-[0.75rem] text-[color:var(--text-muted)]">
-            No Pro: o plano completo, quanto você economiza e em quantos meses fica livre.
+            No Pro: o plano completo, quanto você economiza e em quantos meses a dívida zera no ritmo atual.
           </p>
         </div>
       )}

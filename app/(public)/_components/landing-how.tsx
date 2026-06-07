@@ -15,7 +15,7 @@ const steps = [
     icon: Eye,
     n: "02",
     title: "Veja o diagnóstico",
-    body: "CET ponderado real, percentual de renda comprometida, data projetada de quitação. Sem juridiquês.",
+    body: "O custo real dos juros, quanto da renda já tem dono e a data projetada de quitação. Sem juridiquês.",
     time: "Imediato",
     visual: "step2",
   },
@@ -162,7 +162,7 @@ function Step2Visual() {
           sub="Zona atenção"
         />
         <MockKpi
-          label="Sai do vermelho"
+          label="Quitação prevista"
           value="Mar/2031"
           tone="primary"
           sub="No ritmo atual"

@@ -48,10 +48,10 @@ describe("homeCardOrder", () => {
     expect(order.indexOf("projection")).toBeLessThan(order.indexOf("goal"));
   });
 
-  it("manutenção e mais sempre no rodapé", () => {
+  it("manutenção sempre no rodapé", () => {
     for (const st of ["com_divida", "sem_reserva", "com_patrimonio"] as const) {
       const order = homeCardOrder(st);
-      expect(order.slice(-2)).toEqual(["maintenance", "mais"]);
+      expect(order.at(-1)).toBe("maintenance");
     }
   });
 });

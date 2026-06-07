@@ -77,7 +77,7 @@ export function TimelineProjection({ initialData }: Props) {
         No ritmo atual
       </span>
       <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-        Se você mantiver o saldo livre atual.
+        Se você mantiver o saldo da Carteira atual.
       </p>
 
       <div className="mt-3">
@@ -134,7 +134,7 @@ export function TimelineProjection({ initialData }: Props) {
             <SheetHeader className="mb-5">
               <SheetTitle>Ajustar a projeção</SheetTitle>
               <SheetDescription>
-                Defina onde seu saldo livre rende e a ordem das suas metas.
+                Defina onde seu saldo da Carteira rende e a ordem das suas metas.
               </SheetDescription>
             </SheetHeader>
             <CascadeConfigPanel />

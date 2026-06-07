@@ -15,10 +15,10 @@ export function KindCard({ icon, title, description, selected, onSelect }: KindC
 
   function handleClick() {
     if (pending) return;
+    // Destaca na hora e navega já. O setTimeout antigo (240ms) segurava a
+    // navegação só pela animação e fazia o toque parecer travado no celular.
     setPending(true);
-    window.setTimeout(() => {
-      onSelect();
-    }, 240);
+    onSelect();
   }
 
   const filled = selected || pending;

@@ -64,7 +64,7 @@ export function GoalList({ goals, isPro }: GoalListProps) {
               href={"/app/configuracoes/planos" as Route}
               className="focus-ring inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
             >
-              Se tornar Pro
+              Virar Pro
               <Crown size={12} strokeWidth={2.25} aria-hidden />
             </Link>
           </div>

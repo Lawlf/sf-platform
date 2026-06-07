@@ -126,14 +126,13 @@ export async function NextStepCard() {
         {action ? (
           <Link
             href={"/app/configuracoes/planos" as Route}
-            className="mt-3 inline-flex items-center gap-1.5 text-[0.78125rem] font-semibold text-[color:var(--color-brand-800)] hover:underline"
+            className="mt-3 inline-flex items-center gap-1 text-[0.75rem] font-medium text-[color:var(--text-muted)] hover:text-[color:var(--text-secondary)] hover:underline"
           >
             Ver o plano completo com seus números
-            <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
           </Link>
         ) : null}
         <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-          Isto é educação financeira, não recomendação de investimento.
+          A gente mostra a conta, a decisão é sua.
         </p>
       </section>
     );

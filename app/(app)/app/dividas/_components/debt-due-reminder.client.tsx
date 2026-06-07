@@ -163,7 +163,7 @@ export function DebtDueReminderCard({ isPro, initialEnabled, initialDaysBefore }
             href={"/app/configuracoes/planos" as Route}
             className="focus-ring inline-flex w-fit items-center gap-1 text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
           >
-            Se tornar Pro
+            Virar Pro
             <Crown size={13} strokeWidth={2.25} aria-hidden />
           </Link>
         </div>

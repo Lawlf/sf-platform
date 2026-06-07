@@ -52,7 +52,7 @@ export function FlairPicker({ initialFlair }: { initialFlair: string | null }) {
             Seu estilo com dinheiro
           </span>
           <span className="block truncate text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-            {current ? current.label : "Escolher meu estilo financeiro"}
+            {current ? current.label : "Escolher meu estilo com dinheiro"}
           </span>
         </span>
       </button>
@@ -62,7 +62,7 @@ export function FlairPicker({ initialFlair }: { initialFlair: string | null }) {
           <SheetHeader className="gap-1">
             <SheetTitle>Seu estilo com dinheiro</SheetTitle>
             <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
-              Escolha o que mais combina com você. É auto-declarado, não é recomendação de investimento.
+              Escolha o que mais combina com você. Não muda nada nas suas contas, é só como você aparece.
             </SheetDescription>
           </SheetHeader>
           <div className="mt-4 flex flex-col gap-2">

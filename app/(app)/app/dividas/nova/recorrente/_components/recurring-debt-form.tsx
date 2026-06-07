@@ -218,8 +218,8 @@ export function RecurringDebtForm({
   if (step === 1) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={5}
+        currentStep={1}
+        totalSteps={4}
         title="Qual a categoria?"
         description="Escolha a categoria que melhor descreve esse compromisso."
         onBack={() => router.push("/app/dividas/nova" as Route)}
@@ -247,8 +247,8 @@ export function RecurringDebtForm({
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={5}
+        currentStep={2}
+        totalSteps={4}
         title="Com que frequência?"
         description="Quantas vezes esse compromisso aparece no seu fluxo."
         onBack={() => setStep(1)}
@@ -313,8 +313,8 @@ export function RecurringDebtForm({
           : "Valor por ano";
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={5}
+        currentStep={3}
+        totalSteps={4}
         title="Detalhes"
         description="Nome do compromisso, valor por período e datas."
         onBack={() => setStep(2)}
@@ -434,10 +434,10 @@ export function RecurringDebtForm({
 
   return (
     <WizardShell
-      currentStep={5}
-      totalSteps={5}
+      currentStep={4}
+      totalSteps={4}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(3)}
       primary={{
         label: "Salvar compromisso",

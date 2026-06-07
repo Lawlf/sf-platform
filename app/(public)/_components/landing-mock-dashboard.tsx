@@ -109,7 +109,7 @@ export function LandingMockDashboard() {
                 <div className="relative flex items-center justify-between gap-2">
                   <div className="flex-1">
                     <span className="text-[9px] font-bold uppercase tracking-[0.7px] text-white/85">
-                      Saldo livre do mês
+                      Saldo da Carteira do mês
                     </span>
                     <div
                       className="mt-1 text-[26px] font-extrabold leading-none text-white"

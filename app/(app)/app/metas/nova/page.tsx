@@ -61,15 +61,15 @@ export default async function NovaMetaPage({
               </div>
             </div>
             <p className="mb-4 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
-              No plano gratuito você pode ter uma meta ativa por vez. Faça upgrade para o Pro e
-              acompanhe todos os seus objetivos em paralelo.
+              No plano gratuito você pode ter uma meta ativa por vez. Assine o Pro e acompanhe todos
+              os seus objetivos em paralelo.
             </p>
             <Link
               href={"/app/configuracoes/planos" as Route}
               className="focus-ring inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-5 py-3 text-[0.84375rem] font-bold text-white"
               style={{ boxShadow: "0 10px 24px -8px rgba(239,122,26,0.5)" }}
             >
-              Se tornar Pro
+              Virar Pro
               <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
             </Link>
           </section>

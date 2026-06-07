@@ -99,11 +99,11 @@ export function NotificationSettings({
 
   async function enablePushOnDevice() {
     if (!supported) {
-      toast.error("Push não é suportado neste navegador.");
+      toast.error("Seu navegador não suporta notificações.");
       return;
     }
     if (!vapidPublicKey) {
-      toast.error("VAPID public key não configurada.");
+      toast.error("Não foi possível ativar agora. Tente de novo.");
       return;
     }
     setSubscribing(true);
@@ -135,7 +135,7 @@ export function NotificationSettings({
       }
       setDevices(res.deviceCount);
       setDeviceState("active");
-      toast.success("Notificações ativadas neste device.");
+      toast.success("Notificações ativadas neste aparelho.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";
       toast.error(`Falha ao ativar: ${msg}`);
@@ -151,7 +151,7 @@ export function NotificationSettings({
       const registration = await navigator.serviceWorker.ready;
       const subscription = await registration.pushManager.getSubscription();
       if (!subscription) {
-        toast.info("Nenhuma subscription ativa neste device.");
+        toast.info("Nenhuma notificação ativa neste aparelho.");
         return;
       }
       const res = await unsubscribePushAction({ endpoint: subscription.endpoint });
@@ -162,7 +162,7 @@ export function NotificationSettings({
       }
       setDevices(res.deviceCount);
       setDeviceState("inactive");
-      toast.success("Notificações desativadas neste device.");
+      toast.success("Notificações desativadas neste aparelho.");
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";
       toast.error(`Falha ao desativar: ${msg}`);
@@ -192,17 +192,17 @@ export function NotificationSettings({
         return;
       }
       if (res.skipped) {
-        toast.info("Push pulado: master switch desativado.");
+        toast.info("Os avisos estão desligados nos seus ajustes.");
         return;
       }
       if (res.delivered === 0) {
-        toast.info("Nenhum device ativo. Ative as notificações primeiro.");
+        toast.info("Nenhum aparelho ativo. Ative as notificações primeiro.");
         return;
       }
       toast.success(
         res.delivered === 1
-          ? "Enviado para 1 device."
-          : `Enviado para ${res.delivered} devices.`,
+          ? "Enviado para 1 aparelho."
+          : `Enviado para ${res.delivered} aparelhos.`,
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";
@@ -218,13 +218,13 @@ export function NotificationSettings({
       {isPro ? (
         <PrefSection
           eyebrow="Dispositivo"
-          title="Este device"
+          title="Este aparelho"
           description={
             devices === 0
-              ? "Nenhum device ativo. Ative pra receber avisos."
+              ? "Nenhum aparelho ativo. Ative pra receber avisos."
               : devices === 1
-                ? "1 device ativo na sua conta."
-                : `${devices} devices ativos na sua conta.`
+                ? "1 aparelho ativo na sua conta."
+                : `${devices} aparelhos ativos na sua conta.`
           }
         >
           {!supported ? (
@@ -268,7 +268,7 @@ export function NotificationSettings({
               aria-busy={subscribing}
               className="sf-lift focus-ring mt-4 inline-flex h-10 w-full items-center justify-center gap-2 rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)] disabled:opacity-60"
             >
-              {subscribing ? <Spinner size={16} decorative /> : "Ativar neste device"}
+              {subscribing ? <Spinner size={16} decorative /> : "Ativar neste aparelho"}
             </button>
           )}
         </PrefSection>
@@ -344,7 +344,7 @@ export function NotificationSettings({
           />
           <PrefRow
             label="Resumo diário"
-            description="Pequeno digest no início do dia."
+            description="Um resuminho do dia, logo de manhã."
             channels={["push"]}
             checked={false}
             onToggle={() => undefined}
@@ -357,7 +357,7 @@ export function NotificationSettings({
         <SectionGroup title="Mercado" showProLink={!isPro}>
           <PrefRow
             label="Ações da B3"
-            description="Movimento relevante nos papéis que você acompanha."
+            description="Movimento nas ações que você registrou no patrimônio."
             channels={["push"]}
             checked={isPro ? prefs.assetPriceEnabled : false}
             onToggle={() => togglePref("assetPriceEnabled")}
@@ -366,7 +366,7 @@ export function NotificationSettings({
           />
           <PrefRow
             label="Criptomoeda"
-            description="Variação em Bitcoin, Ethereum e altcoins acompanhadas."
+            description="Variação nas moedas digitais que você registrou (Bitcoin, Ethereum)."
             channels={["push"]}
             checked={false}
             onToggle={() => undefined}
@@ -376,7 +376,7 @@ export function NotificationSettings({
           />
           <PrefRow
             label="Fundos imobiliários"
-            description="Alertas em FIIs que você registrou no patrimônio."
+            description="Alertas nos fundos imobiliários (FIIs) que você registrou."
             channels={["push", "email"]}
             checked={false}
             onToggle={() => undefined}
@@ -391,7 +391,7 @@ export function NotificationSettings({
         <PrefSection
           eyebrow="Teste"
           title="Testar notificação"
-          description="Envia uma push de teste para todos seus devices ativos agora."
+          description="Envia um aviso de teste para todos os seus aparelhos ativos agora."
         >
           <button
             type="button"
@@ -435,7 +435,7 @@ function SectionGroup({
             href={"/app/configuracoes/planos" as Route}
             className="focus-ring inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
           >
-            Se tornar Pro
+            Virar Pro
             <Crown size={12} strokeWidth={2.25} aria-hidden />
           </Link>
         ) : null}

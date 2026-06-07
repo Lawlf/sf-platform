@@ -14,7 +14,7 @@ const KIND_LABEL: Record<DebtKind, string> = {
   personal_loan: "Empréstimo ou crediário",
   credit_card: "Cartão de crédito",
   overdraft: "Cheque especial",
-  recurring: "Compromisso recorrente",
+  recurring: "Conta fixa do mês",
 };
 
 const STATUS_LABEL: Record<DebtStatus, string> = {
@@ -32,12 +32,6 @@ const FREQUENCY_LABEL = {
   monthly: "mês",
   weekly: "semana",
   annual: "ano",
-} as const;
-
-const FREQUENCY_NAME = {
-  monthly: "Mensal",
-  weekly: "Semanal",
-  annual: "Anual",
 } as const;
 
 const DATE_FMT = dateOnlyFormat({ dateStyle: "short" });
@@ -62,13 +56,19 @@ function buildHeaderStats(
   if (debt.kind === "recurring") {
     const freqLabel = FREQUENCY_LABEL[debt.recurringFrequency];
     const categoryLabel = expenseCategoryLabel(debt.expenseCategory);
+    const perYearMultiplier =
+      debt.recurringFrequency === "weekly" ? 52 : debt.recurringFrequency === "annual" ? 1 : 12;
     return [
       {
         label: `Por ${freqLabel}`,
         value: Money.fromCents(debt.recurringAmountCents).format(),
         isCurrency: true,
       },
-      { label: "Frequência", value: FREQUENCY_NAME[debt.recurringFrequency] },
+      {
+        label: "No ano",
+        value: Money.fromCents(debt.recurringAmountCents * BigInt(perYearMultiplier)).format(),
+        isCurrency: true,
+      },
       { label: "Categoria", value: categoryLabel },
       { label: "Início", value: DATE_FMT.format(debt.startDate) },
     ];
@@ -79,8 +79,8 @@ function buildHeaderStats(
         ? { label: "Limite", value: debt.creditLimit.format(), isCurrency: true }
         : { label: "Limite", value: "Não informado" }
       : {
-          label: "Previsto",
-          value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "Sem previsão",
+          label: "Termina em",
+          value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "A definir",
         };
   return [
     { label: "Dívida atual", value: debt.currentBalance.format(), isCurrency: true },

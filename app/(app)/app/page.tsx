@@ -1,5 +1,3 @@
-import { LineChart, type LucideIcon, Target } from "lucide-react";
-import type { Route } from "next";
 import { Fragment, type ReactNode, Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
@@ -15,7 +13,6 @@ import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
-import { MaisCard } from "./_components/mais-card";
 import { MonthClosingCard } from "./_components/month-closing-card.client";
 import { NextStepCard } from "./_components/next-step-card";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
@@ -30,29 +27,7 @@ import {
 } from "./_lib/home-layout";
 import { getPrescription } from "./_lib/prescription-cache";
 
-interface MaisItem {
-  href: Route;
-  icon: LucideIcon;
-  title: string;
-  description: string;
-}
-
-const MAIS_ITEMS: MaisItem[] = [
-  {
-    href: "/app/metas" as Route,
-    icon: Target,
-    title: "Metas",
-    description: "Defina objetivos e acompanhe o progresso mês a mês.",
-  },
-  {
-    href: "/app/linha-do-tempo" as Route,
-    icon: LineChart,
-    title: "Linha do tempo",
-    description: "Sua trajetória mês a mês: renda, dívidas, patrimônio.",
-  },
-];
-
-const ONBOARDING_ORDER: HomeCardKey[] = ["hero", "quickAccess", "nextStep", "mais"];
+const ONBOARDING_ORDER: HomeCardKey[] = ["hero", "quickAccess", "nextStep"];
 
 function greetingFor(hour: number): string {
   if (hour < 5) return "Boa madrugada";
@@ -154,18 +129,6 @@ export default async function DashboardPage() {
         <Suspense fallback={<Skeleton className="h-[120px] rounded-2xl" />}>
           <MaintenancePromptsClient initialData={initialMaintenancePrompts} />
         </Suspense>
-      </div>
-    ),
-    mais: (
-      <div className="md:col-span-2">
-        <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-          Mais
-        </h2>
-        <div className="flex flex-col gap-2">
-          {MAIS_ITEMS.map((item) => (
-            <MaisCard key={item.href} {...item} />
-          ))}
-        </div>
       </div>
     ),
   };

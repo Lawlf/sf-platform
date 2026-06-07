@@ -45,7 +45,7 @@ export default async function IntegracoesPage() {
   return (
     <PageShell
       title="Integrações"
-      description="Assistentes de IA conectados à sua conta via MCP."
+      description="Assistentes de IA conectados à sua conta."
       backHref={"/app/configuracoes" as Route}
     >
       {pending.length > 0 ? (

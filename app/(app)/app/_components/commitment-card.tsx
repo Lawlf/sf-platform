@@ -17,10 +17,10 @@ function zoneOf(pct: number): Zone {
 }
 
 const ZONE_TEXT: Record<Zone, { label: string; color: string }> = {
-  excellent: { label: "Excelente: muito espaço para investir.", color: "var(--semantic-positive)" },
-  healthy: { label: "Você está na zona saudável.", color: "var(--semantic-positive)" },
-  attention: { label: "Atenção: comprometimento médio.", color: "var(--semantic-warning)" },
-  critical: { label: "Crítico: considere simular cenários.", color: "var(--semantic-negative)" },
+  excellent: { label: "Sobra bastante da renda depois das parcelas.", color: "var(--semantic-positive)" },
+  healthy: { label: "As parcelas cabem bem na sua renda.", color: "var(--semantic-positive)" },
+  attention: { label: "Quase metade da renda já vai pra parcela fixa.", color: "var(--semantic-warning)" },
+  critical: { label: "Mais da metade da renda já está presa em parcela.", color: "var(--semantic-negative)" },
 };
 
 // Cores vêm das vars semânticas para honrar o modo daltônico (positivo
@@ -85,10 +85,10 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         ) : null}
       </div>
       <div className="mt-2 flex justify-between text-[0.5625rem] text-[color:var(--text-muted)] md:text-[0.625rem]">
-        <span>Excelente</span>
-        <span>Saudável</span>
-        <span>Atenção</span>
-        <span>Crítico</span>
+        <span>Folga</span>
+        <span>Tranquilo</span>
+        <span>Apertado</span>
+        <span>No limite</span>
       </div>
       <div
         className="mt-3 flex items-center gap-1.5 text-sm font-semibold"

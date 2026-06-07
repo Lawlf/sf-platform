@@ -16,7 +16,7 @@ export default async function NotificacoesPage() {
   const hasUnread = all.some((n) => !n.read);
 
   return (
-    <PageShell title="Notificações" description="Tudo que aconteceu na sua conta.">
+    <PageShell title="Notificações" description="O que mudou nas suas contas, dívidas e metas.">
       <div className="flex flex-col gap-4">
         {all.length === 0 ? (
           <EmptyState />
@@ -38,7 +38,7 @@ function EmptyState() {
         Sem notificações no momento.
       </p>
       <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
-        Avisos importantes sobre seu fluxo financeiro vão aparecer aqui.
+        Quando algo mudar nas suas contas, dívidas ou metas, o aviso aparece aqui.
       </p>
     </div>
   );

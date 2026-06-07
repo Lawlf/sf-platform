@@ -61,7 +61,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         className="text-[0.9375rem] font-semibold leading-snug"
         style={{ color: "var(--semantic-positive)" }}
       >
-        Tudo bateu: o saldo livre virou patrimônio.
+        Tudo bateu: o saldo da Carteira virou patrimônio.
       </p>
     );
   }
@@ -74,7 +74,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
           <span style={{ color: "var(--semantic-positive)" }}>
             <HideableValue>{leakAbsFormatted}</HideableValue>
           </span>{" "}
-          além do saldo livre
+          além do saldo da Carteira
         </p>
         <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
           Pode ser rendimento, valorização ou uma entrada extra.
@@ -89,10 +89,10 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         <span style={{ color: "var(--semantic-warning)" }}>
           <HideableValue>{leakAbsFormatted}</HideableValue>
         </span>{" "}
-        não viraram patrimônio
+        sobraram, mas não apareceram no seu patrimônio
       </p>
       <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-        Saldo que saiu em algo fora do que você acompanha. No ritmo atual, dá pra direcionar mais.
+        Pode ter sido um gasto que você ainda não registrou.
       </p>
     </div>
   );
@@ -174,7 +174,7 @@ function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) 
             {pending && pendingAction === "convert_to_debt" ? (
               <Spinner size={16} decorative />
             ) : (
-              "Não paguei → vira dívida"
+              "Não paguei"
             )}
           </Button>
           <Button
@@ -491,14 +491,14 @@ export function MonthClosingCard({ initialData }: Props) {
           <SheetHeader className="mb-5">
             <SheetTitle>Fechar {monthLabel}</SheetTitle>
             <SheetDescription>
-              Veja como o saldo livre do mês se reflete no seu patrimônio.
+              Veja como o saldo da Carteira do mês se reflete no seu patrimônio.
             </SheetDescription>
           </SheetHeader>
 
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                Saldo livre no mês
+                Saldo da Carteira no mês
               </span>
               <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                 <HideableValue>{data.theoreticalFormatted}</HideableValue>

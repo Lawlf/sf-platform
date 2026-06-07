@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Clock, Repeat, ShoppingBag, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, CreditCard, Repeat, ShoppingBag, Wallet } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { KindCard } from "./kind-card";
 import { WizardShell } from "./wizard-shell";
 
-type ActionId = "comprei" | "emprestimo" | "recorrente" | "cheque-especial" | "antiga";
+type ActionId = "comprei" | "cartao" | "recorrente" | "emprestimo" | "antiga" | "cheque-especial";
 
 interface ActionOption {
   id: ActionId;
@@ -24,23 +24,38 @@ const ACTIONS: readonly ActionOption[] = [
     href: "/app/dividas/nova/comprei" as Route,
     title: "Comprei algo",
     description:
-      "Pix, débito, cartão parcelado, crediário ou financiamento. Notebook, geladeira, sofá, carro.",
+      "À vista, cartão parcelado, crediário ou financiamento. Notebook, geladeira, carro, até IPVA parcelado.",
     icon: <ShoppingBag size={20} strokeWidth={1.75} aria-hidden />,
+  },
+  {
+    id: "cartao",
+    href: "/app/dividas/nova/cartao" as Route,
+    title: "Tenho cartão de crédito",
+    description: "Fatura mensal, limite, vencimento. Sem listar compra por compra.",
+    icon: <CreditCard size={20} strokeWidth={1.75} aria-hidden />,
+  },
+  {
+    id: "recorrente",
+    href: "/app/dividas/nova/recorrente" as Route,
+    title: "Conta ou assinatura fixa",
+    description: "Netflix, academia, plano de saúde, escola. O que sai todo mês sem você comprar de novo.",
+    icon: <Repeat size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
     id: "emprestimo",
     href: "/app/dividas/nova/emprestimo" as Route,
     title: "Peguei dinheiro emprestado",
     description:
-      "Empréstimo pessoal, consignado, dinheiro emprestado pra emergência ou pagar outra dívida. Sem compra atrelada.",
+      "Empréstimo do banco, consignado, ou dinheiro que você deve pra alguém (amigo, família). Sem compra atrelada.",
     icon: <Wallet size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
-    id: "recorrente",
-    href: "/app/dividas/nova/recorrente" as Route,
-    title: "Tenho conta que vem todo mês",
-    description: "Netflix, Spotify, academia, escola, plano de saúde.",
-    icon: <Repeat size={20} strokeWidth={1.75} aria-hidden />,
+    id: "antiga",
+    href: "/app/dividas/nova/antiga" as Route,
+    title: "Lembrei de dívida antiga",
+    description:
+      "Empréstimo, financiamento ou cartão que já corria antes do app. Você lança só o saldo que falta, sem detalhar cada parcela.",
+    icon: <Clock size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
     id: "cheque-especial",
@@ -49,13 +64,6 @@ const ACTIONS: readonly ActionOption[] = [
     description: "Saldo negativo, cheque especial. Juros todo dia, o mais caro.",
     icon: <AlertTriangle size={20} strokeWidth={1.75} aria-hidden />,
   },
-  {
-    id: "antiga",
-    href: "/app/dividas/nova/antiga" as Route,
-    title: "Lembrei de dívida antiga",
-    description: "Empréstimo, financiamento ou cartão que já corre antes do app.",
-    icon: <Clock size={20} strokeWidth={1.75} aria-hidden />,
-  },
 ] as const;
 
 export function KindPicker() {
@@ -63,9 +71,10 @@ export function KindPicker() {
 
   return (
     <WizardShell
+      hideSteps
       currentStep={1}
       title="O que aconteceu?"
-      description="Não precisa ser dívida grande. Pode ser uma compra, uma conta nova, algo antigo que esqueceu."
+      description="Uma compra, um cartão, uma assinatura, dinheiro que você deve pra alguém ou algo antigo. Pode ser pequeno."
       onBack={() => router.push("/app" as Route)}
     >
       <div role="radiogroup" aria-label="O que aconteceu" className="flex flex-col gap-2 md:gap-3.5">

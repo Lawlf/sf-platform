@@ -77,7 +77,7 @@ export function QuickAccessEditor({ isPro, initialKeys, catalog }: Props) {
             href={"/app/configuracoes/planos" as Route}
             className="focus-ring inline-flex shrink-0 items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2"
           >
-            Se tornar Pro
+            Virar Pro
             <Crown size={12} strokeWidth={2.25} aria-hidden />
           </Link>
         </div>

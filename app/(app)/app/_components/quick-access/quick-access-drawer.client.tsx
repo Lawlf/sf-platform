@@ -44,8 +44,8 @@ export const QUICK_ACCESS_DRAWER_CONFIG: Record<string, DrawerConfig> = {
   sim_quitacao: { title: "Projeção de quitação", description: "Quanto tempo até zerar a dívida?" },
   sim_extra: { title: "Pagamento extra", description: "Quanto adianta pagar mais por mês?" },
   sim_estrategia: {
-    title: "Bola de neve vs avalanche",
-    description: "Qual estratégia quita antes?",
+    title: "Qual dívida pagar primeiro",
+    description: "Menor saldo ou juro mais alto?",
   },
   sim_compra: {
     title: "Vale a pena comprar?",
@@ -56,7 +56,7 @@ export const QUICK_ACCESS_DRAWER_CONFIG: Record<string, DrawerConfig> = {
     description: "Salário, dividendos, freelances. Cadastre uma nova fonte.",
   },
   add_asset: {
-    title: "Adicionar ativo",
+    title: "Adicionar um bem",
     description: "Registre um bem ou investimento no seu patrimônio.",
   },
 };

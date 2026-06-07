@@ -111,6 +111,10 @@ export function CreditCardForm({
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  // Só quem está pagando juros (rotativo) vê o passo de taxa/saldo rotativo.
+  // Quem paga a fatura toda pula direto, e o cartão vira 4 passos. No fluxo de
+  // cartão antigo o rotativo costuma existir, então já começa marcado.
+  const [revolving, setRevolving] = useState(existing);
 
   const [bank, setBank] = useState("");
 
@@ -171,7 +175,15 @@ export function CreditCardForm({
 
   async function goToStep3() {
     const valid = await form.trigger(STEP2_FIELDS);
-    if (valid) setStep(3);
+    if (!valid) return;
+    if (revolving) {
+      setStep(3);
+    } else {
+      // Paga a fatura toda: sem rotativo. Limpa e pula o passo de taxa.
+      form.setValue("revolvingMonthlyRatePct", null);
+      form.setValue("revolvingBalanceCents", null);
+      setStep(4);
+    }
   }
 
   async function goToStep4() {
@@ -284,11 +296,20 @@ export function CreditCardForm({
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
+  // Numeração visível: o passo de rotativo (3) só conta quando existe. Sem ele,
+  // os passos 4..6 sobem uma posição e o total cai pra 4.
+  const totalSteps = revolving ? 5 : 4;
+  const visibleStep = (s: Step): 1 | 2 | 3 | 4 | 5 => {
+    if (s === 2) return 1;
+    if (s === 3) return 2;
+    return (revolving ? s - 1 : s - 2) as 1 | 2 | 3 | 4 | 5;
+  };
+
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={2}
-        totalSteps={6}
+        currentStep={visibleStep(2)}
+        totalSteps={totalSteps}
         title={existing ? "Cartão com saldo antigo" : "Limites e fatura"}
         description={
           existing
@@ -387,6 +408,35 @@ export function CreditCardForm({
             />
           </WizardField>
         </div>
+
+        <WizardField label="Você paga a fatura inteira ou está pagando juros?">
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              aria-pressed={!revolving}
+              onClick={() => setRevolving(false)}
+              className={`focus-ring rounded-xl border-[1.5px] px-3 py-2.5 text-[0.8125rem] font-semibold transition-all ${
+                !revolving
+                  ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]"
+                  : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
+              }`}
+            >
+              Pago a fatura toda
+            </button>
+            <button
+              type="button"
+              aria-pressed={revolving}
+              onClick={() => setRevolving(true)}
+              className={`focus-ring rounded-xl border-[1.5px] px-3 py-2.5 text-[0.8125rem] font-semibold transition-all ${
+                revolving
+                  ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]"
+                  : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
+              }`}
+            >
+              Tô pagando juros
+            </button>
+          </div>
+        </WizardField>
       </WizardShell>
     );
   }
@@ -394,8 +444,8 @@ export function CreditCardForm({
   if (step === 3) {
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={6}
+        currentStep={visibleStep(3)}
+        totalSteps={totalSteps}
         title="Taxas"
         description="Taxa do rotativo e data de início."
         onBack={() => setStep(2)}
@@ -457,11 +507,11 @@ export function CreditCardForm({
   if (step === 4) {
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={6}
+        currentStep={visibleStep(4)}
+        totalSteps={totalSteps}
         title="Compras parceladas"
         description="Compras ainda sendo pagas no cartão. Opcional."
-        onBack={() => setStep(3)}
+        onBack={() => setStep(revolving ? 3 : 2)}
         primary={{
           label: "Continuar",
           onClick: () => {
@@ -489,8 +539,8 @@ export function CreditCardForm({
     const canAdvance = canAdvanceLinkAssetStep(values);
     return (
       <WizardShell
-        currentStep={5}
-        totalSteps={6}
+        currentStep={visibleStep(5)}
+        totalSteps={totalSteps}
         title="Esse compromisso é por causa de um bem?"
         description="Carro, imóvel ou outro patrimônio parcelado no cartão."
         onBack={() => setStep(4)}
@@ -527,10 +577,10 @@ export function CreditCardForm({
 
   return (
     <WizardShell
-      currentStep={6}
-      totalSteps={6}
+      currentStep={visibleStep(6)}
+      totalSteps={totalSteps}
       title="Confirme os dados"
-      description="Olha como vai ficar antes de salvar."
+      description="Confere os números e salva."
       onBack={() => setStep(5)}
       primary={{
         label: "Salvar dívida",

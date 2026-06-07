@@ -242,7 +242,8 @@ function EmergencyFundStep({
             onChange={(v) => form.setValue("targetMonths", v)}
           />
           <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-            O valor alvo será calculado com base nos seus custos mensais cadastrados.
+            A gente estima seu custo de vida em cerca de 75% da sua renda. Você ajusta o valor
+            depois.
           </p>
         </div>
       </section>
@@ -346,7 +347,7 @@ function SavingsStep({
             <div className="grid grid-cols-2 gap-2">
               <WizardRadioCard
                 title="Vinculado"
-                description="Ligado a um ativo cadastrado."
+                description="Ligado a uma reserva ou investimento que você já tem."
                 active={fundingMode === "linked"}
                 onSelect={() => form.setValue("fundingMode", "linked")}
               />
@@ -467,8 +468,7 @@ function FinancialIndependenceStep({
             onChange={(v) => form.setValue("realReturnPct", v)}
           />
           <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Rendimento real = rendimento nominal descontado da inflação. 4% é uma referência
-            conservadora para renda passiva sustentável.
+            Quanto seu dinheiro rende por ano, já descontando a inflação. Se não souber, deixa em 4%.
           </p>
         </div>
       </section>
@@ -497,7 +497,7 @@ function ErrorAlert({ message }: { message: string }) {
 // ---- Main component --------------------------------------------------------
 
 const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[] = [
-  { type: "debt_payoff", title: "Quitar uma dívida", description: "Elimine um passivo do seu patrimônio." },
+  { type: "debt_payoff", title: "Quitar uma dívida", description: "Tirar uma conta que tá correndo juros." },
   { type: "emergency_fund", title: "Reserva de emergência", description: "Meses de custo de vida guardados." },
   { type: "savings", title: "Juntar um valor", description: "Viagem, entrada, projeto, qualquer meta." },
   { type: "financial_independence", title: "Independência", description: "Viver de renda passiva." },
