@@ -22,7 +22,7 @@ const CLIENTS: { name: string; steps: string[] }[] = [
     name: "Claude",
     steps: [
       "Configurações → Conectores → adicionar conector personalizado.",
-      "Cole a URL e inicie. Autorize na tela do Sabor e escolha os escopos.",
+      "Cole a URL e inicie. Autorize na tela do Sabor e escolha as permissões.",
     ],
   },
   {
@@ -35,7 +35,7 @@ const CLIENTS: { name: string; steps: string[] }[] = [
   {
     name: "OpenClaw, Cursor, Gemini e outros",
     steps: [
-      "Adicione um servidor MCP remoto (Streamable HTTP) com a URL acima.",
+      "Adicione um servidor MCP remoto com a URL acima.",
       "Ao conectar, você é levado à tela de autorização do Sabor.",
     ],
   },
@@ -51,7 +51,7 @@ export default async function GuiaConexaoPage() {
   return (
     <PageShell
       title="Como conectar"
-      description="Conecte seu assistente de IA via MCP e cuide das finanças por conversa: consultar saldo, lançar renda, registrar dívida, acompanhar metas."
+      description="Conecte seu assistente de IA e cuide das finanças por conversa: consultar saldo, lançar renda, registrar dívida, acompanhar metas."
       backHref={"/app/configuracoes/integracoes" as Route}
     >
       <section className={CARD}>
@@ -154,7 +154,7 @@ export default async function GuiaConexaoPage() {
           Segurança
         </h2>
         <ul className="flex flex-col gap-2 border-t border-[color:var(--border-soft)] pt-3 text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-          <li>OAuth com escopos granulares: o assistente só acessa o que você liberou.</li>
+          <li>O assistente só acessa o que você liberar, item por item.</li>
           <li>Exclusões e operações acima de R$ 5.000 exigem sua confirmação.</li>
           <li>Tudo fica registrado em Atividade e dá para desfazer onde aplicável.</li>
           <li>Você revoga o acesso na hora; a próxima chamada já é bloqueada.</li>

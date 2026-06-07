@@ -48,7 +48,7 @@ const SECTIONS: SettingSection[] = [
       },
       {
         href: "/app/configuracoes/estilo" as Route,
-        label: "Estilo financeiro",
+        label: "Estilo com dinheiro",
         description: "Como você lida com dinheiro.",
         icon: Scale,
       },
@@ -67,13 +67,13 @@ const SECTIONS: SettingSection[] = [
       {
         href: "/app/configuracoes/integracoes" as Route,
         label: "Integrações",
-        description: "Conecte assistentes de IA (MCP) e gerencie permissões.",
+        description: "Conecte sua IA (Claude, ChatGPT) pra cuidar das finanças por conversa.",
         icon: Plug,
       },
       {
         href: "/app/configuracoes/importacao-de-dados" as Route,
         label: "Importação de dados",
-        description: "Importe extrato OFX ou conecte sua IA.",
+        description: "Importe o extrato do banco ou deixe sua IA lançar por você.",
         icon: FileUp,
       },
     ],
