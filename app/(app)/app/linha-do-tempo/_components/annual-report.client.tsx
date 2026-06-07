@@ -67,11 +67,10 @@ function EmptyReport() {
         </span>
         <div>
           <h3 className="text-base font-bold text-[color:var(--text-primary)]">
-            Você ainda não detalhou nenhum gasto este ano
+            Quer ver pra onde foi o dinheiro do ano?
           </h3>
           <p className="mt-1 max-w-md text-sm text-[color:var(--text-secondary)]">
-            Detalhar é opcional. Você pode contar pela IA, tipo &ldquo;gastei 40 no café&rdquo;, ou
-            registrar manualmente aqui pra ver pra onde foi.
+            É opcional. Conte pela IA, tipo &ldquo;gastei 40 no café&rdquo;, ou registre aqui na mão.
           </p>
         </div>
         {open ? null : (

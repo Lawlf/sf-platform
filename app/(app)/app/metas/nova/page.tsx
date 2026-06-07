@@ -61,8 +61,8 @@ export default async function NovaMetaPage({
               </div>
             </div>
             <p className="mb-4 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
-              No plano gratuito você pode ter uma meta ativa por vez. Faça upgrade para o Pro e
-              acompanhe todos os seus objetivos em paralelo.
+              No plano gratuito você pode ter uma meta ativa por vez. Assine o Pro e acompanhe todos
+              os seus objetivos em paralelo.
             </p>
             <Link
               href={"/app/configuracoes/planos" as Route}
