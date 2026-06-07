@@ -2,29 +2,19 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import {
-  ArrowRight,
-  Car,
-  CreditCard,
-  GraduationCap,
-  HeartPulse,
-  Home,
-  PartyPopper,
-  Plug,
-  Receipt,
-  UtensilsCrossed,
-} from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { type ReactNode, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import type { ExpenseCategory } from "@/domain/entities/debt.entity";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { formatCents } from "@/shared/format/money-format";
 
 import { todayIso } from "../../../_lib/dates";
+import { EXPENSE_CATEGORIES, expenseCategoryLabel } from "../../../_lib/expense-categories";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
@@ -32,47 +22,7 @@ import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardShell } from "../../_components/wizard-shell";
 import { createRecurringDebtAction } from "../_actions/create-recurring-debt.action";
 
-type ExpenseCategory =
-  | "housing"
-  | "utilities"
-  | "food"
-  | "transport"
-  | "health"
-  | "leisure"
-  | "subscriptions"
-  | "education"
-  | "other";
-
 type Frequency = "monthly" | "weekly" | "annual";
-
-interface CategoryOption {
-  id: ExpenseCategory;
-  label: string;
-  description: string;
-  icon: LucideIcon;
-}
-
-const CATEGORIES: readonly CategoryOption[] = [
-  { id: "housing", label: "Moradia", description: "Aluguel, condomínio", icon: Home },
-  { id: "utilities", label: "Contas", description: "Luz, água, internet", icon: Plug },
-  { id: "food", label: "Alimentação", description: "Mercado, delivery", icon: UtensilsCrossed },
-  { id: "transport", label: "Transporte", description: "Combustível, transporte", icon: Car },
-  { id: "health", label: "Saúde", description: "Plano, farmácia", icon: HeartPulse },
-  { id: "leisure", label: "Lazer", description: "Cinema, viagens", icon: PartyPopper },
-  {
-    id: "subscriptions",
-    label: "Assinaturas",
-    description: "Streaming, apps",
-    icon: CreditCard,
-  },
-  {
-    id: "education",
-    label: "Educação",
-    description: "Cursos, mensalidades",
-    icon: GraduationCap,
-  },
-  { id: "other", label: "Outros", description: "Demais despesas", icon: Receipt },
-] as const;
 
 const formSchema = z.object({
   expenseCategory: z.enum([
@@ -121,7 +71,7 @@ function frequencyLabel(freq: Frequency): string {
 }
 
 function categoryLabel(id: ExpenseCategory): string {
-  return CATEGORIES.find((c) => c.id === id)?.label ?? id;
+  return expenseCategoryLabel(id);
 }
 
 interface CategoryCardProps {
@@ -275,7 +225,7 @@ export function RecurringDebtForm({
         onBack={() => router.push("/app/dividas/nova" as Route)}
       >
         <div role="radiogroup" aria-label="Categoria" className="flex flex-col gap-2 md:gap-3.5">
-          {CATEGORIES.map((cat) => {
+          {EXPENSE_CATEGORIES.map((cat) => {
             const Icon = cat.icon;
             return (
               <CategoryCard

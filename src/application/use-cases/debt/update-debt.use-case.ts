@@ -1,5 +1,6 @@
 import type {
   DebtEntity,
+  ExpenseCategory,
   InstallmentPurchase,
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
@@ -40,6 +41,7 @@ export interface UpdateDebtInput {
   monthlyRate?: InterestRate;
   recurringAmountCents?: bigint;
   recurringFrequency?: RecurringFrequency;
+  expenseCategory?: ExpenseCategory;
 }
 
 export async function updateDebt(
@@ -122,6 +124,7 @@ export async function updateDebt(
         ...(input.recurringFrequency !== undefined && {
           recurringFrequency: input.recurringFrequency,
         }),
+        ...(input.expenseCategory !== undefined && { expenseCategory: input.expenseCategory }),
         ...(input.dueDay !== undefined && { dueDay: input.dueDay }),
       };
       break;

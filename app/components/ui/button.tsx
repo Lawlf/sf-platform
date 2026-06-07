@@ -23,6 +23,8 @@ const buttonVariants = cva(
           "hover:bg-[color:var(--surface-3)] focus-visible:ring-[color:var(--color-brand-500)]",
         destructive:
           "bg-[color:var(--semantic-negative)] text-white shadow hover:opacity-90 focus-visible:ring-[color:var(--semantic-negative)]",
+        positive:
+          "border border-[color:var(--semantic-positive)] text-[color:var(--semantic-positive)] hover:bg-[color:var(--semantic-positive)]/10 focus-visible:ring-[color:var(--semantic-positive)]",
       },
       size: {
         default: "h-10 px-4 py-2",

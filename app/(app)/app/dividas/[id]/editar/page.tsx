@@ -91,6 +91,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
             debt.kind === "recurring" && debt.recurringFrequency !== "annual"
               ? debt.recurringFrequency
               : null,
+          expenseCategory: debt.kind === "recurring" ? debt.expenseCategory : null,
         }}
       />
     </PageShell>

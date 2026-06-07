@@ -6,6 +6,8 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+import { expenseCategoryLabel } from "../../_lib/expense-categories";
+
 
 const KIND_LABEL: Record<DebtKind, string> = {
   financing: "Financiamento",
@@ -21,6 +23,11 @@ const STATUS_LABEL: Record<DebtStatus, string> = {
   written_off: "Baixada",
 };
 
+function statusLabel(debt: DebtEntity): string {
+  if (debt.kind === "recurring" && debt.status === "paid_off") return "Encerrada";
+  return STATUS_LABEL[debt.status];
+}
+
 const FREQUENCY_LABEL = {
   monthly: "mês",
   weekly: "semana",
@@ -32,18 +39,6 @@ const FREQUENCY_NAME = {
   weekly: "Semanal",
   annual: "Anual",
 } as const;
-
-const EXPENSE_CATEGORY_LABEL: Record<string, string> = {
-  housing: "Moradia",
-  utilities: "Contas de casa",
-  food: "Alimentação",
-  transport: "Transporte",
-  health: "Saúde",
-  education: "Educação",
-  leisure: "Lazer",
-  subscription: "Assinaturas",
-  other: "Outros",
-};
 
 const DATE_FMT = dateOnlyFormat({ dateStyle: "short" });
 
@@ -66,7 +61,7 @@ function buildHeaderStats(
 ): { label: string; value: string; isCurrency?: boolean }[] {
   if (debt.kind === "recurring") {
     const freqLabel = FREQUENCY_LABEL[debt.recurringFrequency];
-    const categoryLabel = EXPENSE_CATEGORY_LABEL[debt.expenseCategory ?? "other"] ?? "Outros";
+    const categoryLabel = expenseCategoryLabel(debt.expenseCategory);
     return [
       {
         label: `Por ${freqLabel}`,
@@ -121,7 +116,7 @@ export function DebtHeader({ debt }: Props) {
           <span
             className={`mt-2 inline-flex items-center rounded-full px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide ${statusBadgeClass(debt.status)}`}
           >
-            {STATUS_LABEL[debt.status]}
+            {statusLabel(debt)}
           </span>
         </div>
         <span className="opacity-80">{kindIcon(debt.kind)}</span>
