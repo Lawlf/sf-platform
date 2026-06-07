@@ -2,6 +2,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
@@ -115,6 +117,12 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         required
         currency={currency}
       />
+      <Link
+        href={"/app/simular/salario-clt" as Route}
+        className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+      >
+        Não sabe o líquido? Calcular a partir do bruto
+      </Link>
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>

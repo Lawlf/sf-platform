@@ -237,7 +237,7 @@ export function LinkedDebtStep({
                         htmlFor={`alloc-${debt.id}`}
                         className="mb-1 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
                       >
-                        Quanto desta dívida pertence a este ativo?
+                        Quanto dessa dívida é por causa deste bem?
                       </label>
                       <WizardMoneyField
                         control={form.control}
