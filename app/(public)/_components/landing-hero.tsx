@@ -28,8 +28,9 @@ export function LandingHero() {
             </h1>
 
             <p className="mt-6 max-w-xl text-[17px] leading-relaxed text-[color:var(--text-secondary)] sm:text-[18px]">
-              Veja o mês em que você sai do vermelho, o tamanho real da dívida e
-              quanto os juros custam de verdade. Sem anotar cada cafezinho.
+              Veja em que mês a dívida deve acabar se você seguir no ritmo de hoje,
+              o tamanho real dela e quanto os juros custam de verdade. Sem anotar
+              cada cafezinho.
             </p>
 
             <p className="mt-3 max-w-xl text-[15px] leading-relaxed text-[color:var(--text-muted)]">

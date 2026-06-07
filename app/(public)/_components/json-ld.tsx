@@ -48,7 +48,7 @@ export function SoftwareApplicationJsonLd() {
     applicationCategory: "FinanceApplication",
     operatingSystem: "Web, Android, iOS (PWA)",
     description:
-      "Aplicativo web PWA para gestão macro de dívidas, renda e patrimônio. Simuladores SAC/PRICE, juros compostos e plano de saída do vermelho.",
+      "Aplicativo web PWA para gestão macro de dívidas, renda e patrimônio. Simuladores de financiamento, juros compostos e projeção de quitação.",
     url: siteUrl,
     inLanguage: "pt-BR",
     offers: [
