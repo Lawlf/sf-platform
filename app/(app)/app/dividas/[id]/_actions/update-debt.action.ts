@@ -8,7 +8,7 @@ import {
   type UpdateDebtInput,
 } from "@/application/use-cases/debt/update-debt.use-case";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
-import { type Currency, Money } from "@/domain/value-objects/money.vo";
+import { Money } from "@/domain/value-objects/money.vo";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -16,6 +16,7 @@ import { installmentPurchaseItemSchema } from "@/presentation/http/validators/de
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
+import { buildUpdateMoneyInput } from "./update-debt.money";
 
 const bigintFromString = z
   .string()
@@ -92,62 +93,7 @@ const installmentPurchasesPayloadSchema = z
 
 export type UpdateDebtResult = { ok: true; debtId: string } | { ok: false; message: string };
 
-type ParsedUpdate = z.infer<typeof schema>;
-
-// Constrói a parte monetária da entrada de update reaproveitando a moeda da
-// dívida carregada. NUNCA recai em BRL para uma dívida que já está em outra
-// moeda: rebuildar com a moeda default corromperia o registro (regressão).
-export function buildUpdateMoneyInput(
-  d: ParsedUpdate,
-  currency: Currency,
-): Pick<
-  UpdateDebtInput,
-  | "currentBalance"
-  | "monthlyInstallment"
-  | "monthlyInsurance"
-  | "monthlyAdminFee"
-  | "creditLimit"
-  | "currentStatement"
-  | "revolvingBalance"
-  | "installmentPurchases"
-> {
-  const out: Pick<
-    UpdateDebtInput,
-    | "currentBalance"
-    | "monthlyInstallment"
-    | "monthlyInsurance"
-    | "monthlyAdminFee"
-    | "creditLimit"
-    | "currentStatement"
-    | "revolvingBalance"
-    | "installmentPurchases"
-  > = {};
-  if (d.currentBalanceCents != null) {
-    out.currentBalance = Money.fromCents(d.currentBalanceCents, currency);
-  }
-  if (d.monthlyInstallmentCents != null) {
-    out.monthlyInstallment = Money.fromCents(d.monthlyInstallmentCents, currency);
-  }
-  if (d.monthlyInsuranceCents !== undefined) {
-    out.monthlyInsurance =
-      d.monthlyInsuranceCents !== null ? Money.fromCents(d.monthlyInsuranceCents, currency) : null;
-  }
-  if (d.monthlyAdminFeeCents !== undefined) {
-    out.monthlyAdminFee =
-      d.monthlyAdminFeeCents !== null ? Money.fromCents(d.monthlyAdminFeeCents, currency) : null;
-  }
-  if (d.creditLimitCents != null) {
-    out.creditLimit = Money.fromCents(d.creditLimitCents, currency);
-  }
-  if (d.currentStatementCents != null) {
-    out.currentStatement = Money.fromCents(d.currentStatementCents, currency);
-  }
-  if (d.revolvingBalanceCents !== undefined) {
-    out.revolvingBalance =
-      d.revolvingBalanceCents !== null ? Money.fromCents(d.revolvingBalanceCents, currency) : null;
-  }
-  return out;
-}
+export type ParsedUpdate = z.infer<typeof schema>;
 
 export async function updateDebtAction(formData: FormData): Promise<UpdateDebtResult> {
   const user = await requireUser();
