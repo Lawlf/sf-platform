@@ -1,6 +1,6 @@
 "use client";
 
-import { Camera, Check, Pencil, Trash2, X } from "lucide-react";
+import { Camera, Check, Pencil, X } from "lucide-react";
 import { useRef, useState, useTransition } from "react";
 
 import type { ProfileBadge, SupporterTier } from "@/domain/services/profile-identity.service";
@@ -11,6 +11,7 @@ import { updateAvatarAction } from "../_actions/update-avatar.action";
 import { updateDisplayNameAction } from "../_actions/update-display-name.action";
 
 import { AvatarEditModal } from "./avatar-edit-modal.client";
+import { AvatarMenu } from "./avatar-menu.client";
 import { ProfileBadges } from "./profile-badges.client";
 
 export interface PerfilHeroProps {
@@ -54,6 +55,7 @@ export function PerfilHero({
   const [source, setSource] = useState<string | null>(null);
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const [avatarPending, startAvatarTransition] = useTransition();
+  const [menuOpen, setMenuOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   function startEdit() {
@@ -118,7 +120,13 @@ export function PerfilHero({
       await removeAvatarAction();
       setAvatarUrl(null);
       setAvatarError(null);
+      setMenuOpen(false);
     });
+  }
+
+  function changePhoto() {
+    setMenuOpen(false);
+    fileInputRef.current?.click();
   }
 
   return (
@@ -140,9 +148,9 @@ export function PerfilHero({
         <div className="relative flex-none">
           <button
             type="button"
-            onClick={() => fileInputRef.current?.click()}
+            onClick={() => setMenuOpen(true)}
             disabled={avatarPending}
-            aria-label="Trocar foto de perfil"
+            aria-label="Gerenciar foto de perfil"
             className="focus-ring block rounded-2xl disabled:opacity-60"
           >
             <span
@@ -228,17 +236,6 @@ export function PerfilHero({
                 badges={badges}
                 tone={supporterTier === "free" ? "light" : "onGradient"}
               />
-              {avatarUrl ? (
-                <button
-                  type="button"
-                  onClick={removeAvatar}
-                  disabled={avatarPending}
-                  className="focus-ring mt-2 inline-flex items-center gap-1 rounded-lg bg-white/15 px-2 py-1 text-[0.6875rem] font-semibold backdrop-blur-sm transition-colors hover:bg-white/25 disabled:opacity-50"
-                >
-                  <Trash2 size={11} strokeWidth={2} aria-hidden />
-                  Remover foto
-                </button>
-              ) : null}
               {avatarError ? (
                 <span className="mt-2 block text-[0.6875rem] text-white/95">{avatarError}</span>
               ) : null}
@@ -250,6 +247,17 @@ export function PerfilHero({
       <div className="relative mt-3 text-[0.6875rem] text-current opacity-70">
         Membro desde {memberSince}
       </div>
+
+      <AvatarMenu
+        open={menuOpen}
+        onOpenChange={setMenuOpen}
+        avatarUrl={avatarUrl}
+        displayName={displayName}
+        pending={avatarPending}
+        error={avatarError}
+        onChangePhoto={changePhoto}
+        onRemovePhoto={removeAvatar}
+      />
 
       {source ? (
         <AvatarEditModal
