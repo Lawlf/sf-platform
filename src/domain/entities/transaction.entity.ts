@@ -2,7 +2,7 @@ import type { Money } from "@/domain/value-objects/money.vo";
 
 export type TransactionDirection = "in" | "out";
 export type TransactionStatus = "paid" | "scheduled";
-export type TransactionSource = "manual" | "open_finance";
+export type TransactionSource = "manual" | "open_finance" | "ofx_import";
 
 /**
  * Fonte de entrada (direction === "in"). Armazenada como string em `category`.

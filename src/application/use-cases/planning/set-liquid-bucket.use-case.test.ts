@@ -27,6 +27,7 @@ function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" |
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...p,
   };
 }

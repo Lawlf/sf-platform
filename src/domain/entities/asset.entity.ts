@@ -114,6 +114,7 @@ export interface AssetEntity {
    * `deleteAsset`. Mantemos a linha pra atender LGPD/auditoria.
    */
   deletedAt: Date | null;
+  externalAccountKey: string | null;
 }
 
 export function isAssetActive(asset: AssetEntity): boolean {

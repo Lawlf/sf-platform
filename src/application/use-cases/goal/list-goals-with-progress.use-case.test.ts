@@ -37,6 +37,7 @@ function makeAsset(id: string, currentValueCents: bigint, currency: Currency = "
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 
@@ -83,6 +84,8 @@ function buildDeps({
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
+    findByExternalAccountKey: vi.fn(),
+    listExternalAccountKeys: vi.fn(async () => []),
   };
 
   const allocations: AssetDebtAllocationRepository = {

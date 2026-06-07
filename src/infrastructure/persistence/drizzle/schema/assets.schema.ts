@@ -65,6 +65,7 @@ export const assets = pgTable(
     // `deleteAsset`. Diferente de `deactivated_at`, que mantem o ativo
     // visivel no historico (vendido/perdido/doado).
     deletedAt: timestamp("deleted_at", { withTimezone: true }),
+    externalAccountKey: text("external_account_key"),
   },
   (table) => ({
     userIdx: index("assets_user_id_idx").on(table.userId),

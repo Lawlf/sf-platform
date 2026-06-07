@@ -61,7 +61,7 @@ describe("buildCascadeInputs", () => {
       fipeCode: null, fipeLastSyncedAt: null, acquiredAt: null, depreciationKind: "stable" as const,
       depreciationRatePctYear: 0, purchaseDate: null, purchasePriceCents: null,
       createdAt: new Date(0), updatedAt: new Date(0), deactivatedAt: null, deactivationKind: null,
-      salePriceCents: null, deactivationReason: null, deletedAt: null,
+      salePriceCents: null, deactivationReason: null, deletedAt: null, externalAccountKey: null,
     }];
     const [input] = buildCascadeInputs({ goals: [g], macro: MACRO, assets });
     expect(input!.monthlyRate).toBeCloseTo(annualPctToMonthlyRate(10), 12);

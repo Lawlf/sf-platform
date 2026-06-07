@@ -78,6 +78,7 @@ function makeAsset(label: string): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 

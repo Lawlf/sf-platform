@@ -74,6 +74,7 @@ function makeAsset(overrides: {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
   };
 }
 

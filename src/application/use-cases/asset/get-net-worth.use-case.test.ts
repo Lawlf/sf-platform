@@ -49,6 +49,7 @@ function makeAsset(
     deactivationKind: overrides.deactivationKind ?? null,
     salePriceCents: overrides.salePriceCents ?? null,
     deactivationReason: overrides.deactivationReason ?? null,
+    externalAccountKey: overrides.externalAccountKey ?? null,
     deletedAt: overrides.deletedAt ?? null,
   };
 }
@@ -129,6 +130,8 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
+    findByExternalAccountKey: vi.fn(),
+    listExternalAccountKeys: vi.fn(async () => []),
   };
 
   const allocationRepo: AssetDebtAllocationRepository = {

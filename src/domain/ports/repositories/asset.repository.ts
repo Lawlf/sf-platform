@@ -37,4 +37,6 @@ export interface AssetRepository {
    * próprio use case via repositório dedicado antes do soft delete aqui.
    */
   softDelete(id: string, deletedAt: Date): Promise<void>;
+  findByExternalAccountKey(userId: string, key: string): Promise<AssetEntity | null>;
+  listExternalAccountKeys(userId: string): Promise<string[]>;
 }

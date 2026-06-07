@@ -56,6 +56,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...overrides,
   };
 }

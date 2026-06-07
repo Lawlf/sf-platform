@@ -72,6 +72,8 @@ function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepository {
     findActiveWithAllocations: vi.fn(async () => []),
     listStockTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
+    findByExternalAccountKey: vi.fn(),
+    listExternalAccountKeys: vi.fn(async () => []),
   };
 }
 
@@ -110,6 +112,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     salePriceCents: null,
     deactivationReason: null,
     deletedAt: null,
+    externalAccountKey: null,
     ...overrides,
   };
 }
