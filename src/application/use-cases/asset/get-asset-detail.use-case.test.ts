@@ -108,6 +108,7 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     update: vi.fn(),
     findById: vi.fn(),
     findActiveByUser: vi.fn(),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(async () => withAllocations),
     findActiveWithAllocations: vi.fn(),

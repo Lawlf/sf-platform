@@ -177,6 +177,36 @@ export class DrizzleAssetRepository implements AssetRepository {
       });
   }
 
+  async createDefaultWallet(asset: AssetEntity): Promise<void> {
+    await getDb()
+      .insert(assets)
+      .values({
+        id: asset.id,
+        userId: asset.userId,
+        category: asset.category,
+        label: asset.label,
+        currentValueCents: asset.currentValue.toCents(),
+        currency: asset.currentValue.currency,
+        metadata: serializeMetadata(asset.metadata),
+        fipeCode: asset.fipeCode,
+        fipeLastSyncedAt: asset.fipeLastSyncedAt,
+        acquiredAt: asset.acquiredAt,
+        depreciationKind: asset.depreciationKind,
+        depreciationRatePctYear: asset.depreciationRatePctYear.toFixed(2),
+        purchaseDate: asset.purchaseDate,
+        purchasePriceCents: asset.purchasePriceCents,
+        createdAt: asset.createdAt,
+        updatedAt: asset.updatedAt,
+        deactivatedAt: asset.deactivatedAt,
+        deactivationKind: asset.deactivationKind,
+        salePriceCents: asset.salePriceCents,
+        deactivationReason: asset.deactivationReason,
+        deletedAt: asset.deletedAt,
+        externalAccountKey: asset.externalAccountKey ?? null,
+      })
+      .onConflictDoNothing();
+  }
+
   async update(asset: AssetEntity): Promise<void> {
     await getDb()
       .update(assets)

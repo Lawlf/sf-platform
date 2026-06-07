@@ -125,6 +125,7 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     findActiveByUser: vi.fn(async (userId: string) =>
       assets.filter((a) => a.userId === userId && a.deactivatedAt === null && a.deletedAt === null),
     ),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),

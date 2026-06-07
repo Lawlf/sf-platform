@@ -79,6 +79,7 @@ function buildDeps({
     update: vi.fn(),
     findById: vi.fn(async (id: string) => (id === asset.id ? asset : null)),
     findActiveByUser: vi.fn(async () => []),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),

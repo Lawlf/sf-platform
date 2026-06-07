@@ -1,6 +1,6 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -146,6 +146,7 @@ function visibleStepInfo(
 
 export function NewPurchaseWizard() {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -460,6 +461,14 @@ export function NewPurchaseWizard() {
         setServerError(result.message);
         return;
       }
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+        queryClient.invalidateQueries({ queryKey: ["debts"] }),
+        queryClient.invalidateQueries({ queryKey: ["dashboardSnapshot"] }),
+        queryClient.invalidateQueries({ queryKey: ["netWorth"] }),
+        queryClient.invalidateQueries({ queryKey: ["assetsWithAllocations"] }),
+      ]);
 
       if (result.assetId) {
         router.push(`/app/patrimonio/${result.assetId}` as Route);

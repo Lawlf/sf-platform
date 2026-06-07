@@ -8,6 +8,7 @@ import {
   pgTable,
   text,
   timestamp,
+  uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
 
@@ -72,6 +73,14 @@ export const assets = pgTable(
     userCategoryIdx: index("assets_user_id_category_idx").on(table.userId, table.category),
     userActiveIdx: index("assets_user_id_active_idx").on(table.userId, table.deactivatedAt),
     userDeletedIdx: index("assets_user_deleted_idx").on(table.userId, table.deletedAt),
+    // No máximo uma Carteira padrão ativa por usuário. Backstop de banco contra
+    // a corrida de check-then-insert que duplicava a Carteira em entradas
+    // concorrentes no app (ensureDefaultWallet / resolveAccount).
+    defaultWalletIdx: uniqueIndex("assets_default_wallet_uniq")
+      .on(table.userId)
+      .where(
+        sql`${table.category} = 'cash' and ${table.label} = 'Carteira' and ${table.deletedAt} is null and ${table.deactivatedAt} is null`,
+      ),
   }),
 );
 
