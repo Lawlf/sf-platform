@@ -20,6 +20,7 @@ function makeAssetRepo(): AssetRepository {
     update: vi.fn(),
     findById: vi.fn(),
     findActiveByUser: vi.fn(),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),

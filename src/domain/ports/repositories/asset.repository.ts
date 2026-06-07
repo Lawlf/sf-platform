@@ -8,6 +8,14 @@ export interface AssetWithAllocations {
 
 export interface AssetRepository {
   create(asset: AssetEntity): Promise<void>;
+  /**
+   * Insere a Carteira padrão de forma idempotente no nível do banco. Se já
+   * existir uma Carteira ativa para o usuário, o INSERT vira no-op
+   * (ON CONFLICT DO NOTHING sobre o índice único parcial), evitando a corrida
+   * de check-then-insert que duplicava a Carteira em entradas concorrentes
+   * no app.
+   */
+  createDefaultWallet(asset: AssetEntity): Promise<void>;
   update(asset: AssetEntity): Promise<void>;
   /**
    * Retorna o ativo pelo id ou `null`. Ignora linhas soft-deleted

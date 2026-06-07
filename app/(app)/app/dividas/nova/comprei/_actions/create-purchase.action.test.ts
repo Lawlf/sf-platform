@@ -67,6 +67,7 @@ function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepository {
       return a;
     }),
     findActiveByUser: vi.fn(async () => []),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(async () => []),
     findByIdWithAllocations: vi.fn(async () => null),
     findActiveWithAllocations: vi.fn(async () => []),

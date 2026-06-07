@@ -3,7 +3,7 @@ import type { AssetRepository } from "@/domain/ports/repositories/asset.reposito
 import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 
 export interface EnsureDefaultWalletDeps {
-  assets: Pick<AssetRepository, "findActiveByUserAndCategory" | "create">;
+  assets: Pick<AssetRepository, "findActiveByUserAndCategory" | "createDefaultWallet">;
   clock: Clock;
   newId: () => string;
 }
@@ -21,5 +21,5 @@ export async function ensureDefaultWallet(
   const existing = await deps.assets.findActiveByUserAndCategory(userId, "cash");
   if (existing.length > 0) return;
   const wallet = buildDefaultWallet(userId, deps.newId(), deps.clock.now());
-  await deps.assets.create(wallet);
+  await deps.assets.createDefaultWallet(wallet);
 }

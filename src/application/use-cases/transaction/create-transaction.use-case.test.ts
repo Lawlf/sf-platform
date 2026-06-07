@@ -43,7 +43,7 @@ function makeDeps(over: Partial<CreateTransactionDeps> = {}): CreateTransactionD
     assets: {
       findById: vi.fn(async () => cashAsset()),
       findActiveByUserAndCategory: vi.fn(async () => [cashAsset()]),
-      create: vi.fn(async () => undefined),
+      createDefaultWallet: vi.fn(async () => undefined),
       update: vi.fn(async () => undefined),
     },
     clock: { now: () => new Date("2026-06-05T00:00:00Z") },
@@ -106,7 +106,7 @@ describe("createTransaction", () => {
       assets: {
         findById: vi.fn(async () => null),
         findActiveByUserAndCategory: vi.fn(async () => []),
-        create: vi.fn(async (a: AssetEntity) => {
+        createDefaultWallet: vi.fn(async (a: AssetEntity) => {
           created.push(a);
         }),
         update: vi.fn(async () => undefined),
@@ -140,7 +140,7 @@ describe("createTransaction", () => {
       status: "paid",
     });
     expect(r._tag).toBe("ok");
-    expect(deps.assets.create).not.toHaveBeenCalled();
+    expect(deps.assets.createDefaultWallet).not.toHaveBeenCalled();
     if (r._tag === "ok") expect(r.value.accountId).toBe("acc1");
   });
 });

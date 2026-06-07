@@ -16,7 +16,10 @@ import { ok, type Result } from "@/shared/errors/result";
 
 export interface CreateTransactionDeps {
   transactions: Pick<TransactionRepository, "create">;
-  assets: Pick<AssetRepository, "findById" | "findActiveByUserAndCategory" | "create" | "update">;
+  assets: Pick<
+    AssetRepository,
+    "findById" | "findActiveByUserAndCategory" | "createDefaultWallet" | "update"
+  >;
   clock: Clock;
 }
 
@@ -45,8 +48,9 @@ async function resolveAccount(
   const existing = await deps.assets.findActiveByUserAndCategory(userId, "cash");
   if (existing[0]) return existing[0];
   const wallet = buildDefaultWallet(userId, crypto.randomUUID(), deps.clock.now());
-  await deps.assets.create(wallet);
-  return wallet;
+  await deps.assets.createDefaultWallet(wallet);
+  const after = await deps.assets.findActiveByUserAndCategory(userId, "cash");
+  return after[0] ?? wallet;
 }
 
 export async function createTransaction(

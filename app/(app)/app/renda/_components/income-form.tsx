@@ -70,6 +70,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       }
       await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
+      await queryClient.invalidateQueries({ queryKey: ["timeline"] });
       router.push("/app/renda");
     });
   }

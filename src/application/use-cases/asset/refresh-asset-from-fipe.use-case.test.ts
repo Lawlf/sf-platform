@@ -60,6 +60,7 @@ function makeRepoBackedByMap() {
       return a && a.userId === userId ? a : null;
     }),
     findActiveByUser: vi.fn(),
+    createDefaultWallet: vi.fn(),
     findActiveByUserAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
