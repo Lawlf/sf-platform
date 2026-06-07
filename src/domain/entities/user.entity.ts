@@ -19,6 +19,8 @@ export interface UserEntity {
   onboardingWizardSeenAt: Date | null;
   homeTourDismissedAt: Date | null;
   quickAccess: string[];
+  username: string | null;
+  profileFlair: string | null;
   baseCurrency: Currency;
   createdAt: Date;
   updatedAt: Date;

@@ -27,6 +27,8 @@ function makeUser(id: string, overrides: Partial<UserEntity> = {}): UserEntity {
     onboardingWizardSeenAt: null,
     homeTourDismissedAt: null,
     quickAccess: [],
+    username: null,
+    profileFlair: null,
     baseCurrency: "BRL",
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
@@ -37,6 +39,7 @@ function makeUser(id: string, overrides: Partial<UserEntity> = {}): UserEntity {
 function makeUserRepo(pro: UserEntity[]): UserRepository {
   return {
     findById: vi.fn(),
+    findByUsername: vi.fn(),
     findByEmail: vi.fn(),
     create: vi.fn(),
     markEmailVerified: vi.fn(),
@@ -59,6 +62,8 @@ function makeAssetRepo(byUser: Record<string, string[]>): AssetRepository {
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async (userId: string) => byUser[userId] ?? []),
     softDelete: vi.fn(),
+    findByExternalAccountKey: vi.fn(),
+    listExternalAccountKeys: vi.fn(async () => []),
   };
 }
 

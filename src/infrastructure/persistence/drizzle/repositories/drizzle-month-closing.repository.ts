@@ -17,6 +17,9 @@ function rowToEntity(row: MonthClosingRow): MonthClosingEntity {
     endNetWorthCents: row.endNetWorthCents,
     theoreticalFreeCashFlowCents: row.theoreticalFreeCashFlowCents,
     leakCents: row.leakCents,
+    endDebtBalanceCents: row.endDebtBalanceCents,
+    endReserveCents: row.endReserveCents,
+    committedPctBps: row.committedPctBps,
     closedAt: row.closedAt,
   };
 }
@@ -32,6 +35,9 @@ export class DrizzleMonthClosingRepository implements MonthClosingRepository {
         endNetWorthCents: closing.endNetWorthCents,
         theoreticalFreeCashFlowCents: closing.theoreticalFreeCashFlowCents,
         leakCents: closing.leakCents,
+        endDebtBalanceCents: closing.endDebtBalanceCents ?? null,
+        endReserveCents: closing.endReserveCents ?? null,
+        committedPctBps: closing.committedPctBps ?? null,
         closedAt: closing.closedAt,
       })
       .onConflictDoUpdate({
@@ -41,6 +47,9 @@ export class DrizzleMonthClosingRepository implements MonthClosingRepository {
           endNetWorthCents: closing.endNetWorthCents,
           theoreticalFreeCashFlowCents: closing.theoreticalFreeCashFlowCents,
           leakCents: closing.leakCents,
+          endDebtBalanceCents: closing.endDebtBalanceCents ?? null,
+          endReserveCents: closing.endReserveCents ?? null,
+          committedPctBps: closing.committedPctBps ?? null,
           closedAt: closing.closedAt,
         },
       });

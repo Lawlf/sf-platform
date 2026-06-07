@@ -1,0 +1,1 @@
+ALTER TABLE "assets" ADD COLUMN "external_account_key" text;

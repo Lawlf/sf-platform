@@ -31,6 +31,8 @@ export const users = pgTable(
     quickAccess: jsonb("quick_access")
       .notNull()
       .default(sql`'[]'::jsonb`),
+    username: text("username").unique(),
+    profileFlair: text("profile_flair"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

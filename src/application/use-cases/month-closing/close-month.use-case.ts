@@ -26,6 +26,9 @@ export async function closeMonth(
     endNetWorthCents: computed.endNetWorthCents,
     theoreticalFreeCashFlowCents: computed.theoreticalFreeCashFlowCents,
     leakCents: computed.leakCents,
+    endDebtBalanceCents: computed.endDebtBalanceCents,
+    endReserveCents: computed.endReserveCents,
+    committedPctBps: computed.committedPctBps,
     closedAt: deps.clock.now(),
   });
 

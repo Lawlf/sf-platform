@@ -40,6 +40,8 @@ function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
+    username: row.username,
+    profileFlair: row.profileFlair,
     baseCurrency: (row.baseCurrency as Currency | null) ?? "BRL",
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,

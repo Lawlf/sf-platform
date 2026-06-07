@@ -351,6 +351,27 @@
       "when": 1780761323240,
       "tag": "0049_familiar_raza",
       "breakpoints": true
+    },
+    {
+      "idx": 50,
+      "version": "7",
+      "when": 1780772811623,
+      "tag": "0050_brown_giant_girl",
+      "breakpoints": true
+    },
+    {
+      "idx": 51,
+      "version": "7",
+      "when": 1780787142745,
+      "tag": "0051_motionless_blizzard",
+      "breakpoints": true
+    },
+    {
+      "idx": 52,
+      "version": "7",
+      "when": 1780797213436,
+      "tag": "0052_mature_shiva",
+      "breakpoints": true
     }
   ]
 }

@@ -2,6 +2,7 @@ import type { Plan } from "@/domain/entities/plan.entity";
 import type { PaymentProvider } from "@/domain/entities/subscription.entity";
 
 export interface PlanRepository {
+  findById(id: string): Promise<Plan | null>;
   findBySlug(slug: string): Promise<Plan | null>;
   findByProviderPriceId(
     provider: PaymentProvider,
