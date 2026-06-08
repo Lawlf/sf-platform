@@ -11,6 +11,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isErr } from "@/shared/errors/result";
 
 export interface SerializablePreview {
+  statementCount: number;
   accountKey: string;
   ledgerBalance: number;
   matchedAssetLabel: string | null;
@@ -19,39 +20,58 @@ export interface SerializablePreview {
   net: number;
   incomes: { fitId: string; label: string; amount: number; dayOfMonth: number }[];
   debts: { fitId: string; label: string; installment: number; paid: number | null; total: number | null }[];
+  reserve: { guardou: number; tirou: number; existingValue: number | null } | null;
 }
 
 type PreviewResult =
   | { ok: true; preview: SerializablePreview }
   | { ok: false; code: string; message: string };
 
-type CommitResult = { ok: true } | { ok: false; code?: string; message: string };
+type CommitResult =
+  | {
+      ok: true;
+      assetId: string;
+      ledgerBalance: number;
+      importedTransactions: number;
+      createdIncomes: number;
+      createdDebts: number;
+      reserveValue: number | null;
+    }
+  | { ok: false; code?: string; message: string };
 
 const MAX_OFX_BYTES = 5 * 1024 * 1024;
 
 export async function previewOfxAction(formData: FormData): Promise<PreviewResult> {
   const user = await requireUser();
 
-  const file = formData.get("file");
-  if (!file || typeof file === "string") {
+  const files = formData.getAll("file").filter((f): f is File => f instanceof File);
+  if (files.length === 0) {
     return { ok: false, code: "MISSING_FILE", message: "Nenhum arquivo enviado." };
   }
 
-  if ((file as File).size > MAX_OFX_BYTES) {
-    return { ok: false, code: "FILE_TOO_LARGE", message: "Arquivo muito grande. Envie um OFX de até 5 MB." };
+  const totalBytes = files.reduce((acc, f) => acc + f.size, 0);
+  if (totalBytes > MAX_OFX_BYTES) {
+    return { ok: false, code: "FILE_TOO_LARGE", message: "Arquivos muito grandes. Envie até 5 MB no total." };
   }
 
-  const content = await (file as File).text();
+  const contents = await Promise.all(files.map((f) => f.text()));
 
   const result = await buildOfxPreview(
     {
       assets: new DrizzleAssetRepository(),
       transactions: new DrizzleTransactionRepository(),
     },
-    { userId: user.id, content },
+    { userId: user.id, contents },
   );
 
   if (isErr(result)) {
+    if (result.error.kind === "mixed_accounts") {
+      return {
+        ok: false,
+        code: "MIXED_ACCOUNTS",
+        message: "Importe um banco por vez. Esses arquivos são de contas diferentes.",
+      };
+    }
     return { ok: false, code: "PARSE_ERROR", message: "Não foi possível ler este OFX." };
   }
 
@@ -60,6 +80,7 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
   return {
     ok: true,
     preview: {
+      statementCount: files.length,
       accountKey: preview.accountKey,
       ledgerBalance: Number(preview.ledgerBalanceCents) / 100,
       matchedAssetLabel: preview.matchedAssetLabel,
@@ -83,19 +104,32 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
           paid: d.installmentsPaid,
           total: d.installmentsTotal,
         })),
+      reserve:
+        preview.reserve === null
+          ? null
+          : {
+              guardou: Number(preview.reserve.guardouCents) / 100,
+              tirou: Number(preview.reserve.tirouCents) / 100,
+              existingValue:
+                preview.reserve.existingValueCents === null
+                  ? null
+                  : Number(preview.reserve.existingValueCents) / 100,
+            },
     },
   };
 }
 
 export async function commitOfxAction(input: {
-  content: string;
+  contents: string[];
   acceptedIncomeFitIds: string[];
   acceptedDebtFitIds: string[];
+  reserveTotalCents?: number | null;
 }): Promise<CommitResult> {
   const user = await requireUser();
 
-  if (input.content.length > MAX_OFX_BYTES) {
-    return { ok: false, message: "Arquivo muito grande." };
+  const totalLen = input.contents.reduce((acc, c) => acc + c.length, 0);
+  if (totalLen > MAX_OFX_BYTES) {
+    return { ok: false, message: "Arquivos muito grandes." };
   }
 
   const result = await commitOfxImport(
@@ -108,10 +142,12 @@ export async function commitOfxAction(input: {
     },
     {
       userId: user.id,
-      content: input.content,
+      contents: input.contents,
       acceptedIncomeFitIds: input.acceptedIncomeFitIds,
       acceptedDebtFitIds: input.acceptedDebtFitIds,
       isPro: user.isPro,
+      reserveTotalCents:
+        input.reserveTotalCents == null ? null : BigInt(Math.round(input.reserveTotalCents * 100)),
     },
   );
 
@@ -123,8 +159,22 @@ export async function commitOfxAction(input: {
         message: "No plano gratuito você conecta 1 conta. Para importar de outra conta, assine o Pro.",
       };
     }
+    if (result.error.kind === "mixed_accounts") {
+      return { ok: false, message: "Importe um banco por vez." };
+    }
     return { ok: false, message: "Não foi possível processar este OFX." };
   }
 
-  return { ok: true };
+  return {
+    ok: true,
+    assetId: result.value.assetId,
+    ledgerBalance: Number(result.value.ledgerBalanceCents) / 100,
+    importedTransactions: result.value.importedTransactions,
+    createdIncomes: result.value.createdIncomes,
+    createdDebts: result.value.createdDebts,
+    reserveValue:
+      result.value.reserveValueCents === null
+        ? null
+        : Number(result.value.reserveValueCents) / 100,
+  };
 }

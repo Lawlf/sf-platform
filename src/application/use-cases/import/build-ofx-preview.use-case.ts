@@ -1,6 +1,8 @@
 import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
 import { detectPatterns } from "@/domain/services/ofx/detect-patterns";
+import { findInternalTransfers } from "@/domain/services/ofx/internal-transfers";
+import { mergeOfxStatements } from "@/domain/services/ofx/merge-ofx-statements";
 import type { OfxParseError, OfxSuggestions } from "@/domain/services/ofx/ofx-types";
 import { parseOfx } from "@/domain/services/ofx/parse-ofx";
 import { err, ok, type Result } from "@/shared/errors/result";
@@ -12,7 +14,13 @@ export interface BuildOfxPreviewDeps {
 
 export interface BuildOfxPreviewInput {
   userId: string;
-  content: string;
+  contents: string[];
+}
+
+export interface OfxReservePreview {
+  guardouCents: bigint;
+  tirouCents: bigint;
+  existingValueCents: bigint | null;
 }
 
 export interface OfxPreview {
@@ -27,25 +35,53 @@ export interface OfxPreview {
   netCents: bigint;
   suggestions: OfxSuggestions;
   newFitIds: string[];
+  reserve: OfxReservePreview | null;
 }
 
 export async function buildOfxPreview(
   deps: BuildOfxPreviewDeps,
   input: BuildOfxPreviewInput,
 ): Promise<Result<OfxPreview, OfxParseError>> {
-  const parsed = parseOfx(input.content);
-  if (parsed._tag === "err") return err(parsed.error);
-  const st = parsed.value;
+  const statements = [];
+  for (const c of input.contents) {
+    const p = parseOfx(c);
+    if (p._tag === "err") return err(p.error);
+    statements.push(p.value);
+  }
+  const mergedR = mergeOfxStatements(statements);
+  if (mergedR._tag === "err") return err(mergedR.error);
+  const st = mergedR.value;
 
   const matched = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);
   const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
-  const netCents = newTxns.reduce(
-    (acc, t) => acc + (t.direction === "in" ? t.amountCents : -t.amountCents),
-    0n,
-  );
+  const movement = findInternalTransfers(newTxns);
+  const reserveTxns = newTxns.filter((t) => movement.reserveFitIds.has(t.fitId));
+
+  const netCents = newTxns
+    .filter((t) => !movement.internalFitIds.has(t.fitId))
+    .reduce((acc, t) => acc + (t.direction === "in" ? t.amountCents : -t.amountCents), 0n);
+
+  let reserve: OfxReservePreview | null = null;
+  if (reserveTxns.length > 0) {
+    const guardouCents = reserveTxns
+      .filter((t) => t.direction === "out")
+      .reduce((acc, t) => acc + t.amountCents, 0n);
+    const tirouCents = reserveTxns
+      .filter((t) => t.direction === "in")
+      .reduce((acc, t) => acc + t.amountCents, 0n);
+    const existingReserve = await deps.assets.findByExternalAccountKey(
+      input.userId,
+      `${st.accountKey}:reserve`,
+    );
+    reserve = {
+      guardouCents,
+      tirouCents,
+      existingValueCents: existingReserve?.currentValue.toCents() ?? null,
+    };
+  }
 
   return ok({
     accountKey: st.accountKey,
@@ -57,7 +93,8 @@ export async function buildOfxPreview(
     newTransactionCount: newTxns.length,
     duplicateCount: st.transactions.length - newTxns.length,
     netCents,
-    suggestions: detectPatterns(newTxns),
+    suggestions: detectPatterns(newTxns, movement.internalFitIds),
     newFitIds: newTxns.map((t) => t.fitId),
+    reserve,
   });
 }

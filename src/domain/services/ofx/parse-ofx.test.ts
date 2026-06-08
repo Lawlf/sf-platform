@@ -26,6 +26,7 @@ describe("parseOfx", () => {
     expect(st.accountKey).toBe("341:12345-6");
     expect(st.currency).toBe("BRL");
     expect(st.ledgerBalanceCents).toBe(466000n);
+    expect(st.asOf?.toISOString().slice(0, 10)).toBe("2026-01-31");
     expect(st.transactions).toHaveLength(2);
     const [txn0, txn1] = st.transactions;
     expect(txn0).toMatchObject({

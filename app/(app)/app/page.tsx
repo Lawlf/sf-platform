@@ -1,8 +1,12 @@
 import { Fragment, type ReactNode, Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
+import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+
+import { ConsumoCard } from "./_components/consumo-card.client";
 
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
@@ -44,6 +48,9 @@ export default async function DashboardPage() {
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
 
+  const consumoFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+  const consumoTo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+
   const [
     initialMonthDetail,
     initialMaintenancePrompts,
@@ -51,6 +58,7 @@ export default async function DashboardPage() {
     projectionInitial,
     monthClosingInitial,
     prescription,
+    consumo,
   ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
     fetchMaintenancePrompts(),
@@ -58,6 +66,10 @@ export default async function DashboardPage() {
     fetchPlanningProjection(),
     fetchMonthClosing(),
     getPrescription(),
+    getMonthlyConsumo(
+      { transactions: new DrizzleTransactionRepository() },
+      { userId: user.id, from: consumoFrom, to: consumoTo },
+    ),
   ]);
 
   const hasPlan = prescription?.hasPlan ?? false;
@@ -84,7 +96,7 @@ export default async function DashboardPage() {
       </div>
     ),
     nextStep: (
-      <div className="md:col-span-2" data-tour="next-step">
+      <div id="movimento-do-mes" className="scroll-mt-20 md:col-span-2" data-tour="next-step">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
           <NextStepCard />
         </Suspense>
@@ -155,6 +167,15 @@ export default async function DashboardPage() {
         {order.map((key) => (
           <Fragment key={key}>{cardNodes[key]}</Fragment>
         ))}
+
+        <div className="md:col-span-2">
+          <ConsumoCard
+            total={Number(consumo.totalCents) / 100}
+            essencial={Number(consumo.essencialCents) / 100}
+            parcelado={Number(consumo.parceladoCents) / 100}
+            resto={Number(consumo.restoCents) / 100}
+          />
+        </div>
       </div>
     </PageShell>
   );
