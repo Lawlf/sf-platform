@@ -20,6 +20,7 @@ const freeFeatures = [
   "Simulador: em que ordem quito pra economizar mais",
   "Simulador: posso comprar isso sem atrasar tudo?",
   "Linha do tempo do mês corrente",
+  "Vencimentos próximos à mostra na tela de dívidas",
   "Exportar CSV e PDF",
   "Lições básicas pra entender juros e parcelas",
 ];
@@ -27,11 +28,10 @@ const freeFeatures = [
 const proFeatures = [
   "Tudo do Free",
   "Histórico completo da linha do tempo, todos os meses",
+  "Aviso de vencimento no celular, por push e email",
+  "Acompanhe ações da B3 e criptomoedas: você diz o que tem, a gente puxa o preço e soma no patrimônio (com valorização e desvalorização automática)",
   "Comparar financiamentos lado a lado (parcela fixa, parcela decrescente, banco A vs B)",
   "Comparar ofertas de empréstimo",
-  "Avisos de vencimento direto na central do app",
-  "Acompanhe ações da B3 e criptomoedas: você diz o que tem, a gente puxa o preço e soma no patrimônio (com valorização e desvalorização automática)",
-  "Avisos de preço e oportunidade dos seus ativos",
 ];
 
 export function LandingPricing() {
@@ -127,7 +127,7 @@ export function LandingPricing() {
                     .replace(".", ",")} por mês)`
                 : "Cobrado mensalmente. Cancele quando quiser."
             }
-            description="Histórico completo, ações e criptomoedas no patrimônio, avisos no app, comparativos avançados."
+            description="Sua trajetória mês a mês, lembrete de vencimento no celular, ações e cripto somadas no patrimônio."
             ctaLabel="Começar com o Pro"
             ctaHref={`/cadastrar?plan=pro&billing=${billing}` as Route}
             ctaVariant="brand"
