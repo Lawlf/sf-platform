@@ -28,6 +28,7 @@ export const QUICK_ACCESS_CATALOG: CatalogEntry[] = [
   { key: "patrimonio", label: "Meu patrimônio", shortLabel: "Patrimônio", href: "/app/patrimonio", category: "navegar", icon: "PiggyBank" },
   { key: "comprei", label: "Comprei", shortLabel: "Comprei", href: "/app/comprei", category: "navegar", icon: "Receipt" },
   { key: "notificacoes", label: "Notificações", shortLabel: "Avisos", href: "/app/notificacoes", category: "navegar", icon: "Bell" },
+  { key: "documentos", label: "Meus documentos", shortLabel: "Documentos", href: "/app/configuracoes/documentos", category: "navegar", icon: "Files" },
 ];
 
 export const CATALOG_KEYS: string[] = QUICK_ACCESS_CATALOG.map((e) => e.key);

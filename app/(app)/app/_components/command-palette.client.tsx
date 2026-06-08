@@ -3,6 +3,7 @@
 import {
   Bell,
   Coins,
+  Files,
   HomeIcon,
   LineChart,
   PlusCircle,
@@ -47,6 +48,7 @@ const COMMANDS: Command[] = [
   { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell },
   { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound },
   { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Conta", icon: Settings },
+  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files },
 ];
 
 function normalize(s: string): string {
