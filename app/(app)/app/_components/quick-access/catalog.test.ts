@@ -8,6 +8,7 @@ describe("catalog", () => {
       "add_debt", "add_income", "add_asset", "add_transaction",
       "sim_quitacao", "sim_extra", "sim_estrategia", "sim_compra", "sim_hub",
       "metas", "timeline", "dividas", "renda", "patrimonio", "comprei", "notificacoes",
+      "documentos",
     ]);
   });
   it("every catalog icon name exists in the icon map", () => {
