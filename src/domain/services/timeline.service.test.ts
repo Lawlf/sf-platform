@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type {
+  CreditCardDebt,
   DebtEntity,
   ExpenseCategory,
   FinancingDebt,
+  InstallmentPurchase,
   RecurringDebt,
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
@@ -15,10 +17,16 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { TimelineService } from "./timeline.service";
+import { nonRecurringMonthlyObligation, TimelineService } from "./timeline.service";
 
 function rateAnnual(value: number): InterestRate {
   const r = InterestRate.fromAnnual(value);
+  if (!isOk(r)) throw new Error("rate setup failed");
+  return r.value;
+}
+
+function rateMonthly(value: number): InterestRate {
+  const r = InterestRate.fromMonthly(value);
   if (!isOk(r)) throw new Error("rate setup failed");
   return r.value;
 }
@@ -158,6 +166,134 @@ function makePayment(overrides: {
     isClosingPayment: false,
   };
 }
+
+function makeCreditCard(overrides: {
+  id?: string;
+  currentStatementCents: bigint;
+  status?: "active" | "paid_off" | "written_off";
+  createdAt?: Date;
+  expectedEndDate?: Date | null;
+  installmentPurchases?: InstallmentPurchase[];
+  revolvingBalanceCents?: bigint;
+  revolvingMonthlyRate?: InterestRate;
+}): CreditCardDebt {
+  return {
+    id: overrides.id ?? "cc-1",
+    userId: "user-1",
+    kind: "credit_card",
+    label: "Cartão Nubank",
+    status: overrides.status ?? "active",
+    originalPrincipal: Money.fromCents(overrides.currentStatementCents),
+    currentBalance: Money.fromCents(overrides.currentStatementCents),
+    startDate: new Date(Date.UTC(2026, 5, 8)),
+    expectedEndDate: overrides.expectedEndDate ?? null,
+    notes: null,
+    creditLimit: Money.fromCents(680_000n),
+    statementDay: 1,
+    dueDay: 16,
+    currentStatement: Money.fromCents(overrides.currentStatementCents),
+    revolvingBalance:
+      overrides.revolvingBalanceCents != null
+        ? Money.fromCents(overrides.revolvingBalanceCents)
+        : null,
+    revolvingMonthlyRate: overrides.revolvingMonthlyRate ?? null,
+    installmentPurchases: overrides.installmentPurchases ?? [],
+    createdAt: overrides.createdAt ?? new Date(Date.UTC(2026, 5, 8)),
+    updatedAt: new Date(Date.UTC(2026, 5, 8)),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
+  };
+}
+
+describe("nonRecurringMonthlyObligation", () => {
+  const current = MonthYear.from(2026, 6);
+
+  it("cartão projeta a FATURA CHEIA como obrigação do mês corrente", () => {
+    // Fatura R$ 2.045,01 sai inteira esse mês (bug original: projetava R$ 0;
+    // versão anterior do fix usava 15% e escondia o resto).
+    const cc = makeCreditCard({ currentStatementCents: 204_501n });
+    expect(nonRecurringMonthlyObligation(cc, current, current).toCents()).toBe(204_501n);
+  });
+
+  it("meses futuros NÃO repetem a fatura: sem parcela/rotativo => zero", () => {
+    const cc = makeCreditCard({ currentStatementCents: 204_501n });
+    const future = MonthYear.from(2026, 9);
+    expect(nonRecurringMonthlyObligation(cc, future, current).toCents()).toBe(0n);
+  });
+
+  it("meses futuros carregam só as parcelas em aberto", () => {
+    // 16 mil em 12x = R$ 1.333,33/mês de compromisso conhecido pra frente.
+    const cc = makeCreditCard({
+      currentStatementCents: 204_501n,
+      installmentPurchases: [
+        {
+          description: "Notebook",
+          total: Money.fromCents(1_600_000n),
+          installmentsTotal: 12,
+          installmentsRemaining: 12,
+          monthlyValue: Money.fromCents(133_333n),
+        },
+      ],
+    });
+    const future = MonthYear.from(2026, 9);
+    expect(nonRecurringMonthlyObligation(cc, future, current).toCents()).toBe(133_333n);
+  });
+
+  it("meses futuros somam juros do rotativo", () => {
+    const cc = makeCreditCard({
+      currentStatementCents: 204_501n,
+      revolvingBalanceCents: 100_000n,
+      revolvingMonthlyRate: rateMonthly(0.1),
+    });
+    const future = MonthYear.from(2026, 9);
+    // R$ 1.000 * 10% = R$ 100,00
+    expect(nonRecurringMonthlyObligation(cc, future, current).toCents()).toBe(10_000n);
+  });
+
+  it("não projeta em meses passados (usam pagamentos reais)", () => {
+    const cc = makeCreditCard({ currentStatementCents: 204_501n });
+    const past = MonthYear.from(2026, 5);
+    expect(nonRecurringMonthlyObligation(cc, past, current).toCents()).toBe(0n);
+  });
+
+  it("não projeta antes de a dívida existir", () => {
+    const cc = makeCreditCard({
+      currentStatementCents: 204_501n,
+      createdAt: new Date(Date.UTC(2026, 7, 1)),
+    });
+    const before = MonthYear.from(2026, 6);
+    expect(nonRecurringMonthlyObligation(cc, before, MonthYear.from(2026, 6)).toCents()).toBe(0n);
+  });
+
+  it("não projeta após a quitação prevista", () => {
+    const cc = makeCreditCard({
+      currentStatementCents: 204_501n,
+      expectedEndDate: new Date(Date.UTC(2026, 6, 31)),
+    });
+    const after = MonthYear.from(2026, 8);
+    expect(nonRecurringMonthlyObligation(cc, after, current).toCents()).toBe(0n);
+  });
+
+  it("dívida não-ativa não projeta", () => {
+    const cc = makeCreditCard({ currentStatementCents: 204_501n, status: "paid_off" });
+    expect(nonRecurringMonthlyObligation(cc, current, current).toCents()).toBe(0n);
+  });
+
+  it("recorrente retorna zero (entra pela outra via)", () => {
+    const rec = makeRecurring({ amountCents: 100_000n });
+    expect(nonRecurringMonthlyObligation(rec, current, current).toCents()).toBe(0n);
+  });
+
+  it("financiamento projeta a parcela (igual no mês corrente e nos futuros)", () => {
+    const fin = makeFinancing({ currentBalanceCents: 1_000_000n });
+    const now = nonRecurringMonthlyObligation(fin, current, current).toCents();
+    const future = nonRecurringMonthlyObligation(fin, MonthYear.from(2026, 9), current).toCents();
+    expect(now).toBeGreaterThan(0n);
+    expect(future).toBe(now);
+  });
+});
 
 describe("TimelineService.buildTimeline", () => {
   it("entrada vazia: cada ponto tem todos os Money zero", () => {

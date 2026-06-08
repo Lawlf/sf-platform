@@ -11,9 +11,11 @@ import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
+import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { isOk } from "@/shared/errors/result";
 
 /**
  * Um ponto mensal da linha do tempo (macro). Cada ponto sintetiza renda,
@@ -208,6 +210,53 @@ export function recurringMonthlyEquivalent(
     default:
       return Money.fromCents(0n);
   }
+}
+
+/**
+ * Obrigação mensal projetada de uma dívida não-recorrente (cartão, financiamento,
+ * empréstimo, cheque especial). Reusa `monthlyDebtService` (mesma fonte do
+ * snapshot/MCP) pro mês corrente, então o "vai sair / comprometido" bate em todas
+ * as telas. Cartão no mês corrente = fatura cheia.
+ *
+ * Cartão é o caso especial nos meses FUTUROS: a fatura atual é a conta DESTE mês,
+ * não se repete. Meses à frente só carregam o compromisso conhecido (parcelas em
+ * aberto + juros do rotativo). Financiamento/empréstimo/cheque especial têm
+ * parcela/serviço constante, então valem igual em qualquer mês da janela.
+ *
+ * Só projeta do mês atual em diante; meses passados usam pagamentos reais. O
+ * caller faz a guarda anti-double-count (pular se já há pagamento registrado).
+ */
+export function nonRecurringMonthlyObligation(
+  debt: DebtEntity,
+  month: MonthYear,
+  currentMonth: MonthYear,
+): Money {
+  if (debt.kind === "recurring") return Money.fromCents(0n);
+  if (debt.status !== "active") return Money.fromCents(0n);
+  if (month.isBefore(currentMonth)) return Money.fromCents(0n);
+
+  const createdMonth = MonthYear.fromDate(debt.createdAt);
+  if (month.isBefore(createdMonth)) return Money.fromCents(0n);
+
+  if (debt.expectedEndDate) {
+    const endMonth = MonthYear.fromDate(debt.expectedEndDate);
+    if (month.isAfter(endMonth)) return Money.fromCents(0n);
+  }
+
+  if (debt.kind === "credit_card" && month.isAfter(currentMonth)) {
+    const installmentReais = debt.installmentPurchases
+      .filter((p) => p.installmentsRemaining > 0)
+      .reduce((sum, p) => sum + p.monthlyValue.toNumber(), 0);
+    const revolvingReais =
+      (debt.revolvingBalance?.toNumber() ?? 0) * (debt.revolvingMonthlyRate?.toDecimal() ?? 0);
+    const total = installmentReais + Math.max(0, revolvingReais);
+    if (total <= 0) return Money.fromCents(0n);
+    return Money.fromCents(BigInt(Math.round(total * 100)));
+  }
+
+  const svc = monthlyDebtService(debt);
+  if (!isOk(svc) || svc.value <= 0) return Money.fromCents(0n);
+  return Money.fromCents(BigInt(Math.round(svc.value * 100)));
 }
 
 function recurringOutflowForMonth(

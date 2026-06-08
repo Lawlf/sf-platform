@@ -1,6 +1,6 @@
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { DebtPayoffProjectorService } from "@/domain/services/debt-payoff-projector.service";
-import { monthlyDebtService, monthlyRateFor } from "@/domain/services/financial-health.service";
+import { monthlyMinimumPayment, monthlyRateFor } from "@/domain/services/financial-health.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 import type { MissingInput, Prescription, PrescriptionMove, PrescriptionSnapshot } from "./prescription.types";
@@ -70,7 +70,7 @@ function buildDominant(state: CompleteState, s: PrescriptionSnapshot): Prescript
 }
 
 export function buildPayDebt(s: PrescriptionSnapshot, debt: DebtEntity): PrescriptionMove {
-  const minR = monthlyDebtService(debt);
+  const minR = monthlyMinimumPayment(debt);
   const minMoney = (() => {
     const v = isOk(minR) ? Math.max(0, minR.value) : 0;
     const m = Money.from(v);
