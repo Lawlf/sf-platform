@@ -21,7 +21,7 @@ export function SubscriptionCanceledEmail({
   return (
     <EmailLayout
       appUrl={appUrl}
-      preview={`Pro segue ativo até ${accessUntil}, sem cobrança nova. A gente fica de porta aberta.`}
+      preview={`Pro segue ativo até ${accessUntil}, sem cobrança nova. Reativar é num clique.`}
     >
       <Heading
         as="h1"
@@ -68,7 +68,7 @@ export function SubscriptionCanceledEmail({
           color: EMAIL_COLORS.textSecondary,
         }}
       >
-        Obrigado por ter testado o Pro. A gente fica de porta aberta.
+        Obrigado por ter testado o Pro. Quando quiser voltar, o seu mês tá no mesmo lugar.
       </Text>
 
       <Section

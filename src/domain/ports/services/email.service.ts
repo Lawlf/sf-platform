@@ -5,6 +5,7 @@ export interface EmailMessage {
   subject: string;
   html: string;
   purpose: EmailPurpose;
+  headers?: Record<string, string>;
 }
 
 export interface EmailService {

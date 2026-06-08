@@ -127,4 +127,9 @@ export class DrizzleUserRepository implements UserRepository {
       .where(and(eq(users.isPro, true), isNull(users.deactivatedAt)));
     return rows.map(toEntity);
   }
+
+  async findAllActive(): Promise<UserEntity[]> {
+    const rows = await getDb().select().from(users).where(isNull(users.deactivatedAt));
+    return rows.map(toEntity);
+  }
 }

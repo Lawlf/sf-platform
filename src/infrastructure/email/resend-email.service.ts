@@ -34,6 +34,7 @@ export class ResendEmailService implements EmailService {
         to: message.to,
         subject: message.subject,
         html: message.html,
+        ...(message.headers ? { headers: message.headers } : {}),
       }),
       SEND_TIMEOUT_MS,
     );

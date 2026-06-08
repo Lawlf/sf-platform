@@ -1,11 +1,13 @@
 import { cookies } from "next/headers";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 
 import { verifyMagicLinkByCode } from "@/application/use-cases/auth/verify-magic-link-by-code.use-case";
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { loadEnv } from "@/infrastructure/config/env";
+import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { getClientIp } from "@/infrastructure/http/client-ip";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
@@ -81,6 +83,12 @@ export async function POST(req: NextRequest) {
     // enumeration of account state. Log the real reason for observability.
     console.warn("[verify-code] failed", { code: result.error.code });
     return genericInvalid();
+  }
+
+  if (result.value.isNewUser) {
+    const { id, email, displayName } = result.value.user;
+    const appUrl = loadEnv().NEXT_PUBLIC_APP_URL;
+    after(() => sendWelcomeFreeEmail({ userId: id, to: email, displayName, appUrl }));
   }
 
   const cookieStore = await cookies();

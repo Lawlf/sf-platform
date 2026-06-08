@@ -15,7 +15,7 @@ export function MagicLinkEmail({ appUrl, token, code }: MagicLinkEmailProps) {
   return (
     <EmailLayout
       appUrl={appUrl}
-      preview="Toca no botão e a gente te leva pra dentro. Vale por 15 minutos."
+      preview="Um toque e você entra, sem senha. Vale por 15 minutos."
     >
       <Heading
         as="h1"

@@ -23,9 +23,9 @@ function deps(current: UserEntity): { saved: UserEntity[]; d: SetProfileFlairDep
 describe("setProfileFlair", () => {
   it("grava key válida", async () => {
     const { d, saved } = deps(user());
-    const ok = await setProfileFlair(d, { userId: "u1", flairKey: "bussola" });
+    const ok = await setProfileFlair(d, { userId: "u1", flairKey: "cauteloso" });
     expect(ok).toBe(true);
-    expect(saved[0]!.profileFlair).toBe("bussola");
+    expect(saved[0]!.profileFlair).toBe("cauteloso");
   });
   it("rejeita key inválida", async () => {
     const { d, saved } = deps(user());
@@ -34,7 +34,7 @@ describe("setProfileFlair", () => {
     expect(saved).toHaveLength(0);
   });
   it("null limpa", async () => {
-    const { d, saved } = deps(user({ profileFlair: "bussola" }));
+    const { d, saved } = deps(user({ profileFlair: "cauteloso" }));
     const ok = await setProfileFlair(d, { userId: "u1", flairKey: null });
     expect(ok).toBe(true);
     expect(saved[0]!.profileFlair).toBeNull();

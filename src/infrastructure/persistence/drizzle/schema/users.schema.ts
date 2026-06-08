@@ -33,6 +33,9 @@ export const users = pgTable(
       .default(sql`'[]'::jsonb`),
     username: text("username").unique(),
     profileFlair: text("profile_flair"),
+    lastActiveAt: timestamp("last_active_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

@@ -46,6 +46,7 @@ function makeDeps(user: UserEntity | null): Deps {
     deactivate: vi.fn(),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),
+    findAllActive: vi.fn().mockResolvedValue([]),
   };
   const clock = { now: vi.fn().mockReturnValue(fixedNow) };
   return { users, clock } as Deps;

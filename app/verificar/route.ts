@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 
 import { verifyMagicLinkByToken } from "@/application/use-cases/auth/verify-magic-link-by-token.use-case";
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
@@ -7,6 +7,7 @@ import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
 import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
@@ -43,6 +44,11 @@ export async function GET(req: NextRequest) {
 
   if (isErr(result)) {
     return NextResponse.redirect(new URL(`/entrar?error=${result.error.code.toLowerCase()}`, base));
+  }
+
+  if (result.value.isNewUser) {
+    const { id, email, displayName } = result.value.user;
+    after(() => sendWelcomeFreeEmail({ userId: id, to: email, displayName, appUrl: base }));
   }
 
   const cookieStore = await cookies();

@@ -1,8 +1,11 @@
 import "server-only";
 
+import { after } from "next/server";
+
 import { awardAchievement } from "@/application/use-cases/achievement/award-achievement.use-case";
 import { sendPushToUser } from "@/application/use-cases/push/send-push-to-user.use-case";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { sendFirstDebtEmail } from "@/infrastructure/email/send-first-debt-email";
 import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
 import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
@@ -22,7 +25,7 @@ export async function awardEventAchievement(
 ): Promise<void> {
   try {
     const users = new DrizzleUserRepository();
-    await awardAchievement(
+    const result = await awardAchievement(
       {
         userAchievements: new DrizzleUserAchievementRepository(),
         notifications: new DrizzleNotificationRepository(),
@@ -45,6 +48,9 @@ export async function awardEventAchievement(
       },
       { userId, slug, ...(payload !== undefined ? { payload } : {}) },
     );
+    if (result.awarded && slug === "primeiro-passo") {
+      after(() => sendFirstDebtEmail(userId));
+    }
   } catch (error) {
     console.error("[achievements.event] falhou silenciosamente", error);
   }

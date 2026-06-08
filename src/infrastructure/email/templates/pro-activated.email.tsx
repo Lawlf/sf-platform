@@ -25,12 +25,12 @@ export function ProActivatedEmail({
 }: ProActivatedEmailProps) {
   const safeUrl = appUrl.replace(/\/$/, "");
   const ctaUrl = `${safeUrl}/app`;
-  const subscriptionUrl = `${safeUrl}/app/perfil/assinatura`;
+  const subscriptionUrl = `${safeUrl}/app/configuracoes/planos`;
   const greetSuffix = firstName ? `, ${firstName}` : "";
   return (
     <EmailLayout
       appUrl={appUrl}
-      preview="Bem-vindo ao Pro. Linha do tempo destravada, B3, cripto, FII e avisos liberados."
+      preview="Bem-vindo ao Pro. Simular, importar extrato e perguntar pros seus números, tudo liberado."
     >
       <Section style={{ margin: "0 0 24px" }}>
         <div
@@ -49,14 +49,12 @@ export function ProActivatedEmail({
               borderRadius: 999,
               backgroundColor: "rgba(242,142,37,0.18)",
               color: "#f5a55a",
-              fontSize: 11,
+              fontSize: 12,
               fontWeight: 700,
-              letterSpacing: 1.6,
-              textTransform: "uppercase",
               marginBottom: 14,
             }}
           >
-            ✦  Pro ativo  ✦
+            Pro ativo
           </div>
 
           <Text
@@ -81,13 +79,13 @@ export function ProActivatedEmail({
             <tbody>
               <tr>
                 <td>
-                  <FeatureChip label="B3" />
+                  <FeatureChip label="Simular" />
                 </td>
                 <td>
-                  <FeatureChip label="Cripto" />
+                  <FeatureChip label="Extrato" />
                 </td>
                 <td>
-                  <FeatureChip label="FII" />
+                  <FeatureChip label="Perguntar à IA" />
                 </td>
                 <td>
                   <FeatureChip label="Avisos" />
@@ -121,10 +119,8 @@ export function ProActivatedEmail({
           color: EMAIL_COLORS.textPrimary,
         }}
       >
-        Banco mostra o saldo de hoje.{" "}
-        <span style={{ color: EMAIL_COLORS.brandOrangeDark }}>
-          O Pro mostra o mês inteiro.
-        </span>
+        Saldo de hoje qualquer banco mostra.{" "}
+        <span style={{ color: EMAIL_COLORS.brandOrangeDark }}>O mês inteiro, só aqui.</span>
       </Text>
 
       <Text
@@ -135,8 +131,8 @@ export function ProActivatedEmail({
           color: EMAIL_COLORS.textSecondary,
         }}
       >
-        Pagamento entrou, Pro ligado. Patrimônio, dívida, renda, tudo na mesma linha do tempo, no
-        seu ritmo. Bom te ter aqui.
+        Pagamento entrou, Pro ligado. Patrimônio, dívida e renda na mesma linha do tempo. Bom te ter
+        aqui.
       </Text>
 
       <Heading
@@ -153,10 +149,15 @@ export function ProActivatedEmail({
       </Heading>
 
       <Section style={{ margin: "0 0 28px" }}>
-        <BulletItem>Linha do tempo completa, mês a mês, sem corte.</BulletItem>
-        <BulletItem>B3 e cripto cotando ao vivo dentro do seu patrimônio.</BulletItem>
-        <BulletItem>FII com rendimento e variação aparecendo no mês.</BulletItem>
-        <BulletItem>Avisos no celular quando dívida vence ou preço mexe.</BulletItem>
+        <BulletItem>
+          Simula antes de decidir: pago a mais na parcela, guardo, financio. A conta aparece na
+          hora, no seu ritmo.
+        </BulletItem>
+        <BulletItem>Importa o extrato do banco (OFX) e o mês se monta sem digitar tudo.</BulletItem>
+        <BulletItem>
+          Pergunta pros seus números em português e a resposta vem com a sua conta na frente.
+        </BulletItem>
+        <BulletItem>Avisos no celular quando uma dívida vence ou um preço mexe.</BulletItem>
       </Section>
 
       <Section style={{ textAlign: "left", margin: "0 0 28px" }}>
@@ -217,7 +218,7 @@ export function ProActivatedEmail({
           href={subscriptionUrl}
           style={{ color: EMAIL_COLORS.textSecondary, textDecoration: "underline" }}
         >
-          /app/perfil/assinatura
+          /app/configuracoes/planos
         </a>
         , e o Pro segue até o fim do período que você pagou. Antes da próxima cobrança, a gente
         avisa.

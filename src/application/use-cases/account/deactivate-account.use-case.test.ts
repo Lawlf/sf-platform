@@ -16,6 +16,7 @@ function makeDeps(): Deps {
     deactivate: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),
+    findAllActive: vi.fn().mockResolvedValue([]),
   };
   const sessions = {
     findByIdHash: vi.fn(),
