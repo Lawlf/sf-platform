@@ -1,12 +1,32 @@
 "use client";
 
-import { Download, FileText, Image as ImageIcon, Search, Share2 } from "lucide-react";
+import { ChevronRight, Download, Eye, FileText, Image as ImageIcon, Search, Share2 } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useMemo, useState } from "react";
+import { toast } from "sonner";
 
 import { Spinner } from "@/app/components/ui/spinner";
 import type { UserDocument } from "@/application/use-cases/attachments/list-user-documents.use-case";
+import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 import { getAttachmentDownloadUrlAction } from "../../../_actions/entity-attachments.action";
+import { ImageLightbox } from "../../../_components/notes-files/image-lightbox.client";
+
+function parentHref(entityType: AttachableEntityType, entityId: string): Route | null {
+  switch (entityType) {
+    case "debt":
+      return `/app/dividas/${entityId}` as Route;
+    case "income":
+      return `/app/renda/${entityId}/editar` as Route;
+    case "goal":
+      return `/app/metas/${entityId}` as Route;
+    case "account":
+      return `/app/patrimonio/${entityId}` as Route;
+    default:
+      return null;
+  }
+}
 
 function normalize(value: string): string {
   return value
@@ -33,6 +53,7 @@ export function DocumentsBrowser({ docs }: Props) {
   const [query, setQuery] = useState("");
   const [activeParent, setActiveParent] = useState("Todos");
   const [sharingId, setSharingId] = useState<string | null>(null);
+  const [lightboxDoc, setLightboxDoc] = useState<UserDocument | null>(null);
 
   const parents = useMemo(() => {
     const seen = new Set<string>();
@@ -76,8 +97,10 @@ export function DocumentsBrowser({ docs }: Props) {
         const file = new File([blob], doc.fileName, { type: doc.contentType });
         if (navigator.canShare && navigator.canShare({ files: [file] })) {
           await navigator.share({ files: [file], title: doc.fileName });
+          toast.success("Compartilhado");
         } else if (navigator.share) {
           await navigator.share({ title: doc.fileName, url });
+          toast.success("Compartilhado");
         } else {
           window.open(url, "_blank");
         }
@@ -153,6 +176,13 @@ export function DocumentsBrowser({ docs }: Props) {
               </span>
               Anexa o contrato ou o comprovante na dívida e ele aparece aqui, já com o nome dela.
               Quando alguém pedir, você acha em segundos.
+              <Link
+                href={"/app/dividas" as Route}
+                className="focus-ring mt-4 inline-flex items-center gap-1.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.84375rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+              >
+                Ver minhas dívidas
+                <ChevronRight size={15} strokeWidth={2} aria-hidden />
+              </Link>
             </>
           ) : (
             "Nenhum arquivo com esse nome. Tenta o nome da dívida, ou filtra ali em cima."
@@ -162,11 +192,9 @@ export function DocumentsBrowser({ docs }: Props) {
         <ul className="flex flex-col gap-2">
           {rows.map((doc) => {
             const sharing = sharingId === doc.id;
-            return (
-              <li
-                key={doc.id}
-                className="flex items-center gap-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3.5 py-3"
-              >
+            const href = parentHref(doc.entityType, doc.entityId);
+            const inner = (
+              <>
                 <span className="shrink-0 text-[color:var(--text-secondary)]">
                   {isImage(doc.contentType) ? (
                     <ImageIcon size={19} strokeWidth={1.75} aria-hidden />
@@ -175,16 +203,40 @@ export function DocumentsBrowser({ docs }: Props) {
                   )}
                 </span>
                 <span className="min-w-0 flex-1">
-                  <span className="block text-[0.6875rem] font-semibold text-[color:var(--color-brand-700)]">
+                  <span className="block truncate text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
                     {doc.parentLabel}
                   </span>
-                  <span className="block truncate text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                  <span className="block truncate text-[0.75rem] text-[color:var(--text-secondary)]">
                     {doc.fileName}
                   </span>
                   <span className="mt-px block text-[0.6875rem] text-[color:var(--text-muted)]">
                     {formatDate(doc.createdAtIso)}
                   </span>
                 </span>
+              </>
+            );
+            return (
+              <li
+                key={doc.id}
+                className="flex items-center gap-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3.5 py-3"
+              >
+                {href ? (
+                  <Link
+                    href={href}
+                    aria-label={`Abrir ${doc.parentLabel}`}
+                    className="group -mx-1 flex min-w-0 flex-1 items-center gap-3 rounded-lg px-1 py-0.5 transition-colors hover:bg-[color:var(--surface-2)]"
+                  >
+                    {inner}
+                    <ChevronRight
+                      size={16}
+                      strokeWidth={2}
+                      aria-hidden
+                      className="shrink-0 text-[color:var(--text-muted)] transition-colors group-hover:text-[color:var(--color-brand-700)]"
+                    />
+                  </Link>
+                ) : (
+                  <span className="flex min-w-0 flex-1 items-center gap-3">{inner}</span>
+                )}
                 <button
                   type="button"
                   aria-label={`Compartilhar ${doc.fileName}`}
@@ -198,19 +250,39 @@ export function DocumentsBrowser({ docs }: Props) {
                     <Share2 size={16} strokeWidth={2} aria-hidden />
                   )}
                 </button>
-                <button
-                  type="button"
-                  aria-label={`Baixar ${doc.fileName}`}
-                  onClick={() => void handleDownload(doc)}
-                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
-                >
-                  <Download size={16} strokeWidth={2} aria-hidden />
-                </button>
+                {isImage(doc.contentType) ? (
+                  <button
+                    type="button"
+                    aria-label={`Ver ${doc.fileName}`}
+                    onClick={() => setLightboxDoc(doc)}
+                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
+                  >
+                    <Eye size={16} strokeWidth={2} aria-hidden />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    aria-label={`Baixar ${doc.fileName}`}
+                    onClick={() => void handleDownload(doc)}
+                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
+                  >
+                    <Download size={16} strokeWidth={2} aria-hidden />
+                  </button>
+                )}
               </li>
             );
           })}
         </ul>
       )}
+
+      {lightboxDoc ? (
+        <ImageLightbox
+          attachmentId={lightboxDoc.id}
+          fileName={lightboxDoc.fileName}
+          open
+          onClose={() => setLightboxDoc(null)}
+        />
+      ) : null}
     </div>
   );
 }

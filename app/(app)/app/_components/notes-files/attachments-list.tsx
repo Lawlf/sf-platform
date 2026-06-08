@@ -1,7 +1,8 @@
 "use client";
 
-import { Download, FileText, Image as ImageIcon, Plus, Trash2 } from "lucide-react";
+import { Download, Eye, FileText, Image as ImageIcon, MoreVertical, Plus } from "lucide-react";
 import { useRef, useState } from "react";
+import { toast } from "sonner";
 
 import {
   AlertDialog,
@@ -26,10 +27,14 @@ import {
   confirmAttachmentUploadAction,
   deleteAttachmentAction,
   getAttachmentDownloadUrlAction,
+  renameAttachmentAction,
   requestAttachmentUploadAction,
 } from "../../_actions/entity-attachments.action";
 
+import { AttachmentActionsSheet } from "./attachment-actions-sheet.client";
 import { FILES_COPY, usagePhrase } from "./copy";
+import { ImageLightbox } from "./image-lightbox.client";
+import { RenameAttachmentSheet } from "./rename-attachment-sheet.client";
 
 function formatBytes(n: number): string {
   if (n >= 1024 * 1024) {
@@ -43,6 +48,8 @@ function isImage(contentType: string): boolean {
   return contentType.startsWith("image/");
 }
 
+type ActiveSheet = "actions" | "rename" | "lightbox" | "deleteConfirm";
+
 interface Props {
   entityType: AttachableEntityType;
   entityId: string;
@@ -55,9 +62,21 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
   const [totalBytes, setTotalBytes] = useState(initialTotalBytes);
   const [uploading, setUploading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeSheet, setActiveSheet] = useState<ActiveSheet | null>(null);
   const [deleting, setDeleting] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  const activeItem = activeId ? items.find((i) => i.id === activeId) ?? null : null;
+
+  function openSheet(item: AttachmentDto, sheet: ActiveSheet) {
+    setActiveId(item.id);
+    setActiveSheet(sheet);
+  }
+
+  function closeSheet() {
+    setActiveSheet(null);
+  }
 
   async function handleFile(file: File) {
     setError(null);
@@ -131,19 +150,51 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
     if (url) window.open(url, "_blank");
   }
 
+  async function handleShare(item: AttachmentDto) {
+    const { url } = await getAttachmentDownloadUrlAction({ attachmentId: item.id });
+    if (!url) return;
+    try {
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const file = new File([blob], item.fileName, { type: item.contentType });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: item.fileName });
+        toast.success("Compartilhado");
+      } else if (navigator.share) {
+        await navigator.share({ title: item.fileName, url });
+        toast.success("Compartilhado");
+      } else {
+        window.open(url, "_blank");
+      }
+    } catch {
+      window.open(url, "_blank");
+    }
+  }
+
+  async function handleRename(baseName: string) {
+    if (!activeId) return;
+    const id = activeId;
+    const res = await renameAttachmentAction({ attachmentId: id, newName: baseName });
+    if (res.ok) {
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, fileName: res.fileName } : i)));
+      toast.success("Renomeado");
+    }
+  }
+
   async function handleDelete() {
-    if (!confirmDeleteId) return;
-    const target = items.find((i) => i.id === confirmDeleteId);
+    if (!activeId) return;
+    const id = activeId;
+    const target = items.find((i) => i.id === id);
     setDeleting(true);
     try {
-      const result = await deleteAttachmentAction({ attachmentId: confirmDeleteId });
+      const result = await deleteAttachmentAction({ attachmentId: id });
       if (result.ok) {
-        setItems((prev) => prev.filter((i) => i.id !== confirmDeleteId));
+        setItems((prev) => prev.filter((i) => i.id !== id));
         if (target) setTotalBytes((prev) => Math.max(0, prev - target.sizeBytes));
       }
     } finally {
       setDeleting(false);
-      setConfirmDeleteId(null);
+      closeSheet();
     }
   }
 
@@ -166,44 +217,60 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
         <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">{FILES_COPY.emptyList}</p>
       ) : (
         <ul className="flex flex-col gap-2">
-          {items.map((item) => (
-            <li
-              key={item.id}
-              className="flex items-center gap-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5"
-            >
-              <span className="shrink-0 text-[color:var(--text-secondary)]">
-                {isImage(item.contentType) ? (
-                  <ImageIcon size={18} strokeWidth={1.75} aria-hidden />
+          {items.map((item) => {
+            const image = isImage(item.contentType);
+            return (
+              <li
+                key={item.id}
+                className="flex items-center gap-2.5 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5"
+              >
+                <span className="shrink-0 text-[color:var(--text-secondary)]">
+                  {image ? (
+                    <ImageIcon size={18} strokeWidth={1.75} aria-hidden />
+                  ) : (
+                    <FileText size={18} strokeWidth={1.75} aria-hidden />
+                  )}
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block truncate text-[0.8125rem] font-medium text-[color:var(--text-primary)]">
+                    {item.fileName}
+                  </span>
+                  <span className="block text-[0.6875rem] text-[color:var(--text-muted)]">
+                    {formatBytes(item.sizeBytes)}
+                  </span>
+                </span>
+                {image ? (
+                  <button
+                    type="button"
+                    aria-label={`Ver ${item.fileName}`}
+                    onClick={() => openSheet(item, "lightbox")}
+                    className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+                  >
+                    <Eye size={15} strokeWidth={2} aria-hidden />
+                    Ver
+                  </button>
                 ) : (
-                  <FileText size={18} strokeWidth={1.75} aria-hidden />
+                  <button
+                    type="button"
+                    aria-label={`${FILES_COPY.download} ${item.fileName}`}
+                    onClick={() => void handleDownload(item.id)}
+                    className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+                  >
+                    <Download size={15} strokeWidth={2} aria-hidden />
+                    {FILES_COPY.download}
+                  </button>
                 )}
-              </span>
-              <span className="min-w-0 flex-1">
-                <span className="block truncate text-[0.8125rem] font-medium text-[color:var(--text-primary)]">
-                  {item.fileName}
-                </span>
-                <span className="block text-[0.6875rem] text-[color:var(--text-muted)]">
-                  {formatBytes(item.sizeBytes)}
-                </span>
-              </span>
-              <button
-                type="button"
-                aria-label={`${FILES_COPY.download} ${item.fileName}`}
-                onClick={() => void handleDownload(item.id)}
-                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
-              >
-                <Download size={15} strokeWidth={2} aria-hidden />
-              </button>
-              <button
-                type="button"
-                aria-label={`${FILES_COPY.remove} ${item.fileName}`}
-                onClick={() => setConfirmDeleteId(item.id)}
-                className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
-              >
-                <Trash2 size={15} strokeWidth={2} aria-hidden />
-              </button>
-            </li>
-          ))}
+                <button
+                  type="button"
+                  aria-label={`Mais ações para ${item.fileName}`}
+                  onClick={() => openSheet(item, "actions")}
+                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
+                >
+                  <MoreVertical size={16} strokeWidth={2} aria-hidden />
+                </button>
+              </li>
+            );
+          })}
         </ul>
       )}
 
@@ -239,10 +306,41 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
         </p>
       ) : null}
 
+      {activeItem ? (
+        <AttachmentActionsSheet
+          open={activeSheet === "actions"}
+          onClose={closeSheet}
+          fileName={activeItem.fileName}
+          isImage={isImage(activeItem.contentType)}
+          onShare={() => void handleShare(activeItem)}
+          onDownload={() => void handleDownload(activeItem.id)}
+          onRename={() => setActiveSheet("rename")}
+          onDelete={() => setActiveSheet("deleteConfirm")}
+        />
+      ) : null}
+
+      {activeItem ? (
+        <RenameAttachmentSheet
+          open={activeSheet === "rename"}
+          onClose={closeSheet}
+          fileName={activeItem.fileName}
+          onSave={handleRename}
+        />
+      ) : null}
+
+      {activeItem ? (
+        <ImageLightbox
+          attachmentId={activeItem.id}
+          fileName={activeItem.fileName}
+          open={activeSheet === "lightbox"}
+          onClose={closeSheet}
+        />
+      ) : null}
+
       <AlertDialog
-        open={confirmDeleteId !== null}
+        open={activeSheet === "deleteConfirm"}
         onOpenChange={(open) => {
-          if (!open) setConfirmDeleteId(null);
+          if (!open) closeSheet();
         }}
       >
         <AlertDialogContent>
