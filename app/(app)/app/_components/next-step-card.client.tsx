@@ -60,7 +60,7 @@ export function VerMais({
             </div>
           ) : items.length > 0 ? (
             <div className="border-t border-[color:var(--border-soft)] pt-3">
-              <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+              <p className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
                 Depois dessa
               </p>
               <ul className="mt-2 space-y-3">
