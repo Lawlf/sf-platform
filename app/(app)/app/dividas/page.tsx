@@ -12,6 +12,8 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import type { DebtStatusFilter } from "../_actions/debt-queries";
 import { PageShell } from "../_components/page-shell";
 
+import { fetchUpcomingDues } from "./_actions/upcoming-dues";
+import { DebtDueBanner } from "./_components/debt-due-banner.client";
 import { DebtDueReminderCard } from "./_components/debt-due-reminder.client";
 import { DividasFilterPills } from "./_components/dividas-filter-pills";
 import { DividasListClient } from "./_components/dividas-list.client";
@@ -31,6 +33,7 @@ export default async function DividasPage({ searchParams }: PageProps) {
 
   const user = await requireUser();
   const prefs = await new DrizzleNotificationPreferencesRepository().findForUser(user.id);
+  const upcomingDues = await fetchUpcomingDues();
 
   return (
     <PageShell title="Dívidas" description="Acompanhe e simule a quitação das suas dívidas.">
@@ -41,6 +44,8 @@ export default async function DividasPage({ searchParams }: PageProps) {
         <PlusCircle size={16} strokeWidth={2} aria-hidden />
         Adicionar compra, conta ou dívida
       </Link>
+
+      <DebtDueBanner dues={upcomingDues} />
 
       <DividasFilterPills />
 

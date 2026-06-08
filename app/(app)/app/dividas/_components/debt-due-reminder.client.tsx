@@ -156,8 +156,8 @@ export function DebtDueReminderCard({ isPro, initialEnabled, initialDaysBefore }
       ) : (
         <div className="mt-4 flex flex-col gap-3 rounded-xl bg-[color:var(--surface-2)] p-3">
           <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Avisos de vencimento por push são um recurso Pro. No plano atual você ainda pode abrir
-            cada dívida e adicionar o vencimento ao seu calendário.
+            Os vencimentos próximos já aparecem aqui na tela. O Pro manda o lembrete pro seu celular,
+            por push e email, sem você precisar abrir o app.
           </p>
           <Link
             href={"/app/configuracoes/planos" as Route}

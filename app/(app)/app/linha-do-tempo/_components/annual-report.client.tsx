@@ -70,7 +70,7 @@ function EmptyReport() {
             Quer ver pra onde foi o dinheiro do ano?
           </h3>
           <p className="mt-1 max-w-md text-sm text-[color:var(--text-secondary)]">
-            É opcional. Conte pela IA, tipo &ldquo;gastei 40 no café&rdquo;, ou registre aqui na mão.
+            É opcional. Se quiser enxergar o ano por categoria, registre um gasto pela IA ou na mão.
           </p>
         </div>
         {open ? null : (

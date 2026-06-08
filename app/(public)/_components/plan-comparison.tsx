@@ -41,7 +41,7 @@ const GROUPS: Group[] = [
       },
       {
         feature: "Histórico completo da linha do tempo",
-        hint: "Todos os meses, sem limite.",
+        hint: "Sua trajetória mês a mês, não só o saldo de hoje.",
         free: false,
         pro: true,
       },
@@ -123,21 +123,17 @@ const GROUPS: Group[] = [
     ],
   },
   {
-    label: "Notificações no app",
+    label: "Avisos de vencimento",
     rows: [
       {
-        feature: "Avisos de vencimento de dívida",
-        free: false,
+        feature: "Vencimentos próximos na tela",
+        hint: "As parcelas que vencem nos próximos dias aparecem na sua lista de dívidas.",
+        free: true,
         pro: true,
       },
       {
-        feature: "Avisos de preço dos seus ativos",
-        free: false,
-        pro: true,
-      },
-      {
-        feature: "Avisos de oportunidade",
-        hint: "Quando faz sentido amortizar, trocar de estratégia, aportar.",
+        feature: "Aviso de vencimento no celular",
+        hint: "O lembrete chega por push e email, sem precisar abrir o app.",
         free: false,
         pro: true,
       },
