@@ -11,6 +11,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isErr } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
+import { purgeEntityBestEffort } from "../../../_actions/_purge-entity";
 
 export async function deleteDebtAction(
   debtId: string,
@@ -26,6 +27,7 @@ export async function deleteDebtAction(
     { userId: user.id, debtId },
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
+  await purgeEntityBestEffort(user.id, "debt", debtId);
   await detectNotificationsForUser(user.id);
   // A dívida some: invalidamos páginas que listam dívidas, dashboard, timeline,
   // notificações e patrimônio (ativos podem ter perdido alocações).

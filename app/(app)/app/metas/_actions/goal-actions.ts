@@ -23,6 +23,7 @@ import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/dr
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { awardEventAchievement } from "../../_actions/_achievements";
+import { purgeEntityBestEffort } from "../../_actions/_purge-entity";
 
 export interface ActionResult {
   ok: boolean;
@@ -226,6 +227,7 @@ export async function deleteGoalAction(goalId: string): Promise<ActionResult> {
   const goals = new DrizzleGoalRepository();
   const result = await deleteGoal({ goals }, { userId: user.id, goalId });
   if (!result.ok) return { ok: false, message: result.message };
+  await purgeEntityBestEffort(user.id, "goal", goalId);
   revalidatePath("/app/metas");
   return { ok: true };
 }

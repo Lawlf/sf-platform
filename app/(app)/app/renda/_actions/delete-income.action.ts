@@ -9,6 +9,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isErr } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../_actions/_notifications";
+import { purgeEntityBestEffort } from "../../_actions/_purge-entity";
 
 export async function deleteIncomeAction(
   incomeId: string,
@@ -22,6 +23,8 @@ export async function deleteIncomeAction(
     { userId: user.id, incomeId },
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
+
+  await purgeEntityBestEffort(user.id, "income", incomeId);
 
   // Saldo do mes muda quando uma renda some: dispara redeteccao de
   // notificacoes (negative-balance) com o cenario atualizado.

@@ -10,6 +10,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isErr } from "@/shared/errors/result";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
+import { purgeEntityBestEffort } from "../../../_actions/_purge-entity";
 
 export async function deleteAssetAction(
   assetId: string,
@@ -24,6 +25,8 @@ export async function deleteAssetAction(
     { userId: user.id, assetId },
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
+
+  await purgeEntityBestEffort(user.id, "account", assetId);
 
   // O ativo some e suas alocacoes saem das dividas vinculadas: o cenario
   // muda, entao redetectamos notificacoes (negative-balance).
