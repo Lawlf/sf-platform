@@ -28,6 +28,7 @@ function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
   }
 }
 
+import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 
 import { ActionsSection } from "./_components/actions-section";
@@ -97,6 +98,13 @@ export default async function DebtDetailPage({ params }: PageProps) {
       )}
 
       {debt.kind === "recurring" ? null : <PaymentsSection payments={payments} />}
+
+      <EntityNotesAndFiles
+        entityType="debt"
+        entityId={debt.id}
+        userId={user.id}
+        isPro={user.isPro}
+      />
     </PageShell>
   );
 }

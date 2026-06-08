@@ -13,6 +13,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isOk } from "@/shared/errors/result";
 import { formatCents } from "@/shared/format/money-format";
 
+import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
 
@@ -255,6 +256,13 @@ export default async function AssetDetailPage({ params }: PageProps) {
       {asset.category === "cash" ? (
         <AccountTransactionsSection transactions={accountTransactions} />
       ) : null}
+
+      <EntityNotesAndFiles
+        entityType="account"
+        entityId={asset.id}
+        userId={user.id}
+        isPro={user.isPro}
+      />
     </PageShell>
   );
 }

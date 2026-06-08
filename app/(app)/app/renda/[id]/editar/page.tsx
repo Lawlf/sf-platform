@@ -7,6 +7,7 @@ import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/re
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
+import { EntityNotesAndFiles } from "../../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../../_components/page-shell";
 import { EditIncomeForm } from "../../_components/edit-income-form";
 
@@ -41,6 +42,13 @@ export default async function EditIncomePage({ params }: { params: Promise<{ id:
           }}
         />
       </section>
+
+      <EntityNotesAndFiles
+        entityType="income"
+        entityId={income.id}
+        userId={user.id}
+        isPro={user.isPro}
+      />
     </PageShell>
   );
 }

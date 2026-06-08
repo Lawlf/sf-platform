@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 import { fetchGoalDetail } from "../_actions/goal-queries";
 
@@ -20,7 +21,7 @@ interface Props {
 }
 
 export default async function GoalDetailPage({ params }: Props) {
-  await requireUser();
+  const user = await requireUser();
 
   const { id } = await params;
   const detail = await fetchGoalDetail(id);
@@ -48,6 +49,13 @@ export default async function GoalDetailPage({ params }: Props) {
   return (
     <PageShell title={detail.goal.title} backHref={"/app/metas" as Route}>
       <GoalDetail detail={detail} />
+
+      <EntityNotesAndFiles
+        entityType="goal"
+        entityId={detail.goal.id}
+        userId={user.id}
+        isPro={user.isPro}
+      />
     </PageShell>
   );
 }
