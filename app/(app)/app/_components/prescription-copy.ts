@@ -1,4 +1,41 @@
-import type { MoveType, PrescriptionMove } from "@/domain/services/prescription/prescription.types";
+import type {
+  CascadeSegment,
+  MoveType,
+  PrescriptionMove,
+} from "@/domain/services/prescription/prescription.types";
+
+import { DEBT_RATE_ESTIMATES } from "../dividas/nova/_lib/debt-rate-estimates";
+
+export interface TimelineLine {
+  text: string;
+  strong: boolean;
+}
+
+// Máx 4 patamares; acima vira planilha (regra ICP).
+export function presentTimeline(segments: CascadeSegment[], horizonMonths: number): TimelineLine[] {
+  return segments.slice(0, 4).map((seg) => {
+    switch (seg.kind) {
+      case "debt":
+        return {
+          text:
+            seg.startMonth === 1
+              ? `Até o mês ${seg.payoffMonth}: sua sobra vai pra ${seg.debtLabel}.`
+              : `Mês ${seg.startMonth} a ${seg.payoffMonth}: sua sobra vai pra ${seg.debtLabel}.`,
+          strong: false,
+        };
+      case "reserve":
+        return {
+          text: `Mês ${seg.startMonth} em diante: sem dívida cara na fila, a sobra começa a reserva.`,
+          strong: true,
+        };
+      case "horizon_cut":
+        return {
+          text: `Do mês ${seg.startMonth} ao ${horizonMonths}: sua sobra segue em ${seg.debtLabel}. No ritmo atual, leva mais de um ano. A gente recalcula todo mês.`,
+          strong: false,
+        };
+    }
+  });
+}
 
 export interface MoveCopy {
   headline: string;
@@ -28,7 +65,9 @@ export function presentMove(m: PrescriptionMove): MoveCopy {
   switch (m.type) {
     case "pay_debt": {
       const label = m.targetDebtLabel ?? "sua dívida mais cara";
-      const reason = "Com as dívidas que você registrou, essa é a de juro mais alto.";
+      const reason = m.metrics.rateEstimated
+        ? `Estimamos o rotativo em ~${DEBT_RATE_ESTIMATES.creditCardRevolving.valuePct}% ao mês, a média do mercado.`
+        : "Com as dívidas que você registrou, essa é a de juro mais alto.";
       const headline = `Coloque sua sobra na ${label} primeiro.`;
       if (m.metrics.baselineNeverPayoff) {
         const months = m.metrics.monthsToPayoff;

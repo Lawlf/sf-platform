@@ -34,6 +34,8 @@ export interface MoveMetrics {
   monthsToPayoff?: number | null;
   /** true quando, pagando só o mínimo, a dívida nunca quitaria (amortização negativa). */
   baselineNeverPayoff?: boolean;
+  /** true quando a dívida-alvo usou a taxa estimada (rotativo sem taxa cadastrada). */
+  rateEstimated?: boolean;
 }
 
 export interface PrescriptionMove {
@@ -63,12 +65,24 @@ export interface PrescriptionSnapshot {
   config: PrescriptionConfig;
 }
 
+/** Trecho da timeline multi-mês: para onde a sobra vai entre transições. */
+export type CascadeSegment =
+  | { kind: "debt"; debtLabel: string; startMonth: number; payoffMonth: number }
+  | { kind: "reserve"; startMonth: number }
+  | { kind: "horizon_cut"; debtLabel: string; startMonth: number };
+
 export interface Prescription {
   state: PrescriptionState;
   /** null somente quando state === "incomplete". */
   dominant: PrescriptionMove | null;
   /** itens 2 e 3 do "ver mais" (máx 2). dominant + alternatives ≤ 3. */
   alternatives: PrescriptionMove[];
+  /**
+   * Sequência multi-mês "para onde a sobra vai". Vazia quando não se qualifica
+   * (sem cascata real); aí a UI cai no "Depois dessa". Substitui as alternatives
+   * no expand quando preenchida.
+   */
+  timeline: CascadeSegment[];
   completeness: {
     complete: boolean;
     missing: MissingInput[];

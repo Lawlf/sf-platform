@@ -57,12 +57,25 @@ describe("PrescriptionEngine — completeness gate", () => {
     expect(out.completeness.complete).toBe(false);
     expect(out.completeness.missing).toContain("income");
   });
-  it("is incomplete when a credit-card debt has no rate cadastrada (revolvingMonthlyRate null) and a balance", () => {
+  it("prescribes with an estimated rate (no longer incomplete) when a credit-card has no rate cadastrada but a balance", () => {
     const out = PrescriptionEngine.prescribe(baseSnapshot({
-      debts: [creditCard({ balanceReais: 3000, revolvingMonthly: null })],
+      debts: [creditCard({ id: "nu", balanceReais: 3000, statementReais: 1000, revolvingMonthly: null })],
+      reserveReais: 5000, freeBalanceReais: 800,
     }));
-    expect(out.state).toBe("incomplete");
-    expect(out.completeness.missing).toContain("debt_rate");
+    expect(out.state).toBe("bleeding");
+    expect(out.dominant?.type).toBe("pay_debt");
+    expect(out.dominant?.targetDebtId).toBe("nu");
+    expect(out.dominant?.metrics.rateEstimated).toBe(true);
+    expect(typeof out.dominant?.metrics.monthsToPayoff).toBe("number");
+    expect(out.completeness.complete).toBe(true);
+    expect(out.completeness.missing).not.toContain("debt_rate");
+  });
+  it("does not mark rateEstimated when the credit-card rate is cadastrada", () => {
+    const out = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [creditCard({ id: "nu", balanceReais: 3000, statementReais: 1000, revolvingMonthly: 0.12 })],
+      reserveReais: 5000, freeBalanceReais: 800,
+    }));
+    expect(out.dominant?.metrics.rateEstimated).toBeFalsy();
   });
 });
 
@@ -164,5 +177,26 @@ describe("PrescriptionEngine — ranked alternatives", () => {
   it("drops zero-impact alternatives", () => {
     const out = PrescriptionEngine.prescribe(baseSnapshot({ debts: [], reserveReais: 6000, freeBalanceReais: 1000 }));
     expect(out.alternatives.every((m) => m.rankImpactReais > 0)).toBe(true);
+  });
+});
+
+describe("PrescriptionEngine — multi-month timeline (cascade)", () => {
+  it("bleeding with payable expensive debts yields a timeline with at least one debt segment", () => {
+    const dear = creditCard({ id: "dear", label: "Cartão caro", balanceReais: 2000, statementReais: 800, revolvingMonthly: 0.13 });
+    const mid = creditCard({ id: "mid", label: "Cartão médio", balanceReais: 3000, statementReais: 1000, revolvingMonthly: 0.08 });
+    const out = PrescriptionEngine.prescribe(baseSnapshot({ debts: [dear, mid], reserveReais: 5000, freeBalanceReais: 800 }));
+    expect(out.state).toBe("bleeding");
+    expect(out.timeline.length).toBeGreaterThan(0);
+    expect(out.timeline.some((seg) => seg.kind === "debt")).toBe(true);
+  });
+  it("ready_to_grow has no timeline", () => {
+    const out = PrescriptionEngine.prescribe(baseSnapshot({ debts: [], reserveReais: 6000, freeBalanceReais: 1000 }));
+    expect(out.timeline).toEqual([]);
+  });
+  it("a single expensive debt that never pays within the horizon has no timeline (only a horizon cut does not qualify)", () => {
+    const big = creditCard({ id: "big", label: "Cartão estourado", balanceReais: 50000, statementReais: 2000, revolvingMonthly: 0.15 });
+    const out = PrescriptionEngine.prescribe(baseSnapshot({ debts: [big], reserveReais: 5000, freeBalanceReais: 200 }));
+    expect(out.state).toBe("bleeding");
+    expect(out.timeline).toEqual([]);
   });
 });
