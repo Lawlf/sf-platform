@@ -207,7 +207,7 @@ function IncomeRow({ row }: { row: SerializedIncomeRow }) {
 function ExpenseRow({ row }: { row: SerializedExpenseRow }) {
   return (
     <li>
-      <Link href={`/app/dividas/${row.id}` as Route} className="block hover:opacity-80">
+      <Link href={`/app/dividas/${row.debtId}` as Route} className="block hover:opacity-80">
         <div className="flex items-center justify-between gap-3 rounded-[10px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5">
           <div className="flex min-w-0 flex-col">
             <span className="flex items-center gap-2">
