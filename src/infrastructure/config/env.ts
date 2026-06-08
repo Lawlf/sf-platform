@@ -45,6 +45,12 @@ const envSchema = z.object({
 
   // Admin step-up: 32 raw bytes, base64-encoded. Encrypts TOTP secrets at rest.
   ADMIN_TOTP_ENC_KEY: emptyToUndefined,
+
+  // Cloudflare R2 (anexos de arquivo). Object storage S3-compatível.
+  R2_ACCOUNT_ID: emptyToUndefined,
+  R2_ACCESS_KEY: emptyToUndefined,
+  R2_SECRET: emptyToUndefined,
+  R2_BUCKET: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -137,5 +143,21 @@ export function requireAdminTotpKey(env: Env = loadEnv()): Buffer {
     throw new Error("ADMIN_TOTP_ENC_KEY must be canonical base64 decoding to exactly 32 bytes");
   }
   return key;
+}
+
+export interface R2Config {
+  accountId: string;
+  accessKey: string;
+  secret: string;
+  bucket: string;
+}
+
+export function requireR2Config(env: Env = loadEnv()): R2Config {
+  return {
+    accountId: required("R2_ACCOUNT_ID", env.R2_ACCOUNT_ID),
+    accessKey: required("R2_ACCESS_KEY", env.R2_ACCESS_KEY),
+    secret: required("R2_SECRET", env.R2_SECRET),
+    bucket: required("R2_BUCKET", env.R2_BUCKET),
+  };
 }
 

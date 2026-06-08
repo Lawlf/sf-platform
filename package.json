@@ -31,6 +31,8 @@
     "email:dev": "pnpm exec email dev --dir src/infrastructure/email/templates --port 3010"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1064.0",
+    "@aws-sdk/s3-request-presigner": "^3.1064.0",
     "@hookform/resolvers": "^5.2.2",
     "@modelcontextprotocol/sdk": "^1.29.0",
     "@radix-ui/react-alert-dialog": "^1.1.15",

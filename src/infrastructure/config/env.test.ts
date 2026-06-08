@@ -5,6 +5,7 @@ import {
   requireResendConfig,
   requireUpstashConfig,
   requireGoogleOauthConfig,
+  requireR2Config,
 } from "./env";
 
 const baseValid = {
@@ -78,5 +79,34 @@ describe("require* helpers", () => {
   it("requireGoogleOauthConfig throws when client id missing", () => {
     const env = parseEnv({ ...fullValid, GOOGLE_OAUTH_CLIENT_ID: "" });
     expect(() => requireGoogleOauthConfig(env)).toThrow(/GOOGLE_OAUTH_CLIENT_ID/);
+  });
+});
+
+const base = {
+  DATABASE_URL: "postgres://x",
+  NEXT_PUBLIC_APP_URL: "https://app.test",
+  SESSION_COOKIE_SECRET: "x".repeat(32),
+};
+
+describe("requireR2Config", () => {
+  it("retorna config quando todas as vars R2 estão presentes", () => {
+    const env = parseEnv({
+      ...base,
+      R2_ACCOUNT_ID: "acc",
+      R2_ACCESS_KEY: "key",
+      R2_SECRET: "secret",
+      R2_BUCKET: "bucket",
+    });
+    expect(requireR2Config(env)).toEqual({
+      accountId: "acc",
+      accessKey: "key",
+      secret: "secret",
+      bucket: "bucket",
+    });
+  });
+
+  it("lança quando falta alguma var R2", () => {
+    const env = parseEnv({ ...base });
+    expect(() => requireR2Config(env)).toThrow(/R2_/);
   });
 });
