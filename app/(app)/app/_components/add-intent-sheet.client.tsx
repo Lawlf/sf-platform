@@ -4,6 +4,7 @@ import { ArrowLeftRight, Coins, ShoppingBag, Target, TrendingUp } from "lucide-r
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
+import { toast } from "sonner";
 
 import {
   Sheet,
@@ -12,6 +13,8 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+
+import { useOnline } from "../_lib/offline/use-online";
 
 import { KindCard } from "../dividas/nova/_components/kind-card";
 
@@ -72,6 +75,7 @@ interface AddIntentSheetProps {
 
 export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
   const router = useRouter();
+  const online = useOnline();
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -90,6 +94,10 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
               selected={false}
               onSelect={() => {
                 onOpenChange(false);
+                if (!online) {
+                  toast("Sem internet. Você registra isso quando o sinal voltar.");
+                  return;
+                }
                 router.push(intent.href);
               }}
             />

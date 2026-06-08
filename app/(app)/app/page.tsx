@@ -15,6 +15,7 @@ import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MonthClosingCard } from "./_components/month-closing-card.client";
 import { NextStepCard } from "./_components/next-step-card";
+import { OfflineStaleNote } from "./_components/offline-stale-note.client";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
 import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { PageShell } from "./_components/page-shell";
@@ -144,6 +145,8 @@ export default async function DashboardPage() {
           active={onboardingState.wizardSeen && !onboardingState.tourDismissed}
           hasGoal={onboardingState.checklist.hasGoal}
         />
+
+        <OfflineStaleNote />
 
         <div className="md:col-span-2">
           <OnboardingChecklistCard checklist={onboardingState.checklist} />

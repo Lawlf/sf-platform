@@ -18,6 +18,9 @@ import { BottomNavGate } from "./app/_components/bottom-nav-gate";
 import { CommandPalette } from "./app/_components/command-palette.client";
 import { MobileTopBar } from "./app/_components/mobile-top-bar";
 import { MoneyVisibilityProvider } from "./app/_components/money-visibility/money-visibility-provider.client";
+import { OfflineBanner } from "./app/_components/offline-banner.client";
+import { OfflineCacheWarmer } from "./app/_components/offline-cache-warmer.client";
+import { OfflineNavGuard } from "./app/_components/offline-nav-guard.client";
 import { InstallProvider } from "./app/_components/pwa/install-provider.client";
 import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
@@ -81,6 +84,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
 
             <UsageHeartbeat />
             <CommandPalette />
+            <OfflineNavGuard />
+            <OfflineCacheWarmer />
+            <OfflineBanner />
             {children}
 
             <div className="md:hidden">
