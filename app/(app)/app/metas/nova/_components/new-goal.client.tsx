@@ -45,6 +45,7 @@ type GoalTypeChoice = "debt_payoff" | "emergency_fund" | "savings" | "financial_
 interface DebtPayoffForm {
   linkedDebtId: string;
   title: string;
+  monthlyContributionCents: bigint | null;
 }
 
 interface EmergencyFundForm {
@@ -110,6 +111,11 @@ function DebtPayoffStep({
       title: existingGoal
         ? existingGoal.title
         : (seededDebt ? (seededDebt.label ?? "") : (debts[0]?.label ?? "")),
+      monthlyContributionCents: existingGoal?.monthlyCostCents
+        ? BigInt(existingGoal.monthlyCostCents)
+        : seed?.type === "debt_payoff" && seed.monthlyContributionCents
+          ? BigInt(seed.monthlyContributionCents)
+          : 0n,
     },
   });
   const selectedDebtId = useWatch({ control: form.control, name: "linkedDebtId" });
@@ -167,6 +173,12 @@ function DebtPayoffStep({
               {...form.register("title", { required: true })}
             />
           </WizardField>
+          <MoneyInput
+            control={form.control}
+            name="monthlyContributionCents"
+            label="Quanto você vai pagar por mês"
+            helper="O ritmo que você escolheu. A meta usa ele pra calcular quando a dívida quita."
+          />
         </div>
       </section>
       {error ? <ErrorAlert message={error} /> : null}
@@ -555,10 +567,13 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
   }
 
   function handleDebtPayoff(data: DebtPayoffForm) {
+    const ritmo =
+      typeof data.monthlyContributionCents === "bigint" ? data.monthlyContributionCents : 0n;
     void handleCreate({
       type: "debt_payoff",
       title: data.title,
       linkedDebtId: data.linkedDebtId || null,
+      monthlyCostCents: ritmo > 0n ? ritmo.toString() : null,
     });
   }
 

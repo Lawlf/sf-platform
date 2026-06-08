@@ -9,7 +9,7 @@ export type GoalSeed =
       linkedAssetId?: string;
     }
   | { type: "financial_independence"; monthlyCostCents: string; realReturnPct: number }
-  | { type: "debt_payoff"; debtId: string };
+  | { type: "debt_payoff"; debtId: string; monthlyContributionCents?: string };
 
 export type SearchParamsLike = Record<string, string | string[] | undefined>;
 
@@ -56,6 +56,7 @@ export function buildGoalSeedQuery(seed: GoalSeed): string {
       break;
     case "debt_payoff":
       p.set("debtId", seed.debtId);
+      if (seed.monthlyContributionCents) p.set("ritmoCents", seed.monthlyContributionCents);
       break;
   }
   return p.toString();
@@ -96,7 +97,8 @@ export function parseGoalSeed(sp: SearchParamsLike): GoalSeed | null {
   if (type === "debt_payoff") {
     const debtId = first(sp.debtId);
     if (!debtId) return null;
-    return { type, debtId };
+    const ritmo = centsOrNull(first(sp.ritmoCents));
+    return ritmo !== null ? { type, debtId, monthlyContributionCents: ritmo } : { type, debtId };
   }
   return null;
 }

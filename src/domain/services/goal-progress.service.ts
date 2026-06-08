@@ -65,7 +65,13 @@ function debtPayoff(goal: GoalEntity, macro: GoalMacro): GoalProgress {
   const current = paid > 0n ? paid : 0n;
   const target = debt.originalPrincipalCents;
   const reached = debt.currentBalanceCents <= 0n;
-  const etaMonths = reached ? 0 : monthsToPayoff(debt);
+  // Ritmo escolhido pela pessoa (ex: vindo do simulador de rotativo) manda na
+  // ETA. Sem ritmo, cai no pagamento mensal padrão da dívida.
+  const paced =
+    goal.monthlyCostCents && goal.monthlyCostCents > 0n
+      ? { ...debt, monthlyPaymentCents: goal.monthlyCostCents }
+      : debt;
+  const etaMonths = reached ? 0 : monthsToPayoff(paced);
   return { currentCents: current, targetCents: target, pct: pctOf(current, target), reached, etaMonths, needsAttention: false };
 }
 

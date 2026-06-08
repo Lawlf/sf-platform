@@ -21,6 +21,16 @@ describe("buildGoalSeedQuery", () => {
     const seed: GoalSeed = { type: "debt_payoff", debtId: "abc-123" };
     expect(buildGoalSeedQuery(seed)).toBe("from=sim&type=debt_payoff&debtId=abc-123");
   });
+  it("debt_payoff com ritmo mensal", () => {
+    const seed: GoalSeed = {
+      type: "debt_payoff",
+      debtId: "abc-123",
+      monthlyContributionCents: "60000",
+    };
+    expect(buildGoalSeedQuery(seed)).toBe(
+      "from=sim&type=debt_payoff&debtId=abc-123&ritmoCents=60000",
+    );
+  });
 });
 
 describe("parseGoalSeed", () => {
@@ -60,6 +70,16 @@ describe("parseGoalSeed", () => {
       type: "debt_payoff",
       debtId: "abc",
     });
+  });
+  it("debt_payoff le o ritmo mensal quando presente", () => {
+    expect(
+      parseGoalSeed({ from: "sim", type: "debt_payoff", debtId: "abc", ritmoCents: "60000" }),
+    ).toEqual({ type: "debt_payoff", debtId: "abc", monthlyContributionCents: "60000" });
+  });
+  it("debt_payoff descarta ritmo invalido mas mantem o seed", () => {
+    expect(
+      parseGoalSeed({ from: "sim", type: "debt_payoff", debtId: "abc", ritmoCents: "-5" }),
+    ).toEqual({ type: "debt_payoff", debtId: "abc" });
   });
   it("aceita valores em array (searchParams) usando o primeiro", () => {
     expect(parseGoalSeed({ from: ["sim"], type: ["debt_payoff"], debtId: ["abc"] })).toEqual({

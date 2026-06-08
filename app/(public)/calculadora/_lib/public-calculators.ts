@@ -189,6 +189,32 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     ],
   },
   {
+    slug: "custo-do-rotativo-do-cartao",
+    simId: "rotativo",
+    seoTitle: "Calculadora do rotativo do cartão de crédito",
+    seoDescription:
+      "Calcule o custo do rotativo do cartão de crédito. Veja quanto de juro você paga a mais ao rolar a fatura, em quantos meses quita e quanto a dívida vira.",
+    h1: "Calculadora do rotativo do cartão de crédito",
+    intro:
+      "Informe o valor da fatura, quanto você consegue pagar por mês e a taxa do rotativo (15% ao mês quando você não sabe) para ver quanto de juro entra a cada mês, em quantos meses a dívida quita e quanto a fatura vira no total. Se o pagamento não cobrir nem o juro do mês, a calculadora avisa: assim a dívida nunca quita.",
+    howItWorks:
+      "A gente cobra o juro do rotativo sobre o que sobra da fatura mês a mês e mostra quanto você paga a mais, em quantos meses quita e quando o pagamento é baixo demais pra dívida diminuir.",
+    faq: [
+      {
+        q: "O que é o rotativo do cartão de crédito?",
+        a: "É o crédito que o banco te dá quando você não paga a fatura inteira. O que sobra é rolado pro mês seguinte e passa a cobrar juro, um dos mais altos do mercado.",
+      },
+      {
+        q: "Pagar só o mínimo do cartão sai caro?",
+        a: "Sim. O que você não paga entra no rotativo e cobra juro todo mês. Se o pagamento não cobrir nem o juro, o saldo cresce em vez de cair, e a fatura nunca fecha.",
+      },
+      {
+        q: "Quanto é o juro do rotativo no Brasil?",
+        a: "É um dos juros mais altos do mercado, costuma ficar na faixa de 13% a 15% ao mês. Use a taxa do seu extrato; quando você não sabe, a calculadora parte de 15% ao mês.",
+      },
+    ],
+  },
+  {
     slug: "decimo-terceiro-salario",
     simId: "decimo-terceiro",
     seoTitle: "Calculadora de 13º salário líquido 2026",

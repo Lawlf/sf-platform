@@ -35,6 +35,33 @@ describe("GoalProgressService.compute", () => {
     expect(r.etaMonths).not.toBeNull();
   });
 
+  it("debt_payoff: ritmo guardado (monthlyCostCents) manda na ETA", () => {
+    const slow: GoalEntity = { ...baseGoal, type: "debt_payoff", linkedDebtId: "d1" };
+    const fast: GoalEntity = {
+      ...baseGoal,
+      type: "debt_payoff",
+      linkedDebtId: "d1",
+      monthlyCostCents: 3_000_00n,
+    };
+    const rSlow = GoalProgressService.compute(slow, macro);
+    const rFast = GoalProgressService.compute(fast, macro);
+    expect(rSlow.etaMonths).not.toBeNull();
+    expect(rFast.etaMonths).not.toBeNull();
+    expect(rFast.etaMonths as number).toBeLessThan(rSlow.etaMonths as number);
+  });
+
+  it("debt_payoff: ritmo abaixo do juro mensal nunca quita (ETA null)", () => {
+    // Saldo R$18.000 a 12% a.a. => juro ~R$170/mês; pagar R$100 não cobre.
+    const goal: GoalEntity = {
+      ...baseGoal,
+      type: "debt_payoff",
+      linkedDebtId: "d1",
+      monthlyCostCents: 100_00n,
+    };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(r.etaMonths).toBeNull();
+  });
+
   it("emergency_fund: sem custo explicito usa 75% da renda (6_000_00 x 6 = 36_000_00)", () => {
     // macro.monthlyIncomeCents = 8_000_00, sem monthlyCostCents na meta
     // custo estimado = 8_000_00 * 3 / 4 = 6_000_00; target = 6_000_00 * 6 = 36_000_00
