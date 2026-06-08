@@ -6,8 +6,10 @@ export function fmtBRL(cents: bigint): string {
   return brl.format(Number(cents) / 100);
 }
 
-export function fmtDate(d: Date | null): string {
-  return d ? date.format(d) : "—";
+export function fmtDate(d: Date | string | null | undefined): string {
+  if (!d) return "—";
+  const dt = d instanceof Date ? d : new Date(d);
+  return Number.isNaN(dt.getTime()) ? "—" : date.format(dt);
 }
 
 export function fmtPercent(ratio: number): string {
