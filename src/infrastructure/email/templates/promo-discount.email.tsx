@@ -36,7 +36,7 @@ export function PromoDiscountEmail({
   return (
     <EmailLayout
       appUrl={appUrl}
-      preview={`Janela aberta até ${expiresAtLabel}. ${discountPercent}% no Pro, sem pressão.`}
+      preview={`Só até ${expiresAtLabel}: ${discountPercent}% no Pro, sem pressão.`}
       unsubscribeNode={
         <Link href={unsubscribeUrl} style={{ color: EMAIL_COLORS.textSecondary }}>
           Descadastrar
@@ -51,13 +51,11 @@ export function PromoDiscountEmail({
             borderRadius: 999,
             backgroundColor: "rgba(242,142,37,0.14)",
             color: EMAIL_COLORS.brandOrangeDark,
-            fontSize: 11,
+            fontSize: 12,
             fontWeight: 700,
-            letterSpacing: 1.4,
-            textTransform: "uppercase",
           }}
         >
-          ✦  Janela aberta
+          Desconto no Pro
         </div>
       </Section>
 
@@ -177,7 +175,7 @@ export function PromoDiscountEmail({
             display: "inline-block",
           }}
         >
-          Aceitar a janela
+          Ativar o cupom
         </Button>
       </Section>
 
@@ -188,7 +186,7 @@ export function PromoDiscountEmail({
           color: EMAIL_COLORS.textMuted,
         }}
       >
-        Janela fecha em {expiresAtLabel}. Depois disso, preço cheio de volta.
+        Fecha em {expiresAtLabel}. Depois disso, preço cheio de volta.
       </Text>
 
       <Text

@@ -19,4 +19,9 @@ export interface UserRepository {
    * de refresh diário de cotações (apenas usuários Pro disparam o batch).
    */
   findAllPro(): Promise<UserEntity[]>;
+  /**
+   * Retorna todos os usuários ativos (não desativados), Free e Pro. Usado
+   * pelos crons de email de ciclo de vida.
+   */
+  findAllActive(): Promise<UserEntity[]>;
 }

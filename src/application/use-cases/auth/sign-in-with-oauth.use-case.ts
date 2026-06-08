@@ -28,6 +28,7 @@ export interface SignInWithOauthSuccess {
   user: UserEntity;
   rawSessionId: string;
   sessionExpiresAt: Date;
+  isNewUser: boolean;
 }
 
 export type SignInWithOauthError = AccountDeactivated | OauthAccountLinkRequiresVerification;
@@ -40,6 +41,7 @@ export async function signInWithOauth(
 ): Promise<Result<SignInWithOauthSuccess, SignInWithOauthError>> {
   const { profile } = input;
   let user: UserEntity | null = null;
+  let isNewUser = false;
 
   const existingAccount = await deps.oauthAccounts.findByProviderAndId(
     profile.provider,
@@ -75,6 +77,7 @@ export async function signInWithOauth(
         emailVerified: profile.emailVerified,
         displayName: profile.displayName,
       });
+      isNewUser = true;
       await deps.oauthAccounts.create({
         userId: user.id,
         provider: profile.provider,
@@ -101,5 +104,5 @@ export async function signInWithOauth(
     userAgent: input.userAgent,
   });
 
-  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt });
+  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt, isNewUser });
 }

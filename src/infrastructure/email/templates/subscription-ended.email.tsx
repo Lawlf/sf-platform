@@ -51,7 +51,7 @@ export function SubscriptionEndedEmail({ appUrl, displayName }: SubscriptionEnde
         }}
       >
         Se quiser voltar, é direto, do mesmo ponto. Se for hora de ficar no Free por um tempo,
-        também tá tudo bem. A gente fica por aqui.
+        também funciona, sem perder nada.
       </Text>
 
       <Section style={{ textAlign: "left", margin: "0 0 24px" }}>

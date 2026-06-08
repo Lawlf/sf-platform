@@ -48,6 +48,7 @@ function makeUserRepo(pro: UserEntity[]): UserRepository {
     deactivate: vi.fn(),
     update: vi.fn(),
     findAllPro: vi.fn(async () => pro),
+    findAllActive: vi.fn(async () => pro),
   };
 }
 

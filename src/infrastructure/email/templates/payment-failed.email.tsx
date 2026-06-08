@@ -11,7 +11,7 @@ export interface PaymentFailedEmailProps {
 export const PAYMENT_FAILED_SUBJECT = "Tropeço no cartão. Nada quebrou.";
 
 export function PaymentFailedEmail({ appUrl, displayName, accessUntil }: PaymentFailedEmailProps) {
-  const planUrl = `${appUrl.replace(/\/$/, "")}/app/perfil/assinatura`;
+  const planUrl = `${appUrl.replace(/\/$/, "")}/app/configuracoes/planos`;
   const greeting = displayName ? `${displayName}, ` : "";
   return (
     <EmailLayout
@@ -53,7 +53,7 @@ export function PaymentFailedEmail({ appUrl, displayName, accessUntil }: Payment
         }}
       >
         Seu Pro segue rodando até {accessUntil}. Se quiser trocar de cartão antes da próxima
-        tentativa, abre o app quando der. Se for resolver no banco, a gente espera.
+        tentativa, é rápido no app. Se for resolver direto no banco, dá tempo.
       </Text>
 
       <Section style={{ textAlign: "left", margin: "0 0 24px" }}>

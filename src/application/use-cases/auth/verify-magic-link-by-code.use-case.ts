@@ -29,6 +29,7 @@ export interface VerifyMagicLinkByCodeSuccess {
   user: UserEntity;
   rawSessionId: string;
   sessionExpiresAt: Date;
+  isNewUser: boolean;
 }
 
 export type VerifyMagicLinkByCodeError =
@@ -85,6 +86,7 @@ export async function verifyMagicLinkByCode(
   }
 
   let user: UserEntity | null = null;
+  let isNewUser = false;
   if (token.userId) {
     user = await deps.users.findById(token.userId);
     if (!user) return err(new MagicLinkInvalid("Código inválido."));
@@ -99,6 +101,7 @@ export async function verifyMagicLinkByCode(
       return err(new MagicLinkInvalid("Código inválido."));
     }
     user = await deps.users.create({ email: token.email, emailVerified: true });
+    isNewUser = true;
   }
   if (user.deactivatedAt) {
     return err(new AccountDeactivated("Conta desativada. Fale com o suporte para reativar."));
@@ -120,5 +123,5 @@ export async function verifyMagicLinkByCode(
     userAgent: input.userAgent,
   });
 
-  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt });
+  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt, isNewUser });
 }

@@ -27,6 +27,7 @@ export interface VerifyMagicLinkByTokenSuccess {
   user: UserEntity;
   rawSessionId: string;
   sessionExpiresAt: Date;
+  isNewUser: boolean;
 }
 
 export type VerifyMagicLinkByTokenError =
@@ -48,6 +49,7 @@ export async function verifyMagicLinkByToken(
   if (token.expiresAt < deps.clock.now()) return err(new MagicLinkExpired("Link expirado."));
 
   let user: UserEntity | null = null;
+  let isNewUser = false;
   if (token.userId) {
     user = await deps.users.findById(token.userId);
     if (!user) return err(new MagicLinkInvalid("Link inválido."));
@@ -62,6 +64,7 @@ export async function verifyMagicLinkByToken(
       return err(new MagicLinkInvalid("Link inválido."));
     }
     user = await deps.users.create({ email: token.email, emailVerified: true });
+    isNewUser = true;
   }
   if (user.deactivatedAt) {
     return err(new AccountDeactivated("Conta desativada. Fale com o suporte para reativar."));
@@ -83,5 +86,5 @@ export async function verifyMagicLinkByToken(
     userAgent: input.userAgent,
   });
 
-  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt });
+  return ok({ user, rawSessionId, sessionExpiresAt: expiresAt, isNewUser });
 }

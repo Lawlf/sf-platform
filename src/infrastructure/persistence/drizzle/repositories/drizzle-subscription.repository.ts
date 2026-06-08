@@ -1,4 +1,4 @@
-import { and, eq, sql } from "drizzle-orm";
+import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
 
 import type {
   PaymentProvider,
@@ -85,6 +85,20 @@ export class DrizzleSubscriptionRepository implements SubscriptionRepository {
       .from(subscriptions)
       .where(eq(subscriptions.planId, planId));
     return rows[0]?.count ?? 0;
+  }
+
+  async findEndedBetween(start: Date, end: Date): Promise<Subscription[]> {
+    const rows = await getDb()
+      .select()
+      .from(subscriptions)
+      .where(
+        and(
+          isNotNull(subscriptions.endedAt),
+          gte(subscriptions.endedAt, start),
+          lt(subscriptions.endedAt, end),
+        ),
+      );
+    return rows.map(toEntity);
   }
 
   async save(sub: Subscription): Promise<void> {

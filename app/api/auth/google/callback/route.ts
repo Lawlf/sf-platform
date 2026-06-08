@@ -1,5 +1,5 @@
 import { cookies } from "next/headers";
-import { NextResponse, type NextRequest } from "next/server";
+import { after, NextResponse, type NextRequest } from "next/server";
 
 import { signInWithOauth } from "@/application/use-cases/auth/sign-in-with-oauth.use-case";
 import { GoogleOauthProvider } from "@/infrastructure/auth/google-oauth.provider";
@@ -8,6 +8,7 @@ import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
 import { DrizzleOauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-oauth-account.repository";
 import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
@@ -69,6 +70,11 @@ export async function GET(req: NextRequest) {
     response.cookies.set({ name: "sf_oauth_pkce", value: "", path: "/", maxAge: 0 });
     return response;
   }
+  if (result.value.isNewUser) {
+    const { id, email, displayName } = result.value.user;
+    after(() => sendWelcomeFreeEmail({ userId: id, to: email, displayName, appUrl: base }));
+  }
+
   const response = NextResponse.redirect(new URL("/app", base));
   response.cookies.set({ name: "sf_oauth_state", value: "", path: "/", maxAge: 0 });
   response.cookies.set({ name: "sf_oauth_pkce", value: "", path: "/", maxAge: 0 });
