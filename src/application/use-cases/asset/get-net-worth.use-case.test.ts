@@ -337,6 +337,36 @@ describe("getNetWorth", () => {
     }
   });
 
+  it("divida written_off (fora do mes) ENTRA no total que se deve", async () => {
+    const asset = makeAsset({ id: "a1", currentValueCents: 5_000_000n });
+    const active = makeFinancing({
+      id: "d1",
+      originalPrincipalCents: 1_000_000n,
+      currentBalanceCents: 800_000n,
+    });
+    const outOfMonth = makeFinancing({
+      id: "d2",
+      originalPrincipalCents: 2_000_000n,
+      currentBalanceCents: 1_500_000n,
+      status: "written_off",
+    });
+    const deps = buildDeps({
+      assets: [asset],
+      debts: [active, outOfMonth],
+      allocationsByAsset: new Map(),
+    });
+
+    const result = await getNetWorth(deps, { userId: "user-1" });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      // 800k ativa + 1.5M fora do mes = 2.3M no total que se deve
+      expect(result.value.totalDebtBalance.toCents()).toBe(2_300_000n);
+      // net worth = 5M ativos - 2.3M divida = 2.7M
+      expect(result.value.netWorth.toCents()).toBe(2_700_000n);
+    }
+  });
+
   it("ativo desativado nao entra no snapshot (findActiveByUser filtra)", async () => {
     const active = makeAsset({ id: "a1", currentValueCents: 5_000_000n });
     const dead = makeAsset({

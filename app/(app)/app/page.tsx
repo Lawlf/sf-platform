@@ -6,13 +6,14 @@ import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { ConsumoCard } from "./_components/consumo-card.client";
 
+import { fetchOutOfMonthSummary } from "./_actions/debt-queries";
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
+import { ConsumoCard } from "./_components/consumo-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
@@ -59,6 +60,7 @@ export default async function DashboardPage() {
     monthClosingInitial,
     prescription,
     consumo,
+    outOfMonth,
   ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
     fetchMaintenancePrompts(),
@@ -70,6 +72,7 @@ export default async function DashboardPage() {
       { transactions: new DrizzleTransactionRepository() },
       { userId: user.id, from: consumoFrom, to: consumoTo },
     ),
+    fetchOutOfMonthSummary(),
   ]);
 
   const hasPlan = prescription?.hasPlan ?? false;
@@ -112,6 +115,7 @@ export default async function DashboardPage() {
             monthIso={monthIso}
             initialData={initialMonthDetail}
             hasDebt={onboardingState.checklist.hasDebt}
+            outOfMonth={outOfMonth}
           />
         </Suspense>
       </div>

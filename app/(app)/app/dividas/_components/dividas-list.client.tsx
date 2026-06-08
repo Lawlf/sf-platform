@@ -36,7 +36,7 @@ const FREQUENCY_LABEL = {
 const STATUS_LABEL: Record<string, string> = {
   active: "Ativa",
   paid_off: "Quitada",
-  written_off: "Baixada",
+  written_off: "Fora do seu mês",
 };
 
 interface StatusTone {
@@ -62,6 +62,20 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
   });
 
   if (debts.length === 0) {
+    // Fora do seu mês vazio: empty-state honesto, sem CTA (nunca convidamos a
+    // marcar uma dívida).
+    if (statusFilter === "written_off") {
+      return (
+        <section className="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-[color:var(--border-soft)] px-6 py-10 text-center">
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--surface-3)] text-[color:var(--text-muted)]">
+            <Wallet size={22} strokeWidth={1.5} aria-hidden />
+          </span>
+          <h3 className="text-base font-bold text-[color:var(--text-primary)]">
+            Nenhuma dívida fora do seu mês.
+          </h3>
+        </section>
+      );
+    }
     return (
       <section className="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-[color:var(--color-brand-500)]/50 px-6 py-10 text-center">
         <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
@@ -89,8 +103,37 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
     currency: "BRL",
   });
 
+  // Total das dívidas fora do mês: não pesam no comprometido, mas continuam no
+  // total que se deve. Mostramos o número pra deixar isso explícito.
+  const outOfMonthDebts = debts.filter((d) => d.status === "written_off" && d.kind !== "recurring");
+  const outOfMonthCents = outOfMonthDebts.reduce(
+    (acc, d) => acc + BigInt(d.currentBalance.cents),
+    0n,
+  );
+  const showOutOfMonth =
+    statusFilter === "written_off" && outOfMonthDebts.length > 0 && outOfMonthCents > 0n;
+  const outOfMonthFormatted = (Number(outOfMonthCents) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
+
   return (
     <div className="flex flex-col gap-3">
+      {showOutOfMonth ? (
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3">
+          <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+            Fora do seu mês
+          </div>
+          <div className="mt-0.5 flex items-baseline gap-2">
+            <span className="text-[1.5rem] font-bold tabular-nums text-[color:var(--text-primary)]">
+              <HideableValue>{outOfMonthFormatted}</HideableValue>
+            </span>
+            <span className="text-[0.75rem] text-[color:var(--text-muted)]">
+              não pesam no comprometido, mas continuam no total que você deve
+            </span>
+          </div>
+        </div>
+      ) : null}
       {showTotal ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3">
           <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">

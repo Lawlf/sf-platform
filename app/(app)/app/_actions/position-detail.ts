@@ -41,10 +41,14 @@ export async function fetchPositionDetail(): Promise<SerializedPositionDetail | 
   const assetsRepo = new DrizzleAssetRepository();
   const debtsRepo = new DrizzleDebtRepository();
 
-  const [assetsWithAllocs, activeDebts] = await Promise.all([
+  const [assetsWithAllocs, allDebts] = await Promise.all([
     assetsRepo.findActiveWithAllocations(user.id),
-    debtsRepo.listForUser(user.id, { status: "active" }),
+    debtsRepo.listForUser(user.id, { status: "all" }),
   ]);
+  // Total que se deve: ativas + "fora do mês" (written_off). Quitadas ficam fora.
+  const activeDebts = allDebts.filter(
+    (d) => d.status === "active" || d.status === "written_off",
+  );
 
   const debtsById = new Map<string, DebtEntity>(activeDebts.map((d) => [d.id, d]));
 

@@ -30,7 +30,14 @@ export class FinancialHealthService {
     input: FinancialSnapshotInput,
   ): Result<FinancialSnapshotEntity, InvalidAmortizationParamsError> {
     const activeIncomes = input.incomes.filter((i) => isIncomeActiveAt(i, input.asOfDate));
+    // Mensal (serviço, comprometido, saldo livre): só dívidas ativas.
     const activeDebts = input.debts.filter((d) => d.status === "active");
+    // Total que se deve (passivo): inclui também as dívidas "fora do mês"
+    // (written_off) — não pesam no mês, mas continuam no total. paid_off fica
+    // de fora (quitada, não se deve mais).
+    const owedDebts = input.debts.filter(
+      (d) => d.status === "active" || d.status === "written_off",
+    );
 
     const totalIncomeNumber = activeIncomes.reduce(
       (sum, inc) => sum + monthlyEquivalent(inc, input.asOfDate),
@@ -42,7 +49,7 @@ export class FinancialHealthService {
     }
     const totalIncome = totalIncomeR.value;
 
-    const totalDebtBalanceNumber = activeDebts.reduce(
+    const totalDebtBalanceNumber = owedDebts.reduce(
       (sum, d) => sum + d.currentBalance.toNumber(),
       0,
     );

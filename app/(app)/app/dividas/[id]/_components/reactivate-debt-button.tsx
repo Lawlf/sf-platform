@@ -9,7 +9,15 @@ import { Button } from "@/app/components/ui/button";
 import { queryKeys } from "../../../_lib/query-keys";
 import { reactivateDebtAction } from "../_actions/reactivate-debt.action";
 
-export function ReactivateDebtButton({ debtId, label }: { debtId: string; label?: string }) {
+export function ReactivateDebtButton({
+  debtId,
+  label,
+  actionLabel = "Reativar dívida",
+}: {
+  debtId: string;
+  label?: string;
+  actionLabel?: string;
+}) {
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -31,7 +39,7 @@ export function ReactivateDebtButton({ debtId, label }: { debtId: string; label?
     });
   }
 
-  const aria = label ? `Reativar ${label}` : "Reativar dívida";
+  const aria = label ? `${actionLabel}: ${label}` : actionLabel;
 
   return (
     <div className="flex flex-col gap-1">
@@ -45,7 +53,7 @@ export function ReactivateDebtButton({ debtId, label }: { debtId: string; label?
         className="w-full sm:w-auto"
       >
         <RotateCcw size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
-        Reativar dívida
+        {actionLabel}
       </Button>
       {error ? (
         <span role="alert" className="text-xs text-[color:var(--semantic-negative)]">

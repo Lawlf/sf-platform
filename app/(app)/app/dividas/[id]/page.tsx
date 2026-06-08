@@ -36,6 +36,7 @@ import { DebtHeader } from "./_components/debt-header";
 import { InstallmentPurchasesSection } from "./_components/installment-purchases-section";
 import { MinimumPaymentNotice } from "./_components/minimum-payment-notice";
 import { NoScheduleSection } from "./_components/no-schedule-section";
+import { OutOfMonthBanner } from "./_components/out-of-month-banner";
 import { PaidOffBanner } from "./_components/paid-off-banner";
 import { PaymentsSection } from "./_components/payments-section";
 
@@ -75,6 +76,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
       <DebtHeader debt={debt} />
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
+      {debt.status === "written_off" ? <OutOfMonthBanner /> : null}
 
       <MinimumPaymentNotice debt={debt} />
 

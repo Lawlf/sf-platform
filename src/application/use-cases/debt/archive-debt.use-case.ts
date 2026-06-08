@@ -17,7 +17,14 @@ export interface ArchiveDebtDeps {
 
 export async function archiveDebt(
   deps: ArchiveDebtDeps,
-  input: { userId: string; debtId: string; reason: "paid_off" | "written_off" },
+  input: {
+    userId: string;
+    debtId: string;
+    reason: "paid_off" | "written_off";
+    // Anotação livre opcional (usada ao tirar a dívida do mês). Persistida em
+    // `notes`. Não entra em nenhum cálculo.
+    note?: string;
+  },
 ): Promise<Result<void, DebtNotFound | Forbidden>> {
   return deps.lock.run(`debt:${input.debtId}`, 5_000, async () => {
     const existing = await deps.debts.findById(input.debtId);
@@ -48,6 +55,14 @@ export async function archiveDebt(
         currentBalance: Money.zero(existing.currentBalance.currency),
         status: "paid_off",
         updatedAt: now,
+      });
+    } else if (input.note !== undefined) {
+      const trimmed = input.note.trim();
+      await deps.debts.update({
+        ...existing,
+        status: input.reason,
+        notes: trimmed === "" ? existing.notes : trimmed,
+        updatedAt: deps.clock.now(),
       });
     } else {
       await deps.debts.setStatus(input.debtId, input.reason);

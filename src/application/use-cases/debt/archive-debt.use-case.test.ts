@@ -152,6 +152,29 @@ describe("archiveDebt", () => {
     expect(debts.setStatus).toHaveBeenCalledWith("debt-1", "written_off");
   });
 
+  it("written_off with a note persists the note via update (no setStatus)", async () => {
+    const debts = makeDebtRepo();
+    const payments = makePaymentRepo();
+    const clock = makeClock();
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeDebt("user-1", { currentBalanceBRL: 4500 }),
+    );
+    (debts.update as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
+
+    const result = await archiveDebt(
+      { debts, payments, clock, lock: makeLock() },
+      { userId: "user-1", debtId: "debt-1", reason: "written_off", note: "  parei em 03/2023  " },
+    );
+
+    expect(result._tag).toBe("ok");
+    expect(debts.setStatus).not.toHaveBeenCalled();
+    expect(payments.create).not.toHaveBeenCalled();
+    expect(debts.update).toHaveBeenCalledTimes(1);
+    const arg = (debts.update as ReturnType<typeof vi.fn>).mock.calls[0]?.[0];
+    expect(arg?.status).toBe("written_off");
+    expect(arg?.notes).toBe("parei em 03/2023");
+  });
+
   it("returns DebtNotFound when debt does not exist", async () => {
     const debts = makeDebtRepo();
     const payments = makePaymentRepo();

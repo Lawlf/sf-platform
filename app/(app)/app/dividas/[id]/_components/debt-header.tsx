@@ -20,7 +20,7 @@ const KIND_LABEL: Record<DebtKind, string> = {
 const STATUS_LABEL: Record<DebtStatus, string> = {
   active: "Ativa",
   paid_off: "Quitada",
-  written_off: "Baixada",
+  written_off: "Fora do seu mês",
 };
 
 function statusLabel(debt: DebtEntity): string {
