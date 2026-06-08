@@ -11,4 +11,5 @@ export interface EntityAttachmentRepository {
   ): Promise<EntityAttachmentEntity[]>;
   remove(id: string, userId: string): Promise<void>;
   totalBytesForUser(userId: string): Promise<number>;
+  listAllForUser(userId: string): Promise<EntityAttachmentEntity[]>;
 }

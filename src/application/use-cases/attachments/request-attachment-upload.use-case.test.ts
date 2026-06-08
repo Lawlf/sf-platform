@@ -12,6 +12,7 @@ function makeDeps(over: { isPro?: boolean; total?: number } = {}) {
     listForEntity: vi.fn(),
     remove: vi.fn(),
     totalBytesForUser: vi.fn().mockResolvedValue(over.total ?? 0),
+    listAllForUser: vi.fn().mockResolvedValue([]),
   };
   const storage: FileStoragePort = {
     presignUpload: vi.fn().mockResolvedValue("https://r2/put"),

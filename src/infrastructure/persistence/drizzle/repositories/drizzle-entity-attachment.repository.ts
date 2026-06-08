@@ -80,4 +80,13 @@ export class DrizzleEntityAttachmentRepository implements EntityAttachmentReposi
       .where(eq(entityAttachments.userId, userId));
     return Number(rows[0]?.total ?? 0);
   }
+
+  async listAllForUser(userId: string): Promise<EntityAttachmentEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(entityAttachments)
+      .where(eq(entityAttachments.userId, userId))
+      .orderBy(desc(entityAttachments.createdAt));
+    return rows.map(rowToEntity);
+  }
 }

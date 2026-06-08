@@ -70,4 +70,11 @@ describe("DrizzleEntityAttachmentRepository (integration)", () => {
     await repo.remove(a.id, userId);
     expect(await repo.findById(a.id, userId)).toBeNull();
   });
+
+  it("listAllForUser retorna todos os anexos do usuário ordenados", async () => {
+    await repo.add(make({ entityType: "debt", fileName: "a.pdf" }));
+    await repo.add(make({ entityType: "goal", fileName: "b.pdf" }));
+    const all = await repo.listAllForUser(userId);
+    expect(all.length).toBe(2);
+  });
 });
