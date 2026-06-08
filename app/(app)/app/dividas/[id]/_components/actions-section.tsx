@@ -11,6 +11,7 @@ import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 import { ArchiveDebtButton } from "./archive-debt-button";
 import { CalendarActions } from "./calendar-actions";
 import { DeleteDebtButton } from "./delete-debt-button";
+import { OutOfMonthButton } from "./out-of-month-button";
 import { ReactivateDebtButton } from "./reactivate-debt-button";
 
 const FREQ_WORD = { monthly: "mês", weekly: "semana", annual: "ano" } as const;
@@ -48,7 +49,7 @@ export function ActionsSection({
         <div className="mt-3 flex flex-col gap-4">
           <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
             {debt.kind !== "recurring" ? (
-              <Button asChild className="w-full sm:w-auto">
+              <Button asChild size="sm" className="w-full sm:w-auto">
                 <Link href={`/app/dividas/${debt.id}/pagar` as Route}>Registrar pagamento</Link>
               </Button>
             ) : null}
@@ -96,13 +97,26 @@ export function ActionsSection({
             </div>
           ) : null}
 
+          {!isRecurring ? (
+            <div className="flex flex-col gap-1.5 border-t border-[color:var(--border-soft)] pt-3">
+              <OutOfMonthButton debtId={debt.id} />
+              <p className="text-[0.75rem] text-[color:var(--text-muted)]">
+                Some do seu comprometido. Continua no total que você deve.
+              </p>
+            </div>
+          ) : null}
+
           <div className="border-t border-[color:var(--border-soft)] pt-3">
             <DeleteDebtButton debtId={debt.id} label={debt.label} />
           </div>
         </div>
       ) : (
         <div className="mt-3 flex flex-col gap-4">
-          <ReactivateDebtButton debtId={debt.id} label={debt.label} />
+          <ReactivateDebtButton
+            debtId={debt.id}
+            label={debt.label}
+            actionLabel={debt.status === "written_off" ? "Voltar pro meu mês" : "Reativar dívida"}
+          />
           <div className="border-t border-[color:var(--border-soft)] pt-3">
             <DeleteDebtButton debtId={debt.id} label={debt.label} />
           </div>

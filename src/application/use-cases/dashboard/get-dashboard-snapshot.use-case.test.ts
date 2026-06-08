@@ -162,8 +162,65 @@ describe("getDashboardSnapshot", () => {
       expect(result.value.totalDebtBalance.toCents()).toBe(debt.currentBalance.toCents());
       expect(result.value.incomeCommittedPct).toBeGreaterThan(0);
     }
-    expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "active" });
+    expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "all" });
     expect(incomes.listForUser).toHaveBeenCalledWith("user-1", { onlyActive: true });
+  });
+
+  it("written_off debt entra no totalDebtBalance mas nao no serviço mensal; paid_off fica fora", async () => {
+    const debts = makeDebtRepo();
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+
+    const active = { ...makeFinancing(), id: "d-active", currentBalance: makeMoney(50_000) };
+    const outOfMonth = {
+      ...makeFinancing(),
+      id: "d-wo",
+      status: "written_off" as const,
+      currentBalance: makeMoney(20_000),
+    };
+    const paid = {
+      ...makeFinancing(),
+      id: "d-paid",
+      status: "paid_off" as const,
+      currentBalance: makeMoney(0),
+    };
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([active, outOfMonth, paid]);
+    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+
+    const result = await getDashboardSnapshot(
+      { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
+      { userId: "user-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      // total que se deve: ativa (50k) + fora do mês (20k) = 70k; paid_off não conta
+      expect(result.value.totalDebtBalance.toCents()).toBe(7_000_000n);
+      // serviço mensal só da ativa (a written_off não pesa no mês)
+      const activeOnly = await getDashboardSnapshot(
+        {
+          debts: (() => {
+            const r = makeDebtRepo();
+            (r.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([active]);
+            return r;
+          })(),
+          incomes: (() => {
+            const r = makeIncomeRepo();
+            (r.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+            return r;
+          })(),
+          clock,
+          rates: makeRates(),
+          overrides: makeOverrides(),
+        },
+        { userId: "user-1" },
+      );
+      if (isOk(activeOnly)) {
+        expect(result.value.totalMonthlyService.toCents()).toBe(
+          activeOnly.value.totalMonthlyService.toCents(),
+        );
+      }
+    }
   });
 
   it("returns snapshot with zeros when user has no debts or incomes", async () => {

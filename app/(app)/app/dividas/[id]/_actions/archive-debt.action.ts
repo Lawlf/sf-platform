@@ -15,6 +15,7 @@ import { detectNotificationsForUser } from "../../../_actions/_notifications";
 export async function archiveDebtAction(
   debtId: string,
   reason: "paid_off" | "written_off",
+  note?: string,
 ): Promise<{ ok: true } | { ok: false; message: string }> {
   const user = await requireUser();
   const r = await archiveDebt(
@@ -24,7 +25,7 @@ export async function archiveDebtAction(
       clock: new SystemClock(),
       lock: new UpstashDistributedLock(),
     },
-    { userId: user.id, debtId, reason },
+    { userId: user.id, debtId, reason, ...(note !== undefined ? { note } : {}) },
   );
   if (isErr(r)) return { ok: false, message: r.error.message };
   await detectNotificationsForUser(user.id);

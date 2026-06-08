@@ -200,6 +200,56 @@ describe("FinancialHealthService", () => {
     }
   });
 
+  it("written_off debt counts in totalDebtBalance but NOT in monthly service/commitment", () => {
+    const r = FinancialHealthService.snapshot({
+      userId: "u1",
+      incomes: [income()],
+      debts: [
+        personalLoanDebt({
+          id: "active",
+          currentBalance: moneyOf(8_000),
+          monthlyInstallment: moneyOf(500),
+        }),
+        overdraftDebt({
+          id: "wo",
+          status: "written_off",
+          currentBalance: moneyOf(2_000),
+          monthlyRate: rateMonthly(0.08),
+        }),
+      ],
+      asOfDate: ASOF,
+    });
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      // total que se deve inclui a dívida fora do mês: 8000 + 2000 = 10000
+      expect(r.value.totalDebtBalance.toCents()).toBe(1_000_000n);
+      // serviço mensal só da ativa (500); o cheque especial written_off (160) fica de fora
+      expect(r.value.totalMonthlyService.toCents()).toBe(50_000n);
+      // saldo livre = renda (5000) - serviço ativo (500) = 4500
+      expect(r.value.monthlyFreeCashFlow.toCents()).toBe(450_000n);
+    }
+  });
+
+  it("paid_off debt counts in NEITHER total nor monthly", () => {
+    const r = FinancialHealthService.snapshot({
+      userId: "u1",
+      incomes: [income()],
+      debts: [
+        personalLoanDebt({
+          id: "active",
+          currentBalance: moneyOf(8_000),
+          monthlyInstallment: moneyOf(500),
+        }),
+        overdraftDebt({ id: "po", status: "paid_off", currentBalance: moneyOf(2_000) }),
+      ],
+      asOfDate: ASOF,
+    });
+    if (isOk(r)) {
+      expect(r.value.totalDebtBalance.toCents()).toBe(800_000n);
+      expect(r.value.totalMonthlyService.toCents()).toBe(50_000n);
+    }
+  });
+
   it("cetWeightedAverage is the balance-weighted rate", () => {
     const r = FinancialHealthService.snapshot({
       userId: "u1",

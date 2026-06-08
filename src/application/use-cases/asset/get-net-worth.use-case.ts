@@ -29,16 +29,22 @@ export interface GetNetWorthDeps extends ConvertEntityDeps {
 }
 
 /**
- * Snapshot global de patrimônio do usuário. Carrega ativos ativos, dívidas
- * ativas e alocações por ativo, delegando o cálculo agregado para o domain
- * service `computeNetWorthSnapshot`.
+ * Snapshot global de patrimônio do usuário. Carrega ativos ativos, dívidas que
+ * ainda se deve (ativas + "fora do mês"/written_off; quitadas ficam de fora) e
+ * alocações por ativo, delegando o cálculo agregado para o domain service
+ * `computeNetWorthSnapshot`.
  */
 export async function getNetWorth(
   deps: GetNetWorthDeps,
   input: GetNetWorthInput,
 ): Promise<Result<NetWorthSnapshot, DomainError>> {
   const activeAssets = await deps.assets.findActiveByUser(input.userId);
-  const activeDebts = await deps.debts.listForUser(input.userId, { status: "active" });
+  // Dívidas que ainda se deve: ativas + "fora do mês" (written_off). As quitadas
+  // (paid_off) ficam de fora. Net worth e total de dívida incluem as fora do mês.
+  const allDebts = await deps.debts.listForUser(input.userId, { status: "all" });
+  const activeDebts = allDebts.filter(
+    (d) => d.status === "active" || d.status === "written_off",
+  );
 
   const convertedAssets: AssetEntity[] = [];
   for (const a of activeAssets) {

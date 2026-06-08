@@ -6,6 +6,7 @@ import { useTransition } from "react";
 
 const FILTERS = [
   { id: "active", label: "Ativas" },
+  { id: "written_off", label: "Fora do mês" },
   { id: "paid_off", label: "Quitadas" },
   { id: "all", label: "Todas" },
 ] as const;
