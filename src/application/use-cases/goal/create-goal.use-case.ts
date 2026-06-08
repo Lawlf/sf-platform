@@ -97,7 +97,11 @@ function normalizeFields(input: CreateGoalInput): Omit<
 
   switch (input.type) {
     case "debt_payoff":
-      return { ...base, linkedDebtId: input.linkedDebtId ?? null };
+      return {
+        ...base,
+        linkedDebtId: input.linkedDebtId ?? null,
+        monthlyCostCents: input.monthlyCostCents ?? null,
+      };
 
     case "emergency_fund":
       return {

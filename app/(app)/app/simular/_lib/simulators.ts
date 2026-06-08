@@ -126,6 +126,15 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     keywords: ["pagar extra", "amortizar", "antecipar", "economia", "juros"],
   },
   {
+    id: "rotativo",
+    href: "/app/simular/rotativo" as Route,
+    title: "Custo do rotativo do cartão",
+    desc: "Pagar só uma parte da fatura, quanto custa?",
+    icon: CreditCard,
+    category: "dividas",
+    keywords: ["rotativo", "cartao", "fatura", "minimo", "juros do cartao", "rolar fatura"],
+  },
+  {
     id: "estrategia",
     href: "/app/simular/estrategia" as Route,
     title: "Qual dívida pagar primeiro",

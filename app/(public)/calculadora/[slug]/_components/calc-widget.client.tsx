@@ -104,6 +104,11 @@ const RuleOfThreeClient = dynamic(() =>
     (m) => m.RuleOfThreeClient,
   ),
 );
+const RotativoClient = dynamic(() =>
+  import("../../../../(app)/app/simular/rotativo/_components/rotativo.client").then(
+    (m) => m.RotativoClient,
+  ),
+);
 
 const REGISTRY: Record<string, ComponentType> = {
   "salario-liquido-clt": () => <SalarioCltClient prefill={{ grossCents: "300000" }} />,
@@ -138,6 +143,9 @@ const REGISTRY: Record<string, ComponentType> = {
   "a-vista-ou-parcelado": () => <CashVsInstallmentClient />,
   "conversor-de-taxa-de-juros": () => <RateConverterClient />,
   "regra-de-tres": () => <RuleOfThreeClient />,
+  "custo-do-rotativo-do-cartao": () => (
+    <RotativoClient prefill={{ statementCents: "0", monthlyRatePct: null, debtId: null }} />
+  ),
 };
 
 export function CalcWidget({ slug }: { slug: string }) {
