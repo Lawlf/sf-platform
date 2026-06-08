@@ -62,7 +62,7 @@ export async function NextStepCard() {
         className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] pb-[18px] pt-[14px] backdrop-blur-xl"
         style={{ boxShadow: "0 4px 16px -4px rgba(31,29,28,0.06)" }}
       >
-        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+        <h2 className="text-[0.8125rem] font-semibold text-[color:var(--text-secondary)]">
           {CARD_TITLE}
         </h2>
         <p className="mt-2 text-[0.875rem] leading-[1.5] text-[color:var(--text-primary)]">
@@ -96,7 +96,7 @@ export async function NextStepCard() {
           boxShadow: "0 4px 16px -4px rgba(31,29,28,0.06)",
         }}
       >
-        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+        <h2 className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)]">
           {CARD_TITLE}
         </h2>
         <p className="mt-1.5 text-[0.9375rem] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
@@ -130,14 +130,6 @@ export async function NextStepCard() {
             <ArrowRight size={14} strokeWidth={2.5} aria-hidden />
           </Link>
         )}
-        {action ? (
-          <Link
-            href={"/app/configuracoes/planos" as Route}
-            className="mt-3 inline-flex items-center gap-1 text-[0.75rem] font-medium text-[color:var(--text-muted)] hover:text-[color:var(--text-secondary)] hover:underline"
-          >
-            Ver o plano completo com seus números
-          </Link>
-        ) : null}
         <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
           A gente mostra a conta, a decisão é sua.
         </p>
@@ -157,7 +149,7 @@ export async function NextStepCard() {
       className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] pb-[18px] pt-[14px] backdrop-blur-xl"
       style={{ boxShadow: "0 4px 16px -4px rgba(31,29,28,0.06)" }}
     >
-      <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+      <h2 className="text-[0.8125rem] font-semibold text-[color:var(--text-secondary)]">
         {CARD_TITLE}
       </h2>
       <p className="mt-2 text-[1rem] font-bold leading-[1.35] tracking-[-0.01em] text-[color:var(--text-primary)]">
@@ -200,7 +192,9 @@ export async function NextStepCard() {
         />
       </div>
       <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-        Isto é educação financeira, não recomendação de investimento.
+        {p.dominant.type === "invest"
+          ? "Isto é educação financeira, não recomendação de investimento."
+          : "A gente mostra a conta, a decisão é sua."}
       </p>
     </section>
   );
