@@ -1,31 +1,74 @@
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { DebtPayoffProjectorService } from "@/domain/services/debt-payoff-projector.service";
 import { monthlyMinimumPayment, monthlyRateFor } from "@/domain/services/financial-health.service";
+import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
-import type { MissingInput, Prescription, PrescriptionMove, PrescriptionSnapshot } from "./prescription.types";
+import { DebtCascadeProjectorService } from "./debt-cascade-projector.service";
+import type {
+  CascadeSegment,
+  MissingInput,
+  Prescription,
+  PrescriptionMove,
+  PrescriptionSnapshot,
+} from "./prescription.types";
 
 export class PrescriptionEngine {
   static prescribe(snapshot: PrescriptionSnapshot): Prescription {
     const missing = detectMissing(snapshot);
     if (missing.length > 0) {
-      return { state: "incomplete", dominant: null, alternatives: [], completeness: { complete: false, missing } };
+      return { state: "incomplete", dominant: null, alternatives: [], timeline: [], completeness: { complete: false, missing } };
     }
-    const state = classify(snapshot);
-    const dominant = buildDominant(state, snapshot);
-    const alternatives = buildAlternatives(state, snapshot, dominant);
-    return { state, dominant, alternatives, completeness: { complete: true, missing: [] } };
+    const { debts, estimatedRateIds } = applyRateEstimates(snapshot.debts, snapshot.config);
+    const s: PrescriptionSnapshot = { ...snapshot, debts };
+    const state = classify(s);
+    const dominant = buildDominant(state, s, estimatedRateIds);
+    const alternatives = buildAlternatives(state, s, dominant, estimatedRateIds);
+    const timeline = buildTimeline(state, s);
+    return { state, dominant, alternatives, timeline, completeness: { complete: true, missing: [] } };
   }
+}
+
+// Timeline só se qualifica quando há cascata real: estado bleeding (dominante =
+// pagar dívida), sobra positiva pra rolar entre dívidas, e pelo menos uma
+// quitação dentro do horizonte. Só-corte-no-horizonte não conta. Fora disso a
+// UI cai no "Depois dessa".
+function buildTimeline(state: CompleteState, s: PrescriptionSnapshot): CascadeSegment[] {
+  if (state !== "bleeding" || s.freeBalanceReais <= 0) return [];
+  const segments = DebtCascadeProjectorService.project({
+    debts: expensiveDebts(s),
+    monthlyFreeBalance: s.freeBalanceReais,
+    startingFrom: s.now,
+    horizonMonths: s.config.timelineHorizonMonths,
+  });
+  return segments.some((seg) => seg.kind === "debt") ? segments : [];
 }
 
 function detectMissing(s: PrescriptionSnapshot): MissingInput[] {
   const missing: MissingInput[] = [];
   if (s.monthlyIncomeReais <= 0) missing.push("income");
-  const debtWithUnknownRate = s.debts.some(
-    (d) => d.kind === "credit_card" && d.revolvingMonthlyRate === null && d.currentBalance.toNumber() > 0,
-  );
-  if (debtWithUnknownRate) missing.push("debt_rate");
   return missing;
+}
+
+// Rotativo sem taxa cadastrada não trava a prescrição: usa a estimativa de
+// mercado pra ranquear/projetar e marca o move como estimado. Devolve os debts
+// normalizados + os ids que caíram na estimativa.
+function applyRateEstimates(
+  debts: DebtEntity[],
+  config: PrescriptionSnapshot["config"],
+): { debts: DebtEntity[]; estimatedRateIds: Set<string> } {
+  const estimatedRateIds = new Set<string>();
+  const out = debts.map((d) => {
+    if (d.kind === "credit_card" && d.revolvingMonthlyRate === null && d.currentBalance.toNumber() > 0) {
+      const r = InterestRate.fromMonthly(config.creditCardFallbackMonthlyRate);
+      if (isOk(r)) {
+        estimatedRateIds.add(d.id);
+        return { ...d, revolvingMonthlyRate: r.value };
+      }
+    }
+    return d;
+  });
+  return { debts: out, estimatedRateIds };
 }
 
 type CompleteState = "tight" | "bleeding" | "no_cushion" | "ready_to_grow";
@@ -56,12 +99,16 @@ export function topExpensiveDebt(s: PrescriptionSnapshot): DebtEntity | null {
   return list[0] ?? null;
 }
 
-function buildDominant(state: CompleteState, s: PrescriptionSnapshot): PrescriptionMove {
+function buildDominant(
+  state: CompleteState,
+  s: PrescriptionSnapshot,
+  estimatedRateIds: Set<string>,
+): PrescriptionMove {
   switch (state) {
     case "tight":
       return buildReduceCommitment(s);
     case "bleeding":
-      return buildPayDebt(s, topExpensiveDebt(s)!);
+      return buildPayDebt(s, topExpensiveDebt(s)!, estimatedRateIds);
     case "no_cushion":
       return buildReserveMove(s);
     case "ready_to_grow":
@@ -69,7 +116,11 @@ function buildDominant(state: CompleteState, s: PrescriptionSnapshot): Prescript
   }
 }
 
-export function buildPayDebt(s: PrescriptionSnapshot, debt: DebtEntity): PrescriptionMove {
+export function buildPayDebt(
+  s: PrescriptionSnapshot,
+  debt: DebtEntity,
+  estimatedRateIds?: Set<string>,
+): PrescriptionMove {
   const minR = monthlyMinimumPayment(debt);
   const minMoney = (() => {
     const v = isOk(minR) ? Math.max(0, minR.value) : 0;
@@ -111,12 +162,18 @@ export function buildPayDebt(s: PrescriptionSnapshot, debt: DebtEntity): Prescri
     }
   }
 
+  const rateEstimated = estimatedRateIds?.has(debt.id) ?? false;
   return {
     type: "pay_debt",
     reasonCode: "highest_rate",
     targetDebtId: debt.id,
     targetDebtLabel: debt.label,
-    metrics: { ...displayMetrics, monthsToPayoff, baselineNeverPayoff },
+    metrics: {
+      ...displayMetrics,
+      monthsToPayoff,
+      baselineNeverPayoff,
+      ...(rateEstimated ? { rateEstimated: true } : {}),
+    },
     rankImpactReais,
   };
 }
@@ -160,12 +217,17 @@ function buildReduceCommitment(s: PrescriptionSnapshot): PrescriptionMove {
   };
 }
 
-function buildAlternatives(state: CompleteState, s: PrescriptionSnapshot, dominant: PrescriptionMove): PrescriptionMove[] {
+function buildAlternatives(
+  state: CompleteState,
+  s: PrescriptionSnapshot,
+  dominant: PrescriptionMove,
+  estimatedRateIds: Set<string>,
+): PrescriptionMove[] {
   const candidates: PrescriptionMove[] = [];
   if (dominant.type === "pay_debt") {
     for (const debt of expensiveDebts(s)) {
       if (debt.id === dominant.targetDebtId) continue;
-      candidates.push(buildPayDebt(s, debt));
+      candidates.push(buildPayDebt(s, debt, estimatedRateIds));
     }
   }
   if (dominant.type !== "build_reserve" && s.reserveReais < s.monthlyEssentialReais * s.config.reserveFloorMonths) {

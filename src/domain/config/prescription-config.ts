@@ -15,6 +15,15 @@ export interface PrescriptionConfig {
   investAnnualRate: number;
   /** Teto de meses para o projetor de payoff. */
   maxPayoffMonths: number;
+  /**
+   * Taxa mensal (decimal) usada quando o rotativo do cartão não tem taxa
+   * cadastrada. Média de mercado; a prescrição roda com ela e marca o move
+   * como estimado em vez de travar em "incompleto". Espelha
+   * DEBT_RATE_ESTIMATES.creditCardRevolving (15% a.m.) na camada de forms.
+   */
+  creditCardFallbackMonthlyRate: number;
+  /** Janela (meses) da timeline multi-mês. Acima disso, corte honesto. */
+  timelineHorizonMonths: number;
 }
 
 export const PRESCRIPTION_CONFIG: PrescriptionConfig = {
@@ -24,4 +33,6 @@ export const PRESCRIPTION_CONFIG: PrescriptionConfig = {
   committedHeavyPct: 50,
   investAnnualRate: 0.1,
   maxPayoffMonths: 600,
+  creditCardFallbackMonthlyRate: 0.15,
+  timelineHorizonMonths: 12,
 };

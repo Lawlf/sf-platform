@@ -15,7 +15,7 @@ function move(type: PrescriptionMove["type"], label?: string): PrescriptionMove 
 }
 
 function presc(state: Prescription["state"], dominant: PrescriptionMove | null): Prescription {
-  return { state, dominant, alternatives: [], completeness: { complete: true, missing: [] } };
+  return { state, dominant, alternatives: [], timeline: [], completeness: { complete: true, missing: [] } };
 }
 
 describe("suggestContent", () => {

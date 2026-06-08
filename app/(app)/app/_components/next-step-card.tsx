@@ -7,7 +7,8 @@ import { getPrescription } from "../_lib/prescription-cache";
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
-import { microEduFor, presentMove } from "./prescription-copy";
+import { microEduFor, presentMove, presentTimeline } from "./prescription-copy";
+import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
 
 const CARD_TITLE = "O movimento do mês";
 
@@ -104,6 +105,12 @@ export async function NextStepCard() {
         <div className="mt-1 select-none blur-sm" aria-hidden="true">
           <p className="text-[0.78125rem] text-[color:var(--text-secondary)]">{teaser.line2}</p>
         </div>
+        {data.timelineTeaser ? (
+          <p className="mt-2 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
+            <span aria-hidden className="select-none blur-sm">Mês •••</span>{" "}
+            essa dívida quita e a sobra muda de lugar.
+          </p>
+        ) : null}
         {action ? (
           <Link
             href={action.href as Route}
@@ -159,7 +166,20 @@ export async function NextStepCard() {
       <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
         <MaskMoneyText text={dominant.impact} />
       </p>
-      <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">{dominant.reason}</p>
+      <p className="mt-0.5 text-[0.6875rem] leading-[1.5] text-[color:var(--text-muted)]">
+        {dominant.reason}
+        {p.dominant.metrics.rateEstimated && p.dominant.targetDebtId ? (
+          <>
+            {" "}
+            <Link
+              href={`/app/dividas/${p.dominant.targetDebtId}/editar` as Route}
+              className="font-medium text-[color:var(--text-secondary)] underline underline-offset-2 hover:text-[color:var(--text-primary)]"
+            >
+              Confere na fatura pra cravar o número.
+            </Link>
+          </>
+        ) : null}
+      </p>
       {(() => {
         const cta = moveCtaFor({ type: p.dominant.type, targetDebtId: p.dominant.targetDebtId ?? null });
         return cta ? (
@@ -173,7 +193,11 @@ export async function NextStepCard() {
         ) : null;
       })()}
       <div className="mt-4">
-        <VerMais items={more} microEdu={microEduFor(p.dominant.type)} />
+        <VerMais
+          items={more}
+          microEdu={microEduFor(p.dominant.type)}
+          timeline={presentTimeline(p.timeline, PRESCRIPTION_CONFIG.timelineHorizonMonths)}
+        />
       </div>
       <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
         Isto é educação financeira, não recomendação de investimento.

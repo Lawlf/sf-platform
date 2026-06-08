@@ -22,6 +22,8 @@ export interface PrescriptionViewPayload {
   teaser: { hasPlan: boolean; missing: Prescription["completeness"]["missing"] };
   /** resposta concreta liberada pro free (sem números): qual movimento e dívida. */
   freeMove: { type: MoveType; targetDebtLabel: string | null; targetDebtId: string | null } | null;
+  /** isca da timeline pro free: nome da 1ª dívida que quita, mês escondido (paywall). */
+  timelineTeaser: { firstDebtLabel: string } | null;
 }
 
 export async function fetchPrescription(): Promise<PrescriptionViewPayload | null> {
@@ -46,8 +48,10 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
   const p = r.value;
   const hasPlan = p.state !== "incomplete";
   const dom = p.dominant;
+  const firstPayoff = p.timeline.find((seg) => seg.kind === "debt");
 
   return {
+    timelineTeaser: firstPayoff ? { firstDebtLabel: firstPayoff.debtLabel } : null,
     isPro: user.isPro,
     hasPlan,
     state: p.state,
