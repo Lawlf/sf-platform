@@ -3,6 +3,7 @@ import type { EntityAttachmentRepository } from "@/domain/ports/repositories/ent
 import { isAttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 import { validateUpload } from "./attachment-limits";
+import { buildStorageKey } from "./attachment-storage-key";
 
 export interface ConfirmUploadDeps {
   attachments: Pick<EntityAttachmentRepository, "add" | "totalBytesForUser">;
@@ -29,8 +30,8 @@ export async function confirmAttachmentUpload(
   if (!isAttachableEntityType(input.entityType)) {
     return { ok: false, message: "Tipo de entidade invalido." };
   }
-  if (!input.storageKey.startsWith(`${input.userId}/`)) {
-    return { ok: false, message: "Chave de arquivo invalida." };
+  if (input.storageKey !== buildStorageKey(input.userId, input.attachmentId, input.fileName)) {
+    return { ok: false, message: "Chave de arquivo inválida." };
   }
   const currentTotalBytes = await deps.attachments.totalBytesForUser(input.userId);
   const check = validateUpload({

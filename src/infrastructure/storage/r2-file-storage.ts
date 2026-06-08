@@ -29,10 +29,16 @@ export class R2FileStorage implements FileStoragePort {
   async presignUpload(
     key: string,
     contentType: string,
+    sizeBytes: number,
     expiresInSeconds = 300,
   ): Promise<string> {
     const { s3, bucket } = getClient();
-    const cmd = new PutObjectCommand({ Bucket: bucket, Key: key, ContentType: contentType });
+    const cmd = new PutObjectCommand({
+      Bucket: bucket,
+      Key: key,
+      ContentType: contentType,
+      ContentLength: sizeBytes,
+    });
     return getSignedUrl(s3, cmd, { expiresIn: expiresInSeconds });
   }
 
