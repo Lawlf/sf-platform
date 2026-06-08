@@ -158,8 +158,9 @@ export function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmor
     case "personal_loan":
       return ok(debt.monthlyInstallment.toNumber());
     case "credit_card": {
+      // Fatura cheia = o que vence este mês. O mínimo (15%) vive em monthlyMinimumPayment.
       const stmt = debt.currentStatement.toNumber();
-      if (stmt > 0) return ok(stmt * CREDIT_CARD_MIN_PCT);
+      if (stmt > 0) return ok(stmt);
       const monthlyRate = debt.revolvingMonthlyRate?.toDecimal() ?? 0;
       return ok(Math.max(0, debt.currentBalance.toNumber() * monthlyRate));
     }
@@ -175,4 +176,23 @@ export function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmor
       return ok(amountReais);
     }
   }
+}
+
+/**
+ * Pagamento MÍNIMO mensal de uma dívida. Difere de `monthlyDebtService` só no
+ * cartão: aqui o mínimo é 15% da fatura (o piso que a pessoa PODE pagar rolando
+ * o resto no rotativo), enquanto `monthlyDebtService` devolve a fatura cheia (o
+ * que de fato vence). Usado pela prescrição pra modelar o cenário "se pagar só
+ * o mínimo, a dívida nunca quita". Nas demais dívidas, mínimo = serviço normal.
+ */
+export function monthlyMinimumPayment(
+  debt: DebtEntity,
+): Result<number, InvalidAmortizationParamsError> {
+  if (debt.kind === "credit_card") {
+    const stmt = debt.currentStatement.toNumber();
+    if (stmt > 0) return ok(stmt * CREDIT_CARD_MIN_PCT);
+    const monthlyRate = debt.revolvingMonthlyRate?.toDecimal() ?? 0;
+    return ok(Math.max(0, debt.currentBalance.toNumber() * monthlyRate));
+  }
+  return monthlyDebtService(debt);
 }

@@ -9,7 +9,11 @@ import {
   type StoryCardKind,
   type StoryIconName,
 } from "@/domain/services/story-detection.service";
-import { TimelineService, type TimelineSettlement } from "@/domain/services/timeline.service";
+import {
+  nonRecurringMonthlyObligation,
+  TimelineService,
+  type TimelineSettlement,
+} from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
@@ -298,6 +302,30 @@ export async function fetchMonthDetail(input: {
       isNew: MonthYear.fromDate(d.createdAt).equals(month),
     };
   });
+
+  // Obrigação mensal projetada das dívidas não-recorrentes (cartão, financiamento,
+  // empréstimo, cheque especial). Sem isso, um cartão recém cadastrado projetava
+  // R$ 0 no "vai sair / comprometido". Guarda anti-double-count: se já há pagamento
+  // registrado da dívida neste mês, o pagamento real é a verdade, não a projeção.
+  const currentMonth = MonthYear.fromDate(new Date());
+  const paidDebtIdsThisMonth = new Set(paymentsRaw.map((p) => p.debtId));
+  for (const d of debtsRaw) {
+    if (d.kind === "recurring") continue;
+    if (paidDebtIdsThisMonth.has(d.id)) continue;
+    const obligation = nonRecurringMonthlyObligation(d, month, currentMonth);
+    if (obligation.toCents() <= 0n) continue;
+    const obligationDay = d.kind === "credit_card" ? d.dueDay : d.startDate.getUTCDate();
+    const date = dateInMonthFromDay(obligationDay);
+    serializedExpenses.push({
+      id: `obligation-${d.id}`,
+      label: d.label,
+      amount: serializeMoney(obligation),
+      frequency: "monthly",
+      category: "other",
+      dateIso: date.toISOString(),
+      isNew: false,
+    });
+  }
 
   // Constroi timeline da janela e detecta conquistas/marcos
   const timeline = TimelineService.buildTimeline({
