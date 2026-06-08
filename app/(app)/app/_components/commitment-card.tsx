@@ -7,10 +7,12 @@ export interface CommitmentCardProps {
   pct: number;
 }
 
-type Zone = "excellent" | "healthy" | "attention" | "critical";
+type Zone = "excellent" | "healthy" | "attention" | "tight" | "severe" | "over";
 
 function zoneOf(pct: number): Zone {
-  if (!Number.isFinite(pct) || pct >= 0.5) return "critical";
+  if (!Number.isFinite(pct) || pct >= 1) return "over";
+  if (pct >= 0.8) return "severe";
+  if (pct >= 0.5) return "tight";
   if (pct >= 0.3) return "attention";
   if (pct >= 0.15) return "healthy";
   return "excellent";
@@ -20,7 +22,9 @@ const ZONE_TEXT: Record<Zone, { label: string; color: string }> = {
   excellent: { label: "Sobra bastante da renda depois das parcelas.", color: "var(--semantic-positive)" },
   healthy: { label: "As parcelas cabem bem na sua renda.", color: "var(--semantic-positive)" },
   attention: { label: "Quase metade da renda já vai pra parcela fixa.", color: "var(--semantic-warning)" },
-  critical: { label: "Mais da metade da renda já está presa em parcela.", color: "var(--semantic-negative)" },
+  tight: { label: "A maior parte da renda já vai pra parcela fixa.", color: "var(--semantic-negative)" },
+  severe: { label: "Quase toda a renda já está comprometida com parcela fixa.", color: "var(--semantic-negative)" },
+  over: { label: "As parcelas já passam da sua renda. Dá pra atacar isso por partes.", color: "var(--semantic-negative)" },
 };
 
 // Cores vêm das vars semânticas para honrar o modo daltônico (positivo
@@ -29,7 +33,9 @@ const ZONE_FILL: Record<Zone, string> = {
   excellent: "var(--semantic-positive)",
   healthy: "var(--semantic-positive)",
   attention: "var(--semantic-warning)",
-  critical: "var(--semantic-negative)",
+  tight: "var(--semantic-negative)",
+  severe: "var(--semantic-negative)",
+  over: "var(--semantic-negative)",
 };
 
 export function CommitmentCard({ pct }: CommitmentCardProps) {
@@ -83,6 +89,17 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
             }}
           />
         ) : null}
+        {overflow ? (
+          <span
+            aria-hidden
+            className="absolute inset-y-0 right-1 flex items-center text-white"
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m6 17 5-5-5-5" />
+              <path d="m13 17 5-5-5-5" />
+            </svg>
+          </span>
+        ) : null}
       </div>
       <div className="mt-2 flex justify-between text-[0.5625rem] text-[color:var(--text-muted)] md:text-[0.625rem]">
         <span>Folga</span>
@@ -97,7 +114,14 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         <span aria-hidden className="h-2 w-2 rounded-full" style={{ background: tone.color }} />
         {tone.label}
       </div>
-      {zone === "attention" || zone === "critical" ? (
+      {zone === "over" ? (
+        <a
+          href="#movimento-do-mes"
+          className="focus-ring mt-5 flex w-full items-center justify-center rounded-xl bg-[color:var(--color-brand-500)] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
+        >
+          Ver o movimento do mês
+        </a>
+      ) : zone === "attention" || zone === "tight" || zone === "severe" ? (
         <Link
           href={"/app/simular/quitacao" as Route}
           className="mt-2 inline-flex text-xs font-semibold text-[color:var(--color-brand-700)] hover:underline"

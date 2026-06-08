@@ -139,12 +139,13 @@ export function ResultPrescription({
                 {primary.label}
               </p>
               <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-                O rotativo do cartão costuma ser o juro mais caro que existe. Quitar aqui rende mais
-                do que em qualquer outra dívida.
+                {primary.kind === "credit_card"
+                  ? "O rotativo do cartão costuma ser o juro mais caro, então é o palpite mais seguro pra começar."
+                  : "É a sua maior dívida hoje, um bom ponto de partida."}
               </p>
               <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
-                Com base no que você cadastrou. Tem outro cartão ou empréstimo? Adicione no início
-                pra ver se a ordem muda.
+                Quando você anotar a taxa de juros das suas dívidas, a home confirma qual custa mais
+                e ajusta a ordem se precisar.
               </p>
             </div>
           ) : null}
