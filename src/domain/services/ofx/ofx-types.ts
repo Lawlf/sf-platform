@@ -10,12 +10,14 @@ export interface OfxStatement {
   accountKey: string;
   currency: string;
   ledgerBalanceCents: bigint;
+  asOf: Date | null;
   transactions: OfxTxn[];
 }
 
 export type OfxParseError =
   | { kind: "empty" }
   | { kind: "no_statement" }
+  | { kind: "mixed_accounts" }
   | { kind: "malformed"; detail: string };
 
 export interface IncomeSuggestion {

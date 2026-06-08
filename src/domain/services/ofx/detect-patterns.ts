@@ -1,3 +1,5 @@
+import { isReserveTransfer } from "./reserve-transfer";
+
 import type {
   DebtSuggestion,
   IncomeSuggestion,
@@ -74,8 +76,11 @@ function detectDebts(debits: OfxTxn[]): DebtSuggestion[] {
   return out;
 }
 
-export function detectPatterns(txns: OfxTxn[]): OfxSuggestions {
-  const credits = txns.filter((t) => t.direction === "in");
-  const debits = txns.filter((t) => t.direction === "out");
+export function detectPatterns(txns: OfxTxn[], internalFitIds?: Set<string>): OfxSuggestions {
+  const real = internalFitIds
+    ? txns.filter((t) => !internalFitIds.has(t.fitId))
+    : txns.filter((t) => !isReserveTransfer(t.memo));
+  const credits = real.filter((t) => t.direction === "in");
+  const debits = real.filter((t) => t.direction === "out");
   return { incomes: detectIncomes(credits), debts: detectDebts(debits) };
 }

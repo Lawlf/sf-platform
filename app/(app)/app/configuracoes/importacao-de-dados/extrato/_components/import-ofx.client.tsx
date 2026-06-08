@@ -1,6 +1,7 @@
 "use client";
 
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
+import type { Route } from "next";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 
@@ -11,6 +12,15 @@ import {
 } from "../../_actions";
 
 type Step = "upload" | "review" | "done";
+
+interface ImportReceipt {
+  assetId: string;
+  ledgerBalance: number;
+  importedTransactions: number;
+  createdIncomes: number;
+  createdDebts: number;
+  reserveValue: number | null;
+}
 
 function formatBrl(value: number): string {
   return value.toLocaleString("pt-BR", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
@@ -54,11 +64,11 @@ function SuggestionRow({ label, sublabel, fitId, checked, onToggle }: Suggestion
 
 interface ReviewProps {
   preview: SerializablePreview;
-  content: string;
-  onDone: () => void;
+  contents: string[];
+  onDone: (receipt: ImportReceipt) => void;
 }
 
-function ReviewStep({ preview, content, onDone }: ReviewProps) {
+function ReviewStep({ preview, contents, onDone }: ReviewProps) {
   const [acceptedIncomes, setAcceptedIncomes] = useState<Set<string>>(
     new Set(preview.incomes.map((i) => i.fitId)),
   );
@@ -69,6 +79,14 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
   const [error, setError] = useState<string | null>(null);
   const [accountLimit, setAccountLimit] = useState(false);
   const [pending, startTransition] = useTransition();
+
+  const reserve = preview.reserve;
+  const initialReserve =
+    reserve === null || reserve.existingValue === null
+      ? ""
+      : formatBrl(Math.max(0, reserve.existingValue + reserve.guardou - reserve.tirou));
+  const [reserveInput, setReserveInput] = useState<string>(initialReserve);
+  const [reserveSave, setReserveSave] = useState<boolean>(false);
 
   function toggleIncome(fitId: string) {
     setAcceptedIncomes((prev) => {
@@ -91,14 +109,26 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
   function handleCommit() {
     setError(null);
     setAccountLimit(false);
+    const parsedReserve = Number(reserveInput.replace(/\./g, "").replace(",", "."));
     startTransition(async () => {
       const res = await commitOfxAction({
-        content,
+        contents,
         acceptedIncomeFitIds: Array.from(acceptedIncomes),
         acceptedDebtFitIds: Array.from(acceptedDebts),
+        reserveTotalCents:
+          reserve !== null && reserveSave && Number.isFinite(parsedReserve) && parsedReserve > 0
+            ? parsedReserve
+            : null,
       });
       if (res.ok) {
-        onDone();
+        onDone({
+          assetId: res.assetId,
+          ledgerBalance: res.ledgerBalance,
+          importedTransactions: res.importedTransactions,
+          createdIncomes: res.createdIncomes,
+          createdDebts: res.createdDebts,
+          reserveValue: res.reserveValue,
+        });
       } else if (res.code === "ACCOUNT_LIMIT") {
         setAccountLimit(true);
       } else {
@@ -117,6 +147,14 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
           {accountLabel}
         </div>
         <div className="flex flex-col gap-1.5">
+          {preview.statementCount > 1 ? (
+            <div className="flex items-center justify-between text-[0.8125rem]">
+              <span className="text-[color:var(--text-secondary)]">Extratos juntos</span>
+              <span className="font-semibold text-[color:var(--text-primary)]">
+                {preview.statementCount}
+              </span>
+            </div>
+          ) : null}
           <div className="flex items-center justify-between text-[0.8125rem]">
             <span className="text-[color:var(--text-secondary)]">Saldo da conta no extrato</span>
             <span className="font-semibold text-[color:var(--text-primary)]">
@@ -175,7 +213,8 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
             Dívidas detectadas
           </div>
           <p className="px-1 text-[0.75rem] text-[color:var(--text-secondary)]">
-            Marque as que quer cadastrar como dívida.
+            Marque as que quer cadastrar como dívida. O que você marcar entra no comprometido e sai
+            do consumo. Não conta duas vezes.
           </p>
           {preview.debts.map((d) => {
             const installmentLabel =
@@ -196,6 +235,41 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
         </div>
       ) : null}
 
+      {reserve !== null ? (
+        <div className="flex flex-col gap-2">
+          <div className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            Dinheiro guardado
+          </div>
+          <p className="px-1 text-[0.75rem] text-[color:var(--text-secondary)]">
+            {reserve.existingValue === null
+              ? "Quanto você tem guardado hoje, no total? Abre o app do seu banco e olha o valor da caixinha."
+              : `Você tinha informado R$ ${formatBrl(reserve.existingValue)}. Ajuste se mudou.`}
+          </p>
+          <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-3">
+            <span className="text-[0.875rem] font-semibold text-[color:var(--text-secondary)]">R$</span>
+            <input
+              type="text"
+              inputMode="decimal"
+              value={reserveInput}
+              onChange={(e) => setReserveInput(e.target.value)}
+              className="focus-ring min-w-0 flex-1 bg-transparent text-[0.9375rem] font-semibold text-[color:var(--text-primary)] outline-none"
+              placeholder="0,00"
+            />
+          </div>
+          <label className="flex cursor-pointer items-center gap-2 px-1">
+            <input
+              type="checkbox"
+              className="h-4 w-4 shrink-0 accent-[color:var(--color-brand-800)]"
+              checked={reserveSave}
+              onChange={(e) => setReserveSave(e.target.checked)}
+            />
+            <span className="text-[0.75rem] font-semibold text-[color:var(--text-secondary)]">
+              Salvar isto como minha reserva no patrimônio
+            </span>
+          </label>
+        </div>
+      ) : null}
+
       <div className="flex flex-col gap-2">
         <button
           type="button"
@@ -211,8 +285,8 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
         </button>
         {advanced ? (
           <p className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3 text-[0.8125rem] text-[color:var(--text-secondary)]">
-            Todas as movimentações novas do extrato são importadas. As sugestões acima permitem
-            cadastrar rendas e dívidas a partir dos padrões detectados.
+            A renda e as dívidas você confirma acima. O que você guardou virou reserva. O resto
+            do mês virou sua leitura de consumo, no agregado. Sem confirmar item por item.
           </p>
         ) : null}
       </div>
@@ -256,24 +330,22 @@ function ReviewStep({ preview, content, onDone }: ReviewProps) {
 export function ImportOfx() {
   const [step, setStep] = useState<Step>("upload");
   const [preview, setPreview] = useState<SerializablePreview | null>(null);
-  const [content, setContent] = useState<string>("");
+  const [contents, setContents] = useState<string[]>([]);
+  const [receipt, setReceipt] = useState<ImportReceipt | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function handleFileChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const files = Array.from(e.target.files ?? []);
+    if (files.length === 0) return;
 
     setError(null);
 
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result;
-      if (typeof text !== "string") return;
-      setContent(text);
+    Promise.all(files.map((f) => f.text())).then((texts) => {
+      setContents(texts);
 
       const fd = new FormData();
-      fd.set("file", file);
+      for (const f of files) fd.append("file", f);
 
       startTransition(async () => {
         const res = await previewOfxAction(fd);
@@ -284,11 +356,11 @@ export function ImportOfx() {
           setError(res.message);
         }
       });
-    };
-    reader.readAsText(file);
+    });
   }
 
-  if (step === "done") {
+  if (step === "done" && receipt !== null) {
+    const accountWorth = receipt.ledgerBalance + (receipt.reserveValue ?? 0);
     return (
       <div className="flex flex-col items-center gap-4 py-8 text-center">
         <span className="flex h-14 w-14 items-center justify-center rounded-full bg-[color:var(--semantic-positive)]/[0.14] text-[color:var(--semantic-positive)]">
@@ -296,25 +368,30 @@ export function ImportOfx() {
         </span>
         <div>
           <div className="text-[1rem] font-bold text-[color:var(--text-primary)]">
-            Extrato importado
+            Extrato no lugar
           </div>
           <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-            As movimentações foram registradas e as rendas e dívidas selecionadas foram cadastradas.
+            Esta conta agora soma R$ {formatBrl(accountWorth)} no seu patrimônio.{" "}
+            {receipt.importedTransactions} movimentações entraram.
+            {receipt.reserveValue !== null
+              ? ` Dessas, R$ ${formatBrl(receipt.reserveValue)} estão guardados como reserva.`
+              : ""}
           </p>
         </div>
         <div className="flex w-full flex-col gap-2">
           <Link
-            href="/app/linha-do-tempo"
+            href={`/app/patrimonio/${receipt.assetId}` as Route}
             className="focus-ring flex w-full items-center justify-center rounded-2xl bg-[color:var(--color-brand-800)] px-4 py-3 text-[0.9375rem] font-bold text-white transition-opacity hover:opacity-90"
           >
-            Ver na linha do tempo
+            Ver no meu patrimônio
           </Link>
           <button
             type="button"
             onClick={() => {
               setStep("upload");
               setPreview(null);
-              setContent("");
+              setContents([]);
+              setReceipt(null);
               setError(null);
             }}
             className="focus-ring w-full rounded-2xl border border-[color:var(--border-soft)] px-4 py-3 text-[0.875rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
@@ -330,8 +407,11 @@ export function ImportOfx() {
     return (
       <ReviewStep
         preview={preview}
-        content={content}
-        onDone={() => setStep("done")}
+        contents={contents}
+        onDone={(r) => {
+          setReceipt(r);
+          setStep("done");
+        }}
       />
     );
   }
@@ -343,21 +423,22 @@ export function ImportOfx() {
       ) : (
         <div className="flex flex-col gap-3">
           <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
-            Exporte o extrato pelo app ou site do seu banco no formato OFX e selecione o arquivo
+            Exporte o extrato pelo app ou site do seu banco no formato OFX e selecione os arquivos
             abaixo.
           </p>
           <label className="focus-ring flex cursor-pointer flex-col items-center gap-3 rounded-2xl border-2 border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-8 text-center transition-colors hover:border-[color:var(--border-strong)] hover:bg-[color:var(--surface-2)]">
             <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
-              Selecionar arquivo OFX
+              Arraste seus extratos aqui
             </span>
             <span className="text-[0.8125rem] text-[color:var(--text-muted)]">
-              Clique para escolher o arquivo
+              Pode soltar vários. Janeiro, fevereiro, março, o que tiver.
             </span>
             <input
               type="file"
               accept=".ofx"
+              multiple
               className="sr-only"
-              onChange={handleFileChange}
+              onChange={handleFilesChange}
             />
           </label>
         </div>

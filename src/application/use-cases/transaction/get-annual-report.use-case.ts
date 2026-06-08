@@ -1,4 +1,5 @@
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import { isReserveTransfer } from "@/domain/services/ofx/reserve-transfer";
 import {
   TransactionReportService,
   type AnnualReport,
@@ -23,7 +24,7 @@ export async function getAnnualReport(
   const from = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
   const to = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
   const txns = (await transactions.listForUserInRange(userId, from, to)).filter(
-    (t) => t.direction === "out",
+    (t) => t.direction === "out" && !isReserveTransfer(t.description),
   );
 
   const report = TransactionReportService.annualReport(

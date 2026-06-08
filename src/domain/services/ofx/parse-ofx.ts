@@ -1,6 +1,7 @@
 import { err, ok, type Result } from "@/shared/errors/result";
 
 import type { OfxParseError, OfxStatement, OfxTxn } from "./ofx-types";
+import { syntheticId } from "./synthetic-id";
 
 function tag(block: string, name: string): string | null {
   const re = new RegExp(`<${name}>([^<\\r\\n]*)`, "i");
@@ -36,8 +37,11 @@ export function parseOfx(content: string): Result<OfxStatement, OfxParseError> {
   const currency = tag(body, "CURDEF") ?? "BRL";
   const balRaw = body.match(/<LEDGERBAL>([\s\S]*?)<\/LEDGERBAL>/i)?.[1] ?? "";
   const ledgerBalanceCents = toCents(tag(balRaw, "BALAMT") ?? "0");
+  const asOfRaw = tag(balRaw, "DTASOF");
+  const asOf = asOfRaw && asOfRaw.length >= 8 ? parseOfxDate(asOfRaw) : null;
 
   const txns: OfxTxn[] = [];
+  const synthCounts = new Map<string, number>();
   const stmtRe = /<STMTTRN>([\s\S]*?)<\/STMTTRN>/gi;
   let m: RegExpExecArray | null;
   while ((m = stmtRe.exec(body)) !== null) {
@@ -45,19 +49,25 @@ export function parseOfx(content: string): Result<OfxStatement, OfxParseError> {
     const type = (tag(block, "TRNTYPE") ?? "").toUpperCase();
     const amount = toCents(tag(block, "TRNAMT") ?? "0");
     const direction: "in" | "out" = type === "CREDIT" || amount > 0n ? "in" : "out";
-    txns.push({
-      fitId: tag(block, "FITID") ?? "",
-      postedAt: parseOfxDate(tag(block, "DTPOSTED") ?? ""),
-      amountCents: amount < 0n ? -amount : amount,
-      direction,
-      memo: tag(block, "MEMO") ?? tag(block, "NAME") ?? "",
-    });
+    const postedAt = parseOfxDate(tag(block, "DTPOSTED") ?? "");
+    const amountCents = amount < 0n ? -amount : amount;
+    const memo = tag(block, "MEMO") ?? tag(block, "NAME") ?? "";
+    const fitIdRaw = tag(block, "FITID") ?? "";
+    let fitId = fitIdRaw;
+    if (fitId.length === 0) {
+      const baseSynth = syntheticId({ postedAt, amountCents, direction, memo });
+      const n = synthCounts.get(baseSynth) ?? 0;
+      synthCounts.set(baseSynth, n + 1);
+      fitId = n === 0 ? baseSynth : `${baseSynth}#${n}`;
+    }
+    txns.push({ fitId, postedAt, amountCents, direction, memo });
   }
 
   return ok({
     accountKey: `${bankId}:${acctId}`,
     currency,
     ledgerBalanceCents,
+    asOf,
     transactions: txns,
   });
 }

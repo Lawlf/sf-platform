@@ -43,4 +43,16 @@ describe("detectPatterns", () => {
     const s = detectPatterns([txn({ fitId: "x", direction: "in", amountCents: 1200n, memo: "PIX RANDOM" })]);
     expect(s.incomes).toHaveLength(0);
   });
+
+  it("never suggests reserve transfers (RDB) as recurring income or debt", () => {
+    const txns = [
+      txn({ fitId: "r1", direction: "in", amountCents: 30000n, memo: "Resgate RDB", postedAt: new Date(Date.UTC(2026, 0, 5)) }),
+      txn({ fitId: "r2", direction: "in", amountCents: 30000n, memo: "Resgate RDB", postedAt: new Date(Date.UTC(2026, 1, 5)) }),
+      txn({ fitId: "a1", direction: "out", amountCents: 30000n, memo: "Aplicação RDB", postedAt: new Date(Date.UTC(2026, 0, 6)) }),
+      txn({ fitId: "a2", direction: "out", amountCents: 30000n, memo: "Aplicação RDB", postedAt: new Date(Date.UTC(2026, 1, 6)) }),
+    ];
+    const s = detectPatterns(txns);
+    expect(s.incomes).toHaveLength(0);
+    expect(s.debts).toHaveLength(0);
+  });
 });

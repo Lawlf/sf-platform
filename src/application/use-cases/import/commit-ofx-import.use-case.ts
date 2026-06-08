@@ -7,6 +7,8 @@ import type { DebtRepository } from "@/domain/ports/repositories/debt.repository
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
 import { detectPatterns } from "@/domain/services/ofx/detect-patterns";
+import { findInternalTransfers } from "@/domain/services/ofx/internal-transfers";
+import { mergeOfxStatements } from "@/domain/services/ofx/merge-ofx-statements";
 import type { OfxParseError } from "@/domain/services/ofx/ofx-types";
 import { parseOfx } from "@/domain/services/ofx/parse-ofx";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
@@ -23,17 +25,20 @@ export interface CommitOfxImportDeps {
 
 export interface CommitOfxImportInput {
   userId: string;
-  content: string;
+  contents: string[];
   acceptedIncomeFitIds: string[];
   acceptedDebtFitIds: string[];
   isPro: boolean;
+  reserveTotalCents?: bigint | null;
 }
 
 export interface CommitOfxImportResult {
   assetId: string;
+  ledgerBalanceCents: bigint;
   importedTransactions: number;
   createdIncomes: number;
   createdDebts: number;
+  reserveValueCents: bigint | null;
 }
 
 export type CommitOfxImportError = OfxParseError | { kind: "account_limit" };
@@ -42,12 +47,20 @@ export async function commitOfxImport(
   deps: CommitOfxImportDeps,
   input: CommitOfxImportInput,
 ): Promise<Result<CommitOfxImportResult, CommitOfxImportError>> {
-  const parsed = parseOfx(input.content);
-  if (parsed._tag === "err") return err(parsed.error);
-  const st = parsed.value;
+  const statements = [];
+  for (const c of input.contents) {
+    const p = parseOfx(c);
+    if (p._tag === "err") return err(p.error);
+    statements.push(p.value);
+  }
+  const mergedR = mergeOfxStatements(statements);
+  if (mergedR._tag === "err") return err(mergedR.error);
+  const st = mergedR.value;
 
   if (!input.isPro) {
-    const connectedKeys = await deps.assets.listExternalAccountKeys(input.userId);
+    const connectedKeys = (await deps.assets.listExternalAccountKeys(input.userId)).filter(
+      (k) => !k.endsWith(":reserve"),
+    );
     const alreadyConnected = connectedKeys.includes(st.accountKey);
     if (!alreadyConnected && connectedKeys.length >= 1) {
       return err({ kind: "account_limit" });
@@ -102,14 +115,25 @@ export async function commitOfxImport(
   const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
+  const movement = findInternalTransfers(newTxns);
+  const incomeSet = new Set(input.acceptedIncomeFitIds);
+  const debtSet = new Set(input.acceptedDebtFitIds);
+
   for (const t of newTxns) {
+    const category = movement.internalFitIds.has(t.fitId)
+      ? "internal_transfer"
+      : debtSet.has(t.fitId)
+        ? "promoted_debt"
+        : incomeSet.has(t.fitId)
+          ? "promoted_income"
+          : null;
     await deps.transactions.create({
       id: crypto.randomUUID(),
       userId: input.userId,
       direction: t.direction,
       amount: Money.fromCents(t.amountCents),
       description: t.memo,
-      category: null,
+      category,
       accountId: assetId,
       occurredAt: t.postedAt,
       status: "paid",
@@ -119,9 +143,7 @@ export async function commitOfxImport(
     });
   }
 
-  const sugg = detectPatterns(newTxns);
-  const incomeSet = new Set(input.acceptedIncomeFitIds);
-  const debtSet = new Set(input.acceptedDebtFitIds);
+  const sugg = detectPatterns(newTxns, movement.internalFitIds);
 
   const incomeByFitId = new Map(
     sugg.incomes.flatMap((inc) => inc.fitIds.map((f) => [f, inc] as const)),
@@ -194,5 +216,48 @@ export async function commitOfxImport(
     createdDebts += 1;
   }
 
-  return ok({ assetId, importedTransactions: newTxns.length, createdIncomes, createdDebts });
+  let reserveValueCents: bigint | null = null;
+  if (input.reserveTotalCents != null) {
+    const reserveKey = `${st.accountKey}:reserve`;
+    const existingReserve = await deps.assets.findByExternalAccountKey(input.userId, reserveKey);
+    const reserveValue = Money.fromCents(input.reserveTotalCents);
+    if (existingReserve) {
+      await deps.assets.update({ ...existingReserve, currentValue: reserveValue, updatedAt: now });
+    } else {
+      await deps.assets.create({
+        id: crypto.randomUUID(),
+        userId: input.userId,
+        category: "cash",
+        label: `Reserva ${bankId}`,
+        currentValue: reserveValue,
+        metadata: { kind: "cash" },
+        fipeCode: null,
+        fipeLastSyncedAt: null,
+        acquiredAt: null,
+        depreciationKind: "stable",
+        depreciationRatePctYear: 0,
+        purchaseDate: null,
+        purchasePriceCents: null,
+        createdAt: now,
+        updatedAt: now,
+        anchorAt: null,
+        deactivatedAt: null,
+        deactivationKind: null,
+        salePriceCents: null,
+        deactivationReason: null,
+        deletedAt: null,
+        externalAccountKey: reserveKey,
+      });
+    }
+    reserveValueCents = input.reserveTotalCents;
+  }
+
+  return ok({
+    assetId,
+    ledgerBalanceCents: st.ledgerBalanceCents,
+    importedTransactions: newTxns.length,
+    createdIncomes,
+    createdDebts,
+    reserveValueCents,
+  });
 }
