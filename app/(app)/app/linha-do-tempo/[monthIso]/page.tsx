@@ -548,7 +548,7 @@ function TimelineRow({ entry }: { entry: TimelineEntry }) {
   if (entry.kind === "expense") {
     return (
       <RowLink
-        href={`/app/dividas/${entry.data.id}` as Route}
+        href={`/app/dividas/${entry.data.debtId}` as Route}
         icon={TrendingDown}
         tone="negative"
         label={entry.data.label}

@@ -57,6 +57,7 @@ export interface SerializedIncomeRow {
  */
 export interface SerializedExpenseRow {
   id: string;
+  debtId: string;
   label: string;
   amount: SerializedMoney;
   frequency: "monthly" | "weekly" | "annual";
@@ -294,6 +295,7 @@ export async function fetchMonthDetail(input: {
     const date = dateInMonthFromDay(recurrenceDay ?? d.startDate.getUTCDate());
     return {
       id: d.id,
+      debtId: d.id,
       label: d.label,
       amount: serializeMoney(recurringAmountForMonth(d)),
       frequency: frequencyFor(d),
@@ -318,6 +320,7 @@ export async function fetchMonthDetail(input: {
     const date = dateInMonthFromDay(obligationDay);
     serializedExpenses.push({
       id: `obligation-${d.id}`,
+      debtId: d.id,
       label: d.label,
       amount: serializeMoney(obligation),
       frequency: "monthly",
