@@ -163,6 +163,9 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
       fd.set("monthlyAdminFeeCents", v.monthlyAdminFeeCents?.toString() ?? "");
     }
     if (kind === "credit_card") {
+      if (v.currentBalanceCents != null) {
+        fd.set("currentBalanceCents", v.currentBalanceCents.toString());
+      }
       if (v.creditLimitCents != null) fd.set("creditLimitCents", v.creditLimitCents.toString());
       if (v.currentStatementCents != null) {
         fd.set("currentStatementCents", v.currentStatementCents.toString());
