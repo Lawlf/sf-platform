@@ -16,6 +16,12 @@ import {
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { toast } from "sonner";
+
+import { isOfflineRoute } from "../_lib/offline/offline-routes";
+import { useOnline } from "../_lib/offline/use-online";
+
+import { OFFLINE_BLOCKED_MESSAGE } from "./offline-nav-guard.client";
 
 export const OPEN_SEARCH_EVENT = "sf:open-search";
 
@@ -52,6 +58,7 @@ function normalize(s: string): string {
 
 export function CommandPalette() {
   const router = useRouter();
+  const online = useOnline();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
@@ -97,6 +104,10 @@ export function CommandPalette() {
 
   function go(href: Route) {
     setOpen(false);
+    if (!online && !isOfflineRoute(href)) {
+      toast(OFFLINE_BLOCKED_MESSAGE);
+      return;
+    }
     router.push(href);
   }
 

@@ -1,7 +1,9 @@
 /// <reference lib="webworker" />
 import { defaultCache } from "@serwist/next/worker";
-import type { PrecacheEntry, SerwistGlobalConfig } from "serwist";
-import { Serwist } from "serwist";
+import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist";
+import { ExpirationPlugin, NetworkFirst, Serwist } from "serwist";
+
+import { OFFLINE_FALLBACK_HTML } from "./offline-fallback-html";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -13,12 +15,41 @@ declare const self: ServiceWorkerGlobalScope & {
   __SW_MANIFEST: (PrecacheEntry | string)[] | undefined;
 };
 
+// Cache dedicado dos simuladores (documento + RSC): maxEntries alto e validade
+// longa pra que as calculadoras não sejam despejadas do cache pela navegação
+// normal. Precede o defaultCache (primeiro match vence) pra capturar /app/simular.
+const simulatorCache: RuntimeCaching = {
+  matcher: ({ url, sameOrigin }) => sameOrigin && url.pathname.startsWith("/app/simular"),
+  handler: new NetworkFirst({
+    cacheName: "sim-pages",
+    plugins: [
+      new ExpirationPlugin({
+        maxEntries: 64,
+        maxAgeSeconds: 30 * 24 * 60 * 60,
+        maxAgeFrom: "last-used",
+      }),
+    ],
+  }),
+};
+
 const serwist = new Serwist({
   precacheEntries: self.__SW_MANIFEST ?? [],
   skipWaiting: true,
   clientsClaim: true,
   navigationPreload: true,
-  runtimeCaching: defaultCache,
+  runtimeCaching: [simulatorCache, ...defaultCache],
+});
+
+// Tela de offline própria (nunca o dinossauro do navegador). Servida inline pra
+// não depender de precache: qualquer navegação que falhe sem cache cai aqui.
+serwist.setCatchHandler(async ({ request }) => {
+  if (request.destination === "document" || request.mode === "navigate") {
+    return new Response(OFFLINE_FALLBACK_HTML, {
+      status: 200,
+      headers: { "Content-Type": "text/html; charset=utf-8" },
+    });
+  }
+  return Response.error();
 });
 
 serwist.addEventListeners();

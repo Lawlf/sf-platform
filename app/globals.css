@@ -556,4 +556,28 @@
       transition: none;
     }
   }
+
+  /* Item de navegação tocado offline: nudge curto pra sinalizar "respondeu, mas
+     indisponível" (evita leitura de "meu toque não pegou"). */
+  @keyframes sf-offline-nudge {
+    0%,
+    100% {
+      transform: translateX(0);
+    }
+    25% {
+      transform: translateX(-3px);
+    }
+    75% {
+      transform: translateX(3px);
+    }
+  }
+  .sf-offline-blocked {
+    animation: sf-offline-nudge 320ms ease-in-out;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sf-offline-blocked {
+      animation: none;
+    }
+  }
 }
