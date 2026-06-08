@@ -7,7 +7,7 @@ import { getPrescription } from "../_lib/prescription-cache";
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
-import { presentMove } from "./prescription-copy";
+import { microEduFor, presentMove } from "./prescription-copy";
 
 const CARD_TITLE = "O movimento do mês";
 
@@ -172,8 +172,8 @@ export async function NextStepCard() {
           </Link>
         ) : null;
       })()}
-      <div className="mt-3">
-        <VerMais items={more} />
+      <div className="mt-4">
+        <VerMais items={more} microEdu={microEduFor(p.dominant.type)} />
       </div>
       <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
         Isto é educação financeira, não recomendação de investimento.

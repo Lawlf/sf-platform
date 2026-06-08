@@ -1,9 +1,20 @@
-import type { PrescriptionMove } from "@/domain/services/prescription/prescription.types";
+import type { MoveType, PrescriptionMove } from "@/domain/services/prescription/prescription.types";
 
 export interface MoveCopy {
   headline: string;
   impact: string;
   reason: string;
+}
+
+const MICRO_EDU: Record<MoveType, string> = {
+  pay_debt: "Atacar a dívida de juro mais alto primeiro economiza mais que quitar a menor.",
+  build_reserve: "Um colchão pequeno evita que um imprevisto vire dívida nova.",
+  invest: "Investir a sobra todo mês rende mais que deixá-la parada na conta.",
+  reduce_commitment: "Cortar um gasto fixo libera a mesma folga todo mês, não só uma vez.",
+};
+
+export function microEduFor(type: MoveType): string {
+  return MICRO_EDU[type];
 }
 
 const brl = (reais: number): string =>
