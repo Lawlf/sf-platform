@@ -66,7 +66,7 @@ export function presentMove(m: PrescriptionMove): MoveCopy {
     case "pay_debt": {
       const label = m.targetDebtLabel ?? "sua dívida mais cara";
       const reason = m.metrics.rateEstimated
-        ? `Estimamos o rotativo em ~${DEBT_RATE_ESTIMATES.creditCardRevolving.valuePct}% ao mês, a média do mercado.`
+        ? `Estimamos os juros do cartão em ~${DEBT_RATE_ESTIMATES.creditCardRevolving.valuePct}% ao mês, a média do mercado.`
         : "Com as dívidas que você registrou, essa é a de juro mais alto.";
       const headline = `Coloque sua sobra na ${label} primeiro.`;
       if (m.metrics.baselineNeverPayoff) {
