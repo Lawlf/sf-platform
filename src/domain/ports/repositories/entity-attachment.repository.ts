@@ -10,6 +10,7 @@ export interface EntityAttachmentRepository {
     entityId: string,
   ): Promise<EntityAttachmentEntity[]>;
   remove(id: string, userId: string): Promise<void>;
+  rename(id: string, userId: string, fileName: string): Promise<void>;
   totalBytesForUser(userId: string): Promise<number>;
   listAllForUser(userId: string): Promise<EntityAttachmentEntity[]>;
 }

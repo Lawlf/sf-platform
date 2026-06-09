@@ -8,6 +8,7 @@ import { confirmAttachmentUpload } from "@/application/use-cases/attachments/con
 import { deleteAttachment } from "@/application/use-cases/attachments/delete-attachment.use-case";
 import { getAttachmentDownloadUrl } from "@/application/use-cases/attachments/get-attachment-download-url.use-case";
 import { listAttachments } from "@/application/use-cases/attachments/list-attachments.use-case";
+import { renameAttachment } from "@/application/use-cases/attachments/rename-attachment.use-case";
 import { requestAttachmentUpload } from "@/application/use-cases/attachments/request-attachment-upload.use-case";
 import { DrizzleEntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-attachment.repository";
 import { R2FileStorage } from "@/infrastructure/storage/r2-file-storage";
@@ -108,6 +109,25 @@ export async function deleteAttachmentAction(input: {
     { userId: user.id, attachmentId: input.attachmentId },
   );
   return { ok: result.ok };
+}
+
+const renameSchema = z.object({
+  attachmentId: z.string().uuid(),
+  newName: z.string().min(1).max(200),
+});
+
+export async function renameAttachmentAction(input: {
+  attachmentId: string;
+  newName: string;
+}): Promise<{ ok: true; fileName: string } | { ok: false }> {
+  const user = await requireUser();
+  const parsed = renameSchema.safeParse(input);
+  if (!parsed.success) return { ok: false };
+  const result = await renameAttachment(
+    { attachments: new DrizzleEntityAttachmentRepository() },
+    { userId: user.id, attachmentId: parsed.data.attachmentId, newName: parsed.data.newName },
+  );
+  return result.ok ? { ok: true, fileName: result.fileName } : { ok: false };
 }
 
 export async function getAttachmentDownloadUrlAction(input: {

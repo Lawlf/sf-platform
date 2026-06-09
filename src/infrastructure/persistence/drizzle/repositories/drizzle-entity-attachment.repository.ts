@@ -73,6 +73,13 @@ export class DrizzleEntityAttachmentRepository implements EntityAttachmentReposi
       .where(and(eq(entityAttachments.id, id), eq(entityAttachments.userId, userId)));
   }
 
+  async rename(id: string, userId: string, fileName: string): Promise<void> {
+    await getDb()
+      .update(entityAttachments)
+      .set({ fileName })
+      .where(and(eq(entityAttachments.id, id), eq(entityAttachments.userId, userId)));
+  }
+
   async totalBytesForUser(userId: string): Promise<number> {
     const rows = await getDb()
       .select({ total: sql<string>`coalesce(sum(${entityAttachments.sizeBytes}), 0)` })

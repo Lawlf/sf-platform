@@ -11,6 +11,7 @@ function makeDeps(over: { isPro?: boolean; total?: number } = {}) {
     findById: vi.fn(),
     listForEntity: vi.fn(),
     remove: vi.fn(),
+    rename: vi.fn(),
     totalBytesForUser: vi.fn().mockResolvedValue(over.total ?? 0),
     listAllForUser: vi.fn().mockResolvedValue([]),
   };
