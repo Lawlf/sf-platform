@@ -1,10 +1,9 @@
 import {
+  ArrowLeftRight,
   ArrowRight,
-  Calculator,
   ChevronRight,
   Coins,
   HomeIcon,
-  LineChart,
   Plus,
   PlusCircle,
   ShoppingBag,
@@ -79,6 +78,9 @@ export function LandingMockDashboard() {
                 <span>Você</span>
               </div>
               <div className="flex items-center gap-1.5">
+                <span className="flex h-7 w-7 items-center justify-center text-[color:var(--text-secondary)]">
+                  <EyeSmall />
+                </span>
                 <div className="flex h-7 w-7 items-center justify-center rounded-full bg-[color:var(--surface-1)] text-[color:var(--text-primary)]">
                   <BellSmall />
                 </div>
@@ -109,7 +111,7 @@ export function LandingMockDashboard() {
                 <div className="relative flex items-center justify-between gap-2">
                   <div className="flex-1">
                     <span className="text-[9px] font-bold uppercase tracking-[0.7px] text-white/85">
-                      Saldo da Carteira do mês
+                      Saldo da Carteira · hoje
                     </span>
                     <div
                       className="mt-1 text-[26px] font-extrabold leading-none text-white"
@@ -117,12 +119,15 @@ export function LandingMockDashboard() {
                     >
                       R$ 2.184,20
                     </div>
+                    <span
+                      aria-hidden
+                      className="mt-2.5 block h-px w-full max-w-[150px] bg-white/[0.22]"
+                    />
+                    <span className="mt-2 block text-[9px] font-semibold leading-snug text-white/90">
+                      Se nada mudar, sobram R$ 980 no fim do mês
+                    </span>
                     <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur">
-                      <span
-                        className="sf-pulse-soft h-1.5 w-1.5 rounded-full bg-[color:var(--semantic-warning)]"
-                        aria-hidden
-                      />
-                      Atenção
+                      Sobra esse mês
                     </span>
                   </div>
                   <ChevronRight
@@ -141,10 +146,10 @@ export function LandingMockDashboard() {
                 <div className="flex gap-3 pb-0.5 pr-3">
                   <MockQuickCircle icon={ShoppingBag} label="Dívida" add />
                   <MockQuickCircle icon={TrendingUp} label="Renda" add />
-                  <MockQuickCircle icon={Coins} label="Ativo" add />
-                  <MockQuickCircle icon={Target} label="Quitação" />
-                  <MockQuickCircle icon={Plus} label="Extra" />
-                  <MockQuickCircle icon={Calculator} label="Regra 3" />
+                  <MockQuickCircle icon={Coins} label="Bem" add />
+                  <MockQuickCircle icon={ArrowLeftRight} label="Lançar" add />
+                  <MockQuickCircle icon={PlusCircle} label="Simular" />
+                  <MockQuickCircle icon={Target} label="Metas" />
                 </div>
                 <span
                   aria-hidden
@@ -153,28 +158,36 @@ export function LandingMockDashboard() {
               </div>
 
               <section
-                className="relative overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/25 bg-[color:var(--surface-1)] px-4 py-3 backdrop-blur-xl"
+                className="relative overflow-hidden rounded-2xl border border-[color:var(--color-brand-500)]/30 bg-[color:var(--surface-1)] px-4 py-3.5 backdrop-blur-xl"
                 style={{
                   backgroundImage:
-                    "radial-gradient(circle at 100% 0%, rgba(242,142,37,0.14), transparent 60%)",
+                    "radial-gradient(circle at 100% 0%, rgba(242,142,37,0.16), transparent 60%)",
                 }}
               >
-                <span className="text-[8.5px] font-semibold uppercase tracking-[0.06em] text-[color:var(--color-brand-800)]">
+                <h3 className="text-[9px] font-semibold text-[color:var(--color-brand-800)]">
                   O movimento do mês
-                </span>
+                </h3>
                 <p
                   className="mt-1 text-[11px] font-bold leading-tight text-[color:var(--text-primary)]"
                   style={{ letterSpacing: "-0.01em" }}
                 >
-                  Quite o cartão antes do financiamento.
+                  Comece pela dívida: Cartão Nubank.
                 </p>
-                <p className="mt-0.5 text-[9px] text-[color:var(--text-secondary)]">
-                  Você economiza cerca de R$ 312 em juros.
+                <p className="mt-1 text-[9px] leading-snug text-[color:var(--text-secondary)]">
+                  Quitando essa primeiro, você economiza{" "}
+                  <span className="font-semibold text-[color:var(--text-primary)]">R$ 312</span> em
+                  juros e sai 4 meses antes.
                 </p>
-                <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-0.5 text-[8.5px] font-bold text-[color:var(--color-brand-800)]">
-                  Ver meu movimento
-                  <ArrowRight size={9} strokeWidth={2.5} aria-hidden />
+                <span
+                  className="mt-3 flex w-full items-center justify-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2 text-[9.5px] font-bold text-white"
+                  style={{ boxShadow: "0 8px 18px -8px rgba(239,122,26,0.5)" }}
+                >
+                  Ver qual dívida quitar primeiro
+                  <ArrowRight size={10} strokeWidth={2.5} aria-hidden />
                 </span>
+                <p className="mt-2 text-[8px] text-[color:var(--text-muted)]">
+                  A gente mostra a conta, a decisão é sua.
+                </p>
               </section>
 
               <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
@@ -269,14 +282,38 @@ export function LandingMockDashboard() {
               </section>
 
               <p className="px-1 pt-1 text-[9px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
-                Mais
+                Seu consumo
               </p>
 
-              <MockLink
-                icon={LineChart}
-                title="Linha do tempo"
-                subtitle="Trajetória mês a mês."
-              />
+              <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 backdrop-blur-xl">
+                <div className="flex items-baseline justify-between">
+                  <span className="text-[11px] font-bold text-[color:var(--text-primary)]">
+                    Consumo do mês
+                  </span>
+                  <span className="text-[8px] font-semibold uppercase tracking-[0.06em] text-[color:var(--text-muted)]">
+                    Estimativa
+                  </span>
+                </div>
+                <div
+                  className="mt-1 text-[16px] font-extrabold text-[color:var(--text-primary)]"
+                  style={{ letterSpacing: "-0.02em" }}
+                >
+                  R$ 1.870,00
+                </div>
+                <p className="mt-0.5 text-[9px] text-[color:var(--text-secondary)]">
+                  Saíram fora de dívida e reserva.
+                </p>
+                <div className="mt-2 flex h-1.5 w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+                  <div className="h-full bg-[color:var(--color-brand-800)]" style={{ width: "46%" }} />
+                  <div className="h-full bg-[color:var(--color-brand-500)]" style={{ width: "30%" }} />
+                  <div className="h-full bg-[color:var(--color-brand-300)]" style={{ width: "24%" }} />
+                </div>
+                <div className="mt-1.5 flex flex-wrap gap-x-3 gap-y-0.5 text-[8.5px] text-[color:var(--text-secondary)]">
+                  <span>Essencial R$ 860</span>
+                  <span>Parcelado R$ 560</span>
+                  <span>Dia a dia R$ 450</span>
+                </div>
+              </section>
               <div aria-hidden className="h-[72px]" />
             </div>
 
@@ -288,9 +325,9 @@ export function LandingMockDashboard() {
               >
                 <MockNavItem icon={HomeIcon} label="Início" active />
                 <MockNavItem icon={TrendingUp} label="Renda" />
-                <MockNavFab icon={PlusCircle} label="Simular" />
+                <MockNavFab icon={Plus} label="Adicionar" />
                 <MockNavItem icon={Wallet} label="Dívidas" />
-                <MockNavItem icon={Coins} label="Patrim." />
+                <MockNavItem icon={Coins} label="Patrimônio" />
               </nav>
             </div>
 
@@ -405,40 +442,6 @@ function MockNavFab({
   );
 }
 
-function MockLink({
-  icon: Icon,
-  title,
-  subtitle,
-}: {
-  icon: typeof LineChart;
-  title: string;
-  subtitle: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 backdrop-blur-xl">
-      <div className="flex items-center gap-2">
-        <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-          <Icon size={13} strokeWidth={1.75} aria-hidden />
-        </span>
-        <div>
-          <div className="text-[11px] font-bold leading-tight text-[color:var(--text-primary)]">
-            {title}
-          </div>
-          <div className="text-[9px] leading-tight text-[color:var(--text-muted)]">
-            {subtitle}
-          </div>
-        </div>
-      </div>
-      <ChevronRight
-        size={12}
-        strokeWidth={2.25}
-        className="text-[color:var(--color-brand-800)]"
-        aria-hidden
-      />
-    </div>
-  );
-}
-
 function SignalIcon() {
   return (
     <svg
@@ -510,6 +513,21 @@ function BatteryIcon() {
         fill="currentColor"
         fillOpacity="0.45"
       />
+    </svg>
+  );
+}
+
+function EyeSmall() {
+  return (
+    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden>
+      <path
+        d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.75" />
     </svg>
   );
 }
