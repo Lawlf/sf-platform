@@ -300,6 +300,9 @@ export function DocumentsBrowser({ docs }: Props) {
         <ImageLightbox
           attachmentId={lightboxDoc.id}
           fileName={lightboxDoc.fileName}
+          contentType={lightboxDoc.contentType}
+          sizeBytes={lightboxDoc.sizeBytes}
+          createdAtIso={lightboxDoc.createdAtIso}
           open
           onClose={() => setLightboxDoc(null)}
         />
