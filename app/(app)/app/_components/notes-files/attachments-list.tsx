@@ -35,6 +35,7 @@ import { AttachmentActionsSheet } from "./attachment-actions-sheet.client";
 import { FILES_COPY, usagePhrase } from "./copy";
 import { ImageLightbox } from "./image-lightbox.client";
 import { RenameAttachmentSheet } from "./rename-attachment-sheet.client";
+import { useCanShare } from "./use-can-share";
 
 function formatBytes(n: number): string {
   if (n >= 1024 * 1024) {
@@ -65,6 +66,8 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeSheet, setActiveSheet] = useState<ActiveSheet | null>(null);
   const [deleting, setDeleting] = useState(false);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
+  const canShare = useCanShare();
   const inputRef = useRef<HTMLInputElement>(null);
 
   const activeItem = activeId ? items.find((i) => i.id === activeId) ?? null : null;
@@ -146,27 +149,38 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
   }
 
   async function handleDownload(attachmentId: string) {
-    const { url } = await getAttachmentDownloadUrlAction({ attachmentId });
-    if (url) window.open(url, "_blank");
+    setDownloadingId(attachmentId);
+    try {
+      const { url } = await getAttachmentDownloadUrlAction({ attachmentId });
+      if (url) window.open(url, "_blank");
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   async function handleShare(item: AttachmentDto) {
     const { url } = await getAttachmentDownloadUrlAction({ attachmentId: item.id });
     if (!url) return;
+    let file: File | null = null;
     try {
       const res = await fetch(url);
       const blob = await res.blob();
-      const file = new File([blob], item.fileName, { type: item.contentType });
-      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+      file = new File([blob], item.fileName, { type: item.contentType });
+    } catch {
+      file = null;
+    }
+    try {
+      if (file && navigator.canShare?.({ files: [file] })) {
         await navigator.share({ files: [file], title: item.fileName });
-        toast.success("Compartilhado");
       } else if (navigator.share) {
         await navigator.share({ title: item.fileName, url });
-        toast.success("Compartilhado");
       } else {
         window.open(url, "_blank");
+        return;
       }
-    } catch {
+      toast.success("Compartilhado");
+    } catch (e) {
+      if (e instanceof Error && e.name === "AbortError") return;
       window.open(url, "_blank");
     }
   }
@@ -253,10 +267,15 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
                   <button
                     type="button"
                     aria-label={`${FILES_COPY.download} ${item.fileName}`}
+                    disabled={downloadingId === item.id}
                     onClick={() => void handleDownload(item.id)}
-                    className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)]"
+                    className="focus-ring inline-flex h-9 items-center gap-1.5 rounded-lg border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)] disabled:opacity-60"
                   >
-                    <Download size={15} strokeWidth={2} aria-hidden />
+                    {downloadingId === item.id ? (
+                      <Spinner size={15} className="text-[color:var(--text-secondary)]" />
+                    ) : (
+                      <Download size={15} strokeWidth={2} aria-hidden />
+                    )}
                     {FILES_COPY.download}
                   </button>
                 )}
@@ -311,7 +330,7 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
           open={activeSheet === "actions"}
           onClose={closeSheet}
           fileName={activeItem.fileName}
-          isImage={isImage(activeItem.contentType)}
+          canShare={canShare}
           onShare={() => void handleShare(activeItem)}
           onDownload={() => void handleDownload(activeItem.id)}
           onRename={() => setActiveSheet("rename")}

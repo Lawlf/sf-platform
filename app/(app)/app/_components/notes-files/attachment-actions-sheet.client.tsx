@@ -14,7 +14,7 @@ interface Props {
   open: boolean;
   onClose: () => void;
   fileName: string;
-  isImage: boolean;
+  canShare: boolean;
   onShare: () => void;
   onDownload: () => void;
   onRename: () => void;
@@ -34,18 +34,26 @@ export function AttachmentActionsSheet({
   open,
   onClose,
   fileName,
-  isImage,
+  canShare,
   onShare,
   onDownload,
   onRename,
   onDelete,
 }: Props) {
-  void isImage;
-
   const rows: Row[] = [
-    { key: "share", label: "Compartilhar", icon: Share2, onSelect: onShare, closeOnSelect: true },
+    ...(canShare
+      ? [
+          {
+            key: "share",
+            label: "Compartilhar",
+            icon: Share2,
+            onSelect: onShare,
+            closeOnSelect: true,
+          },
+        ]
+      : []),
     { key: "download", label: "Baixar", icon: Download, onSelect: onDownload, closeOnSelect: true },
-    { key: "rename", label: "Renomear", icon: Pencil, onSelect: onRename, closeOnSelect: true },
+    { key: "rename", label: "Renomear", icon: Pencil, onSelect: onRename, closeOnSelect: false },
     { key: "delete", label: "Apagar", icon: Trash2, onSelect: onDelete, closeOnSelect: false, destructive: true },
   ];
 

@@ -12,6 +12,7 @@ import type { AttachableEntityType } from "@/domain/value-objects/attachable-ent
 
 import { getAttachmentDownloadUrlAction } from "../../../_actions/entity-attachments.action";
 import { ImageLightbox } from "../../../_components/notes-files/image-lightbox.client";
+import { useCanShare } from "../../../_components/notes-files/use-can-share";
 
 function parentHref(entityType: AttachableEntityType, entityId: string): Route | null {
   switch (entityType) {
@@ -53,7 +54,9 @@ export function DocumentsBrowser({ docs }: Props) {
   const [query, setQuery] = useState("");
   const [activeParent, setActiveParent] = useState("Todos");
   const [sharingId, setSharingId] = useState<string | null>(null);
+  const [downloadingId, setDownloadingId] = useState<string | null>(null);
   const [lightboxDoc, setLightboxDoc] = useState<UserDocument | null>(null);
+  const canShare = useCanShare();
 
   const parents = useMemo(() => {
     const seen = new Set<string>();
@@ -91,20 +94,26 @@ export function DocumentsBrowser({ docs }: Props) {
     try {
       const { url } = await getAttachmentDownloadUrlAction({ attachmentId: doc.id });
       if (!url) return;
+      let file: File | null = null;
       try {
         const res = await fetch(url);
         const blob = await res.blob();
-        const file = new File([blob], doc.fileName, { type: doc.contentType });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        file = new File([blob], doc.fileName, { type: doc.contentType });
+      } catch {
+        file = null;
+      }
+      try {
+        if (file && navigator.canShare?.({ files: [file] })) {
           await navigator.share({ files: [file], title: doc.fileName });
-          toast.success("Compartilhado");
         } else if (navigator.share) {
           await navigator.share({ title: doc.fileName, url });
-          toast.success("Compartilhado");
         } else {
           window.open(url, "_blank");
+          return;
         }
-      } catch {
+        toast.success("Compartilhado");
+      } catch (e) {
+        if (e instanceof Error && e.name === "AbortError") return;
         window.open(url, "_blank");
       }
     } finally {
@@ -113,8 +122,13 @@ export function DocumentsBrowser({ docs }: Props) {
   }
 
   async function handleDownload(doc: UserDocument) {
-    const { url } = await getAttachmentDownloadUrlAction({ attachmentId: doc.id });
-    if (url) window.open(url, "_blank");
+    setDownloadingId(doc.id);
+    try {
+      const { url } = await getAttachmentDownloadUrlAction({ attachmentId: doc.id });
+      if (url) window.open(url, "_blank");
+    } finally {
+      setDownloadingId(null);
+    }
   }
 
   const counter =
@@ -237,19 +251,21 @@ export function DocumentsBrowser({ docs }: Props) {
                 ) : (
                   <span className="flex min-w-0 flex-1 items-center gap-3">{inner}</span>
                 )}
-                <button
-                  type="button"
-                  aria-label={`Compartilhar ${doc.fileName}`}
-                  disabled={sharing}
-                  onClick={() => void handleShare(doc)}
-                  className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--color-brand-700)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.12] disabled:opacity-60"
-                >
-                  {sharing ? (
-                    <Spinner size={16} className="text-[color:var(--color-brand-700)]" />
-                  ) : (
-                    <Share2 size={16} strokeWidth={2} aria-hidden />
-                  )}
-                </button>
+                {canShare ? (
+                  <button
+                    type="button"
+                    aria-label={`Compartilhar ${doc.fileName}`}
+                    disabled={sharing}
+                    onClick={() => void handleShare(doc)}
+                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--color-brand-700)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.12] disabled:opacity-60"
+                  >
+                    {sharing ? (
+                      <Spinner size={16} className="text-[color:var(--color-brand-700)]" />
+                    ) : (
+                      <Share2 size={16} strokeWidth={2} aria-hidden />
+                    )}
+                  </button>
+                ) : null}
                 {isImage(doc.contentType) ? (
                   <button
                     type="button"
@@ -263,10 +279,15 @@ export function DocumentsBrowser({ docs }: Props) {
                   <button
                     type="button"
                     aria-label={`Baixar ${doc.fileName}`}
+                    disabled={downloadingId === doc.id}
                     onClick={() => void handleDownload(doc)}
-                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)]"
+                    className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-3)] hover:text-[color:var(--text-primary)] disabled:opacity-60"
                   >
-                    <Download size={16} strokeWidth={2} aria-hidden />
+                    {downloadingId === doc.id ? (
+                      <Spinner size={16} className="text-[color:var(--text-secondary)]" />
+                    ) : (
+                      <Download size={16} strokeWidth={2} aria-hidden />
+                    )}
                   </button>
                 )}
               </li>
