@@ -9,6 +9,7 @@ import { ThirteenthSalaryService } from "@/domain/services/thirteenth-salary.ser
 import { MoneyInput } from "../../../_components/money-input";
 import { BreakdownLine, ResultCard } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToIncomeCta } from "../../_components/sim-to-income-cta";
 
 interface FormValues {
   grossSalaryCents: bigint;
@@ -73,6 +74,14 @@ export function ThirteenthClient({ prefill }: { prefill: { grossSalaryCents: str
         </div>
       </section>
 
+      {salary <= 0n ? (
+        <section className="glass-light p-4 text-center">
+          <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
+            Informe seu salário bruto para calcular o 13º.
+          </p>
+        </section>
+      ) : (
+        <>
       <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -133,6 +142,19 @@ export function ThirteenthClient({ prefill }: { prefill: { grossSalaryCents: str
           </div>
         </div>
       </section>
+
+          {result.netCents > 0n ? (
+            <SimToIncomeCta
+              seed={{
+                amountCents: result.netCents.toString(),
+                frequency: "one_off",
+                label: "13º salário",
+              }}
+              label="Lançar meu 13º na renda"
+            />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

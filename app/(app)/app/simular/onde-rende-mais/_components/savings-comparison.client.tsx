@@ -55,6 +55,16 @@ export function SavingsComparisonClient({ prefill }: { prefill: { amountCents: s
 
   const hasAmount = amount > 0n;
 
+  // Diferença entre o 1º e o 2º colocado. Abaixo de R$1 não há vencedor real:
+  // anunciar "Rende mais" num empate técnico seria um zero oco (falsa confiança).
+  const finalsSorted = [
+    result.poupanca.finalCents,
+    result.cdb.finalCents,
+    result.tesouro.finalCents,
+  ].sort((a, b) => (a > b ? -1 : a < b ? 1 : 0));
+  const tie = (finalsSorted[0] ?? 0n) - (finalsSorted[1] ?? 0n) < 100n;
+  const showBest = hasAmount && !tie;
+
   return (
     <div className="flex flex-col gap-4">
       <section className="glass-light p-4">
@@ -100,29 +110,36 @@ export function SavingsComparisonClient({ prefill }: { prefill: { amountCents: s
       </section>
 
       {hasAmount ? (
-        <section className="grid gap-3 sm:grid-cols-3">
-          <ProductCard
-            label="Poupança"
-            note="Isenta de IR"
-            product={result.poupanca}
-            best={result.best === "poupanca"}
-            bestLabel={LABELS[result.best]}
-          />
-          <ProductCard
-            label="CDB"
-            note={`${cdbPctCdi}% do CDI`}
-            product={result.cdb}
-            best={result.best === "cdb"}
-            bestLabel={LABELS[result.best]}
-          />
-          <ProductCard
-            label="Tesouro Selic"
-            note="~100% CDI + custódia"
-            product={result.tesouro}
-            best={result.best === "tesouro"}
-            bestLabel={LABELS[result.best]}
-          />
-        </section>
+        <>
+          {tie ? (
+            <p className="text-[0.75rem] font-medium text-[color:var(--text-secondary)]">
+              Nesse valor e prazo os três praticamente empatam. A diferença é menos de R$1.
+            </p>
+          ) : null}
+          <section className="grid gap-3 sm:grid-cols-3">
+            <ProductCard
+              label="Poupança"
+              note="Isenta de IR"
+              product={result.poupanca}
+              best={showBest && result.best === "poupanca"}
+              bestLabel={LABELS[result.best]}
+            />
+            <ProductCard
+              label="CDB"
+              note={`${cdbPctCdi}% do CDI`}
+              product={result.cdb}
+              best={showBest && result.best === "cdb"}
+              bestLabel={LABELS[result.best]}
+            />
+            <ProductCard
+              label="Tesouro Selic"
+              note="~100% CDI + custódia"
+              product={result.tesouro}
+              best={showBest && result.best === "tesouro"}
+              bestLabel={LABELS[result.best]}
+            />
+          </section>
+        </>
       ) : (
         <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-6 text-center backdrop-blur-xl">
           <p className="text-[0.875rem] text-[color:var(--text-secondary)]">

@@ -108,7 +108,11 @@ export async function commitOfxImport(
       externalAccountKey: st.accountKey,
     };
     await deps.assets.create(asset);
-    assetId = newId;
+    // Sob corrida de double-commit o create pode ter virado no-op (índice único
+    // por external_account_key); re-busca pela chave para anexar as transações à
+    // conta vencedora em vez de a um id que não foi persistido.
+    const persisted = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+    assetId = persisted?.id ?? newId;
   }
 
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);

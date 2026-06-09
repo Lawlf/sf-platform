@@ -91,6 +91,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
       await queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      await queryClient.invalidateQueries({ queryKey: ["planning", "projection"] });
       router.push("/app/renda");
     });
   }

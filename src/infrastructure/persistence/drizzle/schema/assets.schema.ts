@@ -85,6 +85,12 @@ export const assets = pgTable(
       .where(
         sql`${table.category} = 'cash' and ${table.label} = 'Carteira' and ${table.deletedAt} is null and ${table.deactivatedAt} is null`,
       ),
+    // No máximo uma conta por chave externa (OFX) por usuário. Backstop contra a
+    // corrida de double-commit do import, que duplicava a conta bancária e
+    // dobrava o patrimônio. Parcial: ativos manuais têm external_account_key nulo.
+    externalKeyIdx: uniqueIndex("assets_external_account_key_uniq")
+      .on(table.userId, table.externalAccountKey)
+      .where(sql`${table.externalAccountKey} is not null and ${table.deletedAt} is null`),
   }),
 );
 

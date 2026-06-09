@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { bigint, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { assets } from "./assets.schema";
 import { users } from "./users.schema";
@@ -28,6 +28,12 @@ export const transactions = pgTable(
     byUser: index("transactions_user_idx").on(t.userId),
     byUserOccurred: index("transactions_user_occurred_idx").on(t.userId, t.occurredAt),
     byAccount: index("transactions_account_idx").on(t.accountId),
+    // Backstop de banco contra a corrida de double-commit do import OFX: o mesmo
+    // fitId (external_id) nunca pode entrar duas vezes para o mesmo usuário.
+    // Parcial porque lançamentos manuais têm external_id nulo (sem dedup).
+    uniqExternal: uniqueIndex("transactions_user_external_uniq")
+      .on(t.userId, t.externalId)
+      .where(sql`${t.externalId} is not null`),
   }),
 );
 

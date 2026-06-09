@@ -176,7 +176,12 @@ export class DrizzleAssetRepository implements AssetRepository {
         deactivationReason: asset.deactivationReason,
         deletedAt: asset.deletedAt,
         externalAccountKey: asset.externalAccountKey ?? null,
-      });
+      })
+      // Idempotente: em uma corrida de double-commit do OFX o segundo insert da
+      // mesma conta bancária colide no índice único parcial por
+      // external_account_key e vira no-op (ativos manuais têm chave nula e nunca
+      // colidem). O caller do OFX re-busca pela chave para resolver o id vencedor.
+      .onConflictDoNothing();
   }
 
   async createDefaultWallet(asset: AssetEntity): Promise<void> {

@@ -31,6 +31,8 @@ export interface MoneyInputProps<TFieldValues extends FieldValues> {
   helper?: string;
   currency?: Currency;
   onCurrencyChange?: (currency: Currency) => void;
+  /** Chamado a cada mudança de valor pelo usuário (em centavos), além do form. */
+  onValueChange?: (cents: bigint) => void;
 }
 
 export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputProps<TFieldValues>) {
@@ -47,17 +49,21 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
         const cents = toCents(field.value);
         const display = cents === 0n ? "" : formatCents(cents, currency);
 
+        function commit(next: bigint) {
+          field.onChange(next);
+          props.onValueChange?.(next);
+        }
+
         function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
           if (e.metaKey || e.ctrlKey) return;
           if (e.key === "Backspace") {
             e.preventDefault();
-            const next = cents / 10n;
-            field.onChange(next);
+            commit(cents / 10n);
             return;
           }
           if (e.key === "Delete") {
             e.preventDefault();
-            field.onChange(0n);
+            commit(0n);
             return;
           }
           if (/^[0-9]$/.test(e.key)) {
@@ -65,7 +71,7 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
             const digit = BigInt(e.key);
             const next = cents * 10n + digit;
             if (next > MAX_CENTS) return;
-            field.onChange(next);
+            commit(next);
             return;
           }
           if (
@@ -79,12 +85,12 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
         function handleChange(e: ChangeEvent<HTMLInputElement>) {
           const raw = e.target.value.replace(/[^\d]/g, "");
           if (raw === "") {
-            field.onChange(0n);
+            commit(0n);
             return;
           }
           const next = BigInt(raw);
           if (next > MAX_CENTS) return;
-          field.onChange(next);
+          commit(next);
         }
 
         return (

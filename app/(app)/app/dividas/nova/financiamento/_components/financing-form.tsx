@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
 import type { ReactNode } from "react";
 import { Controller, useForm } from "react-hook-form";
@@ -13,6 +13,7 @@ import { Spinner } from "@/app/components/ui/spinner";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
+import { parseFinancingSeed } from "../../../../simular/_lib/financing-seed";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
@@ -60,6 +61,13 @@ export function FinancingForm({
 }: FinancingFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
+  // Vindo do simulador de financiamento (Price vs SAC): pré-preenche valor, taxa
+  // e prazo no cenário "novo" para a pessoa só conferir e cadastrar.
+  const seed =
+    initialScenario === "new"
+      ? parseFinancingSeed(Object.fromEntries(searchParams.entries()))
+      : null;
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -105,9 +113,9 @@ export function FinancingForm({
             scenario: "new",
             currency: defaultCurrency,
             label: "Financiamento",
-            principalCents: 0n as unknown as bigint,
-            annualRatePct: 0,
-            termMonths: 60,
+            principalCents: (seed ? BigInt(seed.principalCents) : 0n) as unknown as bigint,
+            annualRatePct: seed?.annualRatePct ?? 0,
+            termMonths: seed?.termMonths ?? 60,
             monthlyInstallmentCents: null,
             amortizationMethod: "PRICE",
             monthlyInsuranceCents: null,

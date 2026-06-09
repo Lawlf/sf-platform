@@ -53,7 +53,9 @@ export class GoalProgressService {
 }
 
 function pctOf(current: bigint, target: bigint): number {
-  if (target <= 0n) return current > 0n ? 100 : 0;
+  // Alvo <= 0 significa "não dá para dimensionar" (falta dado), nunca uma meta
+  // concluída. Devolver 100% aqui seria um zero oco se passando por valor real.
+  if (target <= 0n) return 0;
   const p = (Number(current) / Number(target)) * 100;
   return Math.max(0, Math.min(100, p));
 }
@@ -79,6 +81,9 @@ function emergencyFund(goal: GoalEntity, macro: GoalMacro): GoalProgress {
   const months = goal.targetMonths ?? 6;
   const monthlyCostCents =
     goal.monthlyCostCents ?? (macro.monthlyIncomeCents * RESERVE_COST_NUM) / RESERVE_COST_DEN;
+  // Sem custo informado e sem renda para estimar, não há reserva-alvo: pedir o
+  // dado em vez de mostrar 100%/ok oco.
+  if (monthlyCostCents <= 0n) return attention();
   const r = EmergencyFundService.simulate({
     monthlyCostCents,
     currentReserveCents: macro.cashReserveCents,
@@ -95,18 +100,25 @@ function emergencyFund(goal: GoalEntity, macro: GoalMacro): GoalProgress {
 function savings(goal: GoalEntity, macro: GoalMacro): GoalProgress {
   const target = goal.targetCents ?? 0n;
   const current = goal.manualSavedCents ?? 0n;
+  // Sem alvo definido não há como medir progresso: pedir o dado.
+  if (target <= 0n) return attention();
   const reached = target > 0n && current >= target;
   const etaMonths = reached ? 0 : monthsToReachTarget(current, macro.contributionCents, target, DEFAULT_SAVINGS_RATE_PCT);
   return { currentCents: current, targetCents: target, pct: pctOf(current, target), reached, etaMonths, needsAttention: false };
 }
 
 function financialIndependence(goal: GoalEntity, macro: GoalMacro): GoalProgress {
+  // Sem custo de vida informado não há alvo de liberdade: pedir o dado em vez
+  // de mostrar "já livre" oco.
+  if ((goal.monthlyCostCents ?? 0n) <= 0n) return attention();
   const r = FinancialIndependenceService.simulate({
     currentInvestedCents: macro.investedCents,
     monthlyContributionCents: macro.contributionCents,
     monthlyCostOfLivingCents: goal.monthlyCostCents ?? 0n,
     realAnnualReturnPct: goal.realReturnPct ?? 4,
   });
+  // Cenário inviável (retorno real <= 0): não há alvo, sinaliza atenção.
+  if (!r.feasible) return attention();
   return {
     currentCents: macro.investedCents, targetCents: r.targetCents,
     pct: pctOf(macro.investedCents, r.targetCents),

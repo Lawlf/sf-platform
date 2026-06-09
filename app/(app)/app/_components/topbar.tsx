@@ -41,6 +41,44 @@ const SEGMENT_LABELS: Record<string, string> = {
   recorrente: "Conta recorrente",
 };
 
+// Títulos dos simuladores só valem quando o segmento anterior é "simular": vários
+// slugs (financiamento, compra, meta, extra, reserva, margem) colidem com rotas
+// de dívida/patrimônio e teriam o rótulo errado se entrassem no mapa global.
+const SIM_SEGMENT_LABELS: Record<string, string> = {
+  independencia: "Independência financeira",
+  meta: "Meta de investimento",
+  "juros-compostos": "Juros compostos",
+  "onde-rende-mais": "Onde rende mais?",
+  reserva: "Reserva de emergência",
+  quitacao: "Projeção de quitação",
+  extra: "Pagar extra",
+  rotativo: "Custo do rotativo",
+  estrategia: "Qual dívida pagar primeiro",
+  "divida-vs-investir": "Quitar dívida ou investir?",
+  financiamento: "Financiamento: Price ou SAC?",
+  "salario-clt": "Salário líquido CLT",
+  "decimo-terceiro": "13º salário líquido",
+  ferias: "Férias líquidas",
+  rescisao: "Rescisão",
+  "clt-vs-pj": "CLT ou PJ?",
+  "valor-hora": "Valor da sua hora",
+  margem: "Preço e lucro por venda",
+  ebitda: "Caixa da operação (EBITDA)",
+  compra: "Vale a pena comprar?",
+  "avista-parcelado": "À vista ou parcelado?",
+  "conversor-juros": "Conversor de juros",
+  "regra-de-tres": "Regra de três",
+};
+
+// Fallback para qualquer segmento sem rótulo: troca hífens por espaços e dá
+// caixa-alta inicial, evitando que o slug cru (ex: "foo-bar") apareça na trilha.
+function prettifySegment(seg: string): string {
+  return seg
+    .split("-")
+    .map((w) => (w ? w[0]!.toUpperCase() + w.slice(1) : w))
+    .join(" ");
+}
+
 function buildBreadcrumb(pathname: string): Array<{ label: string; href: string }> {
   const segments = pathname.split("/").filter(Boolean);
   if (segments[0] !== "app") return [];
@@ -56,7 +94,11 @@ function buildBreadcrumb(pathname: string): Array<{ label: string; href: string 
     acc += `/${seg}`;
     if ((seg === "nova" || seg === "novo") && i < rest.length - 1) continue;
     if (/^[0-9a-f-]{30,}$/i.test(seg)) continue;
-    const label = SEGMENT_LABELS[seg] ?? seg;
+    const inSimulator = rest[i - 1] === "simular";
+    const label =
+      (inSimulator ? SIM_SEGMENT_LABELS[seg] : undefined) ??
+      SEGMENT_LABELS[seg] ??
+      prettifySegment(seg);
     items.push({ label, href: acc });
   }
   return items;

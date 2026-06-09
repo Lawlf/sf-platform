@@ -88,7 +88,7 @@ export function DebtVsInvestClient({ debts }: { debts: DebtItem[] }) {
             name="amountCents"
             label="Quantia disponível"
             required
-            helper="O dinheiro que você tem pra decidir: amortizar ou investir."
+            helper="O dinheiro que você tem pra decidir: abater a dívida ou investir."
           />
 
           <SimSlider
@@ -112,22 +112,32 @@ export function DebtVsInvestClient({ debts }: { debts: DebtItem[] }) {
         </div>
       </section>
 
-      <VerdictHero result={result} horizon={horizon} />
+      {amountCents <= 0n ? (
+        <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-6 text-center backdrop-blur-xl">
+          <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
+            Informe a quantia disponível para comparar quitar e investir.
+          </p>
+        </section>
+      ) : (
+        <>
+          <VerdictHero result={result} horizon={horizon} />
 
-      <section className="grid gap-3 sm:grid-cols-2">
-        <ResultCard title="Se quitar a dívida" subtitle="Juros que você evita">
-          <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
-            {brl(result.debtInterestSavedCents)}
-          </div>
-          <ResultStat label="Juro da dívida" value={`${debtRate.toFixed(1)}% a.a.`} />
-        </ResultCard>
-        <ResultCard title="Se investir" subtitle="Rendimento no período">
-          <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
-            {brl(result.investEarnedCents)}
-          </div>
-          <ResultStat label="Rende" value={`${investRate.toFixed(1)}% a.a.`} />
-        </ResultCard>
-      </section>
+          <section className="grid gap-3 sm:grid-cols-2">
+            <ResultCard title="Se quitar a dívida" subtitle="Juros que você evita">
+              <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
+                {brl(result.debtInterestSavedCents)}
+              </div>
+              <ResultStat label="Juro da dívida" value={`${debtRate.toFixed(1)}% a.a.`} />
+            </ResultCard>
+            <ResultCard title="Se investir" subtitle="Rendimento no período">
+              <div className="text-[1.375rem] font-extrabold leading-none text-[color:var(--text-primary)]">
+                {brl(result.investEarnedCents)}
+              </div>
+              <ResultStat label="Rende" value={`${investRate.toFixed(1)}% a.a.`} />
+            </ResultCard>
+          </section>
+        </>
+      )}
     </div>
   );
 }

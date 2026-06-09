@@ -9,7 +9,10 @@ import type { SubscriptionRepository } from "@/domain/ports/repositories/subscri
 import { getDb } from "../client";
 import { type SubscriptionRow, subscriptions } from "../schema/subscriptions.schema";
 
-const ACTIVE_STATUSES = ["active", "past_due", "incomplete"] as const;
+// `incomplete` (pagamento ainda não confirmado, ex.: 3DS/SCA pendente) NÃO
+// conta como ativo, alinhando com `isSubscriptionActive`. Caso contrário um
+// checkout pendente bloquearia novo checkout e fingiria acesso.
+const ACTIVE_STATUSES = ["active", "past_due"] as const;
 
 function toEntity(row: SubscriptionRow): Subscription {
   return {

@@ -8,6 +8,7 @@ import { FinancingComparisonService } from "@/domain/services/financing-comparis
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultHighlight, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToFinancingCta } from "../../_components/sim-to-financing-cta";
 
 const DEFAULT_RATE = 11; // % a.a.
 const DEFAULT_TERM = 360; // meses (imóvel)
@@ -117,6 +118,16 @@ export function FinancingComparisonClient() {
             O SAC paga <strong>{brl(result.interestSavedBySacCents)}</strong> a menos de juros, mas a
             primeira parcela é mais alta. O Price tem parcela fixa, mais fácil de planejar.
           </ResultHighlight>
+
+          {principal > 0n ? (
+            <SimToFinancingCta
+              seed={{
+                principalCents: principal.toString(),
+                annualRatePct,
+                termMonths,
+              }}
+            />
+          ) : null}
         </>
       ) : (
         <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-6 text-center backdrop-blur-xl">

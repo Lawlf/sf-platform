@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useState, useTransition } from "react";
+import { useId, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -139,6 +139,25 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
     },
   });
 
+  // Cartão tem "Saldo devedor atual" e "Fatura atual", que para quem paga a
+  // fatura inteira (sem rotativo) são o mesmo número. Enquanto estiverem em
+  // sincronia, editar o saldo espelha na fatura, evitando digitar 2x. Se a pessoa
+  // deixar os dois diferentes (tem rotativo), o link quebra e cada um fica solto.
+  const initBalance = defaults.currentBalanceCents ? BigInt(defaults.currentBalanceCents) : 0n;
+  const initStatement = defaults.currentStatementCents ? BigInt(defaults.currentStatementCents) : 0n;
+  const statementCustomizedRef = useRef(initStatement > 0n && initStatement !== initBalance);
+
+  function handleBalanceChange(nextBalance: bigint) {
+    if (kind !== "credit_card" || statementCustomizedRef.current) return;
+    form.setValue("currentStatementCents", nextBalance, { shouldValidate: true });
+  }
+
+  function handleStatementChange(nextStatement: bigint) {
+    if (kind !== "credit_card") return;
+    const balance = (form.getValues("currentBalanceCents") as bigint | null) ?? 0n;
+    statementCustomizedRef.current = nextStatement !== balance;
+  }
+
   async function onSubmit(v: FormValues) {
     setServerError(null);
     const fd = new FormData();
@@ -245,6 +264,7 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
             label="Saldo devedor atual"
             helper="Valor que ainda falta pagar."
             currency={currency}
+            onValueChange={handleBalanceChange}
           />
         </section>
       ) : null}
@@ -301,7 +321,9 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
             control={form.control}
             name="currentStatementCents"
             label="Fatura atual"
+            helper="Para quem paga a fatura toda, é igual ao saldo devedor. Tem rotativo? Ponha só o deste mês."
             currency={currency}
+            onValueChange={handleStatementChange}
           />
           <div className="grid grid-cols-2 gap-2">
             <WizardField label="Dia de fechamento" htmlFor={statementDayId}>

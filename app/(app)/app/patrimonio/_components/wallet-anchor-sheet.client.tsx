@@ -76,6 +76,7 @@ export function WalletAnchorSheet({ open, mode, initialCents, onOpenChange }: Pr
         queryClient.invalidateQueries({ queryKey: ["netWorth"] }),
         queryClient.invalidateQueries({ queryKey: ["assetsWithAllocations"] }),
         queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+        queryClient.invalidateQueries({ queryKey: ["planning", "projection"] }),
       ]);
       toast.success(mode === "capture" ? "Saldo informado." : "Saldo atualizado.");
       onOpenChange(false);

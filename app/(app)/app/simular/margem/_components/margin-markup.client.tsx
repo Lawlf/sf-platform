@@ -138,8 +138,14 @@ export function MarginMarkupClient() {
               </ResultCard>
             </section>
             <p className="glass-light p-4 text-[0.8125rem] text-[color:var(--text-secondary)]">
-              Lucro por venda:{" "}
-              <strong className="text-[color:var(--semantic-positive)]">
+              {analyze.profitCents < 0n ? "Prejuízo por venda" : "Lucro por venda"}:{" "}
+              <strong
+                className={
+                  analyze.profitCents < 0n
+                    ? "text-[color:var(--semantic-negative)]"
+                    : "text-[color:var(--semantic-positive)]"
+                }
+              >
                 {brl(analyze.profitCents)}
               </strong>
               .

@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { PiggyBank } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -18,6 +19,7 @@ import {
 
 import { MoneyInput } from "../../../_components/money-input";
 import { recordContributionAction } from "../../_actions/goal-actions";
+import { invalidateContributionCaches } from "../../_lib/invalidate";
 
 interface FormValues {
   amountCents: bigint;
@@ -31,6 +33,7 @@ interface ContributionSheetProps {
 
 export function ContributionSheet({ goalId, variant, hasReserve }: ContributionSheetProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -61,6 +64,7 @@ export function ContributionSheet({ goalId, variant, hasReserve }: ContributionS
     toast.success(successMessage);
     form.reset({ amountCents: 0n });
     setOpen(false);
+    await invalidateContributionCaches(queryClient);
     router.refresh();
   }
 
