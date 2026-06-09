@@ -69,6 +69,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-hook-form": "^7.76.0",
+    "react-zoom-pan-pinch": "^4.0.3",
     "recharts": "^3.8.1",
     "resend": "^6.12.3",
     "serwist": "^9.5.11",

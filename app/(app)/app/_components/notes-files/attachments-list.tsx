@@ -351,6 +351,9 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
         <ImageLightbox
           attachmentId={activeItem.id}
           fileName={activeItem.fileName}
+          contentType={activeItem.contentType}
+          sizeBytes={activeItem.sizeBytes}
+          createdAtIso={activeItem.createdAt}
           open={activeSheet === "lightbox"}
           onClose={closeSheet}
         />
