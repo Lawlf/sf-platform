@@ -36,6 +36,8 @@ const cspDirectives: Record<string, string[]> = {
     "https://us.posthog.com",
     "https://us.i.posthog.com",
     "https://us-assets.i.posthog.com",
+    // Upload/download de anexos vai direto pro R2 via URL assinada (presigned).
+    "https://*.r2.cloudflarestorage.com",
   ],
   "frame-ancestors": ["'none'"],
   "base-uri": ["'self'"],

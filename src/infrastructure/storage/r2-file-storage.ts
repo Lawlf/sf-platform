@@ -19,6 +19,10 @@ function getClient(): { s3: S3Client; bucket: string } {
       region: "auto",
       endpoint: `https://${cfg.accountId}.r2.cloudflarestorage.com`,
       credentials: { accessKeyId: cfg.accessKey, secretAccessKey: cfg.secret },
+      // R2 não suporta o checksum que o SDK v3 injeta por padrão no PUT; com URL
+      // assinada consumida pelo fetch do browser isso vira 403 SignatureDoesNotMatch.
+      requestChecksumCalculation: "WHEN_REQUIRED",
+      responseChecksumValidation: "WHEN_REQUIRED",
     });
     bucket = cfg.bucket;
   }
