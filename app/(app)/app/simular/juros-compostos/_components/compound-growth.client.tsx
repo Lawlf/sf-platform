@@ -9,6 +9,7 @@ import { CompoundGrowthService } from "@/domain/services/compound-growth.service
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 
 const DEFAULT_RATE = 10; // % a.a. nominal (CDI aproximado).
 const DEFAULT_YEARS = 10;
@@ -146,8 +147,25 @@ export function CompoundGrowthClient({ prefill }: PrefillProps) {
           </div>
         </ResultCard>
       </section>
+
+      {result.finalCents > 0n ? (
+        <SimToGoalCta
+          seed={{
+            type: "savings",
+            targetCents: result.finalCents.toString(),
+            savedCents: initial.toString(),
+            deadlineIso: deadlineFromYears(years),
+          }}
+        />
+      ) : null}
     </div>
   );
+}
+
+function deadlineFromYears(years: number): string {
+  const d = new Date();
+  d.setFullYear(d.getFullYear() + years);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function normalizeCents(value: unknown): bigint {

@@ -104,6 +104,38 @@ describe("GoalProgressService.compute", () => {
     expect(r.etaMonths).toBeNull();
   });
 
+  it("emergency_fund: sem custo e sem renda -> needsAttention, nunca 100%/ok", () => {
+    const semDado: GoalMacro = { ...macro, monthlyIncomeCents: 0n, cashReserveCents: 500_00n };
+    const goal: GoalEntity = { ...baseGoal, type: "emergency_fund", targetMonths: 6 };
+    const r = GoalProgressService.compute(goal, semDado);
+    expect(r.needsAttention).toBe(true);
+    expect(r.reached).toBe(false);
+    expect(r.pct).toBe(0);
+    expect(r.etaMonths).toBeNull();
+  });
+
+  it("financial_independence: sem custo informado -> needsAttention, nunca 'já livre'", () => {
+    const goal: GoalEntity = { ...baseGoal, type: "financial_independence", monthlyCostCents: null, realReturnPct: 4 };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(r.needsAttention).toBe(true);
+    expect(r.reached).toBe(false);
+    expect(r.pct).toBe(0);
+  });
+
+  it("financial_independence: retorno real 0% -> needsAttention (inviável), sem alvo 1000x", () => {
+    const goal: GoalEntity = { ...baseGoal, type: "financial_independence", monthlyCostCents: 2_000_00n, realReturnPct: 0 };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(r.needsAttention).toBe(true);
+    expect(r.reached).toBe(false);
+  });
+
+  it("savings sem alvo (target 0) -> needsAttention, nunca falso reached", () => {
+    const goal: GoalEntity = { ...baseGoal, type: "savings", fundingMode: "manual", manualSavedCents: 1_000_00n, targetCents: null };
+    const r = GoalProgressService.compute(goal, macro);
+    expect(r.needsAttention).toBe(true);
+    expect(r.reached).toBe(false);
+  });
+
   it("savings linked: progresso vem de manualSavedCents independente de fundingMode", () => {
     const goal: GoalEntity = {
       ...baseGoal,

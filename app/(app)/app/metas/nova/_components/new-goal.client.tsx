@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, ArrowLeft, ChevronDown } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
@@ -17,6 +18,7 @@ import type { GoalSeed } from "../../../simular/_lib/goal-seed";
 import type { SimPrefill } from "../../../simular/_lib/sim-prefill";
 import { createGoalAction, updateGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoal } from "../../_actions/goal-queries";
+import { invalidateGoalCaches } from "../../_lib/invalidate";
 
 export interface DebtOption {
   id: string;
@@ -522,6 +524,7 @@ function toPatch(input: Parameters<typeof createGoalAction>[0]) {
 
 export function NewGoal({ prefill, debts, assets, seed, mode = "create", existingGoal }: NewGoalProps) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const isEdit = mode === "edit" && existingGoal != null;
   const [step, setStep] = useState<1 | 2>(isEdit || seed?.type ? 2 : 1);
   const [goalType, setGoalType] = useState<GoalTypeChoice | null>(
@@ -550,6 +553,7 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
         const res = await updateGoalAction(existingGoal.id, toPatch(input));
         setLoading(false);
         if (res.ok) {
+          await invalidateGoalCaches(queryClient);
           router.push(`/app/metas/${existingGoal.id}` as Route);
         } else {
           setSubmitError(res.message ?? "Erro ao salvar meta. Tente novamente.");
@@ -558,6 +562,7 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
         const result = await createGoalAction(input);
         setLoading(false);
         if (result.ok && result.goalId) {
+          await invalidateGoalCaches(queryClient);
           router.push(`/app/metas/${result.goalId}` as Route);
         } else {
           setSubmitError(result.message ?? "Erro ao criar meta. Tente novamente.");

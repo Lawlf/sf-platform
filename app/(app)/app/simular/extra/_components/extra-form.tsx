@@ -17,6 +17,7 @@ import {
   ResultStat,
   simSelectClass,
 } from "../../_components/sim-result";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 import { runExtraAction, type ExtraActionResult } from "../_actions/run-extra.action";
 
 const formSchema = z.object({
@@ -121,6 +122,22 @@ export function ExtraForm({
               Pagando o extra você quita <strong>{result.monthsSaved}</strong> meses antes e economiza{" "}
               <strong>{result.interestSavedFormatted}</strong> em juros.
             </ResultHighlight>
+            {(() => {
+              const debtId = form.getValues("debtId");
+              if (!debtId) return null;
+              const ritmo =
+                (form.getValues("monthlyPaymentCents") ?? 0n) +
+                (form.getValues("extraPaymentCents") ?? 0n);
+              return (
+                <SimToGoalCta
+                  seed={{
+                    type: "debt_payoff",
+                    debtId,
+                    ...(ritmo > 0n ? { monthlyContributionCents: ritmo.toString() } : {}),
+                  }}
+                />
+              );
+            })()}
           </section>
         ) : (
           <ResultError message={result.message} />

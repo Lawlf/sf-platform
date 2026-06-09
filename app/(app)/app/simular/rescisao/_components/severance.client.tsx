@@ -9,6 +9,7 @@ import { SeveranceService } from "@/domain/services/severance.service";
 import { MoneyInput } from "../../../_components/money-input";
 import { BreakdownLine } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToIncomeCta } from "../../_components/sim-to-income-cta";
 
 interface FormValues {
   grossSalaryCents: bigint;
@@ -114,6 +115,14 @@ export function SeveranceClient({ prefill }: { prefill: { grossSalaryCents: stri
         </div>
       </section>
 
+      {salary <= 0n ? (
+        <section className="glass-light p-4 text-center">
+          <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
+            Informe seu salário bruto para estimar a rescisão.
+          </p>
+        </section>
+      ) : (
+        <>
       <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -171,11 +180,24 @@ export function SeveranceClient({ prefill }: { prefill: { grossSalaryCents: stri
         </div>
       </section>
 
+      {result.totalWithFgtsCents > 0n ? (
+        <SimToIncomeCta
+          seed={{
+            amountCents: result.totalWithFgtsCents.toString(),
+            frequency: "one_off",
+            label: "Rescisão",
+          }}
+          label="Lançar a rescisão na renda"
+        />
+      ) : null}
+
       <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
         Estimativa para demissão sem justa causa. Aviso prévio e férias indenizadas são isentos de
         INSS e IR; o 13º é tributado em separado. Verbas vencidas e descontos específicos do contrato
         podem mudar o valor.
       </p>
+        </>
+      )}
     </div>
   );
 }

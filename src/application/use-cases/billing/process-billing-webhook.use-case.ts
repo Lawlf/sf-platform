@@ -177,10 +177,16 @@ async function handleCheckoutCompleted(
     console.error("[webhook] initial payment fetch failed (non-blocking):", e);
   }
 
-  await activatePro(
-    { users: deps.users, email: deps.email, clock: deps.clock, appUrl: deps.appUrl },
-    data.userId,
-  );
+  // Só libera Pro quando o pagamento está confirmado (status active). Para
+  // cartão/wallet/link o checkout já volta active; um eventual `incomplete`
+  // (3DS/SCA pendente) é liberado depois pelo handleSubscriptionUpdated quando
+  // virar active, evitando conceder Pro antes de o dinheiro entrar.
+  if (snapshot.status === "active") {
+    await activatePro(
+      { users: deps.users, email: deps.email, clock: deps.clock, appUrl: deps.appUrl },
+      data.userId,
+    );
+  }
 }
 
 const LIFETIME_PERIOD_END = new Date("2099-12-31T23:59:59Z");
@@ -422,6 +428,16 @@ async function handleSubscriptionUpdated(
   sub.endedAt = snapshot.endedAt;
   sub.updatedAt = deps.clock.now();
   await deps.subscriptions.save(sub);
+
+  // Confirma o acesso quando a assinatura passa a ativa (ex.: 3DS/SCA concluído
+  // depois do checkout, ou reativação). `activatePro` é idempotente: só grava e
+  // manda boas-vindas na transição free->pro, então chamar a cada update é seguro.
+  if (snapshot.status === "active") {
+    await activatePro(
+      { users: deps.users, email: deps.email, clock: deps.clock, appUrl: deps.appUrl },
+      sub.userId,
+    );
+  }
 
   if (!wasScheduledForCancel && snapshot.cancelAtPeriodEnd) {
     const user = await deps.users.findById(sub.userId);

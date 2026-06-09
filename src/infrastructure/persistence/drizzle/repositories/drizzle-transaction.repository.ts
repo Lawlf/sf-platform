@@ -50,10 +50,33 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
 
 export class DrizzleTransactionRepository implements TransactionRepository {
   async create(transaction: Omit<TransactionEntity, "createdAt">): Promise<TransactionEntity> {
-    const rows = await getDb().insert(transactions).values(entityToRow(transaction)).returning();
+    // Idempotente no índice parcial (user_id, external_id): em uma corrida de
+    // double-commit do OFX o segundo insert do mesmo fitId vira no-op em vez de
+    // duplicar. Lançamentos manuais (external_id nulo) não batem no índice e
+    // seguem o insert normal.
+    const rows = await getDb()
+      .insert(transactions)
+      .values(entityToRow(transaction))
+      .onConflictDoNothing()
+      .returning();
     const row = rows[0];
-    if (!row) throw new Error("Failed to insert transaction");
-    return rowToEntity(row);
+    if (row) return rowToEntity(row);
+    // Conflito: a transação já existe (corrida). Devolve a existente para o
+    // caller seguir sem erro.
+    if (transaction.externalId) {
+      const existing = await getDb()
+        .select()
+        .from(transactions)
+        .where(
+          and(
+            eq(transactions.userId, transaction.userId),
+            eq(transactions.externalId, transaction.externalId),
+          ),
+        )
+        .limit(1);
+      if (existing[0]) return rowToEntity(existing[0]);
+    }
+    throw new Error("Failed to insert transaction");
   }
 
   async update(transaction: TransactionEntity): Promise<TransactionEntity> {

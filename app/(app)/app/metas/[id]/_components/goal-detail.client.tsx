@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import { Archive, Crown, Lock, Pencil, SlidersHorizontal, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -25,6 +26,7 @@ import { HideableValue } from "../../../_components/money-visibility/hideable-va
 import { ResultCard, ResultStat } from "../../../simular/_components/sim-result";
 import { archiveGoalAction, deleteGoalAction } from "../../_actions/goal-actions";
 import type { SerializedGoalDetail } from "../../_actions/goal-queries";
+import { invalidateGoalCaches } from "../../_lib/invalidate";
 
 import { ContributionSheet } from "./contribution-sheet.client";
 import { ContributionsList } from "./contributions-list.client";
@@ -65,6 +67,7 @@ const SIM_ROUTE: Record<string, Route> = {
 export function GoalDetail({ detail }: GoalDetailProps) {
   const { goal, progress, etaLocked, snapshots, contributions } = detail;
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [archiving, setArchiving] = useState(false);
   const [deleting, setDeleting] = useState(false);
 
@@ -80,6 +83,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
     const result = await archiveGoalAction(goal.id);
     setArchiving(false);
     if (result.ok) {
+      await invalidateGoalCaches(queryClient);
       router.push("/app/metas" as Route);
     }
   }
@@ -89,6 +93,7 @@ export function GoalDetail({ detail }: GoalDetailProps) {
     const result = await deleteGoalAction(goal.id);
     setDeleting(false);
     if (result.ok) {
+      await invalidateGoalCaches(queryClient);
       router.push("/app/metas" as Route);
     }
   }

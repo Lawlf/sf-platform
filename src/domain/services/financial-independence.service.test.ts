@@ -53,6 +53,30 @@ describe("FinancialIndependenceService.simulate", () => {
     expect(r.monthsToFreedom).toBe(0);
   });
 
+  it("marks the scenario infeasible at 0% real return instead of inflating the target 1000x", () => {
+    const r = FinancialIndependenceService.simulate({
+      currentInvestedCents: 0n,
+      monthlyContributionCents: 1000_00n,
+      monthlyCostOfLivingCents: 5000_00n,
+      realAnnualReturnPct: 0,
+    });
+    expect(r.feasible).toBe(false);
+    expect(r.alreadyFree).toBe(false);
+    expect(r.monthsToFreedom).toBeNull();
+    // não pode devolver um alvo "real" derivado de um piso silencioso de 0,1%.
+    expect(Number(r.targetCents)).toBeLessThan(60_000_000_00);
+  });
+
+  it("keeps positive real-return scenarios feasible", () => {
+    const r = FinancialIndependenceService.simulate({
+      currentInvestedCents: 0n,
+      monthlyContributionCents: 1000_00n,
+      monthlyCostOfLivingCents: 2000_00n,
+      realAnnualReturnPct: 4,
+    });
+    expect(r.feasible).toBe(true);
+  });
+
   it("returns null months when contributions and wealth cannot reach the target", () => {
     const r = FinancialIndependenceService.simulate({
       currentInvestedCents: 0n,

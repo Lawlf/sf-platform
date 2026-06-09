@@ -45,6 +45,7 @@ export function DeleteIncomeButton({ incomeId, label }: DeleteIncomeButtonProps)
         queryClient.invalidateQueries({ queryKey: queryKeys.incomes }),
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
         queryClient.invalidateQueries({ queryKey: ["timeline"] }),
+        queryClient.invalidateQueries({ queryKey: ["planning", "projection"] }),
         queryClient.invalidateQueries({ queryKey: ["notifications"] }),
       ]);
       setOpen(false);

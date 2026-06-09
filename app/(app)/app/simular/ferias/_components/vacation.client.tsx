@@ -9,6 +9,7 @@ import { VacationPayService } from "@/domain/services/vacation-pay.service";
 import { MoneyInput } from "../../../_components/money-input";
 import { BreakdownLine } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToIncomeCta } from "../../_components/sim-to-income-cta";
 
 interface FormValues {
   grossSalaryCents: bigint;
@@ -73,6 +74,14 @@ export function VacationClient({ prefill }: { prefill: { grossSalaryCents: strin
         </div>
       </section>
 
+      {salary <= 0n ? (
+        <section className="glass-light p-4 text-center">
+          <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
+            Informe seu salário bruto para calcular as férias.
+          </p>
+        </section>
+      ) : (
+        <>
       <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -97,7 +106,7 @@ export function VacationClient({ prefill }: { prefill: { grossSalaryCents: strin
         <div className="flex flex-col">
           <BreakdownLine label="Salário dos dias" value={brl(result.vacationBaseCents)} />
           <BreakdownLine
-            label="Terço constitucional (1/3)"
+            label="Adicional de 1/3 (terço de férias)"
             value={`+ ${brl(result.oneThirdCents)}`}
             tone="positive"
           />
@@ -126,6 +135,19 @@ export function VacationClient({ prefill }: { prefill: { grossSalaryCents: strin
           </div>
         </div>
       </section>
+
+          {result.netCents > 0n ? (
+            <SimToIncomeCta
+              seed={{
+                amountCents: result.netCents.toString(),
+                frequency: "one_off",
+                label: "Férias",
+              }}
+              label="Lançar minhas férias na renda"
+            />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

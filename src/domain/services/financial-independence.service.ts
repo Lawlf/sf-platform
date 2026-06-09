@@ -10,6 +10,12 @@ export interface FinancialIndependenceInput {
 }
 
 export interface FinancialIndependenceResult {
+  /**
+   * Falso quando o cenário não fecha por construção (retorno real <= 0): sem
+   * rendimento real positivo a retirada perpétua exige capital infinito, então
+   * não devolvemos um alvo "real". A UI deve pedir um retorno real acima de zero.
+   */
+  feasible: boolean;
   /** Patrimônio-alvo: custo anual / taxa real (retirada perpétua, regra dos 4%). */
   targetCents: bigint;
   /** Verdadeiro quando o patrimônio atual já cobre o alvo. */
@@ -25,8 +31,6 @@ export interface FinancialIndependenceResult {
 }
 
 const MAX_MONTHS = 1200; // 100 anos: horizonte máximo da projeção.
-// Piso da taxa real para não dividir por zero ao calcular o alvo perpétuo.
-const MIN_REAL_RETURN_PCT = 0.1;
 
 /**
  * Serviço puro para o simulador de Independência Financeira.
@@ -43,16 +47,31 @@ const MIN_REAL_RETURN_PCT = 0.1;
  */
 export class FinancialIndependenceService {
   static simulate(input: FinancialIndependenceInput): FinancialIndependenceResult {
-    const r = Math.max(input.realAnnualReturnPct, MIN_REAL_RETURN_PCT) / 100;
+    const r = input.realAnnualReturnPct / 100;
     const current = centsToReais(input.currentInvestedCents);
     const contribution = centsToReais(input.monthlyContributionCents);
     const monthlyCost = centsToReais(input.monthlyCostOfLivingCents);
+
+    // Sem retorno real positivo a retirada perpétua não fecha: não inventamos um
+    // alvo (antes um piso silencioso de 0,1% inflava o alvo em até 1000x).
+    if (r <= 0) {
+      return {
+        feasible: false,
+        targetCents: 0n,
+        alreadyFree: false,
+        monthsToFreedom: null,
+        projectedCents: input.currentInvestedCents,
+        totalContributedCents: 0n,
+        totalGrowthCents: 0n,
+      };
+    }
 
     const targetReais = (monthlyCost * 12) / r;
     const targetCents = reaisToCents(targetReais);
 
     if (current >= targetReais) {
       return {
+        feasible: true,
         targetCents,
         alreadyFree: true,
         monthsToFreedom: 0,
@@ -79,6 +98,7 @@ export class FinancialIndependenceService {
     const totalGrowthCents = projectedCents - input.currentInvestedCents - totalContributedCents;
 
     return {
+      feasible: true,
       targetCents,
       alreadyFree: false,
       monthsToFreedom,

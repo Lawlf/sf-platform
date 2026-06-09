@@ -9,6 +9,7 @@ import { CltNetSalaryService } from "@/domain/services/clt-net-salary.service";
 import { MoneyInput } from "../../../_components/money-input";
 import { BreakdownLine } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
+import { SimToIncomeCta } from "../../_components/sim-to-income-cta";
 
 interface FormValues {
   grossCents: bigint;
@@ -79,24 +80,32 @@ export function CltSalaryClient({ prefill }: PrefillProps) {
         </div>
       </section>
 
-      <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
-              Salário líquido
-            </span>
-            <div className="mt-1 text-[1.625rem] font-extrabold leading-none md:text-[1.875rem]">
-              {brl(result.netCents)}
+      {gross <= 0n ? (
+        <section className="glass-light p-4 text-center">
+          <p className="text-[0.875rem] text-[color:var(--text-secondary)]">
+            Informe seu salário bruto para ver quanto cai na conta.
+          </p>
+        </section>
+      ) : (
+        <>
+          <section className="rounded-2xl bg-[linear-gradient(135deg,#16a34a,#22c55e)] p-4 text-white shadow-[0_14px_32px_rgba(22,163,74,0.30)]">
+            <div className="flex items-center justify-between gap-3">
+              <div>
+                <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-white/85">
+                  Salário líquido
+                </span>
+                <div className="mt-1 text-[1.625rem] font-extrabold leading-none md:text-[1.875rem]">
+                  {brl(result.netCents)}
+                </div>
+                <p className="mt-2 text-[0.75rem] font-medium text-white/85">
+                  É o que de fato cai na sua conta todo mês.
+                </p>
+              </div>
+              <Wallet size={38} strokeWidth={1.5} className="shrink-0 text-white/85" aria-hidden />
             </div>
-            <p className="mt-2 text-[0.75rem] font-medium text-white/85">
-              É o que de fato cai na sua conta todo mês.
-            </p>
-          </div>
-          <Wallet size={38} strokeWidth={1.5} className="shrink-0 text-white/85" aria-hidden />
-        </div>
-      </section>
+          </section>
 
-      <section className="glass-light p-4">
+          <section className="glass-light p-4">
         <h3 className="mb-3 text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
           De onde saem os descontos
         </h3>
@@ -129,11 +138,23 @@ export function CltSalaryClient({ prefill }: PrefillProps) {
           </div>
         </div>
         <p className="mt-3 text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-          Imposto calculado pelo {result.usedSimplifiedDeduction ? "desconto simplificado" : "modelo de deduções legais"}
-          {result.usedSimplifiedDeduction ? "" : " (INSS + dependentes)"}, o que deixa você pagar menos. Base do IR:{" "}
-          {brl(result.irrfBaseCents)}.
+          A gente calculou o IR pelo jeito que te faz pagar menos imposto. Sobre {brl(result.irrfBaseCents)}{" "}
+          é que incide a alíquota.
         </p>
-      </section>
+          </section>
+
+          {result.netCents > 0n ? (
+            <SimToIncomeCta
+              seed={{
+                amountCents: result.netCents.toString(),
+                frequency: "monthly",
+                label: "Salário",
+              }}
+              label="Usar como minha renda mensal"
+            />
+          ) : null}
+        </>
+      )}
     </div>
   );
 }

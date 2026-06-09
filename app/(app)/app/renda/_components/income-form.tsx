@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -14,6 +14,7 @@ import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../_components/money-input";
 import { queryKeys } from "../../_lib/query-keys";
+import { parseIncomeSeed } from "../../simular/_lib/income-seed";
 import { createIncomeAction } from "../_actions/create-income.action";
 
 const formSchema = z.object({
@@ -39,16 +40,21 @@ const labelClass =
 export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+
+  // Vindo de um simulador (ex: salário-CLT, 13º, férias, rescisão): pré-preenche
+  // valor/frequência/rótulo para a pessoa só conferir e salvar.
+  const seed = parseIncomeSeed(Object.fromEntries(searchParams.entries()));
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "",
-      amountCents: 0n as unknown as bigint,
+      label: seed?.label ?? "",
+      amountCents: (seed ? BigInt(seed.amountCents) : 0n) as unknown as bigint,
       currency: defaultCurrency,
-      frequency: "monthly",
+      frequency: seed?.frequency ?? "monthly",
       startDate: TODAY,
       endDate: null,
       paymentDay: 5,
@@ -81,6 +87,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
       await queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      await queryClient.invalidateQueries({ queryKey: ["planning", "projection"] });
       router.push("/app/renda");
     });
   }

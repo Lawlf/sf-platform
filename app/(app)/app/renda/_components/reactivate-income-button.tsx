@@ -25,6 +25,7 @@ export function ReactivateIncomeButton({ incomeId, label }: { incomeId: string; 
       await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
       await queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      await queryClient.invalidateQueries({ queryKey: ["planning", "projection"] });
     });
   }
 

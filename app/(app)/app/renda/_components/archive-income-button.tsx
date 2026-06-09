@@ -25,6 +25,7 @@ export function ArchiveIncomeButton({ incomeId, label }: { incomeId: string; lab
       await queryClient.invalidateQueries({ queryKey: queryKeys.incomes });
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
       await queryClient.invalidateQueries({ queryKey: ["timeline"] });
+      await queryClient.invalidateQueries({ queryKey: ["planning", "projection"] });
     });
   }
 

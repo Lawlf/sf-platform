@@ -129,7 +129,19 @@ export function PayoffForm({
             </ResultCard>
             {(() => {
               const debtId = form.getValues("debtId");
-              return debtId ? <SimToGoalCta seed={{ type: "debt_payoff", debtId }} /> : null;
+              if (!debtId) return null;
+              const monthly = form.getValues("monthlyPaymentCents") ?? 0n;
+              const extra = form.getValues("extraPaymentCents") ?? 0n;
+              const ritmo = monthly + extra;
+              return (
+                <SimToGoalCta
+                  seed={{
+                    type: "debt_payoff",
+                    debtId,
+                    ...(ritmo > 0n ? { monthlyContributionCents: ritmo.toString() } : {}),
+                  }}
+                />
+              );
             })()}
           </>
         ) : (

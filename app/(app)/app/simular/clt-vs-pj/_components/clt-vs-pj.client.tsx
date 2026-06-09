@@ -193,7 +193,7 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
                 control={form.control}
                 name="proLaboreCents"
                 label="Pró-labore mensal (opcional)"
-                helper="Salário que você tira da empresa. Acima de 28% do faturamento garante o Anexo III (mais barato)."
+                helper="Salário que você tira da empresa. Quando passa de 28% do faturamento, cai na faixa de imposto mais barata."
               />
               <MoneyInput
                 control={form.control}
@@ -203,24 +203,24 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
               />
               <div className="flex flex-col gap-1.5">
                 <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-                  Anexo
+                  Como calcular o imposto
                 </span>
                 <div className="grid grid-cols-3 gap-2">
                   <WizardRadioCard
                     title="Automático"
-                    description="Pelo Fator R."
+                    description="A gente decide"
                     active={anexo === "auto"}
                     onSelect={() => setAnexo("auto")}
                   />
                   <WizardRadioCard
-                    title="Anexo III"
-                    description="Fator R ≥ 28%."
+                    title="Mais barata"
+                    description="Anexo III"
                     active={anexo === "III"}
                     onSelect={() => setAnexo("III")}
                   />
                   <WizardRadioCard
-                    title="Anexo V"
-                    description="Fator R < 28%."
+                    title="Mais cara"
+                    description="Anexo V"
                     active={anexo === "V"}
                     onSelect={() => setAnexo("V")}
                   />

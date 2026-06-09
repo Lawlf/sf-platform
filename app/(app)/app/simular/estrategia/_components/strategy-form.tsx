@@ -17,6 +17,7 @@ import {
   ResultHighlight,
   ResultStat,
 } from "../../_components/sim-result";
+import { SimToGoalCta } from "../../_components/sim-to-goal-cta";
 import { runStrategyAction, type StrategyActionResult } from "../_actions/run-strategy.action";
 
 const formSchema = z.object({
@@ -169,6 +170,21 @@ export function StrategyForm({ debts }: { debts: DebtItem[] }) {
                 <strong>{BRL.format(interestDelta)}</strong> em juros.
               </ResultHighlight>
             ) : null}
+            {(() => {
+              // Vincula a meta à primeira dívida da estratégia vencedora (a mais
+              // barata em juros). Sem ritmo: o orçamento cobre todas as dívidas,
+              // não só essa, então a meta usa o pagamento próprio da dívida.
+              const best = (interestDelta ?? 0) > 0 ? result.avalanche : result.snowball;
+              const firstId = best.order[0];
+              if (!firstId) return null;
+              const firstLabel = labelById.get(firstId) ?? "essa dívida";
+              return (
+                <SimToGoalCta
+                  seed={{ type: "debt_payoff", debtId: firstId }}
+                  label={`Começar a quitar pela ${firstLabel}`}
+                />
+              );
+            })()}
           </section>
         ) : (
           <ResultError message={result.message} />
