@@ -1,7 +1,9 @@
 "use client";
 
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { CalendarCheck } from "lucide-react";
+import { CalendarCheck, ChevronRight, Receipt } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -59,7 +61,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         className="text-[0.9375rem] font-semibold leading-snug"
         style={{ color: "var(--semantic-positive)" }}
       >
-        Tudo certo. O que sobrou no mês entrou no seu patrimônio.
+        Tudo bateu: o saldo da Carteira virou patrimônio.
       </p>
     );
   }
@@ -68,14 +70,14 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
     return (
       <div className="flex flex-col gap-1">
         <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
-          Você terminou o mês com{" "}
+          Seu patrimônio cresceu{" "}
           <span style={{ color: "var(--semantic-positive)" }}>
             <HideableValue>{leakAbsFormatted}</HideableValue>
           </span>{" "}
-          a mais do que o esperado
+          além do saldo da Carteira
         </p>
         <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-          Pode ser rendimento, valorização de um bem ou uma entrada extra. Bom sinal.
+          Pode ser rendimento, valorização ou uma entrada extra.
         </p>
       </div>
     );
@@ -84,14 +86,13 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
   return (
     <div className="flex flex-col gap-1">
       <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
-        Sobraram{" "}
         <span style={{ color: "var(--semantic-warning)" }}>
           <HideableValue>{leakAbsFormatted}</HideableValue>
         </span>{" "}
-        que ainda não entraram no seu patrimônio
+        sobraram, mas não apareceram no seu patrimônio
       </p>
       <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-        Normal. Costuma ser algo que você pagou e ainda não anotou. Dá pra ajustar quando quiser.
+        Pode ter sido um gasto que você ainda não registrou.
       </p>
     </div>
   );
@@ -490,14 +491,14 @@ export function MonthClosingCard({ initialData }: Props) {
           <SheetHeader className="mb-5">
             <SheetTitle>Fechar {monthLabel}</SheetTitle>
             <SheetDescription>
-              Confira o que entrou no seu patrimônio neste mês.
+              Veja como o saldo da Carteira do mês se reflete no seu patrimônio.
             </SheetDescription>
           </SheetHeader>
 
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                O que era pra sobrar no mês
+                Saldo da Carteira no mês
               </span>
               <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                 <HideableValue>{data.theoreticalFormatted}</HideableValue>
@@ -506,7 +507,7 @@ export function MonthClosingCard({ initialData }: Props) {
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                Quanto o patrimônio mudou
+                Seu patrimônio variou
               </span>
               <span
                 className="text-[0.9375rem] font-semibold"
@@ -533,6 +534,27 @@ export function MonthClosingCard({ initialData }: Props) {
                 leakAbsFormatted={data.leakAbsFormatted ?? ""}
               />
             </div>
+
+            {data.status === "leaked" ? (
+              <Link
+                href={"/app/linha-do-tempo/relatorio" as Route}
+                className="focus-ring -mx-1 flex items-center gap-2 rounded-lg px-1 py-1.5 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+              >
+                <Receipt
+                  size={15}
+                  strokeWidth={2}
+                  className="shrink-0 text-[color:var(--color-brand-800)]"
+                  aria-hidden
+                />
+                <span className="flex-1">Detalhar onde foi</span>
+                <ChevronRight
+                  size={15}
+                  strokeWidth={2}
+                  className="shrink-0 text-[color:var(--text-muted)]"
+                  aria-hidden
+                />
+              </Link>
+            ) : null}
 
             {data.incomes && data.incomes.length > 0 ? (
               <div className="border-t border-[color:var(--border-soft)] pt-4">
