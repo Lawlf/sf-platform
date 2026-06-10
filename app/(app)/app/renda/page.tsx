@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
@@ -6,7 +7,10 @@ import { Suspense } from "react";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { fetchIncomes } from "../_actions/income-queries";
 import { PageShell } from "../_components/page-shell";
+import { getServerQueryClient } from "../_lib/query-client.server";
+import { queryKeys } from "../_lib/query-keys";
 
 import { RendaListClient } from "./_components/renda-list.client";
 
@@ -14,6 +18,12 @@ export const metadata: Metadata = { title: "Renda" };
 
 export default async function RendaPage() {
   await requireUser();
+
+  const queryClient = getServerQueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.incomes,
+    queryFn: () => fetchIncomes(),
+  });
 
   return (
     <PageShell title="Renda" description="Salário, freela, aluguel, comissão. Suas fontes de renda.">
@@ -24,9 +34,11 @@ export default async function RendaPage() {
         Adicionar nova renda
       </Link>
 
-      <Suspense fallback={<IncomeListsSkeleton />}>
-        <RendaListClient />
-      </Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <Suspense fallback={<IncomeListsSkeleton />}>
+          <RendaListClient />
+        </Suspense>
+      </HydrationBoundary>
     </PageShell>
   );
 }

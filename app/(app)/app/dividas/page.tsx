@@ -1,3 +1,4 @@
+import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
 import { PlusCircle } from "lucide-react";
 import type { Metadata } from "next";
 import type { Route } from "next";
@@ -9,8 +10,10 @@ import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-pre
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import type { DebtStatusFilter } from "../_actions/debt-queries";
+import { fetchDebts, type DebtStatusFilter } from "../_actions/debt-queries";
 import { PageShell } from "../_components/page-shell";
+import { getServerQueryClient } from "../_lib/query-client.server";
+import { queryKeys } from "../_lib/query-keys";
 
 import { fetchUpcomingDues } from "./_actions/upcoming-dues";
 import { DebtDueBanner } from "./_components/debt-due-banner.client";
@@ -35,6 +38,12 @@ export default async function DividasPage({ searchParams }: PageProps) {
   const prefs = await repos.notificationPreferences.findForUser(user.id);
   const upcomingDues = await fetchUpcomingDues();
 
+  const queryClient = getServerQueryClient();
+  await queryClient.prefetchQuery({
+    queryKey: queryKeys.debts(statusFilter),
+    queryFn: () => fetchDebts({ status: statusFilter }),
+  });
+
   return (
     <PageShell title="Dívidas" description="Acompanhe e simule a quitação das suas dívidas.">
       <Link
@@ -49,9 +58,11 @@ export default async function DividasPage({ searchParams }: PageProps) {
 
       <DividasFilterPills />
 
-      <Suspense key={statusFilter} fallback={<DividasListSkeleton />}>
-        <DividasListClient statusFilter={statusFilter} />
-      </Suspense>
+      <HydrationBoundary state={dehydrate(queryClient)}>
+        <Suspense key={statusFilter} fallback={<DividasListSkeleton />}>
+          <DividasListClient statusFilter={statusFilter} />
+        </Suspense>
+      </HydrationBoundary>
 
       <DebtDueReminderCard
         isPro={user.isPro}

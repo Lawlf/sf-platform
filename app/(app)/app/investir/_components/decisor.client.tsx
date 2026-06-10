@@ -103,7 +103,7 @@ export function Decisor({
         totalSteps={3}
         title="Quando você pode precisar desse dinheiro?"
         description="Isso decide onde faz sentido guardar."
-        onBack={() => router.push("/app" as Route)}
+        onBack={() => router.push("/app/investir" as Route)}
       >
         <div className="flex flex-col gap-2">
           {HORIZONS.map((h) => (
