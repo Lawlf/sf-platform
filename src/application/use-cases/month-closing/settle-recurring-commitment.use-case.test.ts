@@ -45,6 +45,8 @@ function makeDebtRepo(debt: DebtEntity | null): DebtRepositoryPort {
     update: vi.fn(async (e: DebtEntity) => e),
     setStatus: vi.fn(),
     softDelete: vi.fn(),
+    countByExpenseCategory: vi.fn(async () => 0),
+    reassignExpenseCategory: vi.fn(),
   };
 }
 

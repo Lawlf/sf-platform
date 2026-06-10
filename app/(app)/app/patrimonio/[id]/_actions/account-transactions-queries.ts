@@ -2,9 +2,10 @@
 
 import { listAccountTransactionsPage } from "@/application/use-cases/transaction/list-account-transactions-page.use-case";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
-import { transactionCategoryLabel } from "@/domain/services/transaction-category-label";
 import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+
+import { buildCategoryLabeler, type CategoryLabeler } from "../../../_actions/_category-labels";
 
 export interface SerializedAccountTxn {
   id: string;
@@ -24,11 +25,11 @@ export interface AccountTxnPagePayload {
 
 const DEFAULT_PAGE_LIMIT = 30;
 
-function serialize(t: TransactionEntity): SerializedAccountTxn {
+function serialize(t: TransactionEntity, labelCategory: CategoryLabeler): SerializedAccountTxn {
   return {
     id: t.id,
     description: t.description,
-    categoryLabel: transactionCategoryLabel(t.category),
+    categoryLabel: labelCategory(t.category),
     direction: t.direction,
     amountFormatted: t.amount.format(),
     amountCents: t.amount.toCents().toString(),
@@ -58,7 +59,11 @@ export async function fetchAccountTransactionsPage(args: {
     },
   );
 
-  return { items: page.items.map(serialize), nextCursor: page.nextCursor };
+  const labelCategory = await buildCategoryLabeler(user.id);
+  return {
+    items: page.items.map((t) => serialize(t, labelCategory)),
+    nextCursor: page.nextCursor,
+  };
 }
 
 export async function fetchAccountTransactionCount(accountId: string): Promise<number> {

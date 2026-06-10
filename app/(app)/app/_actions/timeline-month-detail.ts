@@ -1,5 +1,6 @@
 "use server";
 
+import { normalizeLegacyExpenseCategory } from "@/domain/categories/default-categories";
 import type { AssetCategory, AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
@@ -331,7 +332,7 @@ export async function fetchMonthDetail(input: {
       label: d.label,
       amount: serializeMoney(recurringAmountForMonth(d)),
       frequency: frequencyFor(d),
-      category: d.expenseCategory ?? "other",
+      category: normalizeLegacyExpenseCategory(d.expenseCategory ?? "outros"),
       dateIso: date.toISOString(),
       isNew: MonthYear.fromDate(d.createdAt).equals(month),
     };
@@ -356,7 +357,7 @@ export async function fetchMonthDetail(input: {
       label: d.label,
       amount: serializeMoney(obligation),
       frequency: "monthly",
-      category: "other",
+      category: "outros",
       dateIso: date.toISOString(),
       isNew: false,
     });

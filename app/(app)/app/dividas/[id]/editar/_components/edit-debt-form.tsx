@@ -9,12 +9,11 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
-import type { DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
+import type { DebtKind } from "@/domain/entities/debt.entity";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
-import { EXPENSE_CATEGORIES } from "../../../_lib/expense-categories";
 import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
 import { updateDebtAction } from "../../_actions/update-debt.action";
 
@@ -38,19 +37,7 @@ const formSchema = z.object({
   monthlyRatePct: z.number().min(0).max(1000).nullable(),
   recurringAmountCents: z.bigint().nonnegative().nullable(),
   recurringFrequency: z.enum(["monthly", "weekly"]).nullable(),
-  expenseCategory: z
-    .enum([
-      "housing",
-      "utilities",
-      "food",
-      "transport",
-      "health",
-      "leisure",
-      "subscriptions",
-      "education",
-      "other",
-    ])
-    .nullable(),
+  expenseCategory: z.string().nullable(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -59,6 +46,7 @@ interface Props {
   debtId: string;
   kind: DebtKind;
   currency: Currency;
+  categories: ReadonlyArray<{ key: string; label: string }>;
   defaults: {
     label: string;
     notes: string | null;
@@ -78,11 +66,11 @@ interface Props {
     monthlyRatePct: number | null;
     recurringAmountCents: string | null;
     recurringFrequency: "monthly" | "weekly" | null;
-    expenseCategory: ExpenseCategory | null;
+    expenseCategory: string | null;
   };
 }
 
-export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
+export function EditDebtForm({ debtId, kind, currency, categories, defaults }: Props) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
@@ -397,8 +385,8 @@ export function EditDebtForm({ debtId, kind, currency, defaults }: Props) {
               {...form.register("expenseCategory")}
               className={wizardInputClass}
             >
-              {EXPENSE_CATEGORIES.map((c) => (
-                <option key={c.id} value={c.id}>
+              {categories.map((c) => (
+                <option key={c.key} value={c.key}>
                   {c.label}
                 </option>
               ))}

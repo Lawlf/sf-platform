@@ -3,26 +3,15 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownLeft,
-  ArrowLeftRight,
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
-  Car,
   Check,
   CircleDashed,
-  GraduationCap,
-  Gift,
-  HeartPulse,
-  House,
+  Pencil,
   Plus,
-  ShoppingBag,
-  Store,
   Tag,
-  Ticket,
-  Undo2,
-  Utensils,
   Wallet,
-  type LucideIcon,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -45,8 +34,15 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+import { activeCategories } from "@/domain/categories/resolve-categories";
 
+import {
+  listCategoriesQuery,
+  type CategoryCatalog,
+} from "../../_actions/category-queries";
 import { createTransactionAction } from "../../_actions/planning-actions";
+import { categoryIcon } from "../../_components/category-icons";
+import { CreateCategorySheet } from "../../_components/create-category-sheet.client";
 import { MoneyInput } from "../../_components/money-input";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
 import { createCashAccount } from "../_actions/create-cash-account.action";
@@ -69,32 +65,6 @@ type Status = "paid" | "scheduled";
 
 const NO_CATEGORY_VALUE = "__none__";
 const DEFAULT_ACCOUNT_VALUE = "__default__";
-
-interface CategoryOption {
-  label: string;
-  icon: LucideIcon;
-}
-
-const OUT_CATEGORIES: CategoryOption[] = [
-  { label: "Alimentação", icon: Utensils },
-  { label: "Transporte", icon: Car },
-  { label: "Moradia", icon: House },
-  { label: "Saúde", icon: HeartPulse },
-  { label: "Lazer", icon: Ticket },
-  { label: "Educação", icon: GraduationCap },
-  { label: "Compras", icon: ShoppingBag },
-  { label: "Outros", icon: Tag },
-];
-
-// "Salário" sai daqui de propósito: renda recorrente tem porta própria
-// (/app/renda/nova). Deixar salário como avulso era o overlap que confundia.
-const IN_CATEGORIES: CategoryOption[] = [
-  { label: "Transferência", icon: ArrowLeftRight },
-  { label: "Presente", icon: Gift },
-  { label: "Reembolso", icon: Undo2 },
-  { label: "Venda", icon: Store },
-  { label: "Outros", icon: Tag },
-];
 
 const SEGMENT_TRACK =
   "grid grid-cols-2 gap-1.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1.5";
@@ -152,6 +122,8 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   // Esconder protege o posicionamento (não vira tracker de cafezinho) e limpa o
   // caminho feliz pra valor + descrição.
   const [showCategory, setShowCategory] = useState(false);
+  const [catalog, setCatalog] = useState<CategoryCatalog | null>(null);
+  const [showCreateCategory, setShowCreateCategory] = useState(false);
   const [accountPending, startAccountTransition] = useTransition();
   const dateId = useId();
   const categoryId = useId();
@@ -168,6 +140,9 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       setAccounts(result);
       const first = result[0];
       if (first) setAccountId(first.id);
+    });
+    void listCategoriesQuery().then((result) => {
+      if (active) setCatalog(result);
     });
     return () => {
       active = false;
@@ -197,7 +172,20 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     });
   }
 
-  const categories = direction === "in" ? IN_CATEGORIES : OUT_CATEGORIES;
+  // "Salário" continua fora das entradas de propósito: renda recorrente tem
+  // porta própria (/app/renda/nova). Deixar salário como avulso era o overlap
+  // que confundia.
+  const categoryDomain = direction === "in" ? ("inflow" as const) : ("expense" as const);
+  const categories = activeCategories(
+    (direction === "in" ? catalog?.inflow : catalog?.expense) ?? [],
+  );
+
+  function refreshCatalog(selectKey?: string) {
+    void listCategoriesQuery().then((result) => {
+      setCatalog(result);
+      if (selectKey) setCategory(selectKey);
+    });
+  }
 
   // Nudge macro: se a pessoa tenta lançar "salário" como entrada avulsa, lembra
   // que renda recorrente tem porta própria e entra na projeção.
@@ -309,11 +297,20 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       </div>
 
       <div className={`flex flex-col gap-1.5 ${showCategory ? "" : "hidden"}`}>
-        <span
-          id={categoryId}
-          className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-        >
-          Categoria (opcional)
+        <span className="flex items-center justify-between">
+          <span
+            id={categoryId}
+            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+          >
+            Categoria (opcional)
+          </span>
+          <Link
+            href={"/app/configuracoes/categorias" as Route}
+            aria-label="Gerenciar categorias"
+            className="focus-ring rounded-md text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
+          >
+            <Pencil size={13} strokeWidth={2} aria-hidden />
+          </Link>
         </span>
         <Select value={category} onValueChange={setCategory}>
           <SelectTrigger aria-labelledby={categoryId} className={SELECT_TRIGGER_CLASS}>
@@ -331,21 +328,40 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
                 Sem categoria
               </span>
             </SelectItem>
-            {categories.map(({ label, icon: Icon }) => (
-              <SelectItem key={label} value={label}>
-                <span className="flex items-center gap-2">
-                  <Icon
-                    size={15}
-                    strokeWidth={2}
-                    className="text-[color:var(--text-secondary)]"
-                    aria-hidden
-                  />
-                  {label}
-                </span>
-              </SelectItem>
-            ))}
+            {categories.map((c) => {
+              const Icon = categoryIcon(c.icon);
+              return (
+                <SelectItem key={c.key} value={c.key}>
+                  <span className="flex items-center gap-2">
+                    <Icon
+                      size={15}
+                      strokeWidth={2}
+                      className="text-[color:var(--text-secondary)]"
+                      aria-hidden
+                    />
+                    {c.label}
+                  </span>
+                </SelectItem>
+              );
+            })}
           </SelectContent>
         </Select>
+        <button
+          type="button"
+          onClick={() => setShowCreateCategory(true)}
+          className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          <Plus size={14} strokeWidth={2.5} aria-hidden />
+          Criar categoria
+        </button>
+        <CreateCategorySheet
+          open={showCreateCategory}
+          onOpenChange={setShowCreateCategory}
+          domain={categoryDomain}
+          isPro={catalog?.isPro ?? false}
+          activeCount={categories.length}
+          onCreated={(key) => refreshCatalog(key)}
+        />
       </div>
 
       {accounts !== null && accounts.length <= 1 && !showAccount ? (

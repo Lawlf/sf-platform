@@ -1,4 +1,4 @@
-import { and, desc, eq, isNull } from "drizzle-orm";
+import { and, count, desc, eq, isNull } from "drizzle-orm";
 
 
 import type {
@@ -16,23 +16,6 @@ import { isOk } from "@/shared/errors/result";
 import { getDb } from "../client";
 import { ownedBy } from "../helpers";
 import { debts, type DebtRow, type NewDebtRow } from "../schema/debts.schema";
-
-const EXPENSE_CATEGORIES: ExpenseCategory[] = [
-  "housing",
-  "utilities",
-  "food",
-  "transport",
-  "health",
-  "leisure",
-  "subscriptions",
-  "education",
-  "other",
-];
-
-function parseExpenseCategory(raw: string | null): ExpenseCategory | null {
-  if (raw === null) return null;
-  return (EXPENSE_CATEGORIES as string[]).includes(raw) ? (raw as ExpenseCategory) : null;
-}
 
 function parseRecurringFrequency(raw: string | null): RecurringFrequency | null {
   if (raw === "monthly" || raw === "weekly" || raw === "annual") return raw;
@@ -55,7 +38,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
     deletedAt: row.deletedAt ?? null,
     recurringFrequency: parseRecurringFrequency(row.recurringFrequency),
     recurringAmountCents: row.recurringAmountCents,
-    expenseCategory: parseExpenseCategory(row.expenseCategory),
+    expenseCategory: row.expenseCategory ?? null,
   };
 
   switch (row.kind) {
@@ -126,7 +109,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
     }
     case "recurring": {
       const freq = parseRecurringFrequency(row.recurringFrequency) ?? "monthly";
-      const category = parseExpenseCategory(row.expenseCategory) ?? "other";
+      const category = row.expenseCategory ?? "outros";
       return {
         ...base,
         kind: "recurring",
@@ -141,7 +124,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
       // Postgres ainda aceita o valor (drop é caro), mas nenhuma escrita
       // nova produz `one_off`. Caso encontremos uma linha legada, tratamos
       // como `recurring` mensal pra evitar quebrar a leitura.
-      const category = parseExpenseCategory(row.expenseCategory) ?? "other";
+      const category = row.expenseCategory ?? "outros";
       return {
         ...base,
         kind: "recurring",
@@ -298,5 +281,20 @@ export class DebtRepository implements DebtRepositoryPort {
 
   async softDelete(id: string, deletedAt: Date): Promise<void> {
     await getDb().update(debts).set({ deletedAt, updatedAt: deletedAt }).where(eq(debts.id, id));
+  }
+
+  async countByExpenseCategory(userId: string, categoryKey: string): Promise<number> {
+    const rows = await getDb()
+      .select({ value: count() })
+      .from(debts)
+      .where(and(eq(debts.expenseCategory, categoryKey), ownedBy(debts, userId)));
+    return rows[0]?.value ?? 0;
+  }
+
+  async reassignExpenseCategory(userId: string, fromKey: string, toKey: string): Promise<void> {
+    await getDb()
+      .update(debts)
+      .set({ expenseCategory: toKey, updatedAt: new Date() })
+      .where(and(eq(debts.expenseCategory, fromKey), ownedBy(debts, userId)));
   }
 }

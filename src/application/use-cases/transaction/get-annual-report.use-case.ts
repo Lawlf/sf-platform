@@ -41,7 +41,7 @@ export async function getAnnualReport(
       occurredAt: t.occurredAt,
       amountCents: t.amount.toCents(),
       consumo: classifyConsumo(t.description),
-      category: classifyExpense(t.description),
+      category: t.category ?? classifyExpense(t.description),
     })),
     year,
   );

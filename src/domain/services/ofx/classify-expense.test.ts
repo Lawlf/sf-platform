@@ -3,43 +3,53 @@ import { describe, expect, it } from "vitest";
 import { classifyExpense } from "./classify-expense";
 
 describe("classifyExpense", () => {
-  it("classifies grocery memos as Mercado", () => {
-    expect(classifyExpense("SUPERMERCADO EXTRA")).toBe("Mercado");
-    expect(classifyExpense("Compra padaria do bairro")).toBe("Mercado");
+  it("classifies grocery memos as mercado", () => {
+    expect(classifyExpense("SUPERMERCADO EXTRA")).toBe("mercado");
+    expect(classifyExpense("Compra padaria do bairro")).toBe("mercado");
   });
 
-  it("classifies food delivery and restaurants as Alimentação", () => {
-    expect(classifyExpense("IFOOD *RESTAURANTE")).toBe("Alimentação");
-    expect(classifyExpense("Pagamento Rappi")).toBe("Alimentação");
+  it("classifies food delivery and restaurants as alimentacao", () => {
+    expect(classifyExpense("IFOOD *RESTAURANTE")).toBe("alimentacao");
+    expect(classifyExpense("Pagamento Rappi")).toBe("alimentacao");
   });
 
-  it("classifies ride and fuel memos as Transporte", () => {
-    expect(classifyExpense("UBER *TRIP")).toBe("Transporte");
-    expect(classifyExpense("POSTO IPIRANGA")).toBe("Transporte");
+  it("classifies ride and fuel memos as transporte", () => {
+    expect(classifyExpense("UBER *TRIP")).toBe("transporte");
+    expect(classifyExpense("POSTO IPIRANGA")).toBe("transporte");
   });
 
-  it("classifies utilities and rent as Moradia", () => {
-    expect(classifyExpense("ALUGUEL APTO")).toBe("Moradia");
-    expect(classifyExpense("ENEL DISTRIBUICAO")).toBe("Moradia");
+  it("classifies utilities and rent as moradia", () => {
+    expect(classifyExpense("ALUGUEL APTO")).toBe("moradia");
+    expect(classifyExpense("ENEL DISTRIBUICAO")).toBe("moradia");
   });
 
-  it("classifies pharmacy and clinics as Saúde", () => {
-    expect(classifyExpense("DROGARIA SAO PAULO")).toBe("Saúde");
-    expect(classifyExpense("CLINICA ODONTO")).toBe("Saúde");
+  it("classifies pharmacy and clinics as saude", () => {
+    expect(classifyExpense("DROGARIA SAO PAULO")).toBe("saude");
+    expect(classifyExpense("CLINICA ODONTO")).toBe("saude");
   });
 
-  it("classifies retail as Compras", () => {
-    expect(classifyExpense("AMAZON BR")).toBe("Compras");
-    expect(classifyExpense("LOJAS RENNER")).toBe("Compras");
+  it("classifies retail as compras", () => {
+    expect(classifyExpense("AMAZON BR")).toBe("compras");
+    expect(classifyExpense("LOJAS RENNER")).toBe("compras");
   });
 
-  it("classifies streaming and travel as Lazer", () => {
-    expect(classifyExpense("NETFLIX.COM")).toBe("Lazer");
-    expect(classifyExpense("AIRBNB * STAY")).toBe("Lazer");
+  it("classifies streaming and travel as lazer", () => {
+    expect(classifyExpense("NETFLIX.COM")).toBe("lazer");
+    expect(classifyExpense("AIRBNB * STAY")).toBe("lazer");
   });
 
-  it("falls back to Outros for unknown memos", () => {
-    expect(classifyExpense("PIX ENVIADO JOAO")).toBe("Outros");
-    expect(classifyExpense("xyz123")).toBe("Outros");
+  it("classifies recurring services as assinaturas", () => {
+    expect(classifyExpense("ASSINATURA REVISTA")).toBe("assinaturas");
+    expect(classifyExpense("MENSALIDADE CLUBE")).toBe("assinaturas");
+  });
+
+  it("classifies fees and insurance as contas", () => {
+    expect(classifyExpense("TARIFA PACOTE SERVICOS")).toBe("contas");
+    expect(classifyExpense("SEGURO AUTO")).toBe("contas");
+  });
+
+  it("falls back to outros for unknown memos", () => {
+    expect(classifyExpense("PIX ENVIADO JOAO")).toBe("outros");
+    expect(classifyExpense("xyz123")).toBe("outros");
   });
 });

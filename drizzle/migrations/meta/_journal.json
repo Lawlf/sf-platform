@@ -428,6 +428,13 @@
       "when": 1781102321063,
       "tag": "0060_exotic_baron_strucker",
       "breakpoints": true
+    },
+    {
+      "idx": 61,
+      "version": "7",
+      "when": 1781109201067,
+      "tag": "0061_sweet_cobalt_man",
+      "breakpoints": true
     }
   ]
 }

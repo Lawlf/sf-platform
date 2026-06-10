@@ -1,7 +1,10 @@
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
+import { listCategories } from "@/application/use-cases/category/list-categories.use-case";
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
+import { normalizeLegacyExpenseCategory } from "@/domain/categories/default-categories";
+import { activeCategories } from "@/domain/categories/resolve-categories";
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
@@ -24,6 +27,15 @@ export default async function EditarDividaPage({ params }: PageProps) {
   if (isErr(r)) notFound();
   const { debt } = r.value;
 
+  const categorySets = await listCategories(
+    { userCategories: repos.userCategories },
+    { userId: user.id },
+  );
+  const categories = activeCategories(categorySets.expense).map((c) => ({
+    key: c.key,
+    label: c.label,
+  }));
+
   const annualRatePct = (() => {
     if (debt.kind === "financing" || debt.kind === "personal_loan") {
       return debt.annualInterestRate.toAnnual().toPercent();
@@ -41,6 +53,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
         debtId={debt.id}
         kind={debt.kind}
         currency={debt.currentBalance.currency}
+        categories={categories}
         defaults={{
           label: debt.label,
           notes: debt.notes,
@@ -90,7 +103,10 @@ export default async function EditarDividaPage({ params }: PageProps) {
             debt.kind === "recurring" && debt.recurringFrequency !== "annual"
               ? debt.recurringFrequency
               : null,
-          expenseCategory: debt.kind === "recurring" ? debt.expenseCategory : null,
+          expenseCategory:
+            debt.kind === "recurring"
+              ? normalizeLegacyExpenseCategory(debt.expenseCategory)
+              : null,
         }}
       />
     </PageShell>

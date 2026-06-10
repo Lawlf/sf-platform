@@ -12,7 +12,7 @@ import { PageShell } from "../../_components/page-shell";
 
 import { formatDate } from "./_labels";
 
-export const metadata: Metadata = { title: "Integrações" };
+export const metadata: Metadata = { title: "Assistente de IA" };
 
 const CARD =
   "focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl transition-colors hover:bg-[color:var(--surface-2)]";
@@ -40,7 +40,7 @@ export default async function IntegracoesPage() {
 
   return (
     <PageShell
-      title="Integrações"
+      title="Assistente de IA"
       description="Assistentes de IA conectados à sua conta."
       backHref={"/app/configuracoes" as Route}
     >

@@ -211,6 +211,21 @@ export class TransactionRepository implements TransactionRepositoryPort {
     await getDb().update(transactions).set({ deletedAt }).where(eq(transactions.id, id));
   }
 
+  async countByCategory(userId: string, categoryKey: string): Promise<number> {
+    const rows = await getDb()
+      .select({ value: count() })
+      .from(transactions)
+      .where(and(eq(transactions.category, categoryKey), ownedBy(transactions, userId)));
+    return rows[0]?.value ?? 0;
+  }
+
+  async reassignCategory(userId: string, fromKey: string, toKey: string): Promise<void> {
+    await getDb()
+      .update(transactions)
+      .set({ category: toKey })
+      .where(and(eq(transactions.category, fromKey), ownedBy(transactions, userId)));
+  }
+
   async existingExternalIds(userId: string, externalIds: string[]): Promise<string[]> {
     if (externalIds.length === 0) return [];
     const rows = await getDb()

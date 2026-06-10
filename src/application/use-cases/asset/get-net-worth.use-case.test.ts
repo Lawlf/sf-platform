@@ -158,6 +158,8 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     update: vi.fn(),
     setStatus: vi.fn(),
     softDelete: vi.fn(),
+    countByExpenseCategory: vi.fn(async () => 0),
+    reassignExpenseCategory: vi.fn(),
   };
 
   const rates: ExchangeRateRepositoryPort = {

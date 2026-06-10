@@ -9,12 +9,10 @@ import { useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
-import type { ExpenseCategory } from "@/domain/entities/debt.entity";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { formatCents } from "@/shared/format/money-format";
 
 import { todayIso } from "../../../_lib/dates";
-import { EXPENSE_CATEGORIES, expenseCategoryLabel } from "../../../_lib/expense-categories";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
@@ -25,17 +23,7 @@ import { createRecurringDebtAction } from "../_actions/create-recurring-debt.act
 type Frequency = "monthly" | "weekly" | "annual";
 
 const formSchema = z.object({
-  expenseCategory: z.enum([
-    "housing",
-    "utilities",
-    "food",
-    "transport",
-    "health",
-    "leisure",
-    "subscriptions",
-    "education",
-    "other",
-  ]),
+  expenseCategory: z.string().min(1),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]),
   label: z.string().min(1, "Informe um nome.").max(120),
   recurringAmountCents: z.bigint().positive("Valor deve ser positivo."),
@@ -69,13 +57,15 @@ function frequencyLabel(freq: Frequency): string {
   return "Anual";
 }
 
-function categoryLabel(id: ExpenseCategory): string {
-  return expenseCategoryLabel(id);
+interface RecurringDebtFormProps {
+  defaultCurrency?: Currency;
+  categories: ReadonlyArray<{ key: string; label: string }>;
 }
 
 export function RecurringDebtForm({
   defaultCurrency = "BRL",
-}: { defaultCurrency?: Currency } = {}) {
+  categories,
+}: RecurringDebtFormProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
@@ -96,7 +86,7 @@ export function RecurringDebtForm({
     defaultValues: {
       // Categoria é só rótulo (não afeta nenhum cálculo) e é editável depois.
       // Default "Outros" pra não bloquear o registro rápido de uma assinatura.
-      expenseCategory: "other",
+      expenseCategory: "outros",
       recurringFrequency: undefined as unknown as Frequency,
       label: "",
       recurringAmountCents: 0n as unknown as bigint,
@@ -314,8 +304,8 @@ export function RecurringDebtForm({
           helper="Só pra organizar. Não muda nenhum cálculo."
         >
           <select id={categoryId} {...form.register("expenseCategory")} className={wizardInputClass}>
-            {EXPENSE_CATEGORIES.map((c) => (
-              <option key={c.id} value={c.id}>
+            {categories.map((c) => (
+              <option key={c.key} value={c.key}>
                 {c.label}
               </option>
             ))}
@@ -353,8 +343,15 @@ export function RecurringDebtForm({
           },
         ]
       : []),
-    ...(values.expenseCategory && values.expenseCategory !== "other"
-      ? [{ label: "Categoria", value: categoryLabel(values.expenseCategory) }]
+    ...(values.expenseCategory && values.expenseCategory !== "outros"
+      ? [
+          {
+            label: "Categoria",
+            value:
+              categories.find((c) => c.key === values.expenseCategory)?.label ??
+              values.expenseCategory,
+          },
+        ]
       : []),
   ];
 

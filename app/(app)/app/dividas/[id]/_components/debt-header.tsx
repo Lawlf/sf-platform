@@ -6,7 +6,6 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
-import { expenseCategoryLabel } from "../../_lib/expense-categories";
 
 
 const KIND_LABEL: Record<DebtKind, string> = {
@@ -52,10 +51,11 @@ function statusBadgeClass(status: DebtStatus): string {
 
 function buildHeaderStats(
   debt: DebtEntity,
+  categoryLabelText: string,
 ): { label: string; value: string; isCurrency?: boolean }[] {
   if (debt.kind === "recurring") {
     const freqLabel = FREQUENCY_LABEL[debt.recurringFrequency];
-    const categoryLabel = expenseCategoryLabel(debt.expenseCategory);
+    const categoryLabel = categoryLabelText;
     const perYearMultiplier =
       debt.recurringFrequency === "weekly" ? 52 : debt.recurringFrequency === "annual" ? 1 : 12;
     return [
@@ -92,10 +92,11 @@ function buildHeaderStats(
 
 interface Props {
   debt: DebtEntity;
+  categoryLabelText?: string;
 }
 
-export function DebtHeader({ debt }: Props) {
-  const headerStats = buildHeaderStats(debt);
+export function DebtHeader({ debt, categoryLabelText }: Props) {
+  const headerStats = buildHeaderStats(debt, categoryLabelText ?? "Outros");
   return (
     <section className="glass-tier-1 relative overflow-hidden p-[22px]">
       <div

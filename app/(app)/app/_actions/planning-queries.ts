@@ -4,6 +4,7 @@ import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { previewMonthClosing } from "@/application/use-cases/month-closing/preview-month-closing.use-case";
 import { assemblePlanningView } from "@/application/use-cases/planning/assemble-planning-view";
 import { getAnnualReport } from "@/application/use-cases/transaction/get-annual-report.use-case";
+import { categoryLabel, resolveCategories } from "@/domain/categories/resolve-categories";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
 import type { IncomeSettlementStatus } from "@/domain/entities/income-settlement.entity";
@@ -427,6 +428,8 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
   if (!result.ok) return emptyAnnualReport(year, false);
 
   const { report } = result;
+  const categoryRows = await repos.userCategories.listForUser(user.id);
+  const resolvedExpense = resolveCategories("expense", categoryRows);
 
   return {
     isPro: true,
@@ -449,7 +452,7 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
       restoFormatted: Money.fromCents(report.consumo.restoCents).format(),
     },
     byCategory: report.byCategory.map((c) => ({
-      label: c.category,
+      label: categoryLabel(c.category, resolvedExpense),
       totalCents: c.totalCents.toString(),
       totalFormatted: Money.fromCents(c.totalCents).format(),
     })),

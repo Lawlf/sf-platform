@@ -18,6 +18,7 @@ import {
   Search,
   SearchX,
   ShieldCheck,
+  Tag,
   UserCog,
 } from "lucide-react";
 import type { Route } from "next";
@@ -65,17 +66,22 @@ const SECTIONS: SettingSection[] = [
         description: "Sessões ativas e desativar conta.",
         icon: KeyRound,
       },
+    ],
+  },
+  {
+    title: "Dados e conexões",
+    items: [
       {
-        href: "/app/configuracoes/integracoes" as Route,
-        label: "Integrações",
-        description: "Conecte sua IA (Claude, ChatGPT) pra cuidar das finanças por conversa.",
-        icon: Plug,
+        href: "/app/configuracoes/importacao-de-dados/extrato" as Route,
+        label: "Importar extrato do banco",
+        description: "Baixe o extrato no app do seu banco e suba aqui.",
+        icon: FileUp,
       },
       {
-        href: "/app/configuracoes/importacao-de-dados" as Route,
-        label: "Importação de dados",
-        description: "Importe o extrato do banco ou deixe sua IA lançar por você.",
-        icon: FileUp,
+        href: "/app/configuracoes/integracoes" as Route,
+        label: "Assistente de IA",
+        description: "Conecte o ChatGPT ou Claude pra cuidar dos números por conversa.",
+        icon: Plug,
       },
       {
         href: "/app/configuracoes/documentos" as Route,
@@ -99,6 +105,12 @@ const SECTIONS: SettingSection[] = [
         label: "Acessos rápidos",
         description: "Escolha os atalhos da sua home.",
         icon: LayoutGrid,
+      },
+      {
+        href: "/app/configuracoes/categorias" as Route,
+        label: "Categorias",
+        description: "As fatias do seu mês. Crie, renomeie ou esconda as que não usa.",
+        icon: Tag,
       },
       {
         href: "/app/configuracoes/idioma-regiao" as Route,

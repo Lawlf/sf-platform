@@ -18,4 +18,6 @@ export interface TransactionRepositoryPort {
   listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]>;
   softDelete(id: string, deletedAt: Date): Promise<void>;
   existingExternalIds(userId: string, externalIds: string[]): Promise<string[]>;
+  countByCategory(userId: string, categoryKey: string): Promise<number>;
+  reassignCategory(userId: string, fromKey: string, toKey: string): Promise<void>;
 }
