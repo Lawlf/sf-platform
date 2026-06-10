@@ -11,16 +11,16 @@ import {
 } from "@/domain/errors/asset-errors";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { linkAssetToDebt } from "./link-asset-to-debt.use-case";
 
-function makeAssetRepo(): AssetRepository {
+function makeAssetRepo(): AssetRepositoryPort {
   return {
     create: vi.fn(),
     update: vi.fn(),
@@ -37,7 +37,7 @@ function makeAssetRepo(): AssetRepository {
   };
 }
 
-function makeAllocRepo(sumExcludingCents = 0n): AssetDebtAllocationRepository {
+function makeAllocRepo(sumExcludingCents = 0n): AssetDebtAllocationRepositoryPort {
   return {
     upsert: vi.fn(),
     delete: vi.fn(),
@@ -49,7 +49,7 @@ function makeAllocRepo(sumExcludingCents = 0n): AssetDebtAllocationRepository {
   };
 }
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

@@ -118,7 +118,11 @@ function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) 
     setError(null);
     setPendingAction(action);
     startTransition(async () => {
-      const result = await settleRecurringCommitmentAction(commitment.debtId, monthIso, action);
+      const result = await settleRecurringCommitmentAction({
+        debtId: commitment.debtId,
+        monthIso,
+        action,
+      });
       if (!result.ok) {
         setPendingAction(null);
         setError(result.message ?? "Não foi possível registrar.");

@@ -1,9 +1,9 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { EntityNoteRepository } from "@/domain/ports/repositories/entity-note.repository";
+import type { EntityNoteRepositoryPort } from "@/domain/ports/repositories/entity-note.repository";
 import { isAttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 export interface SaveEntityNoteDeps {
-  notes: EntityNoteRepository;
+  notes: EntityNoteRepositoryPort;
   clock: Clock;
   newId: () => string;
 }

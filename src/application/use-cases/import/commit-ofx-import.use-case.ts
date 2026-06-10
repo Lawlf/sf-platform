@@ -2,10 +2,10 @@ import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { bankNameFromId } from "@/domain/services/ofx/bank-names";
 import { detectPatterns } from "@/domain/services/ofx/detect-patterns";
 import { findInternalTransfers } from "@/domain/services/ofx/internal-transfers";
@@ -17,10 +17,10 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface CommitOfxImportDeps {
-  assets: Pick<AssetRepository, "findByExternalAccountKey" | "create" | "update" | "listExternalAccountKeys">;
-  transactions: Pick<TransactionRepository, "existingExternalIds" | "create">;
-  incomes: Pick<IncomeRepository, "create">;
-  debts: Pick<DebtRepository, "create">;
+  assets: Pick<AssetRepositoryPort, "findByExternalAccountKey" | "create" | "update" | "listExternalAccountKeys">;
+  transactions: Pick<TransactionRepositoryPort, "existingExternalIds" | "create">;
+  incomes: Pick<IncomeRepositoryPort, "create">;
+  debts: Pick<DebtRepositoryPort, "create">;
   clock: Clock;
 }
 

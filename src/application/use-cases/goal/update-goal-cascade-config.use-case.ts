@@ -1,8 +1,8 @@
 import type { GoalCascadeMode, GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 export interface UpdateGoalCascadeConfigDeps {
-  goals: GoalRepository;
+  goals: GoalRepositoryPort;
 }
 
 export type UpdateGoalCascadeConfigResult =

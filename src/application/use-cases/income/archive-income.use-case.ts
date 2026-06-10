@@ -1,10 +1,10 @@
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface ArchiveIncomeDeps {
-  incomes: IncomeRepository;
+  incomes: IncomeRepositoryPort;
 }
 
 export async function archiveIncome(

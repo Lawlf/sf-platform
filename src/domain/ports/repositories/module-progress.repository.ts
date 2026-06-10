@@ -7,7 +7,7 @@ export interface MarkModuleCompletedInput {
   completedAt: Date;
 }
 
-export interface ModuleProgressRepository {
+export interface ModuleProgressRepositoryPort {
   markCompleted(input: MarkModuleCompletedInput): Promise<ModuleProgressEntity>;
   findCompletedNums(userId: string, trilhaSlug: string): Promise<number[]>;
 }

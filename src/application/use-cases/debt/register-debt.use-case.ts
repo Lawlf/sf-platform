@@ -4,15 +4,15 @@ import type {
   InstallmentPurchase,
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
-import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RegisterDebtDeps {
-  debts: DebtRepository;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 

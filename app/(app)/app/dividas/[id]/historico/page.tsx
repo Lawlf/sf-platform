@@ -1,7 +1,7 @@
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -17,7 +17,7 @@ export default async function DebtHistoricoPage({ params }: PageProps) {
   const { id } = await params;
   const user = await requireUser();
 
-  const debts = new DrizzleDebtRepository();
+  const debts = repos.debts;
   const debt = await debts.findById(id);
   if (!debt || debt.userId !== user.id) notFound();
 

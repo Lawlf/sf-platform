@@ -8,10 +8,10 @@ import {
   QuoteUnavailable,
 } from "@/domain/errors/asset-errors";
 import type { QuoteAdapter, StockQuoteResult } from "@/domain/ports/external/quote-adapter.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type {
   StockCatalogEntity,
-  StockCatalogRepository,
+  StockCatalogRepositoryPort,
   StockCatalogUpsertEntry,
 } from "@/domain/ports/repositories/stock-catalog.repository";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -55,7 +55,7 @@ function makeStockAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
 
 function makeRepoBackedByMap() {
   const store = new Map<string, AssetEntity>();
-  const repo: AssetRepository = {
+  const repo: AssetRepositoryPort = {
     create: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
@@ -99,7 +99,7 @@ function makeCatalog(initial: StockCatalogEntity | null = null) {
       updatedAt: entry.lastFetchedAt,
     };
   });
-  const repo: StockCatalogRepository = {
+  const repo: StockCatalogRepositoryPort = {
     upsert,
     upsertMany: vi.fn(async () => undefined),
     findByTicker: vi.fn(async () => row),

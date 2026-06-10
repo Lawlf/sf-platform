@@ -1,5 +1,5 @@
 import type { MagicLinkTokenEntity } from "@/domain/entities/magic-link-token.entity";
-import type { MagicLinkTokenRepository } from "@/domain/ports/repositories/magic-link-token.repository";
+import type { MagicLinkTokenRepositoryPort } from "@/domain/ports/repositories/magic-link-token.repository";
 import { getUpstashRedis } from "@/infrastructure/cache/upstash-redis";
 
 const TOKEN_KEY = (h: string) => `mlt:token:${h}`;
@@ -24,7 +24,7 @@ function toEntity(tokenHash: string, raw: RawHash): MagicLinkTokenEntity {
   };
 }
 
-export class UpstashMagicLinkTokenRepository implements MagicLinkTokenRepository {
+export class UpstashMagicLinkTokenRepository implements MagicLinkTokenRepositoryPort {
   async create(input: {
     tokenHash: string;
     code: string;

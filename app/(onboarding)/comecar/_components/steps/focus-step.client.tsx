@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useTransition } from "react";
 import { ArrowRight, PiggyBank, TrendingUp, Wallet } from "lucide-react";
+import { useState, useTransition } from "react";
 
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { setOnboardingFocusAction } from "@/app/(app)/app/_actions/onboarding";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 
 const OPTIONS: { value: ContentDiagnosticAnswer; title: string; sub: string; Icon: typeof Wallet }[] = [

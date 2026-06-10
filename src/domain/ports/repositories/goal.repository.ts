@@ -1,6 +1,6 @@
 import type { GoalEntity, GoalStatus } from "@/domain/entities/goal.entity";
 
-export interface GoalRepository {
+export interface GoalRepositoryPort {
   create(goal: Omit<GoalEntity, "createdAt" | "updatedAt">): Promise<GoalEntity>;
   update(id: string, patch: Partial<GoalEntity>): Promise<GoalEntity | null>;
   findById(id: string): Promise<GoalEntity | null>;

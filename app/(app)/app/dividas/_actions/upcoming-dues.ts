@@ -1,7 +1,6 @@
 import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcoming-due-dates.use-case";
 import type { Clock } from "@/domain/ports/clock.port";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -18,11 +17,11 @@ export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const today = startOfLocalDay(new SystemClock().now());
+  const today = startOfLocalDay(clock.now());
   const dayClock: Clock = { now: () => today };
 
   const result = await getUpcomingDueDates(
-    { debts: new DrizzleDebtRepository(), clock: dayClock },
+    { debts: repos.debts, clock: dayClock },
     { userId: user.id, horizonDays: BANNER_HORIZON_DAYS },
   );
   const dues = isOk(result) ? result.value : [];

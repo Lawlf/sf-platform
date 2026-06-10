@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 import { DEFAULT_PLAN_SLUG } from "@/application/use-cases/billing/create-checkout-session.use-case";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { CelebrationClient } from "./_components/celebration.client";
@@ -20,8 +19,8 @@ export default async function CheckoutSucessoPage({ searchParams }: PageProps) {
   const params = (await searchParams) ?? {};
   const sessionId = params.session_id ?? null;
 
-  const subRepo = new DrizzleSubscriptionRepository();
-  const planRepo = new DrizzlePlanRepository();
+  const subRepo = repos.subscriptions;
+  const planRepo = repos.plans;
   const sub = await subRepo.findActiveByUserId(user.id);
   const defaultPlan = await planRepo.findBySlug(DEFAULT_PLAN_SLUG);
 

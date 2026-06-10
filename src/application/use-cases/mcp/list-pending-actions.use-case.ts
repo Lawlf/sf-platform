@@ -1,11 +1,11 @@
 import type { Clock } from "@/domain/ports/clock.port";
 import type {
   McpPendingAction,
-  McpPendingActionRepository,
+  McpPendingActionRepositoryPort,
 } from "@/domain/ports/repositories/mcp-pending-action.repository";
 
 export interface ListPendingActionsDeps {
-  pending: McpPendingActionRepository;
+  pending: McpPendingActionRepositoryPort;
   clock: Clock;
 }
 

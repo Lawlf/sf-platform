@@ -1,27 +1,23 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createAsset } from "@/application/use-cases/asset/create-asset.use-case";
 import { updateAsset } from "@/application/use-cases/asset/update-asset.use-case";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError } from "@/presentation/actions/action";
 import { isOk } from "@/shared/errors/result";
 
 // ---- Types ----
 
 export interface RegisterLoanCashInflowDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 
@@ -140,56 +136,41 @@ const actionSchema = z
 
 export type RegisterLoanCashInflowActionInput = z.input<typeof actionSchema>;
 
-export type RegisterLoanCashInflowActionResult =
-  | { ok: true; cashAssetId: string | null }
-  | { ok: false; message: string };
+export const registerLoanCashInflowAction = action({
+  schema: actionSchema,
+  revalidates: ["home", "debts", "assets", "timeline", "notifications"],
+  handler: async (v, { userId }) => {
+    const principalCents = BigInt(v.principalCents);
+    const newCashAssetCurrentBalanceCents =
+      v.newCashAssetCurrentBalanceCents !== undefined
+        ? BigInt(v.newCashAssetCurrentBalanceCents)
+        : undefined;
 
-// Server action wrapper — chamado pelo form apos createDebtAction ter sucesso.
-// Se falhar, o caller loga aviso; a divida NAO e revertida (orphan-tolerant).
-export async function registerLoanCashInflowAction(
-  raw: RegisterLoanCashInflowActionInput,
-): Promise<RegisterLoanCashInflowActionResult> {
-  const parsed = actionSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
-  const v = parsed.data;
+    const deps: RegisterLoanCashInflowDeps = {
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
+      clock,
+    };
 
-  const user = await requireUser();
+    const result = await registerLoanCashInflow(deps, {
+      userId,
+      cashTarget: v.cashTarget,
+      principalCents,
+      ...(v.existingCashAssetId !== undefined
+        ? { existingCashAssetId: v.existingCashAssetId }
+        : {}),
+      ...(v.newCashAssetName !== undefined ? { newCashAssetName: v.newCashAssetName } : {}),
+      ...(newCashAssetCurrentBalanceCents !== undefined
+        ? { newCashAssetCurrentBalanceCents }
+        : {}),
+    });
 
-  const principalCents = BigInt(v.principalCents);
-  const newCashAssetCurrentBalanceCents =
-    v.newCashAssetCurrentBalanceCents !== undefined
-      ? BigInt(v.newCashAssetCurrentBalanceCents)
-      : undefined;
-
-  const deps: RegisterLoanCashInflowDeps = {
-    assets: new DrizzleAssetRepository(),
-    allocations: new DrizzleAssetDebtAllocationRepository(),
-    debts: new DrizzleDebtRepository(),
-    clock: new SystemClock(),
-  };
-
-  const result = await registerLoanCashInflow(deps, {
-    userId: user.id,
-    cashTarget: v.cashTarget,
-    principalCents,
-    ...(v.existingCashAssetId !== undefined ? { existingCashAssetId: v.existingCashAssetId } : {}),
-    ...(v.newCashAssetName !== undefined ? { newCashAssetName: v.newCashAssetName } : {}),
-    ...(newCashAssetCurrentBalanceCents !== undefined ? { newCashAssetCurrentBalanceCents } : {}),
-  });
-
-  if (result.ok) {
-    revalidatePath("/app");
-    revalidatePath("/app/dividas");
-    revalidatePath(`/app/dividas/${v.debtId}`);
-    revalidatePath("/app/patrimonio");
-    revalidatePath("/app/linha-do-tempo");
-    revalidatePath("/app/notificacoes");
-    if (result.cashAssetId) {
-      revalidatePath(`/app/patrimonio/${result.cashAssetId}`);
-    }
-  }
-
-  return result;
-}
+    if (!result.ok) throw new ActionError(result.message);
+    return { cashAssetId: result.cashAssetId };
+  },
+  revalidatePaths: (data, v) => [
+    `/app/dividas/${v.debtId}`,
+    ...(data.cashAssetId ? [`/app/patrimonio/${data.cashAssetId}`] : []),
+  ],
+});

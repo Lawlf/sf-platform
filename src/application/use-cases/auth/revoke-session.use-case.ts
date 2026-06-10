@@ -1,9 +1,9 @@
 import { Forbidden, SessionNotFound } from "@/domain/errors/auth-errors";
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RevokeSessionDeps {
-  sessions: SessionRepository;
+  sessions: SessionRepositoryPort;
 }
 
 export interface RevokeSessionInput {

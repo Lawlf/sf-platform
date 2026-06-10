@@ -2,7 +2,6 @@
 
 import crypto from "node:crypto";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import {
@@ -21,9 +20,8 @@ import {
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { dueDateForMonth } from "@/domain/services/debt-calendar.service";
 import { Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-amount-adjustment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 // Janela default exibida na timeline: 24 meses retroativos a partir do mês
@@ -95,16 +93,16 @@ export interface HistoricoPayload {
 
 export async function loadHistorico(debtId: string): Promise<HistoricoPayload> {
   const user = await requireUser();
-  const debts = new DrizzleDebtRepository();
+  const debts = repos.debts;
   const debt = await debts.findById(debtId);
   if (!debt || debt.userId !== user.id) {
     throw new Error("Dívida não encontrada.");
   }
 
-  const adjustmentsRepo = new DrizzleDebtAmountAdjustmentRepository();
+  const adjustmentsRepo = repos.debtAmountAdjustments;
   const adjustments = await adjustmentsRepo.listForDebt(debtId, user.id);
 
-  const now = new SystemClock().now();
+  const now = clock.now();
   const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + DEFAULT_FUTURE_MONTHS, 1));
   const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - DEFAULT_PAST_MONTHS, 1));
   const timeline = resolveMonthlyTimeline(debt, { from, to }, adjustments);
@@ -137,99 +135,91 @@ const addOverrideSchema = z.object({
 export type AddPeriodInput = z.input<typeof addPeriodSchema>;
 export type AddOverrideInput = z.input<typeof addOverrideSchema>;
 
-export type ActionResult =
-  | { ok: true; adjustmentId: string }
-  | { ok: false; message: string };
-
-export async function addPeriodAction(raw: AddPeriodInput): Promise<ActionResult> {
-  const parsed = addPeriodSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
+async function requireOwnedDebt(debtId: string, userId: string): Promise<DebtEntity> {
+  const debt = await repos.debts.findById(debtId);
+  if (!debt || debt.userId !== userId) {
+    throw new ActionError("Dívida não encontrada.");
   }
-  const v = parsed.data;
-  if (v.endMonth !== null && compareMonthKey(v.endMonth, v.startMonth) < 0) {
-    return { ok: false, message: "Mês final deve ser igual ou depois do inicial." };
-  }
-  const user = await requireUser();
-
-  const debts = new DrizzleDebtRepository();
-  const debt = await debts.findById(v.debtId);
-  if (!debt || debt.userId !== user.id) {
-    return { ok: false, message: "Dívida não encontrada." };
-  }
-
-  const amountCents = BigInt(v.amountCents);
-  if (amountCents < 0n) return { ok: false, message: "Valor não pode ser negativo." };
-
-  const now = new SystemClock().now();
-  const entity: PeriodAdjustment = {
-    id: crypto.randomUUID(),
-    kind: "period",
-    debtId: v.debtId,
-    userId: user.id,
-    startMonth: v.startMonth,
-    endMonth: v.endMonth,
-    amount: Money.fromCents(amountCents),
-    note: v.note ?? null,
-    createdAt: now,
-    updatedAt: now,
-  };
-
-  const repo = new DrizzleDebtAmountAdjustmentRepository();
-  const saved = await repo.upsert(entity);
-  revalidatePath(`/app/dividas/${v.debtId}/historico`);
-  revalidatePath(`/app/dividas/${v.debtId}`);
-  return { ok: true, adjustmentId: saved.id };
+  return debt;
 }
 
-export async function addOverrideAction(raw: AddOverrideInput): Promise<ActionResult> {
-  const parsed = addOverrideSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
-  const v = parsed.data;
-  if (!isValidMonthKey(v.month)) {
-    return { ok: false, message: "Mês inválido." };
-  }
-  const user = await requireUser();
+export const addPeriodAction = action({
+  schema: addPeriodSchema,
+  handler: async (v, { userId }) => {
+    if (v.endMonth !== null && compareMonthKey(v.endMonth, v.startMonth) < 0) {
+      throw new ActionError("Mês final deve ser igual ou depois do inicial.");
+    }
+    await requireOwnedDebt(v.debtId, userId);
 
-  const debts = new DrizzleDebtRepository();
-  const debt = await debts.findById(v.debtId);
-  if (!debt || debt.userId !== user.id) {
-    return { ok: false, message: "Dívida não encontrada." };
-  }
+    const amountCents = BigInt(v.amountCents);
+    if (amountCents < 0n) throw new ActionError("Valor não pode ser negativo.");
 
-  const amountCents = BigInt(v.amountCents);
-  if (amountCents < 0n) return { ok: false, message: "Valor não pode ser negativo." };
+    const now = clock.now();
+    const entity: PeriodAdjustment = {
+      id: crypto.randomUUID(),
+      kind: "period",
+      debtId: v.debtId,
+      userId,
+      startMonth: v.startMonth,
+      endMonth: v.endMonth,
+      amount: Money.fromCents(amountCents),
+      note: v.note ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
 
-  const now = new SystemClock().now();
-  const entity: OverrideAdjustment = {
-    id: crypto.randomUUID(),
-    kind: "override",
-    debtId: v.debtId,
-    userId: user.id,
-    month: v.month,
-    amount: Money.fromCents(amountCents),
-    note: v.note ?? null,
-    createdAt: now,
-    updatedAt: now,
-  };
+    const saved = await repos.debtAmountAdjustments.upsert(entity);
+    return { adjustmentId: saved.id };
+  },
+  revalidatePaths: (_data, v) => [
+    `/app/dividas/${v.debtId}/historico`,
+    `/app/dividas/${v.debtId}`,
+  ],
+});
 
-  const repo = new DrizzleDebtAmountAdjustmentRepository();
-  const saved = await repo.upsert(entity);
-  revalidatePath(`/app/dividas/${v.debtId}/historico`);
-  revalidatePath(`/app/dividas/${v.debtId}`);
-  return { ok: true, adjustmentId: saved.id };
-}
+export const addOverrideAction = action({
+  schema: addOverrideSchema,
+  handler: async (v, { userId }) => {
+    if (!isValidMonthKey(v.month)) {
+      throw new ActionError("Mês inválido.");
+    }
+    await requireOwnedDebt(v.debtId, userId);
 
-export async function deleteAdjustmentAction(
-  debtId: string,
-  adjustmentId: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  const user = await requireUser();
-  const repo = new DrizzleDebtAmountAdjustmentRepository();
-  await repo.delete(adjustmentId, user.id);
-  revalidatePath(`/app/dividas/${debtId}/historico`);
-  revalidatePath(`/app/dividas/${debtId}`);
-  return { ok: true };
-}
+    const amountCents = BigInt(v.amountCents);
+    if (amountCents < 0n) throw new ActionError("Valor não pode ser negativo.");
+
+    const now = clock.now();
+    const entity: OverrideAdjustment = {
+      id: crypto.randomUUID(),
+      kind: "override",
+      debtId: v.debtId,
+      userId,
+      month: v.month,
+      amount: Money.fromCents(amountCents),
+      note: v.note ?? null,
+      createdAt: now,
+      updatedAt: now,
+    };
+
+    const saved = await repos.debtAmountAdjustments.upsert(entity);
+    return { adjustmentId: saved.id };
+  },
+  revalidatePaths: (_data, v) => [
+    `/app/dividas/${v.debtId}/historico`,
+    `/app/dividas/${v.debtId}`,
+  ],
+});
+
+export const deleteAdjustmentAction = action({
+  schema: z.object({
+    debtId: z.string(),
+    adjustmentId: z.string(),
+  }),
+  handler: async ({ adjustmentId }, { userId }) => {
+    await repos.debtAmountAdjustments.delete(adjustmentId, userId);
+  },
+  revalidatePaths: (_data, v) => [
+    `/app/dividas/${v.debtId}/historico`,
+    `/app/dividas/${v.debtId}`,
+  ],
+});

@@ -255,12 +255,13 @@ export function CreditCardForm({
           setServerError(r.message);
           return;
         }
-        assetIdToLink = r.assetId;
+        assetIdToLink = r.data.assetId;
       } else if (v.linkAssetChoice === "existing") {
         assetIdToLink = v.linkedAssetId ?? null;
       }
 
-      const debtRes = await createDebtAction("credit_card", fd);
+      fd.set("kind", "credit_card");
+      const debtRes = await createDebtAction(fd);
       if (!debtRes.ok) {
         setServerError(debtRes.message);
         return;
@@ -277,20 +278,20 @@ export function CreditCardForm({
         if (allocationCents > 0n) {
           const linkRes = await linkDebtToAssetAction({
             assetId: assetIdToLink,
-            debtId: debtRes.debtId,
+            debtId: debtRes.data.debtId,
             allocationOriginalCents: allocationCents.toString(),
           });
           if (!linkRes.ok) {
             setServerError(`Dívida criada, mas falha ao vincular bem: ${linkRes.message}`);
             await invalidateDebtCaches(queryClient);
-            router.push(`/app/dividas/${debtRes.debtId}` as Route);
+            router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
             return;
           }
         }
       }
 
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${debtRes.debtId}` as Route);
+      router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
     });
   }
 

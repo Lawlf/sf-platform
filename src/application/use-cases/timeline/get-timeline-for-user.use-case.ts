@@ -8,15 +8,15 @@ import {
   type ConvertEntityDeps,
 } from "@/application/use-cases/fx/convert-entity-to-base";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
-import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtAmountAdjustmentRepository } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtAmountAdjustmentRepositoryPort } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { StoryDetectionService, type StoryCard } from "@/domain/services/story-detection.service";
 import { TimelineService, type MonthlyDataPoint } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -56,13 +56,13 @@ export interface TimelinePageResult {
 }
 
 export interface GetTimelineForUserDeps extends ConvertEntityDeps {
-  incomes: IncomeRepository;
-  debts: DebtRepository;
-  debtPayments: DebtPaymentRepository;
-  assets: AssetRepository;
+  incomes: IncomeRepositoryPort;
+  debts: DebtRepositoryPort;
+  debtPayments: DebtPaymentRepositoryPort;
+  assets: AssetRepositoryPort;
   // Opcional para preservar compat com testes legados que mockam só os 4 acima.
   // Quando ausente, a timeline é calculada sem ajustes históricos (valor base).
-  debtAmountAdjustments?: DebtAmountAdjustmentRepository;
+  debtAmountAdjustments?: DebtAmountAdjustmentRepositoryPort;
 }
 
 function findOldestUserDate(
@@ -85,6 +85,33 @@ function findOldestUserDate(
   return new Date(Math.min(...candidates.map((d) => d.getTime())));
 }
 
+function subtractMonths(month: MonthYear, count: number): MonthYear {
+  let result = month;
+  for (let i = 0; i < count; i++) {
+    result = result.previous();
+  }
+  return result;
+}
+
+function computeOlderCursor(
+  from: MonthYear,
+  oldestDate: Date | null,
+  range: TimelineRange | undefined,
+  now: MonthYear | undefined,
+): string | null {
+  if (!oldestDate) return null;
+  if (from.isAtOrBefore(MonthYear.fromDate(oldestDate))) return null;
+  if (range && range !== "all") {
+    const rangeMonths = Number.parseInt(range, 10);
+    if (Number.isFinite(rangeMonths) && rangeMonths > 0) {
+      const effectiveNow = now ?? MonthYear.fromDate(new Date());
+      const earliest = subtractMonths(effectiveNow, rangeMonths - 1);
+      if (from.isAtOrBefore(earliest)) return null;
+    }
+  }
+  return from.previous().toIso();
+}
+
 /**
  * Caso de uso da linha do tempo (macro) com paginação por cursor.
  *
@@ -99,12 +126,8 @@ export async function getTimelineForUser(
   deps: GetTimelineForUserDeps,
   input: GetTimelineForUserInput,
 ): Promise<Result<TimelinePageResult, DomainError>> {
-  // Janela inclusiva da página: [from, to]. `to` é o mês mais recente.
   const to = input.before;
-  let from = to;
-  for (let i = 0; i < input.limit - 1; i++) {
-    from = from.previous();
-  }
+  const from = subtractMonths(to, input.limit - 1);
 
   // Busca um mês a mais (antes de `from`) para contexto de stories (diff vs prev).
   const fetchFrom = from.previous();
@@ -154,11 +177,9 @@ export async function getTimelineForUser(
     convertedAdjustments.push(r.value);
   }
 
-  // oldestUserDataIso: data mais antiga conhecida do usuário.
   const oldestDate = findOldestUserDate(convertedIncomes, convertedDebts, convertedAssets);
   const oldestUserDataIso = oldestDate ? MonthYear.fromDate(oldestDate).toIso() : null;
 
-  // Constrói a timeline incluindo o mês extra (para contexto).
   const timeline = TimelineService.buildTimeline({
     incomes: convertedIncomes,
     debts: convertedDebts,
@@ -168,47 +189,17 @@ export async function getTimelineForUser(
     to,
     adjustments: convertedAdjustments,
   });
-  // points vem em ordem crescente; filtra para descartar o mês de contexto.
   const pagePoints = timeline.points.filter((p) => !p.month.isBefore(from));
 
-  // Filtro `show`.
-  // `with-payments`: só meses com pagamento de dívida > 0.
-  // `highlights`: não filtra no server (client decide com base em stories).
+  // `highlights` não filtra no server: o client decide com base nas stories.
   let filteredPoints = pagePoints;
   if (input.show === "with-payments") {
     filteredPoints = pagePoints.filter((p) => p.totalDebtPayments.toCents() > 0n);
   }
 
-  // Stories sobre os pontos retornados (StoryDetectionService já ordena por monthIso asc).
   const stories = StoryDetectionService.detect(filteredPoints);
-
-  // Inverte para "mais recente primeiro".
   const pointsDesc = [...filteredPoints].reverse();
-
-  // Cursor para próxima página: mês imediatamente anterior a `from`, salvo
-  // que já alcançou o limite mais antigo dos dados.
-  let olderMonthIso: string | null = from.previous().toIso();
-  if (oldestDate) {
-    const oldestMonth = MonthYear.fromDate(oldestDate);
-    if (from.isAtOrBefore(oldestMonth)) {
-      olderMonthIso = null;
-    }
-  } else {
-    olderMonthIso = null;
-  }
-
-  // Cap por `range`: se finito, calcula o mês mais antigo permitido a partir de `now`.
-  if (input.range && input.range !== "all") {
-    const rangeMonths = Number.parseInt(input.range, 10);
-    if (Number.isFinite(rangeMonths) && rangeMonths > 0) {
-      const now = input.now ?? MonthYear.fromDate(new Date());
-      let earliest = now;
-      for (let i = 0; i < rangeMonths - 1; i++) earliest = earliest.previous();
-      if (from.isAtOrBefore(earliest)) {
-        olderMonthIso = null;
-      }
-    }
-  }
+  const olderMonthIso = computeOlderCursor(from, oldestDate, input.range, input.now);
 
   return ok({
     points: pointsDesc,

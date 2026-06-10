@@ -1,6 +1,6 @@
 "use server";
 
-import { DrizzleStockCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-stock-catalog.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export interface StockCatalogSearchResult {
@@ -21,7 +21,7 @@ export async function searchStockCatalogAction(query: string): Promise<StockCata
   await requireUser();
   const trimmed = (query ?? "").trim();
   if (trimmed.length < 1) return [];
-  const repo = new DrizzleStockCatalogRepository();
+  const repo = repos.stockCatalog;
   const results = await repo.search(trimmed, 10);
   return results.map((r) => ({
     ticker: r.ticker,

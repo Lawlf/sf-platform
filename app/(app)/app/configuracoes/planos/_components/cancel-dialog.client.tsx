@@ -28,7 +28,7 @@ export function CancelDialog({ accessUntilLabel, variant = "primary" }: Props) {
 
   async function doCancel() {
     const r = await cancelSubscriptionAction();
-    if (!r.ok && r.code === "STEPUP_REQUIRED") {
+    if (r.ok && r.data.stepupRequired) {
       setStepUpOpen(true);
       return;
     }
@@ -54,14 +54,16 @@ export function CancelDialog({ accessUntilLabel, variant = "primary" }: Props) {
     setStepUpOpen(false);
     startTransition(async () => {
       const r = await cancelSubscriptionAction();
-      if (r.ok) {
+      if (r.ok && !r.data.stepupRequired) {
         toast.success("Pro cancelado.", {
           description: `Você mantém acesso até ${accessUntilLabel}.`,
         });
         setOpen(false);
       } else {
         toast.error("Não rolou cancelar.", {
-          description: r.message ?? "Tenta de novo em instantes.",
+          description: r.ok
+            ? "Confirme sua identidade para continuar."
+            : r.message ?? "Tenta de novo em instantes.",
         });
       }
     });

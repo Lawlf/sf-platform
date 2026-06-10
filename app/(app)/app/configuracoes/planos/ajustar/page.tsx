@@ -3,8 +3,7 @@ import type { Route } from "next";
 import { redirect } from "next/navigation";
 
 import { LIFETIME_LIMIT } from "@/domain/entities/plan.entity";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -17,8 +16,8 @@ const LIFETIME_PERIOD_END = new Date("2099-12-31T23:59:59Z");
 
 export default async function AjustarPlanoPage() {
   const user = await requireUser();
-  const subRepo = new DrizzleSubscriptionRepository();
-  const planRepo = new DrizzlePlanRepository();
+  const subRepo = repos.subscriptions;
+  const planRepo = repos.plans;
 
   const sub = await subRepo.findActiveByUserId(user.id);
   const isPro = sub !== null && (sub.status === "active" || sub.status === "past_due");

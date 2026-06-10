@@ -7,15 +7,15 @@ import {
   PaymentExceedsBalanceError,
 } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { DistributedLock } from "@/domain/ports/services/distributed-lock.service";
 import type { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RecordPaymentDeps {
-  debts: DebtRepository;
-  payments: DebtPaymentRepository;
+  debts: DebtRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
   clock: Clock;
   lock: DistributedLock;
   transaction?: <T>(fn: () => Promise<T>) => Promise<T>;

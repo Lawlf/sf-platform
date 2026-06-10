@@ -1,11 +1,12 @@
 import { unstable_cache } from "next/cache";
 
+
 import type { Payment } from "@/domain/entities/payment.entity";
 import type {
   AdminMetricsSummary,
   DailyPoint,
 } from "@/domain/ports/repositories/admin-metrics.repository";
-import { DrizzleAdminMetricsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-admin-metrics.repository";
+import { repos } from "@/infrastructure/container";
 
 /**
  * The admin summary runs ~7 aggregate scans (SUM/COUNT over payments,
@@ -23,7 +24,7 @@ export const ADMIN_METRICS_TAG = "admin-metrics";
 const REVALIDATE_SECONDS = 60;
 
 function repo() {
-  return new DrizzleAdminMetricsRepository();
+  return repos.adminMetrics;
 }
 
 type SummaryDTO = Omit<

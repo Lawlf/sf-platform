@@ -1,6 +1,6 @@
-import { Money } from "@/domain/value-objects/money.vo";
+import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
+import type { Money } from "@/domain/value-objects/money.vo";
 import type { Currency } from "@/domain/value-objects/money.vo";
-import { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import { isErr, ok, type Result } from "@/shared/errors/result";
 
 import {

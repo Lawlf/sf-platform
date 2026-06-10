@@ -133,7 +133,7 @@ export function NotificationSettings({
         toast.error(res.message);
         return;
       }
-      setDevices(res.deviceCount);
+      setDevices(res.data.deviceCount);
       setDeviceState("active");
       toast.success("Notificações ativadas neste aparelho.");
     } catch (err) {
@@ -160,7 +160,7 @@ export function NotificationSettings({
         toast.error(res.message);
         return;
       }
-      setDevices(res.deviceCount);
+      setDevices(res.data.deviceCount);
       setDeviceState("inactive");
       toast.success("Notificações desativadas neste aparelho.");
     } catch (err) {
@@ -186,23 +186,23 @@ export function NotificationSettings({
   async function sendTest() {
     setTesting(true);
     try {
-      const res = await sendTestPushAction();
+      const res = await sendTestPushAction(undefined);
       if (!res.ok) {
         toast.error(res.message);
         return;
       }
-      if (res.skipped) {
+      if (res.data.skipped) {
         toast.info("Os avisos estão desligados nos seus ajustes.");
         return;
       }
-      if (res.delivered === 0) {
+      if (res.data.delivered === 0) {
         toast.info("Nenhum aparelho ativo. Ative as notificações primeiro.");
         return;
       }
       toast.success(
-        res.delivered === 1
+        res.data.delivered === 1
           ? "Enviado para 1 aparelho."
-          : `Enviado para ${res.delivered} aparelhos.`,
+          : `Enviado para ${res.data.delivered} aparelhos.`,
       );
     } catch (err) {
       const msg = err instanceof Error ? err.message : "Erro desconhecido.";

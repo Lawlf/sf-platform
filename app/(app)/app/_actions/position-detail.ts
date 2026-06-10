@@ -4,8 +4,7 @@ import type { AssetCategory } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind } from "@/domain/entities/debt.entity";
 import { assetNetWorth } from "@/domain/services/patrimony.service";
 import { Money } from "@/domain/value-objects/money.vo";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -38,8 +37,8 @@ export async function fetchPositionDetail(): Promise<SerializedPositionDetail | 
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const assetsRepo = new DrizzleAssetRepository();
-  const debtsRepo = new DrizzleDebtRepository();
+  const assetsRepo = repos.assets;
+  const debtsRepo = repos.debts;
 
   const [assetsWithAllocs, allDebts] = await Promise.all([
     assetsRepo.findActiveWithAllocations(user.id),

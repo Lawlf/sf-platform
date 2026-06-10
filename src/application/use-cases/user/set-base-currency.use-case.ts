@@ -1,6 +1,6 @@
 import { UserNotFound } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
@@ -11,7 +11,7 @@ export interface SetBaseCurrencyInput {
 }
 
 export interface SetBaseCurrencyDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
   clock: Clock;
 }
 

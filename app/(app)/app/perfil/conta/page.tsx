@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import type { Route } from "next";
 
-import { DrizzleOauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-oauth-account.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -15,7 +15,7 @@ export const metadata: Metadata = { title: "Conta" };
 
 export default async function ContaPage() {
   const user = await requireUser();
-  const oauthAccounts = await new DrizzleOauthAccountRepository().listForUser(user.id);
+  const oauthAccounts = await repos.oauthAccounts.listForUser(user.id);
   const googleLinked = oauthAccounts.some((a) => a.provider === "google");
 
   return (

@@ -17,7 +17,7 @@ export interface TopUserUsage {
   lastSeenAt: Date | null;
 }
 
-export interface UsageRepository {
+export interface UsageRepositoryPort {
   recordPing(userId: string, path: string | null, now: Date): Promise<void>;
   getSummary(now: Date): Promise<UsageSummary>;
   getUserUsage(userId: string, now: Date): Promise<UserUsage>;

@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { DebtEntity } from "@/domain/entities/debt.entity";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
-import { CreditCardStatementExceedsLimit } from "@/domain/errors/asset-errors";
 import { registerDebt } from "./register-debt.use-case";
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

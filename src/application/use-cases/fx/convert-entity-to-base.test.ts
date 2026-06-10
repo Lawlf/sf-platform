@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { Money } from "@/domain/value-objects/money.vo";
-import type { AssetEntity } from "@/domain/entities/asset.entity";
-import type { CreditCardDebt, RecurringDebt } from "@/domain/entities/debt.entity";
-import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
-import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
+import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { CreditCardDebt, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
+import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import {

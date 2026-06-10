@@ -30,7 +30,7 @@ export function OutOfMonthButton({ debtId }: { debtId: string }) {
   function onConfirm() {
     setError(null);
     startTransition(async () => {
-      const r = await archiveDebtAction(debtId, "written_off", note);
+      const r = await archiveDebtAction({ debtId, reason: "written_off", note });
       if (!r.ok) {
         setError(r.message);
         return;

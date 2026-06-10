@@ -1,10 +1,10 @@
 import type { FinancialPlanningSettingsEntity } from "@/domain/entities/financial-planning-settings.entity";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { FinancialPlanningSettingsRepository } from "@/domain/ports/repositories/financial-planning-settings.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { FinancialPlanningSettingsRepositoryPort } from "@/domain/ports/repositories/financial-planning-settings.repository";
 
 export interface SetLiquidBucketDeps {
-  assets: AssetRepository;
-  settings: FinancialPlanningSettingsRepository;
+  assets: AssetRepositoryPort;
+  settings: FinancialPlanningSettingsRepositoryPort;
 }
 
 export type SetLiquidBucketResult =

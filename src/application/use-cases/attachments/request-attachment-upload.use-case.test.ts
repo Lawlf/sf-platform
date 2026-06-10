@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { FileStoragePort } from "@/domain/ports/file-storage.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 
 import { requestAttachmentUpload } from "./request-attachment-upload.use-case";
 
 function makeDeps(over: { isPro?: boolean; total?: number } = {}) {
-  const attachments: EntityAttachmentRepository = {
+  const attachments: EntityAttachmentRepositoryPort = {
     add: vi.fn(),
     findById: vi.fn(),
     listForEntity: vi.fn(),

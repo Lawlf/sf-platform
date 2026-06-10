@@ -1,17 +1,12 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createAsset } from "@/application/use-cases/asset/create-asset.use-case";
 import type { AssetMetadata } from "@/domain/entities/asset.entity";
 import { CURRENCIES } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors/result";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 
 import { awardEventAchievement } from "../../../_actions/_achievements";
 
@@ -23,9 +18,23 @@ const allocSchema = z.object({
 const inputSchema = z.object({
   category: z.enum(["vehicle", "real_estate", "investment", "cash", "other"]),
   label: z.string().min(1).max(120),
-  currentValueCents: z.string().regex(/^-?\d+$/, "Valor inválido."),
+  currentValueCents: z
+    .string()
+    .regex(/^-?\d+$/, "Valor inválido.")
+    .refine((s) => BigInt(s) >= 0n, "Valor do ativo não pode ser negativo."),
   currency: z.enum(CURRENCIES).default("BRL"),
-  metadataJson: z.string().nullable(),
+  metadataJson: z
+    .string()
+    .nullable()
+    .refine((s) => {
+      if (s === null || s.length === 0) return true;
+      try {
+        JSON.parse(s);
+        return true;
+      } catch {
+        return false;
+      }
+    }, "Metadados inválidos."),
   acquiredAt: z.string().nullable(),
   allocations: z.array(allocSchema),
   depreciationKind: z
@@ -36,92 +45,66 @@ const inputSchema = z.object({
   purchasePriceCents: z
     .string()
     .regex(/^-?\d+$/, "Preço de compra inválido.")
+    .refine((s) => BigInt(s) >= 0n, "Preço de compra não pode ser negativo.")
     .nullable()
     .optional(),
 });
 
-export type CreateAssetResult = { ok: true; assetId: string } | { ok: false; message: string };
+export const createAssetAction = action({
+  schema: inputSchema,
+  revalidates: ["assets", "debts", "timeline", "notifications", "home"],
+  handler: async (data, { userId }) => {
+    const metadata =
+      data.metadataJson !== null && data.metadataJson.length > 0
+        ? (JSON.parse(data.metadataJson) as AssetMetadata)
+        : null;
+    const acquiredAt = data.acquiredAt ? new Date(data.acquiredAt) : null;
+    const purchaseDate =
+      data.purchaseDate && data.purchaseDate.length > 0 ? new Date(data.purchaseDate) : null;
 
-export async function createAssetAction(formInput: unknown): Promise<CreateAssetResult> {
-  const parsed = inputSchema.safeParse(formInput);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
+    const currentValueCents = BigInt(data.currentValueCents);
 
-  const user = await requireUser();
-
-  let metadata: AssetMetadata | null = null;
-  if (parsed.data.metadataJson !== null && parsed.data.metadataJson.length > 0) {
-    try {
-      metadata = JSON.parse(parsed.data.metadataJson) as AssetMetadata;
-    } catch {
-      return { ok: false, message: "Metadados inválidos." };
-    }
-  }
-  const acquiredAt = parsed.data.acquiredAt ? new Date(parsed.data.acquiredAt) : null;
-  const purchaseDate =
-    parsed.data.purchaseDate && parsed.data.purchaseDate.length > 0
-      ? new Date(parsed.data.purchaseDate)
-      : null;
-
-  const currentValueCents = BigInt(parsed.data.currentValueCents);
-  if (currentValueCents < 0n) {
-    return { ok: false, message: "Valor do ativo não pode ser negativo." };
-  }
-
-  let purchasePriceCents: bigint | null = null;
-  if (parsed.data.purchasePriceCents !== undefined && parsed.data.purchasePriceCents !== null) {
-    try {
-      const p = BigInt(parsed.data.purchasePriceCents);
-      if (p < 0n) {
-        return { ok: false, message: "Preço de compra não pode ser negativo." };
-      }
+    let purchasePriceCents: bigint | null = null;
+    if (data.purchasePriceCents !== undefined && data.purchasePriceCents !== null) {
+      const p = BigInt(data.purchasePriceCents);
       purchasePriceCents = p > 0n ? p : null;
-    } catch {
-      return { ok: false, message: "Preço de compra inválido." };
     }
-  }
 
-  const allocations = parsed.data.allocations
-    .map((a) => ({
-      debtId: a.debtId,
-      allocationOriginalCents: BigInt(a.allocationOriginalCents),
-    }))
-    .filter((a) => a.allocationOriginalCents > 0n);
+    const allocations = data.allocations
+      .map((a) => ({
+        debtId: a.debtId,
+        allocationOriginalCents: BigInt(a.allocationOriginalCents),
+      }))
+      .filter((a) => a.allocationOriginalCents > 0n);
 
-  const result = await createAsset(
-    {
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
-      clock: new SystemClock(),
-    },
-    {
-      userId: user.id,
-      category: parsed.data.category,
-      label: parsed.data.label,
-      currentValueCents,
-      currency: parsed.data.currency,
-      metadata,
-      fipeCode: null,
-      acquiredAt,
-      allocations,
-      depreciationKind: parsed.data.depreciationKind,
-      depreciationRatePctYear: parsed.data.depreciationRatePctYear,
-      purchaseDate,
-      purchasePriceCents,
-    },
-  );
+    const asset = unwrap(
+      await createAsset(
+        {
+          assets: repos.assets,
+          allocations: repos.assetDebtAllocations,
+          debts: repos.debts,
+          clock,
+        },
+        {
+          userId,
+          category: data.category,
+          label: data.label,
+          currentValueCents,
+          currency: data.currency,
+          metadata,
+          fipeCode: null,
+          acquiredAt,
+          allocations,
+          depreciationKind: data.depreciationKind,
+          depreciationRatePctYear: data.depreciationRatePctYear,
+          purchaseDate,
+          purchasePriceCents,
+        },
+      ),
+    );
 
-  if (!isOk(result)) {
-    return { ok: false, message: result.error.message ?? "Erro ao criar ativo." };
-  }
-  revalidatePath(`/app/patrimonio/${result.value.id}`);
-  revalidatePath("/app/patrimonio");
-  revalidatePath("/app/dividas");
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app/notificacoes");
-  revalidatePath("/app");
-  await awardEventAchievement(user.id, "mapa-do-tesouro");
-  return { ok: true, assetId: result.value.id };
-}
+    await awardEventAchievement(userId, "mapa-do-tesouro");
+    return { assetId: asset.id };
+  },
+  revalidatePaths: (data) => [`/app/patrimonio/${data.assetId}`],
+});

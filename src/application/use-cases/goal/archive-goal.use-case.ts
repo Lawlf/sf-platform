@@ -1,8 +1,8 @@
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 export interface ArchiveGoalDeps {
-  goals: GoalRepository;
+  goals: GoalRepositoryPort;
 }
 
 export type ArchiveGoalResult =

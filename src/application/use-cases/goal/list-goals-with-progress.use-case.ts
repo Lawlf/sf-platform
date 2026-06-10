@@ -4,13 +4,13 @@ import {
 } from "@/application/use-cases/fx/convert-entity-to-base";
 import type { BuildGoalMacroDeps } from "@/application/use-cases/goal/build-goal-macro";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
-import { isOk } from "@/shared/errors/result";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import { GoalProgressService, type GoalProgress } from "@/domain/services/goal-progress.service";
+import { isOk } from "@/shared/errors/result";
 
 export interface ListGoalsWithProgressDeps extends BuildGoalMacroDeps {
-  goals: GoalRepository;
+  goals: GoalRepositoryPort;
 }
 
 export interface GoalWithProgress {

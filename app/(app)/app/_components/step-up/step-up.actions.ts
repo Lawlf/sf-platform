@@ -9,7 +9,7 @@ import { decryptSecret } from "@/infrastructure/auth/secret-cipher";
 import { verifyTotp } from "@/infrastructure/auth/totp";
 import { buildUserStepCookie, signUserStepUp, type StepUpFactor } from "@/infrastructure/auth/user-stepup";
 import { loadEnv, requireAdminTotpKey } from "@/infrastructure/config/env";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -26,7 +26,7 @@ async function grant(userId: string, factor: StepUpFactor): Promise<void> {
 
 export async function getStepUpFactorsAction(): Promise<{ hasTotp: boolean; hasPasskey: boolean; hasPin: boolean }> {
   const user = await requireUser();
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const [cred, passkeys] = await Promise.all([repo.find(user.id), repo.listWebauthn(user.id)]);
   return { hasTotp: Boolean(cred?.totpSecret), hasPasskey: passkeys.length > 0, hasPin: Boolean(cred?.pinHash) };
 }
@@ -35,7 +35,7 @@ export async function stepUpPinAction(pin: string): Promise<R> {
   const user = await requireUser();
   const rl = new UpstashRateLimiter();
   if (!(await rl.check(`stepup-pin:${user.id}`, { window: "15 m", max: 10 })).ok) return { ok: false, message: "Muitas tentativas. Aguarde." };
-  const cred = await new DrizzleUserCredentialsRepository().find(user.id);
+  const cred = await repos.userCredentials.find(user.id);
   if (!cred?.pinHash || !(await verifyPin(pin, cred.pinHash))) return { ok: false, message: "PIN incorreto." };
   await grant(user.id, "pin"); return { ok: true };
 }
@@ -44,7 +44,7 @@ export async function stepUpTotpAction(code: string): Promise<R> {
   const user = await requireUser();
   const rl = new UpstashRateLimiter();
   if (!(await rl.check(`stepup-totp:${user.id}`, { window: "15 m", max: 10 })).ok) return { ok: false, message: "Muitas tentativas. Aguarde." };
-  const cred = await new DrizzleUserCredentialsRepository().find(user.id);
+  const cred = await repos.userCredentials.find(user.id);
   if (!cred?.totpSecret) return { ok: false, message: "TOTP não configurado." };
   const secret = decryptSecret(cred.totpSecret, requireAdminTotpKey());
   if (!(await verifyTotp(secret, code, new Date()))) return { ok: false, message: "Código inválido." };
@@ -54,7 +54,7 @@ export async function stepUpTotpAction(code: string): Promise<R> {
 export async function beginStepUpPasskeyAction() {
   const user = await requireUser();
   const { rpID } = rp();
-  const creds = await new DrizzleUserCredentialsRepository().listWebauthn(user.id);
+  const creds = await repos.userCredentials.listWebauthn(user.id);
   const options = await generateAuthenticationOptions({
     rpID,
     allowCredentials: creds.map((c) => { const t = parseTransports(c.transports); return t ? { id: c.credentialId, transports: t } : { id: c.credentialId }; }),
@@ -74,7 +74,7 @@ export async function confirmStepUpPasskeyAction(response: AuthenticationRespons
   const expectedChallenge = jar.get(CHALLENGE_COOKIE)?.value;
   jar.delete(CHALLENGE_COOKIE);
   if (!expectedChallenge) return { ok: false, message: "Sessão expirada." };
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const stored = await repo.findWebauthnByCredentialId(response.id);
   if (!stored || stored.userId !== user.id) return { ok: false, message: "Credencial não encontrada." };
   const { rpID, origin } = rp();

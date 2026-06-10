@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 
 import { monthlyRateFor } from "@/domain/services/financial-health.service";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: "Quitar dívida ou investir?" };
 
 export default async function DividaVsInvestirPage() {
   const user = await requireUser();
-  const debts = await new DrizzleDebtRepository().listForUser(user.id, { status: "active" });
+  const debts = await repos.debts.listForUser(user.id, { status: "active" });
 
   // Só dívidas que cobram juros: amortizar uma sem juros (recorrente) não
   // economiza nada. Anualiza a taxa mensal para comparar com o investimento.

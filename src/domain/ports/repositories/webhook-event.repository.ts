@@ -1,4 +1,4 @@
-export interface WebhookEventRepository {
+export interface WebhookEventRepositoryPort {
   /**
    * Insere evento idempotentemente. Retorna `true` se foi inserido
    * (evento novo), `false` se ja existia (replay).

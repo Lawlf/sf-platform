@@ -2,10 +2,10 @@ import type { Payment } from "@/domain/entities/payment.entity";
 import type { Subscription } from "@/domain/entities/subscription.entity";
 import { BillingProviderError } from "@/domain/errors/billing-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { PaymentRepository } from "@/domain/ports/repositories/payment.repository";
-import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { PaymentRepositoryPort } from "@/domain/ports/repositories/payment.repository";
+import type { PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -22,10 +22,10 @@ export interface GrantProManuallyInput {
 }
 
 export interface GrantProManuallyDeps {
-  users: UserRepository;
-  subscriptions: SubscriptionRepository;
-  payments: PaymentRepository;
-  plans: PlanRepository;
+  users: UserRepositoryPort;
+  subscriptions: SubscriptionRepositoryPort;
+  payments: PaymentRepositoryPort;
+  plans: PlanRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

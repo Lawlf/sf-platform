@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
 import type { QuoteAdapter, StockQuoteResult } from "@/domain/ports/external/quote-adapter.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type {
-  StockCatalogRepository,
+  StockCatalogRepositoryPort,
   StockCatalogUpsertEntry,
 } from "@/domain/ports/repositories/stock-catalog.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 import { refreshAllUserStocks } from "./refresh-all-user-stocks.use-case";
 
@@ -36,7 +36,7 @@ function makeUser(id: string, overrides: Partial<UserEntity> = {}): UserEntity {
   };
 }
 
-function makeUserRepo(pro: UserEntity[]): UserRepository {
+function makeUserRepo(pro: UserEntity[]): UserRepositoryPort {
   return {
     findById: vi.fn(),
     findByUsername: vi.fn(),
@@ -52,7 +52,7 @@ function makeUserRepo(pro: UserEntity[]): UserRepository {
   };
 }
 
-function makeAssetRepo(byUser: Record<string, string[]>): AssetRepository {
+function makeAssetRepo(byUser: Record<string, string[]>): AssetRepositoryPort {
   return {
     create: vi.fn(),
     update: vi.fn(),
@@ -71,7 +71,7 @@ function makeAssetRepo(byUser: Record<string, string[]>): AssetRepository {
 
 function makeCatalogRepo() {
   const upsertMany = vi.fn(async (_entries: StockCatalogUpsertEntry[]) => undefined);
-  const repo: StockCatalogRepository = {
+  const repo: StockCatalogRepositoryPort = {
     upsert: vi.fn(),
     upsertMany,
     findByTicker: vi.fn(async () => null),

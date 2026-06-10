@@ -2,13 +2,14 @@ import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
+
 import { getPrescription } from "../_lib/prescription-cache";
 
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
 import { microEduFor, presentMove, presentTimeline } from "./prescription-copy";
-import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
 
 const CARD_TITLE = "O movimento do mês";
 

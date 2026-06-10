@@ -1,9 +1,9 @@
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface ListIncomesDeps {
-  incomes: IncomeRepository;
+  incomes: IncomeRepositoryPort;
 }
 
 export async function listIncomes(

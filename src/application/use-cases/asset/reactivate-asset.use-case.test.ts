@@ -3,7 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import { isAssetActive } from "@/domain/entities/asset.entity";
 import { AssetAlreadyActive, AssetNotFound } from "@/domain/errors/asset-errors";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
@@ -40,7 +40,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
 
 function makeRepoBackedByMap() {
   const store = new Map<string, AssetEntity>();
-  const repo: AssetRepository = {
+  const repo: AssetRepositoryPort = {
     create: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),

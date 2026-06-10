@@ -1,5 +1,5 @@
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 export interface OnboardingChecklist {
   hasIncome: boolean;
@@ -23,7 +23,7 @@ export interface OnboardingCounts {
 }
 
 export interface GetOnboardingStateDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
   counts: OnboardingCounts;
 }
 

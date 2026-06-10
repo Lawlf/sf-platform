@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { fetchDebts, type DebtListItemPayload } from "@/app/(app)/app/_actions/debt-queries";
 import { fetchIncomes } from "@/app/(app)/app/_actions/income-queries";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { Spinner } from "@/app/components/ui/spinner";
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });

@@ -1,8 +1,8 @@
 import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcoming-due-dates.use-case";
 import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
@@ -10,8 +10,8 @@ import type { SendPushToUserDeps } from "./send-push-to-user.use-case";
 import { sendPushToUser } from "./send-push-to-user.use-case";
 
 export interface DispatchDebtDueDeps extends SendPushToUserDeps {
-  users: UserRepository;
-  debts: DebtRepository;
+  users: UserRepositoryPort;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 

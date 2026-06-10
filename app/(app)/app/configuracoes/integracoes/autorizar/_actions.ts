@@ -7,9 +7,7 @@ import { createAuthorizationCode } from "@/application/use-cases/mcp/create-auth
 import { MCP_SHIPPED_SCOPES, type McpScope, parseScopeString } from "@/domain/mcp/scopes";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleMcpAuthorizationCodeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-authorization-code.repository";
-import { DrizzleMcpOauthClientRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-oauth-client.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -23,7 +21,7 @@ export async function approveAuthorization(formData: FormData): Promise<void> {
   const shipped = new Set<McpScope>(MCP_SHIPPED_SCOPES);
   const scopes = parseScopeString(grantedScopes.join(" ")).filter((scope) => shipped.has(scope));
 
-  const clients = new DrizzleMcpOauthClientRepository();
+  const clients = repos.mcpOauthClients;
   const client = await clients.findByClientId(clientId);
   if (!client || !client.redirectUris.includes(redirectUri)) {
     redirect("/app/configuracoes/integracoes" as Route);
@@ -32,10 +30,10 @@ export async function approveAuthorization(formData: FormData): Promise<void> {
   const result = await createAuthorizationCode(
     {
       clients,
-      codes: new DrizzleMcpAuthorizationCodeRepository(),
+      codes: repos.mcpAuthorizationCodes,
       hasher: new WebCryptoHasher(),
       random: new WebCryptoRandomGenerator(),
-      clock: new SystemClock(),
+      clock,
     },
     { clientId, userId: user.id, redirectUri, scopes, codeChallenge },
   );

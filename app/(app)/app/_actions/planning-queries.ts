@@ -12,20 +12,7 @@ import type { RecurringSettlementStatus } from "@/domain/entities/recurring-sett
 import { recurringMonthlyEquivalent } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
-import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -69,10 +56,10 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const assetsRepo = new DrizzleAssetRepository();
-  const debtsRepo = new DrizzleDebtRepository();
-  const goalsRepo = new DrizzleGoalRepository();
-  const settingsRepo = new DrizzleFinancialPlanningSettingsRepository();
+  const assetsRepo = repos.assets;
+  const debtsRepo = repos.debts;
+  const goalsRepo = repos.goals;
+  const settingsRepo = repos.financialPlanningSettings;
 
   const [goals, assets, debts, settings, macro] = await Promise.all([
     goalsRepo.listForUser(user.id, { status: "active" }),
@@ -82,12 +69,12 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
     buildGoalMacro(
       {
         assets: assetsRepo,
-        allocations: new DrizzleAssetDebtAllocationRepository(),
+        allocations: repos.assetDebtAllocations,
         debts: debtsRepo,
-        incomes: new DrizzleIncomeRepository(),
-        clock: new SystemClock(),
-        rates: new DrizzleExchangeRateRepository(),
-        overrides: new DrizzleUserFxOverrideRepository(),
+        incomes: repos.incomes,
+        clock,
+        rates: repos.exchangeRates,
+        overrides: repos.userFxOverrides,
       },
       { userId: user.id },
     ),
@@ -96,9 +83,9 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const monthlyFreeCashFlowCents = macro.contributionCents;
   const viewResult = await assemblePlanningView(
     {
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
-      clock: new SystemClock(),
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
+      clock,
     },
     {
       userId: user.id,
@@ -167,9 +154,9 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const assetsRepo = new DrizzleAssetRepository();
-  const goalsRepo = new DrizzleGoalRepository();
-  const settingsRepo = new DrizzleFinancialPlanningSettingsRepository();
+  const assetsRepo = repos.assets;
+  const goalsRepo = repos.goals;
+  const settingsRepo = repos.financialPlanningSettings;
 
   const [cashAssets, goals, settings] = await Promise.all([
     assetsRepo.findActiveByUserAndCategory(user.id, "cash"),
@@ -285,18 +272,18 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const user = await getCurrentUser();
   if (!user) return { open: false };
 
-  const debtsRepo = new DrizzleDebtRepository();
+  const debtsRepo = repos.debts;
   const preview = await previewMonthClosing(
     {
-      closings: new DrizzleMonthClosingRepository(),
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
+      closings: repos.monthClosings,
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
       debts: debtsRepo,
-      incomes: new DrizzleIncomeRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      clock: new SystemClock(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      incomes: repos.incomes,
+      payments: repos.debtPayments,
+      clock,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
     },
     { userId: user.id },
   );
@@ -304,9 +291,9 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   if (!preview.open) return { open: false };
 
   const month = MonthYear.fromIso(preview.monthIso);
-  const settlementsRepo = new DrizzleRecurringSettlementRepository();
-  const incomeSettlementsRepo = new DrizzleIncomeSettlementRepository();
-  const incomesRepo = new DrizzleIncomeRepository();
+  const settlementsRepo = repos.recurringSettlements;
+  const incomeSettlementsRepo = repos.incomeSettlements;
+  const incomesRepo = repos.incomes;
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
     debtsRepo.listForUser(user.id, { status: "all" }),
     settlementsRepo.listForUserMonth(user.id, month.firstDay()),
@@ -433,7 +420,7 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
   if (!user) return emptyAnnualReport(year, false);
 
   const result = await getAnnualReport(
-    { transactions: new DrizzleTransactionRepository() },
+    { transactions: repos.transactions },
     { userId: user.id, year, isPro: user.isPro },
   );
 

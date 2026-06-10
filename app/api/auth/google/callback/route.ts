@@ -6,13 +6,10 @@ import { GoogleOauthProvider } from "@/infrastructure/auth/google-oauth.provider
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleOauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-oauth-account.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
@@ -52,12 +49,12 @@ export async function GET(req: NextRequest) {
 
   const result = await signInWithOauth(
     {
-      users: new DrizzleUserRepository(),
-      oauthAccounts: new DrizzleOauthAccountRepository(),
-      sessions: new DrizzleSessionRepository(),
+      users: repos.users,
+      oauthAccounts: repos.oauthAccounts,
+      sessions: repos.sessions,
       hasher: new WebCryptoHasher(),
       random: new WebCryptoRandomGenerator(),
-      clock: new SystemClock(),
+      clock,
     },
     { profile, ip, userAgent },
   );

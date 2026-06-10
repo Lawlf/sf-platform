@@ -1,11 +1,11 @@
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeAlreadyActive, IncomeNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface ReactivateIncomeDeps {
-  incomes: IncomeRepository;
+  incomes: IncomeRepositoryPort;
   clock?: Clock;
 }
 

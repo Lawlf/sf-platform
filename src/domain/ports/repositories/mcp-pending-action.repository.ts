@@ -12,7 +12,7 @@ export interface McpPendingAction {
   resolvedAt: Date | null;
 }
 
-export interface McpPendingActionRepository {
+export interface McpPendingActionRepositoryPort {
   create(input: {
     connectionId: string;
     userId: string;

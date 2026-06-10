@@ -1,11 +1,7 @@
 "use server";
 
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -24,11 +20,11 @@ export async function fetchDashboardSnapshot(): Promise<DashboardSnapshotPayload
   if (!user) return null;
   const result = await getDashboardSnapshot(
     {
-      debts: new DrizzleDebtRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      clock: new SystemClock(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      debts: repos.debts,
+      incomes: repos.incomes,
+      clock,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
     },
     { userId: user.id },
   );

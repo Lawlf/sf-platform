@@ -16,7 +16,7 @@ export interface McpAuditEntry {
   createdAt: Date;
 }
 
-export interface McpAuditLogRepository {
+export interface McpAuditLogRepositoryPort {
   record(input: {
     connectionId: string;
     userId: string;

@@ -8,11 +8,7 @@ import {
   type UserDocument,
 } from "@/application/use-cases/attachments/list-user-documents.use-case";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleEntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-attachment.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -56,13 +52,13 @@ export default async function DocumentosPage() {
     );
   }
 
-  const attachments = await new DrizzleEntityAttachmentRepository().listAllForUser(user.id);
+  const attachments = await repos.entityAttachments.listAllForUser(user.id);
 
   const [debts, incomes, goals, assets] = await Promise.all([
-    new DrizzleDebtRepository().listForUser(user.id),
-    new DrizzleIncomeRepository().listForUser(user.id),
-    new DrizzleGoalRepository().listForUser(user.id),
-    new DrizzleAssetRepository().findActiveByUser(user.id),
+    repos.debts.listForUser(user.id),
+    repos.incomes.listForUser(user.id),
+    repos.goals.listForUser(user.id),
+    repos.assets.findActiveByUser(user.id),
   ]);
 
   const map = new Map<string, string>();

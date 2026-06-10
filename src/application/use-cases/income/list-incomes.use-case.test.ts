@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
 import { listIncomes } from "./list-incomes.use-case";
 
-function makeIncomeRepo(): IncomeRepository {
+function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

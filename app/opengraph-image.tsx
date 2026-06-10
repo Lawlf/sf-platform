@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+
 import { ImageResponse } from "next/og";
 
 export const alt = "Sabor Financeiro - Sua trajetória de patrimônio, dívida e renda";

@@ -1,19 +1,19 @@
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { GoalContributionRepository } from "@/domain/ports/repositories/goal-contribution.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
-import type { GoalSnapshotRepository } from "@/domain/ports/repositories/goal-snapshot.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { GoalContributionRepositoryPort } from "@/domain/ports/repositories/goal-contribution.repository";
+import type { GoalSnapshotRepositoryPort } from "@/domain/ports/repositories/goal-snapshot.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import type { GoalMacro } from "@/domain/services/goal-progress.service";
 import { GoalProgressService } from "@/domain/services/goal-progress.service";
 import { Money } from "@/domain/value-objects/money.vo";
 
 export interface RecordContributionDeps {
-  goals: Pick<GoalRepository, "findById" | "update">;
-  assets: Pick<AssetRepository, "findById" | "create" | "update">;
-  contributions: Pick<GoalContributionRepository, "add">;
-  snapshots: Pick<GoalSnapshotRepository, "upsert">;
+  goals: Pick<GoalRepositoryPort, "findById" | "update">;
+  assets: Pick<AssetRepositoryPort, "findById" | "create" | "update">;
+  contributions: Pick<GoalContributionRepositoryPort, "add">;
+  snapshots: Pick<GoalSnapshotRepositoryPort, "upsert">;
   buildMacro: (userId: string) => Promise<GoalMacro>;
   clock: Clock;
   newId: () => string;

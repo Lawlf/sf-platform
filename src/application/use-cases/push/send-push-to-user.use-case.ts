@@ -1,13 +1,13 @@
 import type { NotificationKindKey } from "@/domain/entities/notification-preferences.entity";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
-import type { PushSubscriptionRepository } from "@/domain/ports/repositories/push-subscription.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { PushSubscriptionRepositoryPort } from "@/domain/ports/repositories/push-subscription.repository";
 import type { PushPayload, PushService } from "@/domain/ports/services/push.service";
 
 
 export interface SendPushToUserDeps {
   pushService: PushService;
-  pushSubscriptions: PushSubscriptionRepository;
-  preferences: NotificationPreferencesRepository;
+  pushSubscriptions: PushSubscriptionRepositoryPort;
+  preferences: NotificationPreferencesRepositoryPort;
 }
 
 export interface SendPushToUserInput {

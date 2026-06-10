@@ -1,8 +1,8 @@
 import type { TopUserUsage, UsageSummary } from "@/domain/ports/repositories/usage.repository";
-import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
+import { repos } from "@/infrastructure/container";
 
 function repo() {
-  return new DrizzleUsageRepository();
+  return repos.usage;
 }
 
 export async function getUsageSummary(): Promise<UsageSummary> {

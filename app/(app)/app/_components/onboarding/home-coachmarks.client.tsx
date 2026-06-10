@@ -20,10 +20,10 @@ interface TooltipPos {
 const PAD = 8;
 const EST_TOOLTIP_H = 210;
 
-// So' vale destacar um passo cujo alvo existe na tela E tem altura > 0. Cards que
+// Só vale destacar um passo cujo alvo existe na tela E tem altura > 0. Cards que
 // retornam null (ex: HomeGoalCard sem meta) deixam o wrapper com altura 0 -> o passo
-// e' removido da sequencia (nao aparece nem conta no "X de N"). O gate por dado real
-// (hasGoal) roda antes para nao depender do timing do esqueleto do Suspense.
+// é removido da sequência (não aparece nem conta no "X de N"). O gate por dado real
+// (hasGoal) roda antes para não depender do timing do esqueleto do Suspense.
 function visibleSteps(hasGoal: boolean): CoachmarkStep[] {
   return gateSteps(COACHMARK_STEPS, { hasGoal }).filter((s) => {
     const el = document.querySelector(s.target);
@@ -38,8 +38,8 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState<Rect | null>(null);
   const [pos, setPos] = useState<TooltipPos | null>(null);
-  // Transicoes de posicao so' DEPOIS da entrada: a entrada e' um fade no lugar (sem
-  // slide); entre passos o box plana ate' o componente.
+  // Transições de posição só DEPOIS da entrada: a entrada é um fade no lugar (sem
+  // slide); entre passos o box plana até o componente.
   const [entered, setEntered] = useState(false);
 
   const step = steps[index];
@@ -49,7 +49,7 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
     void dismissHomeTourAction();
   }
 
-  // Posiciona spotlight + tooltip a partir de um retangulo (em coords de viewport).
+  // Posiciona spotlight + tooltip a partir de um retângulo (em coords de viewport).
   const place = useCallback((r: Rect) => {
     setRect(r);
     const spaceBelow = window.innerHeight - (r.top + r.height);
@@ -60,7 +60,7 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
     setPos({ top: tooltipTop });
   }, []);
 
-  // Le a posicao real atual do alvo e posiciona (usado para a correcao exata pos-scroll
+  // Lê a posição real atual do alvo e posiciona (usado para a correção exata pós-scroll
   // e para acompanhar scroll manual).
   const measure = useCallback(() => {
     if (!step) return;
@@ -74,8 +74,8 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
     place({ top: r.top, left: r.left, width: r.width, height: r.height });
   }, [step, place]);
 
-  // Compute the visible steps once when the tour opens (after a frame so layout and
-  // Suspense content have settled). If nothing is visible, end immediately.
+  // Calcula os passos visíveis uma vez quando o tour abre (após um frame, pra layout
+  // e conteúdo do Suspense assentarem). Se nada estiver visível, encerra na hora.
   useEffect(() => {
     if (!open) return;
     let cancelled = false;
@@ -96,18 +96,18 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
     };
   }, [open, hasGoal]);
 
-  // Liga as transicoes de posicao apos o primeiro paint (entrada = fade no lugar).
+  // Liga as transições de posição após o primeiro paint (entrada = fade no lugar).
   useEffect(() => {
     if (!ready) return;
     const raf = requestAnimationFrame(() => setEntered(true));
     return () => cancelAnimationFrame(raf);
   }, [ready]);
 
-  // Ao trocar de passo: posiciona o box direto na posicao FINAL (onde o alvo fica
-  // centralizado depois do scroll) e dispara o scroll suave. Os dois convergem, entao
-  // o box plana de uma vez ate' o destino em vez de perseguir cada frame do scroll
+  // Ao trocar de passo: posiciona o box direto na posição FINAL (onde o alvo fica
+  // centralizado depois do scroll) e dispara o scroll suave. Os dois convergem, então
+  // o box plana de uma vez até o destino em vez de perseguir cada frame do scroll
   // (que causava o "fica fora e se corrige"). Ao fim do scroll, uma medida exata
-  // corrige eventuais limites de borda da pagina.
+  // corrige eventuais limites de borda da página.
   useEffect(() => {
     if (!open || !step) return;
     const el = document.querySelector(step.target);
@@ -125,8 +125,8 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
     window.addEventListener("scrollend", settle);
     const settleFallback = window.setTimeout(settle, 1000);
 
-    // So' acompanha scroll/resize MANUAL depois que o scroll programatico terminou,
-    // para nao reintroduzir o chase durante o glide.
+    // Só acompanha scroll/resize MANUAL depois que o scroll programático terminou,
+    // para não reintroduzir o chase durante o glide.
     const onChange = () => measure();
     const attachId = window.setTimeout(() => {
       window.addEventListener("resize", onChange);
@@ -153,8 +153,8 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
       role="dialog"
       aria-label="Tour da tela inicial"
     >
-      {/* Spotlight: a hole over the target via a large box-shadow. If the target is
-          not measurable, fall back to a plain dimming overlay. */}
+      {/* Spotlight: um buraco sobre o alvo via box-shadow gigante. Se o alvo não é
+          mensurável, cai num overlay escurecido simples. */}
       {rect ? (
         <div
           className={`pointer-events-none absolute rounded-xl animate-in fade-in ${
@@ -172,8 +172,8 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
         <div className="absolute inset-0 bg-[rgba(15,12,10,0.66)]" />
       )}
 
-      {/* Tooltip card. Rendered only once its position is known, so it appears in
-          place (fade + zoom, modal-style) instead of sliding in from the top. */}
+      {/* Card do tooltip: renderizado só quando a posição é conhecida, pra aparecer
+          no lugar (fade + zoom, estilo modal) em vez de deslizar do topo. */}
       {pos ? (
         <div
           className={`absolute left-1/2 w-[min(92vw,360px)] -translate-x-1/2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--bg-app)] p-4 text-[color:var(--text-primary)] shadow-2xl animate-in fade-in zoom-in-95 ${

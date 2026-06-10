@@ -501,7 +501,7 @@ function StockSection({
       if (!r.ok) {
         setError(r.message ?? "Não foi possível atualizar a cotação.");
       } else {
-        setSuccess(`Cotação de ${r.symbol} atualizada.`);
+        setSuccess(`Cotação de ${r.data.symbol} atualizada.`);
         await invalidateAssetCaches(queryClient);
       }
     });

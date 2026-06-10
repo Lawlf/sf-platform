@@ -1,7 +1,7 @@
 "use server";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -15,7 +15,7 @@ export interface SimDebt {
 export async function fetchActiveDebtsForSim(): Promise<SimDebt[]> {
   const user = await requireUser();
   const listed = await listDebts(
-    { debts: new DrizzleDebtRepository() },
+    { debts: repos.debts },
     { userId: user.id, status: "active" },
   );
   return isOk(listed)

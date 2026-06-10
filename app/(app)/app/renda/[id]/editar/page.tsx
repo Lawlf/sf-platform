@@ -3,7 +3,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -17,7 +17,7 @@ export default async function EditIncomePage({ params }: { params: Promise<{ id:
   const user = await requireUser();
   const { id } = await params;
 
-  const r = await listIncomes({ incomes: new DrizzleIncomeRepository() }, { userId: user.id });
+  const r = await listIncomes({ incomes: repos.incomes }, { userId: user.id });
   if (!isOk(r)) return notFound();
   const income = r.value.find((i) => i.id === id);
   if (!income) return notFound();

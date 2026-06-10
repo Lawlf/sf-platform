@@ -5,13 +5,11 @@ import { verifyMagicLinkByCode } from "@/application/use-cases/auth/verify-magic
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { getClientIp } from "@/infrastructure/http/client-ip";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { verifyCodeSchema } from "@/presentation/http/validators/auth.validators";
@@ -67,12 +65,12 @@ export async function POST(req: NextRequest) {
 
   const result = await verifyMagicLinkByCode(
     {
-      users: new DrizzleUserRepository(),
+      users: repos.users,
       tokens: new UpstashMagicLinkTokenRepository(),
-      sessions: new DrizzleSessionRepository(),
+      sessions: repos.sessions,
       hasher,
       random: new WebCryptoRandomGenerator(),
-      clock: new SystemClock(),
+      clock,
     },
     { emailRaw: parsed.data.email, code: parsed.data.code, ip, userAgent },
   );

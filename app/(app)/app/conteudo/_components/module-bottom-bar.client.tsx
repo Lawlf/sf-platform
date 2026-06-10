@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronLeft } from "lucide-react";
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 
 export function ModuleBottomBar() {
   return (

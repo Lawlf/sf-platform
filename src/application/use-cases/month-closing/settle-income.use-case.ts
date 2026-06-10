@@ -5,14 +5,14 @@ import type {
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { IncomeSettlementRepository } from "@/domain/ports/repositories/income-settlement.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface SettleIncomeDeps {
-  incomes: IncomeRepository;
-  settlements: IncomeSettlementRepository;
+  incomes: IncomeRepositoryPort;
+  settlements: IncomeSettlementRepositoryPort;
   clock: Clock;
 }
 

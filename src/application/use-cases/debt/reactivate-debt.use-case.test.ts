@@ -5,15 +5,15 @@ import type { DebtEntity, PersonalLoanDebt } from "@/domain/entities/debt.entity
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtAlreadyActive, DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr } from "@/shared/errors/result";
 
 import { reactivateDebt } from "./reactivate-debt.use-case";
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),
@@ -24,7 +24,7 @@ function makeDebtRepo(): DebtRepository {
   };
 }
 
-function makePaymentRepo(): DebtPaymentRepository {
+function makePaymentRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
     listForUserInRange: vi.fn(),

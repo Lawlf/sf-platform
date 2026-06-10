@@ -1,13 +1,13 @@
 import { AssetNotFound } from "@/domain/errors/asset-errors";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface DeleteAssetDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
   clock: Clock;
 }
 

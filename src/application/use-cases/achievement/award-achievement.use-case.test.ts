@@ -1,15 +1,15 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import type { UserAchievementRepository } from "@/domain/ports/repositories/user-achievement.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
+import type { UserAchievementRepositoryPort } from "@/domain/ports/repositories/user-achievement.repository";
 
 import { awardAchievement } from "./award-achievement.use-case";
 
 function fakes() {
   const unlocked = new Set<string>();
   const created: NotificationEntity[] = [];
-  const userAchievements: UserAchievementRepository = {
+  const userAchievements: UserAchievementRepositoryPort = {
     async unlock(userId, slug) {
       const key = `${userId}:${slug}`;
       if (unlocked.has(key)) return false;
@@ -23,7 +23,7 @@ function fakes() {
       return unlocked.has(`${userId}:${slug}`);
     },
   };
-  const notifications: NotificationRepository = {
+  const notifications: NotificationRepositoryPort = {
     async findById() {
       return null;
     },

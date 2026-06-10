@@ -1,5 +1,5 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AchievementProgressRepository } from "@/domain/ports/repositories/achievement-progress.repository";
+import type { AchievementProgressRepositoryPort } from "@/domain/ports/repositories/achievement-progress.repository";
 
 import {
   recomputeDerivedAchievementsForUser,
@@ -9,7 +9,7 @@ import {
 export interface RunAchievementsRecomputeDeps {
   listRecentlyActiveUserIds: (now: Date, days: number) => Promise<string[]>;
   listActiveMonthIsos: (userId: string) => Promise<string[]>;
-  progress: AchievementProgressRepository;
+  progress: AchievementProgressRepositoryPort;
   clock: Clock;
   award: (userId: string, slug: string) => Promise<void>;
   evaluate: (userId: string) => Promise<SustainedEvaluation>;

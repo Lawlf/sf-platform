@@ -4,6 +4,7 @@ import { monthlyMinimumPayment, monthlyRateFor } from "@/domain/services/financi
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
+
 import { DebtCascadeProjectorService } from "./debt-cascade-projector.service";
 import type {
   CascadeSegment,

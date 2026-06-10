@@ -5,9 +5,8 @@ import { redirect } from "next/navigation";
 
 import { deactivateAccount } from "@/application/use-cases/account/deactivate-account.use-case";
 import { buildClearedSessionCookie } from "@/infrastructure/auth/session-cookie";
+import { repos } from "@/infrastructure/container";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isUserSteppedUp } from "@/presentation/http/middleware/require-user-stepup";
 
@@ -23,8 +22,8 @@ export async function deactivateAccountAction(formData: FormData): Promise<Deact
   const reason = (formData.get("reason")?.toString() ?? "").trim() || null;
   await deactivateAccount(
     {
-      users: new DrizzleUserRepository(),
-      sessions: new DrizzleSessionRepository(),
+      users: repos.users,
+      sessions: repos.sessions,
     },
     { userId: user.id, reason },
   );

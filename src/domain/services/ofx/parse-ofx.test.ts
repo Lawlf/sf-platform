@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { parseOfx } from "./parse-ofx";
 import { isOk, isErr } from "@/shared/errors/result";
+
+import { parseOfx } from "./parse-ofx";
 
 const SGML = `OFXHEADER:100
 DATA:OFXSGML

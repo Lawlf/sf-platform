@@ -4,8 +4,8 @@ import { after, NextResponse, type NextRequest } from "next/server";
 import { requestMagicLink } from "@/application/use-cases/auth/request-magic-link.use-case";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { ResendEmailService } from "@/infrastructure/email/resend-email.service";
 import {
   MAGIC_LINK_SUBJECT,
@@ -13,7 +13,6 @@ import {
 } from "@/infrastructure/email/templates/magic-link.email";
 import { getClientIp } from "@/infrastructure/http/client-ip";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { requestMagicLinkSchema } from "@/presentation/http/validators/auth.validators";
@@ -39,12 +38,12 @@ export async function POST(req: NextRequest) {
 
   const result = await requestMagicLink(
     {
-      users: new DrizzleUserRepository(),
+      users: repos.users,
       tokens: new UpstashMagicLinkTokenRepository(),
       hasher,
       random: new WebCryptoRandomGenerator(),
       rateLimit: new UpstashRateLimiter(),
-      clock: new SystemClock(),
+      clock,
     },
     { emailRaw: parsed.data.email, ipHash },
   );

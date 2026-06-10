@@ -1,6 +1,6 @@
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 
-export interface DebtPaymentRepository {
+export interface DebtPaymentRepositoryPort {
   listForDebt(debtId: string): Promise<DebtPaymentEntity[]>;
   /**
    * Lista pagamentos de todas as dívidas do usuário no intervalo `[from, to]`

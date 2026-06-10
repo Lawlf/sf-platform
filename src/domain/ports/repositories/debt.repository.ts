@@ -1,6 +1,6 @@
 import type { DebtEntity, DebtStatus } from "@/domain/entities/debt.entity";
 
-export interface DebtRepository {
+export interface DebtRepositoryPort {
   /**
    * Retorna a dívida pelo id ou `null`. Ignora linhas soft-deleted
    * (`deleted_at IS NOT NULL`) por padrão; a UI nunca deve enxergar uma

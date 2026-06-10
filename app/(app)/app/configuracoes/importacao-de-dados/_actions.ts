@@ -2,14 +2,11 @@
 
 import { revalidatePath } from "next/cache";
 
+
 import { buildOfxPreview } from "@/application/use-cases/import/build-ofx-preview.use-case";
 import { commitOfxImport } from "@/application/use-cases/import/commit-ofx-import.use-case";
 import { bankNameFromId } from "@/domain/services/ofx/bank-names";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -62,8 +59,8 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
 
   const result = await buildOfxPreview(
     {
-      assets: new DrizzleAssetRepository(),
-      transactions: new DrizzleTransactionRepository(),
+      assets: repos.assets,
+      transactions: repos.transactions,
     },
     { userId: user.id, contents },
   );
@@ -141,11 +138,11 @@ export async function commitOfxAction(input: {
 
   const result = await commitOfxImport(
     {
-      assets: new DrizzleAssetRepository(),
-      transactions: new DrizzleTransactionRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      debts: new DrizzleDebtRepository(),
-      clock: new SystemClock(),
+      assets: repos.assets,
+      transactions: repos.transactions,
+      incomes: repos.incomes,
+      debts: repos.debts,
+      clock,
     },
     {
       userId: user.id,

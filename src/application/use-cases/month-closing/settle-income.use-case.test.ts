@@ -4,8 +4,8 @@ import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
-import type { IncomeSettlementRepository } from "@/domain/ports/repositories/income-settlement.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
@@ -31,7 +31,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   };
 }
 
-function makeIncomeRepo(income: IncomeEntity | null): IncomeRepository {
+function makeIncomeRepo(income: IncomeEntity | null): IncomeRepositoryPort {
   return {
     findById: vi.fn(async () => income),
     listForUser: vi.fn(),
@@ -39,10 +39,10 @@ function makeIncomeRepo(income: IncomeEntity | null): IncomeRepository {
     update: vi.fn(async (e) => e),
     softDelete: vi.fn(),
     setActive: vi.fn(),
-  } as unknown as IncomeRepository;
+  } as unknown as IncomeRepositoryPort;
 }
 
-function makeSettlementsRepo(): IncomeSettlementRepository {
+function makeSettlementsRepo(): IncomeSettlementRepositoryPort {
   return {
     upsert: vi.fn(),
     listForUserMonth: vi.fn(),

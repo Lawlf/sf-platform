@@ -1,6 +1,6 @@
 import type { Clock } from "@/domain/ports/clock.port";
 import type { QuoteAdapter } from "@/domain/ports/external/quote-adapter.port";
-import type { StockCatalogRepository } from "@/domain/ports/repositories/stock-catalog.repository";
+import type { StockCatalogRepositoryPort } from "@/domain/ports/repositories/stock-catalog.repository";
 
 export interface RefreshStockCatalogInput {
   /**
@@ -11,7 +11,7 @@ export interface RefreshStockCatalogInput {
 }
 
 export interface RefreshStockCatalogDeps {
-  catalog: StockCatalogRepository;
+  catalog: StockCatalogRepositoryPort;
   quotes: QuoteAdapter;
   clock: Clock;
 }
@@ -33,7 +33,7 @@ const BATCH_SIZE = 10;
 /**
  * Atualiza o catálogo local de cotações em lote, respeitando o limite
  * de 10 tickers por request da brapi paga. Use case puro: depende apenas
- * de `QuoteAdapter`, `StockCatalogRepository` e `Clock`.
+ * de `QuoteAdapter`, `StockCatalogRepositoryPort` e `Clock`.
  */
 export async function refreshStockCatalog(
   deps: RefreshStockCatalogDeps,

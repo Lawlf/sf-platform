@@ -5,12 +5,10 @@ import { verifyMagicLinkByToken } from "@/application/use-cases/auth/verify-magi
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { trackPlausibleEvent } from "@/infrastructure/observability/plausible.service";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { UpstashMagicLinkTokenRepository } from "@/infrastructure/persistence/upstash/upstash-magic-link-token.repository";
 import { isErr } from "@/shared/errors/result";
 
@@ -32,12 +30,12 @@ export async function GET(req: NextRequest) {
 
   const result = await verifyMagicLinkByToken(
     {
-      users: new DrizzleUserRepository(),
+      users: repos.users,
       tokens: new UpstashMagicLinkTokenRepository(),
-      sessions: new DrizzleSessionRepository(),
+      sessions: repos.sessions,
       hasher: new WebCryptoHasher(),
       random: new WebCryptoRandomGenerator(),
-      clock: new SystemClock(),
+      clock,
     },
     { rawToken: token, ip, userAgent },
   );

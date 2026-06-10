@@ -5,7 +5,7 @@ import {
   achievementsByDetection,
   type AchievementDetection,
 } from "@/domain/achievements/achievement.catalog";
-import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { getAchievementIcon } from "../_components/achievement-icons";
@@ -37,7 +37,7 @@ function formatMonthYear(date: Date): string {
 
 export default async function ConquistasPage() {
   const user = await requireUser();
-  const unlocked = await new DrizzleUserAchievementRepository().listForUser(user.id);
+  const unlocked = await repos.userAchievements.listForUser(user.id);
   const unlockedMap = new Map(unlocked.map((u) => [u.slug, u.unlockedAt]));
   const total = ACHIEVEMENTS.length;
   const done = unlocked.length;

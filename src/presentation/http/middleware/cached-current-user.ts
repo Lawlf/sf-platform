@@ -4,9 +4,7 @@ import { cache } from "react";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserActivityRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-activity.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { repos } from "@/infrastructure/container";
 
 import { loadCurrentUser } from "./current-user";
 
@@ -17,13 +15,13 @@ const ACTIVITY_THROTTLE_MS = 24 * 60 * 60 * 1000;
 export const getCurrentUser = cache(async (): Promise<UserEntity | null> => {
   const now = new Date();
   const user = await loadCurrentUser({
-    sessions: new DrizzleSessionRepository(),
-    users: new DrizzleUserRepository(),
+    sessions: repos.sessions,
+    users: repos.users,
     hasher: new WebCryptoHasher(),
     now,
   });
   if (user) {
-    void new DrizzleUserActivityRepository()
+    void repos.userActivity
       .touchLastActive(user.id, now, ACTIVITY_THROTTLE_MS)
       .catch(() => {});
   }

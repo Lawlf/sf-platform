@@ -1,11 +1,11 @@
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { classifyConsumo } from "@/domain/services/ofx/consumo-classifier";
 import { isReserveTransfer } from "@/domain/services/ofx/reserve-transfer";
 
 const EXCLUDED_CATEGORIES = new Set(["promoted_debt", "promoted_income", "internal_transfer"]);
 
 export interface GetMonthlyConsumoDeps {
-  transactions: Pick<TransactionRepository, "listForUserInRange">;
+  transactions: Pick<TransactionRepositoryPort, "listForUserInRange">;
 }
 
 export interface GetMonthlyConsumoInput {

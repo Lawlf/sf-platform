@@ -9,13 +9,13 @@ import {
 } from "@/domain/errors/billing-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { BillingProvider } from "@/domain/ports/external/billing-provider.port";
-import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
+import type { PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface SwapPlanDeps {
-  subscriptions: SubscriptionRepository;
-  plans: PlanRepository;
+  subscriptions: SubscriptionRepositoryPort;
+  plans: PlanRepositoryPort;
   billing: BillingProvider;
   clock: Clock;
 }

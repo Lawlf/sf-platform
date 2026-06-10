@@ -6,7 +6,7 @@ export interface SessionWithUser {
   user: UserEntity;
 }
 
-export interface SessionRepository {
+export interface SessionRepositoryPort {
   findByIdHash(idHash: string): Promise<SessionEntity | null>;
   findWithUserByIdHash(idHash: string): Promise<SessionWithUser | null>;
   listActiveForUser(userId: string): Promise<SessionEntity[]>;

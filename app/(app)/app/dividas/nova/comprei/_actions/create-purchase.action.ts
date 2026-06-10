@@ -1,6 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { createAsset } from "@/application/use-cases/asset/create-asset.use-case";
@@ -9,22 +8,18 @@ import { updateAsset } from "@/application/use-cases/asset/update-asset.use-case
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
 import type { AssetEntity, AssetMetadata } from "@/domain/entities/asset.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError } from "@/presentation/actions/action";
 import { isOk } from "@/shared/errors/result";
 
 import { awardEventAchievement } from "../../../../_actions/_achievements";
 
-// Categorias do wizard "Comprei algo novo". Mapeadas para AssetCategory + parâmetros
-// de depreciação. travel e education NÃO viram patrimônio (são gastos consumíveis).
+// travel e education NÃO viram patrimônio (são gastos consumíveis).
 const PURCHASE_CATEGORY = [
   "electronics",
   "furniture",
@@ -38,16 +33,13 @@ export type PurchaseCategory = (typeof PURCHASE_CATEGORY)[number];
 const PAYMENT_METHOD = ["cash", "credit_card", "loan", "financing"] as const;
 export type PaymentMethod = (typeof PAYMENT_METHOD)[number];
 
-// Comportamento explícito do valor do item. O usuário escolhe no Step 3 do
-// wizard. Mapeado pra `DepreciationKind` da AssetEntity + sinal da taxa:
+// Mapeado pra `DepreciationKind` da AssetEntity + sinal da taxa (convenção da entity):
 //   depreciating → kind=depreciating, rate=+annualRatePct
-//   appreciating → kind=appreciating, rate=-annualRatePct (convenção da entity)
+//   appreciating → kind=appreciating, rate=-annualRatePct
 //   stable       → kind=stable, rate=0
 const VALUE_BEHAVIOR = ["depreciating", "appreciating", "stable"] as const;
 export type ValueBehavior = (typeof VALUE_BEHAVIOR)[number];
 
-// Dados opcionais para criação inline de um cartão novo no Step 3. Se omitidos
-// junto com `creditCardDebtId`, o action retorna erro para credit_card.
 export interface NewCreditCardInput {
   cardLabel: string;
   creditLimitCents: bigint;
@@ -61,25 +53,21 @@ export interface ExecutePurchaseInput {
   valueCents: bigint;
   category: PurchaseCategory;
   paymentMethod: PaymentMethod;
-  // value behavior (apenas relevante quando a categoria gera asset). Se
-  // omitido, fallback no default da categoria (compat com testes existentes
-  // e chamadas sem o novo step).
+  // Se omitido, fallback no default da categoria (compat com testes existentes
+  // e chamadas sem o step de comportamento de valor).
   valueBehavior?: ValueBehavior;
   annualRatePct?: number;
-  // cash
   fromCashAssetId?: string | null;
-  // Plan C: cash asset onboarding inline. Quando "create", criamos um novo cash
-  // asset com `cashAssetName` + `currentBalanceCents` antes de aplicar a compra
-  // e usamos esse asset como fonte para reduzir o saldo. "skip" deixa explícito
-  // que o usuário não quer cadastrar agora. Indefinido = legacy behaviour.
+  // Plan C: cash asset onboarding inline. "create" cria um cash asset com
+  // `cashAssetName` + `currentBalanceCents` antes de aplicar a compra e o usa
+  // como fonte para reduzir o saldo. "skip" deixa explícito que o usuário não
+  // quer cadastrar agora. Indefinido = legacy behaviour.
   cashOnboarding?: "create" | "skip";
   cashAssetName?: string;
   currentBalanceCents?: bigint;
-  // credit_card
   installments?: number;
   creditCardDebtId?: string | null;
   newCreditCard?: NewCreditCardInput | null;
-  // loan
   monthlyPaymentCents?: bigint;
   // financing (casa/carro): principal = valueCents - downPaymentCents
   downPaymentCents?: bigint;
@@ -88,9 +76,9 @@ export interface ExecutePurchaseInput {
 }
 
 export interface ExecutePurchaseDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 
@@ -149,8 +137,320 @@ const CATEGORY_CONFIG: Record<PurchaseCategory, CategoryConfig> = {
   },
 };
 
-// Orquestrador puro (sem `requireUser`, sem `revalidatePath`): isso aqui é o que
-// os testes exercitam. O server action abaixo só monta deps + chama esta função.
+type StepFailure = { ok: false; message: string };
+
+async function onboardCashAsset(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  now: Date,
+): Promise<{ ok: true; assetId: string | null } | StepFailure> {
+  if (
+    input.paymentMethod !== "cash" ||
+    input.cashOnboarding !== "create" ||
+    input.fromCashAssetId
+  ) {
+    return { ok: true, assetId: null };
+  }
+  const cashName = (input.cashAssetName ?? "").trim();
+  if (cashName.length === 0) {
+    return { ok: false, message: "Informe o nome da conta." };
+  }
+  if (input.currentBalanceCents === undefined || input.currentBalanceCents < 0n) {
+    return { ok: false, message: "Informe o saldo atual da conta." };
+  }
+  const cashCreateResult = await createAsset(deps, {
+    userId: input.userId,
+    category: "cash",
+    label: cashName,
+    currentValueCents: input.currentBalanceCents,
+    currency: "BRL",
+    metadata: { kind: "cash", yieldType: "none" },
+    fipeCode: null,
+    acquiredAt: now,
+    allocations: [],
+    depreciationKind: "stable",
+    depreciationRatePctYear: 0,
+    purchaseDate: null,
+    purchasePriceCents: null,
+  });
+  if (!isOk(cashCreateResult)) {
+    return {
+      ok: false,
+      message: cashCreateResult.error.message ?? "Erro ao criar conta.",
+    };
+  }
+  return { ok: true, assetId: cashCreateResult.value.id };
+}
+
+function resolveDepreciation(
+  cfg: CategoryConfig,
+  input: ExecutePurchaseInput,
+): Pick<CategoryConfig, "depreciationKind" | "depreciationRatePctYear"> {
+  if (input.valueBehavior === undefined) {
+    return {
+      depreciationKind: cfg.depreciationKind,
+      depreciationRatePctYear: cfg.depreciationRatePctYear,
+    };
+  }
+  const rate = Math.abs(input.annualRatePct ?? 0);
+  if (input.valueBehavior === "depreciating") {
+    return { depreciationKind: "depreciating", depreciationRatePctYear: rate };
+  }
+  if (input.valueBehavior === "appreciating") {
+    return { depreciationKind: "appreciating", depreciationRatePctYear: -rate };
+  }
+  return { depreciationKind: "stable", depreciationRatePctYear: 0 };
+}
+
+async function createPurchaseAsset(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  cfg: CategoryConfig,
+  name: string,
+  now: Date,
+): Promise<{ ok: true; assetId: string | null } | StepFailure> {
+  if (!cfg.generatesAsset) {
+    return { ok: true, assetId: null };
+  }
+  const metadata: AssetMetadata =
+    cfg.assetCategory === "vehicle"
+      ? {
+          kind: "vehicle",
+          brand: "-",
+          model: name,
+          year: now.getFullYear(),
+        }
+      : { kind: "other", description: name };
+
+  const { depreciationKind, depreciationRatePctYear } = resolveDepreciation(cfg, input);
+
+  const assetResult = await createAsset(deps, {
+    userId: input.userId,
+    category: cfg.assetCategory,
+    label: name,
+    currentValueCents: input.valueCents,
+    currency: "BRL",
+    metadata,
+    fipeCode: null,
+    acquiredAt: now,
+    allocations: [],
+    depreciationKind,
+    depreciationRatePctYear,
+    purchaseDate: now,
+    purchasePriceCents: input.valueCents,
+  });
+  if (!isOk(assetResult)) {
+    return { ok: false, message: assetResult.error.message ?? "Erro ao criar bem." };
+  }
+  return { ok: true, assetId: assetResult.value.id };
+}
+
+async function applyCreditCardPurchase(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  now: Date,
+): Promise<{ ok: true; debtId: string } | StepFailure> {
+  const installments = input.installments ?? 1;
+  if (!Number.isFinite(installments) || installments < 1 || installments > 60) {
+    return { ok: false, message: "Número de parcelas inválido (1 a 60)." };
+  }
+
+  if (input.creditCardDebtId) {
+    const card = await deps.debts.findById(input.creditCardDebtId);
+    if (!card || card.userId !== input.userId) {
+      return { ok: false, message: "Cartão não encontrado." };
+    }
+    if (card.kind !== "credit_card") {
+      return { ok: false, message: "Dívida selecionada não é cartão de crédito." };
+    }
+    if (card.status !== "active") {
+      return { ok: false, message: "Cartão selecionado não está ativo." };
+    }
+    const purchaseValue = Money.fromCents(input.valueCents, card.currentStatement.currency);
+    const updated = {
+      ...card,
+      currentStatement: card.currentStatement.add(purchaseValue),
+      currentBalance: card.currentBalance.add(purchaseValue),
+      updatedAt: now,
+    };
+    await deps.debts.update(updated);
+    return { ok: true, debtId: card.id };
+  }
+
+  if (input.newCreditCard) {
+    const nc = input.newCreditCard;
+    const cardLabel = nc.cardLabel.trim();
+    if (cardLabel.length === 0) {
+      return { ok: false, message: "Informe o nome do cartão." };
+    }
+    if (nc.creditLimitCents <= 0n) {
+      return { ok: false, message: "Informe o limite do cartão." };
+    }
+    if (nc.closingDay < 1 || nc.closingDay > 31) {
+      return { ok: false, message: "Dia de fechamento inválido." };
+    }
+    if (nc.dueDay < 1 || nc.dueDay > 31) {
+      return { ok: false, message: "Dia de vencimento inválido." };
+    }
+    const debtResult = await registerDebt(deps, {
+      userId: input.userId,
+      label: cardLabel,
+      notes: null,
+      startDate: now,
+      expectedEndDate: null,
+      kind: "credit_card",
+      creditLimit: Money.fromCents(nc.creditLimitCents),
+      currentStatement: Money.fromCents(input.valueCents),
+      statementDay: nc.closingDay,
+      dueDay: nc.dueDay,
+      revolvingBalance: null,
+      revolvingMonthlyRate: null,
+      installmentPurchases: [],
+    });
+    if (!isOk(debtResult)) {
+      return { ok: false, message: "Falha ao criar cartão." };
+    }
+    return { ok: true, debtId: debtResult.value.id };
+  }
+
+  return {
+    ok: false,
+    message: "Escolha um cartão existente ou cadastre um novo.",
+  };
+}
+
+async function createLoanDebt(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  name: string,
+  now: Date,
+): Promise<{ ok: true; debtId: string } | StepFailure> {
+  const installments = input.installments ?? 1;
+  if (!Number.isFinite(installments) || installments < 1 || installments > 360) {
+    return { ok: false, message: "Número de parcelas inválido (1 a 360)." };
+  }
+  const monthly = input.monthlyPaymentCents ?? 0n;
+  if (monthly <= 0n) {
+    return { ok: false, message: "Informe o valor da parcela mensal." };
+  }
+  // Estimamos taxa zero por padrão; o usuário pode ajustar depois no detalhe da
+  // dívida. Como ele informa parcela + n, a taxa "real" fica embutida no fato
+  // de `valor pago > valor comprado`.
+  const annualRate = InterestRate.fromAnnual(0);
+  if (!isOk(annualRate)) {
+    return { ok: false, message: "Taxa anual inválida." };
+  }
+  const debtResult = await registerDebt(deps, {
+    userId: input.userId,
+    label: name,
+    notes: null,
+    startDate: now,
+    expectedEndDate: null,
+    kind: "personal_loan",
+    originalPrincipal: Money.fromCents(input.valueCents),
+    annualInterestRate: annualRate.value,
+    termMonths: Math.floor(installments),
+    monthlyInstallment: Money.fromCents(monthly),
+  });
+  if (!isOk(debtResult)) {
+    return { ok: false, message: "Falha ao salvar empréstimo." };
+  }
+  return { ok: true, debtId: debtResult.value.id };
+}
+
+async function createFinancingDebt(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  name: string,
+  now: Date,
+): Promise<{ ok: true; debtId: string } | StepFailure> {
+  const termMonths = input.financingTermMonths ?? 0;
+  if (!Number.isFinite(termMonths) || termMonths < 1 || termMonths > 420) {
+    return { ok: false, message: "Número de parcelas inválido (1 a 420)." };
+  }
+  const ratePct = input.financingAnnualRatePct ?? 0;
+  if (!Number.isFinite(ratePct) || ratePct < 0 || ratePct > 100) {
+    return { ok: false, message: "Taxa anual inválida (0 a 100%)." };
+  }
+  const downPayment = input.downPaymentCents ?? 0n;
+  if (downPayment < 0n) {
+    return { ok: false, message: "Entrada não pode ser negativa." };
+  }
+  if (downPayment >= input.valueCents) {
+    return { ok: false, message: "Entrada deve ser menor que o valor da compra." };
+  }
+  const principalCents = input.valueCents - downPayment;
+  const annualRate = InterestRate.fromAnnual(ratePct / 100);
+  if (!isOk(annualRate)) {
+    return { ok: false, message: "Taxa anual inválida." };
+  }
+  const debtResult = await registerDebt(deps, {
+    userId: input.userId,
+    label: name,
+    notes: null,
+    startDate: now,
+    expectedEndDate: null,
+    kind: "financing",
+    originalPrincipal: Money.fromCents(principalCents),
+    annualInterestRate: annualRate.value,
+    termMonths: Math.floor(termMonths),
+    amortizationMethod: "PRICE",
+    monthlyInsurance: null,
+    monthlyAdminFee: null,
+  });
+  if (!isOk(debtResult)) {
+    return { ok: false, message: "Falha ao salvar financiamento." };
+  }
+  return { ok: true, debtId: debtResult.value.id };
+}
+
+async function linkPurchaseToDebt(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  assetId: string,
+  debtId: string,
+): Promise<string | undefined> {
+  const linkResult = await linkAssetToDebt(deps, {
+    userId: input.userId,
+    assetId,
+    debtId,
+    allocationOriginalCents: input.valueCents,
+  });
+  if (!isOk(linkResult)) {
+    return `Não foi possível vincular a compra à dívida: ${linkResult.error.message}`;
+  }
+  return undefined;
+}
+
+async function reduceCashAssetBalance(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  onboardedCashAssetId: string | null,
+): Promise<string | undefined> {
+  const cashAssetSourceId: string | null =
+    input.paymentMethod === "cash" ? (input.fromCashAssetId ?? onboardedCashAssetId) : null;
+  if (!cashAssetSourceId) return undefined;
+  const cashAsset: AssetEntity | null = await deps.assets.findById(
+    cashAssetSourceId,
+    input.userId,
+  );
+  if (!cashAsset || cashAsset.category !== "cash") return undefined;
+  const currentCents = cashAsset.currentValue.toCents();
+  const nextCents = currentCents - input.valueCents;
+  const clampedCents = nextCents < 0n ? 0n : nextCents;
+  const updateResult = await updateAsset(deps, {
+    userId: input.userId,
+    assetId: cashAsset.id,
+    currentValueCents: clampedCents,
+  });
+  if (!isOk(updateResult)) {
+    return "Saldo da conta não pôde ser atualizado.";
+  }
+  return undefined;
+}
+
+// Orquestrador puro (sem `requireUser`, sem `revalidatePath`): é isto que os
+// testes exercitam. O server action abaixo só monta deps e delega.
 export async function executePurchase(
   deps: ExecutePurchaseDeps,
   input: ExecutePurchaseInput,
@@ -166,294 +466,41 @@ export async function executePurchase(
   const cfg = CATEGORY_CONFIG[input.category];
   const now = deps.clock.now();
 
-  // ---- 0) Plan C: cash asset onboarding inline ----
-  // Se o usuário escolheu cadastrar a conta agora, criamos o cash asset antes
-  // de tudo. O id resultante substitui `fromCashAssetId` para que o passo 4
-  // (redução de saldo) reaproveite o caminho existente. Se o create falhar,
-  // abortamos; sem cash asset não dá pra prosseguir com a intenção do usuário.
-  let onboardedCashAssetId: string | null = null;
-  if (
-    input.paymentMethod === "cash" &&
-    input.cashOnboarding === "create" &&
-    !input.fromCashAssetId
-  ) {
-    const cashName = (input.cashAssetName ?? "").trim();
-    if (cashName.length === 0) {
-      return { ok: false, message: "Informe o nome da conta." };
-    }
-    if (input.currentBalanceCents === undefined || input.currentBalanceCents < 0n) {
-      return { ok: false, message: "Informe o saldo atual da conta." };
-    }
-    const cashCreateResult = await createAsset(deps, {
-      userId: input.userId,
-      category: "cash",
-      label: cashName,
-      currentValueCents: input.currentBalanceCents,
-      currency: "BRL",
-      metadata: { kind: "cash", yieldType: "none" },
-      fipeCode: null,
-      acquiredAt: now,
-      allocations: [],
-      depreciationKind: "stable",
-      depreciationRatePctYear: 0,
-      purchaseDate: null,
-      purchasePriceCents: null,
-    });
-    if (!isOk(cashCreateResult)) {
-      return {
-        ok: false,
-        message: cashCreateResult.error.message ?? "Erro ao criar conta.",
-      };
-    }
-    onboardedCashAssetId = cashCreateResult.value.id;
-  }
+  const cashOnboarding = await onboardCashAsset(deps, input, now);
+  if (!cashOnboarding.ok) return cashOnboarding;
+  const onboardedCashAssetId = cashOnboarding.assetId;
 
-  // ---- 1) Criar asset, se a categoria gera ----
-  let assetId: string | null = null;
-  if (cfg.generatesAsset) {
-    let metadata: AssetMetadata | null;
-    if (cfg.assetCategory === "vehicle") {
-      metadata = {
-        kind: "vehicle",
-        brand: "-",
-        model: name,
-        year: now.getFullYear(),
-      };
-    } else {
-      metadata = { kind: "other", description: name };
-    }
+  const assetCreation = await createPurchaseAsset(deps, input, cfg, name, now);
+  if (!assetCreation.ok) return assetCreation;
+  const assetId = assetCreation.assetId;
 
-    // Se o usuário escolheu manualmente o comportamento no novo Step 3, usa
-    // isso. Caso contrário, cai no default da categoria. Convenção da entity:
-    // rate positivo = depreciação, rate negativo = apreciação.
-    let depreciationKind = cfg.depreciationKind;
-    let depreciationRatePctYear = cfg.depreciationRatePctYear;
-    if (input.valueBehavior !== undefined) {
-      const rate = Math.abs(input.annualRatePct ?? 0);
-      if (input.valueBehavior === "depreciating") {
-        depreciationKind = "depreciating";
-        depreciationRatePctYear = rate;
-      } else if (input.valueBehavior === "appreciating") {
-        depreciationKind = "appreciating";
-        depreciationRatePctYear = -rate;
-      } else {
-        depreciationKind = "stable";
-        depreciationRatePctYear = 0;
-      }
-    }
-
-    const assetResult = await createAsset(deps, {
-      userId: input.userId,
-      category: cfg.assetCategory,
-      label: name,
-      currentValueCents: input.valueCents,
-      currency: "BRL",
-      metadata,
-      fipeCode: null,
-      acquiredAt: now,
-      allocations: [],
-      depreciationKind,
-      depreciationRatePctYear,
-      purchaseDate: now,
-      purchasePriceCents: input.valueCents,
-    });
-    if (!isOk(assetResult)) {
-      return { ok: false, message: assetResult.error.message ?? "Erro ao criar bem." };
-    }
-    assetId = assetResult.value.id;
-  }
-
-  // ---- 2) Criar/usar debt conforme método ----
   let debtId: string | null = null;
-
   if (input.paymentMethod === "credit_card") {
-    const installments = input.installments ?? 1;
-    if (!Number.isFinite(installments) || installments < 1 || installments > 60) {
-      return { ok: false, message: "Número de parcelas inválido (1 a 60)." };
-    }
-
-    // Se o usuário escolheu cartão existente, usa-o. Senão, cria via mini-form inline.
-    if (input.creditCardDebtId) {
-      // Vamos lançar a compra no cartão existente: somar valueCents ao saldo atual
-      // do cartão (currentStatement + currentBalance refletindo a nova compra).
-      const card = await deps.debts.findById(input.creditCardDebtId);
-      if (!card || card.userId !== input.userId) {
-        return { ok: false, message: "Cartão não encontrado." };
-      }
-      if (card.kind !== "credit_card") {
-        return { ok: false, message: "Dívida selecionada não é cartão de crédito." };
-      }
-      if (card.status !== "active") {
-        return { ok: false, message: "Cartão selecionado não está ativo." };
-      }
-      const purchaseValue = Money.fromCents(input.valueCents, card.currentStatement.currency);
-      const updated = {
-        ...card,
-        currentStatement: card.currentStatement.add(purchaseValue),
-        currentBalance: card.currentBalance.add(purchaseValue),
-        updatedAt: now,
-      };
-      await deps.debts.update(updated);
-      debtId = card.id;
-    } else if (input.newCreditCard) {
-      const nc = input.newCreditCard;
-      const cardLabel = nc.cardLabel.trim();
-      if (cardLabel.length === 0) {
-        return { ok: false, message: "Informe o nome do cartão." };
-      }
-      if (nc.creditLimitCents <= 0n) {
-        return { ok: false, message: "Informe o limite do cartão." };
-      }
-      if (nc.closingDay < 1 || nc.closingDay > 31) {
-        return { ok: false, message: "Dia de fechamento inválido." };
-      }
-      if (nc.dueDay < 1 || nc.dueDay > 31) {
-        return { ok: false, message: "Dia de vencimento inválido." };
-      }
-      const debtResult = await registerDebt(deps, {
-        userId: input.userId,
-        label: cardLabel,
-        notes: null,
-        startDate: now,
-        expectedEndDate: null,
-        kind: "credit_card",
-        creditLimit: Money.fromCents(nc.creditLimitCents),
-        currentStatement: Money.fromCents(input.valueCents),
-        statementDay: nc.closingDay,
-        dueDay: nc.dueDay,
-        revolvingBalance: null,
-        revolvingMonthlyRate: null,
-        installmentPurchases: [],
-      });
-      if (!isOk(debtResult)) {
-        return { ok: false, message: "Falha ao criar cartão." };
-      }
-      debtId = debtResult.value.id;
-    } else {
-      return {
-        ok: false,
-        message: "Escolha um cartão existente ou cadastre um novo.",
-      };
-    }
+    const result = await applyCreditCardPurchase(deps, input, now);
+    if (!result.ok) return result;
+    debtId = result.debtId;
   } else if (input.paymentMethod === "loan") {
-    const installments = input.installments ?? 1;
-    if (!Number.isFinite(installments) || installments < 1 || installments > 360) {
-      return { ok: false, message: "Número de parcelas inválido (1 a 360)." };
-    }
-    const monthly = input.monthlyPaymentCents ?? 0n;
-    if (monthly <= 0n) {
-      return { ok: false, message: "Informe o valor da parcela mensal." };
-    }
-    // Estimamos taxa zero (à vista no preço da compra) por padrão. O usuário pode
-    // ajustar depois no detalhe da dívida. Como o usuário informa parcela + n,
-    // a taxa "real" é embutida no fato de `valor pago > valor comprado`.
-    const annualRate = InterestRate.fromAnnual(0);
-    if (!isOk(annualRate)) {
-      return { ok: false, message: "Taxa anual inválida." };
-    }
-    const debtResult = await registerDebt(deps, {
-      userId: input.userId,
-      label: name,
-      notes: null,
-      startDate: now,
-      expectedEndDate: null,
-      kind: "personal_loan",
-      originalPrincipal: Money.fromCents(input.valueCents),
-      annualInterestRate: annualRate.value,
-      termMonths: Math.floor(installments),
-      monthlyInstallment: Money.fromCents(monthly),
-    });
-    if (!isOk(debtResult)) {
-      return { ok: false, message: "Falha ao salvar empréstimo." };
-    }
-    debtId = debtResult.value.id;
+    const result = await createLoanDebt(deps, input, name, now);
+    if (!result.ok) return result;
+    debtId = result.debtId;
   } else if (input.paymentMethod === "financing") {
-    const termMonths = input.financingTermMonths ?? 0;
-    if (!Number.isFinite(termMonths) || termMonths < 1 || termMonths > 420) {
-      return { ok: false, message: "Número de parcelas inválido (1 a 420)." };
-    }
-    const ratePct = input.financingAnnualRatePct ?? 0;
-    if (!Number.isFinite(ratePct) || ratePct < 0 || ratePct > 100) {
-      return { ok: false, message: "Taxa anual inválida (0 a 100%)." };
-    }
-    const downPayment = input.downPaymentCents ?? 0n;
-    if (downPayment < 0n) {
-      return { ok: false, message: "Entrada não pode ser negativa." };
-    }
-    if (downPayment >= input.valueCents) {
-      return { ok: false, message: "Entrada deve ser menor que o valor da compra." };
-    }
-    const principalCents = input.valueCents - downPayment;
-    const annualRate = InterestRate.fromAnnual(ratePct / 100);
-    if (!isOk(annualRate)) {
-      return { ok: false, message: "Taxa anual inválida." };
-    }
-    const debtResult = await registerDebt(deps, {
-      userId: input.userId,
-      label: name,
-      notes: null,
-      startDate: now,
-      expectedEndDate: null,
-      kind: "financing",
-      originalPrincipal: Money.fromCents(principalCents),
-      annualInterestRate: annualRate.value,
-      termMonths: Math.floor(termMonths),
-      amortizationMethod: "PRICE",
-      monthlyInsurance: null,
-      monthlyAdminFee: null,
-    });
-    if (!isOk(debtResult)) {
-      return { ok: false, message: "Falha ao salvar financiamento." };
-    }
-    debtId = debtResult.value.id;
+    const result = await createFinancingDebt(deps, input, name, now);
+    if (!result.ok) return result;
+    debtId = result.debtId;
   }
 
-  // ---- 3) Linkar asset+debt se ambos foram criados/usados ----
   let warning: string | undefined;
   if (assetId && debtId) {
-    const linkResult = await linkAssetToDebt(deps, {
-      userId: input.userId,
-      assetId,
-      debtId,
-      allocationOriginalCents: input.valueCents,
-    });
-    if (!isOk(linkResult)) {
-      warning = `Não foi possível vincular a compra à dívida: ${linkResult.error.message}`;
-    }
+    warning = await linkPurchaseToDebt(deps, input, assetId, debtId);
   }
 
-  // ---- 4) Reduzir saldo da cash asset, se aplicável ----
-  // Fonte do cash asset: id existente escolhido pelo usuário OU o asset que
-  // acabou de ser criado via Plan C. Se ambos forem null, não há saldo a
-  // reduzir (caso legacy "sem cash asset" ou cashOnboarding === "skip").
-  const cashAssetSourceId: string | null =
-    input.paymentMethod === "cash" ? (input.fromCashAssetId ?? onboardedCashAssetId) : null;
-  if (cashAssetSourceId) {
-    const cashAsset: AssetEntity | null = await deps.assets.findById(
-      cashAssetSourceId,
-      input.userId,
-    );
-    if (cashAsset && cashAsset.category === "cash") {
-      const currentCents = cashAsset.currentValue.toCents();
-      const nextCents = currentCents - input.valueCents;
-      const clampedCents = nextCents < 0n ? 0n : nextCents;
-      const updateResult = await updateAsset(deps, {
-        userId: input.userId,
-        assetId: cashAsset.id,
-        currentValueCents: clampedCents,
-      });
-      if (!isOk(updateResult)) {
-        warning = warning
-          ? `${warning}. Saldo da conta não pôde ser atualizado.`
-          : "Saldo da conta não pôde ser atualizado.";
-      }
-    }
+  const balanceWarning = await reduceCashAssetBalance(deps, input, onboardedCashAssetId);
+  if (balanceWarning) {
+    warning = warning ? `${warning}. ${balanceWarning}` : balanceWarning;
   }
 
   return warning ? { ok: true, assetId, debtId, warning } : { ok: true, assetId, debtId };
 }
-
-// ---- Server action wrapper ----
 
 const inputSchema = z
   .object({
@@ -513,82 +560,75 @@ const inputSchema = z
 
 export type CreatePurchaseActionInput = z.input<typeof inputSchema>;
 
-export async function createPurchaseAction(
-  raw: CreatePurchaseActionInput,
-): Promise<ExecutePurchaseResult> {
-  const parsed = inputSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
-  const v = parsed.data;
+export const createPurchaseAction = action({
+  schema: inputSchema,
+  revalidates: ["home", "assets", "debts"],
+  handler: async (v, { userId }) => {
+    const valueCents = BigInt(v.valueCents);
 
-  const user = await requireUser();
+    const monthlyPaymentCents =
+      v.monthlyPaymentCents !== undefined ? BigInt(v.monthlyPaymentCents) : undefined;
 
-  let valueCents: bigint;
-  try {
-    valueCents = BigInt(v.valueCents);
-  } catch {
-    return { ok: false, message: "Valor inválido." };
-  }
+    const downPaymentCents =
+      v.downPaymentCents !== undefined ? BigInt(v.downPaymentCents) : undefined;
 
-  const monthlyPaymentCents =
-    v.monthlyPaymentCents !== undefined ? BigInt(v.monthlyPaymentCents) : undefined;
+    const currentBalanceCents =
+      v.currentBalanceCents !== undefined ? BigInt(v.currentBalanceCents) : undefined;
 
-  const downPaymentCents =
-    v.downPaymentCents !== undefined ? BigInt(v.downPaymentCents) : undefined;
+    const newCreditCard = v.newCreditCard
+      ? {
+          cardLabel: v.newCreditCard.cardLabel,
+          creditLimitCents: BigInt(v.newCreditCard.creditLimitCents),
+          closingDay: v.newCreditCard.closingDay,
+          dueDay: v.newCreditCard.dueDay,
+        }
+      : null;
 
-  const currentBalanceCents =
-    v.currentBalanceCents !== undefined ? BigInt(v.currentBalanceCents) : undefined;
+    const deps: ExecutePurchaseDeps = {
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
+      clock,
+    };
 
-  const newCreditCard = v.newCreditCard
-    ? {
-        cardLabel: v.newCreditCard.cardLabel,
-        creditLimitCents: BigInt(v.newCreditCard.creditLimitCents),
-        closingDay: v.newCreditCard.closingDay,
-        dueDay: v.newCreditCard.dueDay,
-      }
-    : null;
+    const result = await executePurchase(deps, {
+      userId,
+      name: v.name,
+      valueCents,
+      category: v.category,
+      paymentMethod: v.paymentMethod,
+      ...(v.valueBehavior !== undefined ? { valueBehavior: v.valueBehavior } : {}),
+      ...(v.annualRatePct !== undefined ? { annualRatePct: v.annualRatePct } : {}),
+      fromCashAssetId: v.fromCashAssetId ?? null,
+      ...(v.cashOnboarding !== undefined ? { cashOnboarding: v.cashOnboarding } : {}),
+      ...(v.cashAssetName !== undefined ? { cashAssetName: v.cashAssetName } : {}),
+      ...(currentBalanceCents !== undefined ? { currentBalanceCents } : {}),
+      ...(v.installments !== undefined ? { installments: v.installments } : {}),
+      creditCardDebtId: v.creditCardDebtId ?? null,
+      newCreditCard,
+      ...(monthlyPaymentCents !== undefined ? { monthlyPaymentCents } : {}),
+      ...(downPaymentCents !== undefined ? { downPaymentCents } : {}),
+      ...(v.financingAnnualRatePct !== undefined
+        ? { financingAnnualRatePct: v.financingAnnualRatePct }
+        : {}),
+      ...(v.financingTermMonths !== undefined
+        ? { financingTermMonths: v.financingTermMonths }
+        : {}),
+    });
 
-  const deps: ExecutePurchaseDeps = {
-    assets: new DrizzleAssetRepository(),
-    allocations: new DrizzleAssetDebtAllocationRepository(),
-    debts: new DrizzleDebtRepository(),
-    clock: new SystemClock(),
-  };
+    if (!result.ok) throw new ActionError(result.message);
 
-  const result = await executePurchase(deps, {
-    userId: user.id,
-    name: v.name,
-    valueCents,
-    category: v.category,
-    paymentMethod: v.paymentMethod,
-    ...(v.valueBehavior !== undefined ? { valueBehavior: v.valueBehavior } : {}),
-    ...(v.annualRatePct !== undefined ? { annualRatePct: v.annualRatePct } : {}),
-    fromCashAssetId: v.fromCashAssetId ?? null,
-    ...(v.cashOnboarding !== undefined ? { cashOnboarding: v.cashOnboarding } : {}),
-    ...(v.cashAssetName !== undefined ? { cashAssetName: v.cashAssetName } : {}),
-    ...(currentBalanceCents !== undefined ? { currentBalanceCents } : {}),
-    ...(v.installments !== undefined ? { installments: v.installments } : {}),
-    creditCardDebtId: v.creditCardDebtId ?? null,
-    newCreditCard,
-    ...(monthlyPaymentCents !== undefined ? { monthlyPaymentCents } : {}),
-    ...(downPaymentCents !== undefined ? { downPaymentCents } : {}),
-    ...(v.financingAnnualRatePct !== undefined
-      ? { financingAnnualRatePct: v.financingAnnualRatePct }
-      : {}),
-    ...(v.financingTermMonths !== undefined
-      ? { financingTermMonths: v.financingTermMonths }
-      : {}),
-  });
+    if (result.debtId) await awardEventAchievement(userId, "primeiro-passo");
+    if (result.assetId) await awardEventAchievement(userId, "mapa-do-tesouro");
 
-  if (result.ok) {
-    revalidatePath("/app");
-    revalidatePath("/app/patrimonio");
-    revalidatePath("/app/dividas");
-    if (result.assetId) revalidatePath(`/app/patrimonio/${result.assetId}`);
-    if (result.debtId) revalidatePath(`/app/dividas/${result.debtId}`);
-    if (result.debtId) await awardEventAchievement(user.id, "primeiro-passo");
-    if (result.assetId) await awardEventAchievement(user.id, "mapa-do-tesouro");
-  }
-  return result;
-}
+    return {
+      assetId: result.assetId,
+      debtId: result.debtId,
+      warning: result.warning,
+    };
+  },
+  revalidatePaths: (data) => [
+    ...(data.assetId ? [`/app/patrimonio/${data.assetId}`] : []),
+    ...(data.debtId ? [`/app/dividas/${data.debtId}`] : []),
+  ],
+});

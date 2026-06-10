@@ -4,8 +4,8 @@ import type { DebtEntity, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { RecurringSettlementRepository } from "@/domain/ports/repositories/recurring-settlement.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
@@ -37,7 +37,7 @@ function makeRecurring(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
   };
 }
 
-function makeDebtRepo(debt: DebtEntity | null): DebtRepository {
+function makeDebtRepo(debt: DebtEntity | null): DebtRepositoryPort {
   return {
     findById: vi.fn(async () => debt),
     listForUser: vi.fn(),
@@ -48,7 +48,7 @@ function makeDebtRepo(debt: DebtEntity | null): DebtRepository {
   };
 }
 
-function makeSettlementsRepo(): RecurringSettlementRepository {
+function makeSettlementsRepo(): RecurringSettlementRepositoryPort {
   return {
     upsert: vi.fn(),
     listForUserMonth: vi.fn(),

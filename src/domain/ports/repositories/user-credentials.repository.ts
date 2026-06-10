@@ -15,7 +15,7 @@ export interface WebauthnCredential {
   transports: string | null;
 }
 
-export interface UserCredentialsRepository {
+export interface UserCredentialsRepositoryPort {
   find(userId: string): Promise<UserCredentials | null>;
   setTotpSecret(userId: string, encryptedSecret: string): Promise<void>;
   setPin(userId: string, pinHash: string): Promise<void>;

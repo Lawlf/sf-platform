@@ -5,7 +5,7 @@ import { redirect } from "next/navigation";
 import type { UserEntity } from "@/domain/entities/user.entity";
 import { ADMIN_STEP_COOKIE, verifyElevation } from "@/infrastructure/auth/admin-elevation";
 import { loadEnv } from "@/infrastructure/config/env";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
 
 import { requireAdmin } from "./cached-current-user";
 
@@ -31,7 +31,7 @@ export async function isAdminElevated(adminId: string): Promise<boolean> {
 export async function requireElevatedAdmin(_currentPath: string): Promise<UserEntity> {
   const admin = await requireAdmin();
 
-  const creds = new DrizzleUserCredentialsRepository();
+  const creds = repos.userCredentials;
   if (!(await creds.hasAnyFactor(admin.id))) redirect(ENROLL_ROUTE);
 
   if (!(await isAdminElevated(admin.id))) redirect(STEP_UP_ROUTE);

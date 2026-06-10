@@ -1,14 +1,14 @@
 import { cookies } from "next/headers";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import { SESSION_COOKIE_NAME } from "@/infrastructure/auth/session-cookie";
 
 export interface CurrentUserDeps {
-  sessions: SessionRepository;
-  users: UserRepository;
+  sessions: SessionRepositoryPort;
+  users: UserRepositoryPort;
   hasher: Hasher;
   now: Date;
 }

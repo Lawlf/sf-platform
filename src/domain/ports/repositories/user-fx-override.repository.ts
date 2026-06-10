@@ -1,7 +1,7 @@
 import type { UserFxOverrideEntity } from "@/domain/entities/user-fx-override.entity";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
-export interface UserFxOverrideRepository {
+export interface UserFxOverrideRepositoryPort {
   find(
     userId: string,
     fromCurrency: Currency,

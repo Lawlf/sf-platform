@@ -5,10 +5,7 @@ import Link from "next/link";
 
 import { listPendingActions } from "@/application/use-cases/mcp/list-pending-actions.use-case";
 import { MCP_FREE_MONTHLY_LIMIT, mcpUsagePeriod } from "@/domain/mcp/constants";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
-import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
-import { DrizzleMcpUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-usage.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -22,21 +19,20 @@ const CARD =
 
 export default async function IntegracoesPage() {
   const user = await requireUser();
-  const clock = new SystemClock();
-  const repo = new DrizzleMcpConnectionRepository();
+  const repo = repos.mcpConnections;
   const connections = (await repo.listForUser(user.id)).filter((c) => c.status === "active");
   const scopeCountById = new Map<string, number>();
   for (const c of connections) {
     scopeCountById.set(c.id, (await repo.listScopes(c.id)).length);
   }
   const pending = await listPendingActions(
-    { pending: new DrizzleMcpPendingActionRepository(), clock },
+    { pending: repos.mcpPendingActions, clock },
     { userId: user.id },
   );
 
   const used = user.isPro
     ? null
-    : await new DrizzleMcpUsageRepository().getCount(user.id, mcpUsagePeriod(clock.now()));
+    : await repos.mcpUsage.getCount(user.id, mcpUsagePeriod(clock.now()));
   const remaining = used === null ? 0 : Math.max(0, MCP_FREE_MONTHLY_LIMIT - used);
   const usagePct =
     used === null ? 0 : Math.min(100, Math.round((used / MCP_FREE_MONTHLY_LIMIT) * 100));

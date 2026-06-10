@@ -1,67 +1,55 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-import { recordContribution } from "@/application/use-cases/goal/record-contribution.use-case";
 import { archiveGoal } from "@/application/use-cases/goal/archive-goal.use-case";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { createGoal, type CreateGoalInput } from "@/application/use-cases/goal/create-goal.use-case";
 import { deleteGoal } from "@/application/use-cases/goal/delete-goal.use-case";
+import { recordContribution } from "@/application/use-cases/goal/record-contribution.use-case";
 import { updateGoal } from "@/application/use-cases/goal/update-goal.use-case";
-import type { GoalFundingMode, GoalType } from "@/domain/entities/goal.entity";
 import { GoalProgressService } from "@/domain/services/goal-progress.service";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleGoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-contribution.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { awardEventAchievement } from "../../_actions/_achievements";
 import { purgeEntityBestEffort } from "../../_actions/_purge-entity";
 
-export interface ActionResult {
-  ok: boolean;
-  message?: string;
-}
+const goalTypeSchema = z.enum([
+  "debt_payoff",
+  "emergency_fund",
+  "savings",
+  "financial_independence",
+]);
 
-export interface CreateGoalActionResult extends ActionResult {
-  goalId?: string;
-}
+const goalFieldsSchema = z.object({
+  title: z.string(),
+  targetCents: z.string().nullable().optional(),
+  deadlineIso: z.string().nullable().optional(),
+  linkedDebtId: z.string().nullable().optional(),
+  linkedAssetId: z.string().nullable().optional(),
+  targetMonths: z.number().nullable().optional(),
+  fundingMode: z.enum(["linked", "manual"]).nullable().optional(),
+  manualSavedCents: z.string().nullable().optional(),
+  monthlyCostCents: z.string().nullable().optional(),
+  realReturnPct: z.number().nullable().optional(),
+});
 
-/** All cent values come from the client as strings and are converted to bigint here. */
-export interface CreateGoalActionInput {
-  type: GoalType;
-  title: string;
-  targetCents?: string | null;
-  deadlineIso?: string | null;
-  linkedDebtId?: string | null;
-  linkedAssetId?: string | null;
-  targetMonths?: number | null;
-  fundingMode?: GoalFundingMode | null;
-  manualSavedCents?: string | null;
-  monthlyCostCents?: string | null;
-  realReturnPct?: number | null;
-}
+const createGoalSchema = goalFieldsSchema.extend({ type: goalTypeSchema });
 
-/** Patch type for updateGoalAction: cent fields as strings from the client. */
-export interface UpdateGoalActionPatch {
-  title?: string;
-  targetCents?: string | null;
-  deadlineIso?: string | null;
-  linkedDebtId?: string | null;
-  linkedAssetId?: string | null;
-  targetMonths?: number | null;
-  fundingMode?: GoalFundingMode | null;
-  manualSavedCents?: string | null;
-  monthlyCostCents?: string | null;
-  realReturnPct?: number | null;
-}
+const updateGoalSchema = z.object({
+  goalId: z.string(),
+  patch: goalFieldsSchema.partial(),
+});
+
+const recordContributionSchema = z.object({
+  goalId: z.string(),
+  amountCents: z.string(),
+});
+
+export type CreateGoalActionInput = z.input<typeof createGoalSchema>;
+export type UpdateGoalActionPatch = z.input<typeof updateGoalSchema>["patch"];
 
 function parseCents(value: string | null | undefined): bigint | null {
   if (value === null || value === undefined || value === "") return null;
@@ -84,150 +72,141 @@ function toCreateInput(raw: CreateGoalActionInput): CreateGoalInput {
   };
 }
 
-export async function createGoalAction(
-  input: CreateGoalActionInput,
-): Promise<CreateGoalActionResult> {
-  const user = await requireUser();
-  const goals = new DrizzleGoalRepository();
-  const result = await createGoal(
-    { goals },
-    { userId: user.id, isPro: user.isPro, input: toCreateInput(input) },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-
-  // Best-effort: write a current-month snapshot so the progress curve
-  // is not empty when the user opens the detail page for the first time.
-  try {
-    const now = new Date();
-    const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const macro = await buildGoalMacro(
-      {
-        assets: new DrizzleAssetRepository(),
-        allocations: new DrizzleAssetDebtAllocationRepository(),
-        debts: new DrizzleDebtRepository(),
-        incomes: new DrizzleIncomeRepository(),
-        clock: new SystemClock(),
-        rates: new DrizzleExchangeRateRepository(),
-        overrides: new DrizzleUserFxOverrideRepository(),
-      },
-      { userId: user.id },
+export const createGoalAction = action({
+  schema: createGoalSchema,
+  revalidates: ["goals"],
+  handler: async (input, { userId }) => {
+    const user = await requireUser();
+    const result = await createGoal(
+      { goals: repos.goals },
+      { userId, isPro: user.isPro, input: toCreateInput(input) },
     );
-    const progress = GoalProgressService.compute(result.goal, macro);
-    const snapshotRepo = new DrizzleGoalSnapshotRepository();
-    await snapshotRepo.upsert({
-      goalId: result.goal.id,
-      month,
-      currentCents: progress.currentCents,
-      targetCents: progress.targetCents,
-      capturedAt: now,
-    });
-  } catch {
-    // Snapshot failure must never block goal creation.
-  }
+    if (!result.ok) throw new ActionError(result.message);
 
-  revalidatePath("/app/metas");
-  await awardEventAchievement(user.id, "norte-definido");
-  return { ok: true, goalId: result.goal.id };
-}
+    try {
+      const now = new Date();
+      const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const macro = await buildGoalMacro(
+        {
+          assets: repos.assets,
+          allocations: repos.assetDebtAllocations,
+          debts: repos.debts,
+          incomes: repos.incomes,
+          clock,
+          rates: repos.exchangeRates,
+          overrides: repos.userFxOverrides,
+        },
+        { userId },
+      );
+      const progress = GoalProgressService.compute(result.goal, macro);
+      await repos.goalSnapshots.upsert({
+        goalId: result.goal.id,
+        month,
+        currentCents: progress.currentCents,
+        targetCents: progress.targetCents,
+        capturedAt: now,
+      });
+    } catch {
+      // Snapshot é melhor-esforço: falha não pode bloquear a criação da meta.
+    }
 
-export async function updateGoalAction(
-  goalId: string,
-  patch: UpdateGoalActionPatch,
-): Promise<ActionResult> {
-  const user = await requireUser();
-  const goals = new DrizzleGoalRepository();
-  const result = await updateGoal(
-    { goals },
-    {
-      userId: user.id,
-      goalId,
-      patch: {
-        ...(patch.title !== undefined && { title: patch.title }),
-        ...(patch.targetCents !== undefined && {
-          targetCents: parseCents(patch.targetCents),
-        }),
-        ...(patch.deadlineIso !== undefined && {
-          deadline: patch.deadlineIso ? new Date(patch.deadlineIso) : null,
-        }),
-        ...(patch.linkedDebtId !== undefined && {
-          linkedDebtId: patch.linkedDebtId,
-        }),
-        ...(patch.linkedAssetId !== undefined && {
-          linkedAssetId: patch.linkedAssetId,
-        }),
-        ...(patch.targetMonths !== undefined && {
-          targetMonths: patch.targetMonths,
-        }),
-        ...(patch.fundingMode !== undefined && {
-          fundingMode: patch.fundingMode,
-        }),
-        ...(patch.manualSavedCents !== undefined && {
-          manualSavedCents: parseCents(patch.manualSavedCents),
-        }),
-        ...(patch.monthlyCostCents !== undefined && {
-          monthlyCostCents: parseCents(patch.monthlyCostCents),
-        }),
-        ...(patch.realReturnPct !== undefined && {
-          realReturnPct: patch.realReturnPct,
-        }),
+    await awardEventAchievement(userId, "norte-definido");
+    return { goalId: result.goal.id };
+  },
+});
+
+export const updateGoalAction = action({
+  schema: updateGoalSchema,
+  revalidates: ["goals"],
+  handler: async ({ goalId, patch }, { userId }) => {
+    const result = await updateGoal(
+      { goals: repos.goals },
+      {
+        userId,
+        goalId,
+        patch: {
+          ...(patch.title !== undefined && { title: patch.title }),
+          ...(patch.targetCents !== undefined && {
+            targetCents: parseCents(patch.targetCents),
+          }),
+          ...(patch.deadlineIso !== undefined && {
+            deadline: patch.deadlineIso ? new Date(patch.deadlineIso) : null,
+          }),
+          ...(patch.linkedDebtId !== undefined && {
+            linkedDebtId: patch.linkedDebtId,
+          }),
+          ...(patch.linkedAssetId !== undefined && {
+            linkedAssetId: patch.linkedAssetId,
+          }),
+          ...(patch.targetMonths !== undefined && {
+            targetMonths: patch.targetMonths,
+          }),
+          ...(patch.fundingMode !== undefined && {
+            fundingMode: patch.fundingMode,
+          }),
+          ...(patch.manualSavedCents !== undefined && {
+            manualSavedCents: parseCents(patch.manualSavedCents),
+          }),
+          ...(patch.monthlyCostCents !== undefined && {
+            monthlyCostCents: parseCents(patch.monthlyCostCents),
+          }),
+          ...(patch.realReturnPct !== undefined && {
+            realReturnPct: patch.realReturnPct,
+          }),
+        },
       },
-    },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app/metas");
-  return { ok: true };
-}
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-export async function recordContributionAction(
-  goalId: string,
-  amountCents: string,
-): Promise<ActionResult> {
-  const user = await requireUser();
-  const result = await recordContribution(
-    {
-      goals: new DrizzleGoalRepository(),
-      assets: new DrizzleAssetRepository(),
-      contributions: new DrizzleGoalContributionRepository(),
-      snapshots: new DrizzleGoalSnapshotRepository(),
-      buildMacro: (userId) =>
-        buildGoalMacro(
-          {
-            assets: new DrizzleAssetRepository(),
-            allocations: new DrizzleAssetDebtAllocationRepository(),
-            debts: new DrizzleDebtRepository(),
-            incomes: new DrizzleIncomeRepository(),
-            clock: new SystemClock(),
-            rates: new DrizzleExchangeRateRepository(),
-            overrides: new DrizzleUserFxOverrideRepository(),
-          },
-          { userId },
-        ),
-      clock: new SystemClock(),
-      newId: () => crypto.randomUUID(),
-    },
-    { userId: user.id, goalId, amountCents: BigInt(amountCents) },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app/metas");
-  revalidatePath("/app");
-  return { ok: true };
-}
+export const recordContributionAction = action({
+  schema: recordContributionSchema,
+  revalidates: ["goals", "home"],
+  handler: async ({ goalId, amountCents }, { userId }) => {
+    const result = await recordContribution(
+      {
+        goals: repos.goals,
+        assets: repos.assets,
+        contributions: repos.goalContributions,
+        snapshots: repos.goalSnapshots,
+        buildMacro: (macroUserId) =>
+          buildGoalMacro(
+            {
+              assets: repos.assets,
+              allocations: repos.assetDebtAllocations,
+              debts: repos.debts,
+              incomes: repos.incomes,
+              clock,
+              rates: repos.exchangeRates,
+              overrides: repos.userFxOverrides,
+            },
+            { userId: macroUserId },
+          ),
+        clock,
+        newId: () => crypto.randomUUID(),
+      },
+      { userId, goalId, amountCents: BigInt(amountCents) },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-export async function archiveGoalAction(goalId: string): Promise<ActionResult> {
-  const user = await requireUser();
-  const goals = new DrizzleGoalRepository();
-  const result = await archiveGoal({ goals }, { userId: user.id, goalId });
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app/metas");
-  return { ok: true };
-}
+export const archiveGoalAction = action({
+  schema: z.string(),
+  revalidates: ["goals"],
+  handler: async (goalId, { userId }) => {
+    const result = await archiveGoal({ goals: repos.goals }, { userId, goalId });
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-export async function deleteGoalAction(goalId: string): Promise<ActionResult> {
-  const user = await requireUser();
-  const goals = new DrizzleGoalRepository();
-  const result = await deleteGoal({ goals }, { userId: user.id, goalId });
-  if (!result.ok) return { ok: false, message: result.message };
-  await purgeEntityBestEffort(user.id, "goal", goalId);
-  revalidatePath("/app/metas");
-  return { ok: true };
-}
+export const deleteGoalAction = action({
+  schema: z.string(),
+  revalidates: ["goals"],
+  handler: async (goalId, { userId }) => {
+    const result = await deleteGoal({ goals: repos.goals }, { userId, goalId });
+    if (!result.ok) throw new ActionError(result.message);
+    await purgeEntityBestEffort(userId, "goal", goalId);
+  },
+});

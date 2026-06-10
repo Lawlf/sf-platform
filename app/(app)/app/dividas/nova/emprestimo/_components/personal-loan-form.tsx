@@ -388,12 +388,13 @@ export function PersonalLoanForm({
           setServerError(r.message);
           return;
         }
-        assetIdToLink = r.assetId;
+        assetIdToLink = r.data.assetId;
       } else if (v.linkAssetChoice === "existing") {
         assetIdToLink = v.linkedAssetId ?? null;
       }
 
-      const debtRes = await createDebtAction("personal_loan", fd);
+      fd.set("kind", "personal_loan");
+      const debtRes = await createDebtAction(fd);
       if (!debtRes.ok) {
         setServerError(debtRes.message);
         return;
@@ -414,7 +415,7 @@ export function PersonalLoanForm({
             : (v as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents;
 
         const cashActionInput: RegisterLoanCashInflowActionInput = {
-          debtId: debtRes.debtId,
+          debtId: debtRes.data.debtId,
           cashTarget: cashTargetVal,
           principalCents: cashPrincipalCents.toString(),
           ...(cashTargetVal === "existing" && vAny.existingCashAssetId
@@ -439,7 +440,7 @@ export function PersonalLoanForm({
             `Dívida criada, mas não foi possível atualizar a conta: ${cashRes.message}`,
           );
           await invalidateDebtCaches(queryClient);
-          router.push(`/app/dividas/${debtRes.debtId}` as Route);
+          router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
           return;
         }
       }
@@ -451,19 +452,19 @@ export function PersonalLoanForm({
             : principalForServer;
         const linkRes = await linkDebtToAssetAction({
           assetId: assetIdToLink,
-          debtId: debtRes.debtId,
+          debtId: debtRes.data.debtId,
           allocationOriginalCents: allocationCents.toString(),
         });
         if (!linkRes.ok) {
           setServerError(`Dívida criada, mas falha ao vincular bem: ${linkRes.message}`);
           await invalidateDebtCaches(queryClient);
-          router.push(`/app/dividas/${debtRes.debtId}` as Route);
+          router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
           return;
         }
       }
 
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${debtRes.debtId}` as Route);
+      router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
     });
   }
 

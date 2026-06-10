@@ -1,5 +1,5 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { renderEmailToHtml } from "@/infrastructure/email/email-renderer";
 import {
@@ -8,7 +8,7 @@ import {
 } from "@/infrastructure/email/templates/pro-welcome.email";
 
 export interface ActivateProDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

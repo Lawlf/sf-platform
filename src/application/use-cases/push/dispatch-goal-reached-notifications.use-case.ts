@@ -1,4 +1,4 @@
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 import type { ReachedGoal } from "../goal/capture-goal-snapshots.use-case";
 
@@ -6,7 +6,7 @@ import type { SendPushToUserDeps } from "./send-push-to-user.use-case";
 import { sendPushToUser } from "./send-push-to-user.use-case";
 
 export interface DispatchGoalReachedDeps extends SendPushToUserDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
 }
 
 export interface DispatchGoalReachedResult {

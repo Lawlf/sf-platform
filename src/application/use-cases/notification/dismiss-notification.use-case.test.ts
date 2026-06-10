@@ -4,12 +4,12 @@ import type { NotificationEntity } from "@/domain/entities/notification.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { NotificationNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { dismissNotification } from "./dismiss-notification.use-case";
 
-function makeNotificationsRepo(): NotificationRepository {
+function makeNotificationsRepo(): NotificationRepositoryPort {
   return {
     findById: vi.fn(),
     findByUserAndKindAndMonth: vi.fn(),

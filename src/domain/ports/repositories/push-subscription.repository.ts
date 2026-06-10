@@ -1,6 +1,6 @@
 import type { PushSubscriptionEntity } from "@/domain/entities/push-subscription.entity";
 
-export interface PushSubscriptionRepository {
+export interface PushSubscriptionRepositoryPort {
   findByEndpoint(endpoint: string): Promise<PushSubscriptionEntity | null>;
   listForUser(userId: string): Promise<PushSubscriptionEntity[]>;
   upsert(input: {

@@ -1,7 +1,7 @@
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import { FxRateUnavailableError } from "@/domain/errors/financial-errors";
+import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import {
   GoalCascadeService,
   type CascadeResult,
@@ -19,6 +19,7 @@ import {
   convertDebtToBase,
   type ConvertEntityDeps,
 } from "../fx/convert-entity-to-base";
+
 import { resolveLiquidBucketRate } from "./asset-rate";
 import { buildCascadeInputs } from "./build-cascade-inputs";
 import { buildProjectionAssetInputs } from "./build-projection-asset-inputs";

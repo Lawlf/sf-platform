@@ -1,0 +1,71 @@
+import { and, asc, eq } from "drizzle-orm";
+
+import type {
+  RecurringSettlementEntity,
+  RecurringSettlementStatus,
+} from "@/domain/entities/recurring-settlement.entity";
+import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
+
+import { getDb } from "../client";
+import {
+  recurringSettlements,
+  type RecurringSettlementRow,
+} from "../schema/recurring-settlements.schema";
+
+function rowToEntity(row: RecurringSettlementRow): RecurringSettlementEntity {
+  return {
+    userId: row.userId,
+    debtId: row.debtId,
+    month: row.month,
+    status: row.status as RecurringSettlementStatus,
+    createdDebtId: row.createdDebtId,
+    createdAt: row.createdAt,
+  };
+}
+
+export class RecurringSettlementRepository implements RecurringSettlementRepositoryPort {
+  async upsert(settlement: RecurringSettlementEntity): Promise<void> {
+    await getDb()
+      .insert(recurringSettlements)
+      .values({
+        userId: settlement.userId,
+        debtId: settlement.debtId,
+        month: settlement.month,
+        status: settlement.status,
+        createdDebtId: settlement.createdDebtId,
+        createdAt: settlement.createdAt,
+      })
+      .onConflictDoUpdate({
+        target: [
+          recurringSettlements.userId,
+          recurringSettlements.debtId,
+          recurringSettlements.month,
+        ],
+        set: {
+          status: settlement.status,
+          createdDebtId: settlement.createdDebtId,
+          createdAt: settlement.createdAt,
+        },
+      });
+  }
+
+  async listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(recurringSettlements)
+      .where(
+        and(eq(recurringSettlements.userId, userId), eq(recurringSettlements.month, month)),
+      )
+      .orderBy(asc(recurringSettlements.debtId));
+    return rows.map(rowToEntity);
+  }
+
+  async listForUser(userId: string): Promise<RecurringSettlementEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(recurringSettlements)
+      .where(eq(recurringSettlements.userId, userId))
+      .orderBy(asc(recurringSettlements.month));
+    return rows.map(rowToEntity);
+  }
+}

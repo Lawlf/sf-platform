@@ -7,9 +7,7 @@ import { computeInstallmentDueDates } from "@/domain/services/debt-calendar.serv
 import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calendar-link";
 import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 import { loadEnv } from "@/infrastructure/config/env";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -50,7 +48,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
   const user = await requireUser();
 
   const r = await getDebtDetail(
-    { debts: new DrizzleDebtRepository(), payments: new DrizzleDebtPaymentRepository() },
+    { debts: repos.debts, payments: repos.debtPayments },
     { userId: user.id, debtId: id },
   );
   if (isErr(r)) notFound();
@@ -66,7 +64,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
     : null;
 
   const prefs = hasCalendarSchedule
-    ? await new DrizzleNotificationPreferencesRepository().findForUser(user.id)
+    ? await repos.notificationPreferences.findForUser(user.id)
     : null;
   const defaultAlarm = alarmFromDaysBefore(prefs?.debtDueDaysBefore);
 

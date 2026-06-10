@@ -1,12 +1,12 @@
 import { McpFreeLimitReached } from "@/domain/errors/mcp-errors";
 import { MCP_FREE_MONTHLY_LIMIT, mcpUsagePeriod } from "@/domain/mcp/constants";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpUsageRepository } from "@/domain/ports/repositories/mcp-usage.repository";
+import type { McpUsageRepositoryPort } from "@/domain/ports/repositories/mcp-usage.repository";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface CheckMcpUsageDeps {
-  usage: Pick<McpUsageRepository, "incrementAndGet">;
+  usage: Pick<McpUsageRepositoryPort, "incrementAndGet">;
   clock: Clock;
 }
 

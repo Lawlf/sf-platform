@@ -1,7 +1,7 @@
 import type { Payment } from "@/domain/entities/payment.entity";
 import type { PaymentProvider } from "@/domain/entities/subscription.entity";
 
-export interface PaymentRepository {
+export interface PaymentRepositoryPort {
   findById(id: string): Promise<Payment | null>;
   findByProviderPaymentId(
     provider: PaymentProvider,

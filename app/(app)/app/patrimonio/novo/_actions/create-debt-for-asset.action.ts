@@ -1,33 +1,31 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { CURRENCIES, Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors/result";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 
 const inputSchema = z.object({
   kind: z.enum(["financing", "personal_loan", "credit_card"]),
   label: z.string().min(1, "Informe um rótulo.").max(120, "Máximo de 120 caracteres."),
-  principalCents: z.string().regex(/^\d+$/, "Valor inválido."),
+  principalCents: z
+    .string()
+    .regex(/^\d+$/, "Valor inválido.")
+    .refine((s) => BigInt(s) > 0n, "Valor deve ser positivo."),
   installments: z.coerce.number().int().min(1).max(420),
   monthlyRatePct: z.coerce.number().min(0).max(20),
-  startDate: z.string().min(1, "Informe a data de início."),
+  startDate: z
+    .string()
+    .min(1, "Informe a data de início.")
+    .refine((s) => !Number.isNaN(new Date(s).getTime()), "Data inválida."),
   currency: z.enum(CURRENCIES).default("BRL"),
 });
 
 export type CreateDebtForAssetInput = z.input<typeof inputSchema>;
 
-export type CreateDebtForAssetResult =
-  | { ok: true; debtId: string }
-  | { ok: false; message: string };
-
-// Cálculo da parcela PRICE: P * i / (1 - (1 + i)^-n)
 function computePriceInstallmentCents(
   principalCents: bigint,
   monthlyRate: number,
@@ -46,110 +44,87 @@ function computePriceInstallmentCents(
   return BigInt(Math.round(installmentReais * 100));
 }
 
-export async function createDebtForAssetAction(
-  raw: CreateDebtForAssetInput,
-): Promise<CreateDebtForAssetResult> {
-  const parsed = inputSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
+export const createDebtForAssetAction = action({
+  schema: inputSchema,
+  revalidates: ["debts", "home", "timeline"],
+  handler: async (v, { userId }) => {
+    const principalCents = BigInt(v.principalCents);
+    const startDate = new Date(v.startDate);
+    const monthlyRateDecimal = v.monthlyRatePct / 100;
 
-  const user = await requireUser();
-  const v = parsed.data;
+    const deps = {
+      debts: repos.debts,
+      clock,
+    };
 
-  let principalCents: bigint;
-  try {
-    principalCents = BigInt(v.principalCents);
-  } catch {
-    return { ok: false, message: "Valor inválido." };
-  }
-  if (principalCents <= 0n) {
-    return { ok: false, message: "Valor deve ser positivo." };
-  }
+    if (v.kind === "financing") {
+      const monthlyRate = unwrap(InterestRate.fromMonthly(monthlyRateDecimal));
+      const annualRate = monthlyRate.toAnnual();
+      const debt = unwrap(
+        await registerDebt(deps, {
+          userId,
+          label: v.label.trim(),
+          notes: null,
+          startDate,
+          expectedEndDate: null,
+          kind: "financing",
+          originalPrincipal: Money.fromCents(principalCents, v.currency),
+          annualInterestRate: annualRate,
+          termMonths: v.installments,
+          amortizationMethod: "PRICE",
+          monthlyInsurance: null,
+          monthlyAdminFee: null,
+        }),
+      );
+      return { debtId: debt.id };
+    }
 
-  const startDate = new Date(v.startDate);
-  if (Number.isNaN(startDate.getTime())) {
-    return { ok: false, message: "Data inválida." };
-  }
+    if (v.kind === "personal_loan") {
+      const monthlyRate = unwrap(InterestRate.fromMonthly(monthlyRateDecimal));
+      const annualRate = monthlyRate.toAnnual();
+      const installmentCents = computePriceInstallmentCents(
+        principalCents,
+        monthlyRateDecimal,
+        v.installments,
+      );
+      const debt = unwrap(
+        await registerDebt(deps, {
+          userId,
+          label: v.label.trim(),
+          notes: null,
+          startDate,
+          expectedEndDate: null,
+          kind: "personal_loan",
+          originalPrincipal: Money.fromCents(principalCents, v.currency),
+          annualInterestRate: annualRate,
+          termMonths: v.installments,
+          monthlyInstallment: Money.fromCents(installmentCents, v.currency),
+        }),
+      );
+      return { debtId: debt.id };
+    }
 
-  const monthlyRateDecimal = v.monthlyRatePct / 100;
-
-  const deps = {
-    debts: new DrizzleDebtRepository(),
-    clock: new SystemClock(),
-  };
-
-  if (v.kind === "financing") {
-    const monthlyRate = InterestRate.fromMonthly(monthlyRateDecimal);
-    if (!isOk(monthlyRate)) return { ok: false, message: "Taxa mensal inválida." };
-    const annualRate = monthlyRate.value.toAnnual();
-    const r = await registerDebt(deps, {
-      userId: user.id,
-      label: v.label.trim(),
-      notes: null,
-      startDate,
-      expectedEndDate: null,
-      kind: "financing",
-      originalPrincipal: Money.fromCents(principalCents, v.currency),
-      annualInterestRate: annualRate,
-      termMonths: v.installments,
-      amortizationMethod: "PRICE",
-      monthlyInsurance: null,
-      monthlyAdminFee: null,
-    });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
-    revalidatePath("/app/dividas"); revalidatePath(`/app/dividas/${r.value.id}`); revalidatePath("/app"); revalidatePath("/app/linha-do-tempo");
-  return { ok: true, debtId: r.value.id };
-  }
-
-  if (v.kind === "personal_loan") {
-    const monthlyRate = InterestRate.fromMonthly(monthlyRateDecimal);
-    if (!isOk(monthlyRate)) return { ok: false, message: "Taxa mensal inválida." };
-    const annualRate = monthlyRate.value.toAnnual();
-    const installmentCents = computePriceInstallmentCents(
-      principalCents,
-      monthlyRateDecimal,
-      v.installments,
+    const revolvingRate = unwrap(InterestRate.fromMonthly(monthlyRateDecimal));
+    const day = Math.min(28, Math.max(1, startDate.getDate()));
+    const dueDay = ((day + 9) % 28) + 1;
+    const debt = unwrap(
+      await registerDebt(deps, {
+        userId,
+        label: v.label.trim(),
+        notes: null,
+        startDate,
+        expectedEndDate: null,
+        kind: "credit_card",
+        creditLimit: Money.fromCents(principalCents * 2n, v.currency),
+        currentStatement: Money.fromCents(principalCents, v.currency),
+        statementDay: day,
+        dueDay,
+        revolvingBalance: null,
+        revolvingMonthlyRate: monthlyRateDecimal > 0 ? revolvingRate : null,
+        installmentPurchases: [],
+      }),
     );
-    const r = await registerDebt(deps, {
-      userId: user.id,
-      label: v.label.trim(),
-      notes: null,
-      startDate,
-      expectedEndDate: null,
-      kind: "personal_loan",
-      originalPrincipal: Money.fromCents(principalCents, v.currency),
-      annualInterestRate: annualRate,
-      termMonths: v.installments,
-      monthlyInstallment: Money.fromCents(installmentCents, v.currency),
-    });
-    if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
-    revalidatePath("/app/dividas"); revalidatePath(`/app/dividas/${r.value.id}`); revalidatePath("/app"); revalidatePath("/app/linha-do-tempo");
-  return { ok: true, debtId: r.value.id };
-  }
-
-  // credit_card: tratamos como compra parcelada simples
-  // Usamos principal como fatura atual e definimos limite default 2x.
-  const revolvingRate = InterestRate.fromMonthly(monthlyRateDecimal);
-  if (!isOk(revolvingRate)) return { ok: false, message: "Taxa mensal inválida." };
-  const day = Math.min(28, Math.max(1, startDate.getDate()));
-  const dueDay = ((day + 9) % 28) + 1;
-  const r = await registerDebt(deps, {
-    userId: user.id,
-    label: v.label.trim(),
-    notes: null,
-    startDate,
-    expectedEndDate: null,
-    kind: "credit_card",
-    creditLimit: Money.fromCents(principalCents * 2n, v.currency),
-    currentStatement: Money.fromCents(principalCents, v.currency),
-    statementDay: day,
-    dueDay,
-    revolvingBalance: null,
-    revolvingMonthlyRate: monthlyRateDecimal > 0 ? revolvingRate.value : null,
-    installmentPurchases: [],
-  });
-  if (!isOk(r)) return { ok: false, message: "Falha ao salvar dívida." };
-  revalidatePath("/app/dividas"); revalidatePath(`/app/dividas/${r.value.id}`); revalidatePath("/app"); revalidatePath("/app/linha-do-tempo");
-  return { ok: true, debtId: r.value.id };
-}
+    return { debtId: debt.id };
+  },
+  revalidatePaths: (data) => [`/app/dividas/${data.debtId}`],
+});

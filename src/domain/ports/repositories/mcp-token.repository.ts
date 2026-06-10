@@ -10,7 +10,7 @@ export interface McpRefreshToken {
   expiresAt: Date;
 }
 
-export interface McpTokenRepository {
+export interface McpTokenRepositoryPort {
   createAccessToken(input: McpAccessToken): Promise<void>;
   findAccessTokenByHash(tokenHash: string): Promise<McpAccessToken | null>;
   createRefreshToken(input: McpRefreshToken): Promise<void>;

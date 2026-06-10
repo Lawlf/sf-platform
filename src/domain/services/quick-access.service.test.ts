@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { DEFAULT_QUICK_ACCESS, MAX_QUICK_ACCESS, normalizeQuickAccess } from "./quick-access.service";
 const ALLOWED = ["a","b","c","d","e","f","g","h","i","j"];
 describe("normalizeQuickAccess", () => {

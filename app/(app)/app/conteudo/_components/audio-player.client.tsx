@@ -1,8 +1,8 @@
 "use client";
 
 import { ChevronLeft, Pause, Play } from "lucide-react";
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 import { useRef, useState } from "react";
 
 export function AudioPlayer({ src }: { src: string }) {

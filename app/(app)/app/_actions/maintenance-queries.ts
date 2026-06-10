@@ -1,7 +1,7 @@
 "use server";
 
 import { MaintenancePromptService } from "@/domain/services/maintenance-prompt.service";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 export interface MaintenancePromptPayload {
@@ -16,7 +16,7 @@ export interface MaintenancePromptPayload {
 export async function fetchMaintenancePrompts(): Promise<MaintenancePromptPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const assets = await new DrizzleAssetRepository().findActiveByUser(user.id);
+  const assets = await repos.assets.findActiveByUser(user.id);
   const items = MaintenancePromptService.computeNeedsReview(assets, new Date());
   return items.map((i) => ({
     assetId: i.assetId,

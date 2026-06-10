@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isOk } from "@/shared/errors/result";
 
 import { countUndismissed } from "./count-undismissed.use-case";
 
-function makeNotificationsRepo(): NotificationRepository {
+function makeNotificationsRepo(): NotificationRepositoryPort {
   return {
     findById: vi.fn(),
     findByUserAndKindAndMonth: vi.fn(),

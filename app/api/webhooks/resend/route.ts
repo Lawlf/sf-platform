@@ -1,7 +1,8 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { Webhook, WebhookVerificationError } from "svix";
 
-import { DrizzleEmailEventRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-email-event.repository";
+import { repos } from "@/infrastructure/container";
+
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -73,7 +74,7 @@ export async function POST(req: NextRequest) {
   }
 
   try {
-    await new DrizzleEmailEventRepository().record({
+    await repos.emailEvents.record({
       emailId,
       toEmail,
       eventType: event.type,

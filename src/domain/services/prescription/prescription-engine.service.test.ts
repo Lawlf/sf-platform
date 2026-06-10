@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { PrescriptionEngine } from "./prescription-engine.service";
-import type { PrescriptionSnapshot } from "./prescription.types";
+
 import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
-import type { DebtEntity } from "@/domain/entities/debt.entity";
+
+import { PrescriptionEngine } from "./prescription-engine.service";
+import type { PrescriptionSnapshot } from "./prescription.types";
 
 const NOW = new Date("2026-05-25T00:00:00Z");
 

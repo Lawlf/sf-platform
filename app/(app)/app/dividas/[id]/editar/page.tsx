@@ -2,8 +2,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -19,7 +18,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
   const { id } = await params;
   const user = await requireUser();
   const r = await getDebtDetail(
-    { debts: new DrizzleDebtRepository(), payments: new DrizzleDebtPaymentRepository() },
+    { debts: repos.debts, payments: repos.debtPayments },
     { userId: user.id, debtId: id },
   );
   if (isErr(r)) notFound();

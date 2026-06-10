@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { EntityNoteRepository } from "@/domain/ports/repositories/entity-note.repository";
+import type { EntityNoteRepositoryPort } from "@/domain/ports/repositories/entity-note.repository";
 
 import { saveEntityNote } from "./save-entity-note.use-case";
 
-function makeRepo(): EntityNoteRepository {
+function makeRepo(): EntityNoteRepositoryPort {
   return {
     find: vi.fn().mockResolvedValue(null),
     upsert: vi.fn().mockResolvedValue(undefined),

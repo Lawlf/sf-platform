@@ -2,12 +2,9 @@
 
 import { refreshAllUserStocks } from "@/application/use-cases/stocks/refresh-all-user-stocks.use-case";
 import { timingSafeStringEqual } from "@/infrastructure/auth/timing-safe-compare";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { BrapiQuoteAdapter } from "@/infrastructure/external/brapi/brapi-quote.adapter";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleStockCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-stock-catalog.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 
 export type RefreshAllStocksResult =
   | { ok: true; tickers: number; updated: number; failed: number }
@@ -26,11 +23,11 @@ export async function refreshAllStocksAction(secret: string): Promise<RefreshAll
   }
   try {
     const result = await refreshAllUserStocks({
-      users: new DrizzleUserRepository(),
-      assets: new DrizzleAssetRepository(),
-      catalog: new DrizzleStockCatalogRepository(),
+      users: repos.users,
+      assets: repos.assets,
+      catalog: repos.stockCatalog,
       quotes: new BrapiQuoteAdapter(),
-      clock: new SystemClock(),
+      clock,
     });
     return { ok: true, ...result };
   } catch {

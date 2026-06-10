@@ -1,6 +1,6 @@
 import type { OauthAccountEntity, OauthProviderId } from "@/domain/entities/oauth-account.entity";
 
-export interface OauthAccountRepository {
+export interface OauthAccountRepositoryPort {
   findByProviderAndId(
     provider: OauthProviderId,
     providerUserId: string,

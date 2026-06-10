@@ -1,9 +1,9 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
+import type { MonthClosingRepositoryPort } from "@/domain/ports/repositories/month-closing.repository";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
 export interface GetOpenMonthDeps {
-  closings: MonthClosingRepository;
+  closings: MonthClosingRepositoryPort;
   clock: Clock;
 }
 

@@ -55,7 +55,10 @@ export function ContributionSheet({ goalId, variant, hasReserve }: ContributionS
     }
     setError(null);
     setSubmitting(true);
-    const result = await recordContributionAction(goalId, values.amountCents.toString());
+    const result = await recordContributionAction({
+      goalId,
+      amountCents: values.amountCents.toString(),
+    });
     setSubmitting(false);
     if (!result.ok) {
       setError(result.message ?? "Não foi possível guardar agora.");

@@ -1,11 +1,10 @@
 import { Fragment, type ReactNode, Suspense } from "react";
 
+
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 
@@ -75,12 +74,12 @@ export default async function DashboardPage() {
     fetchMonthClosing(),
     getPrescription(),
     getMonthlyConsumo(
-      { transactions: new DrizzleTransactionRepository() },
+      { transactions: repos.transactions },
       { userId: user.id, from: consumoFrom, to: consumoTo },
     ),
     fetchOutOfMonthSummary(),
-    new DrizzleAssetRepository().listExternalAccountKeys(user.id),
-    new DrizzleMcpConnectionRepository().listForUser(user.id),
+    repos.assets.listExternalAccountKeys(user.id),
+    repos.mcpConnections.listForUser(user.id),
   ]);
 
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));

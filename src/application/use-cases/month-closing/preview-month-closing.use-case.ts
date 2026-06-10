@@ -8,18 +8,18 @@ import {
   convertPaymentToBase,
 } from "@/application/use-cases/fx/convert-entity-to-base";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
-import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { MonthClosingRepositoryPort } from "@/domain/ports/repositories/month-closing.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import {
   ReconciliationService,
   type ReconciliationStatus,
@@ -31,15 +31,15 @@ import { isErr, isOk } from "@/shared/errors/result";
 import { getOpenMonth } from "./get-open-month.use-case";
 
 export interface MonthClosingDeps {
-  closings: MonthClosingRepository;
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
-  incomes: IncomeRepository;
-  payments: DebtPaymentRepository;
+  closings: MonthClosingRepositoryPort;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
+  incomes: IncomeRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
   clock: Clock;
-  rates: ExchangeRateRepository;
-  overrides: UserFxOverrideRepository;
+  rates: ExchangeRateRepositoryPort;
+  overrides: UserFxOverrideRepositoryPort;
 }
 
 export interface ComputedMonthClosing {

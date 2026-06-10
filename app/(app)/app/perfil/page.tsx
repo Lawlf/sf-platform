@@ -9,19 +9,7 @@ import { buildPrescription } from "@/application/use-cases/prescription/build-pr
 import { ensureUsername } from "@/application/use-cases/profile/ensure-username.use-case";
 import { getProfileIdentity } from "@/application/use-cases/profile/get-profile-identity.use-case";
 import { tierFor } from "@/domain/services/consistency.service";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
-import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
-import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -42,14 +30,14 @@ export default async function PerfilPage({
 }) {
   const user = await requireUser();
   const { stepup } = await searchParams;
-  const avatarUrl = await new DrizzleUserAvatarRepository().get(user.id);
-  const unlockedAchievements = await new DrizzleUserAchievementRepository().listForUser(user.id);
+  const avatarUrl = await repos.userAvatars.get(user.id);
+  const unlockedAchievements = await repos.userAchievements.listForUser(user.id);
 
-  const username = await ensureUsername({ users: new DrizzleUserRepository() }, { userId: user.id });
-  const activeMonths = await new DrizzleUsageRepository().listActiveMonthIsos(user.id);
+  const username = await ensureUsername({ users: repos.users }, { userId: user.id });
+  const activeMonths = await repos.usage.listActiveMonthIsos(user.id);
   const consistencyTier = tierFor(totalDistinctMonths(activeMonths));
   const identity = await getProfileIdentity(
-    { subscriptions: new DrizzleSubscriptionRepository(), plans: new DrizzlePlanRepository() },
+    { subscriptions: repos.subscriptions, plans: repos.plans },
     {
       userId: user.id,
       isPro: user.isPro,
@@ -88,15 +76,14 @@ export default async function PerfilPage({
 }
 
 async function PerfilStatsSection({ userId }: { userId: string }) {
-  const clock = new SystemClock();
-  const debts = new DrizzleDebtRepository();
+  const debts = repos.debts;
   const snapshotR = await getDashboardSnapshot(
     {
       debts,
-      incomes: new DrizzleIncomeRepository(),
+      incomes: repos.incomes,
       clock,
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
     },
     { userId },
   );
@@ -105,10 +92,10 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
   const prescR = await buildPrescription(
     {
       debts,
-      incomes: new DrizzleIncomeRepository(),
-      assets: new DrizzleAssetRepository(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      incomes: repos.incomes,
+      assets: repos.assets,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
       clock,
       now: () => clock.now(),
     },
@@ -118,8 +105,8 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
 
   const consistency = await getConsistencyCard(
     {
-      usage: new DrizzleUsageRepository(),
-      closings: new DrizzleMonthClosingRepository(),
+      usage: repos.usage,
+      closings: repos.monthClosings,
       now: () => clock.now(),
     },
     { userId, state: prescriptionState },

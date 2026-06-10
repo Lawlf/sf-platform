@@ -1,15 +1,15 @@
 import { McpConnectionRevoked, McpInvalidGrant } from "@/domain/errors/mcp-errors";
 import { MCP_ACCESS_TOKEN_TTL_MS, MCP_REFRESH_TOKEN_TTL_MS } from "@/domain/mcp/constants";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpConnectionRepository } from "@/domain/ports/repositories/mcp-connection.repository";
-import type { McpTokenRepository } from "@/domain/ports/repositories/mcp-token.repository";
+import type { McpConnectionRepositoryPort } from "@/domain/ports/repositories/mcp-connection.repository";
+import type { McpTokenRepositoryPort } from "@/domain/ports/repositories/mcp-token.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RefreshAccessTokenDeps {
-  tokens: Pick<McpTokenRepository, "findRefreshTokenByHash" | "rotateRefreshToken" | "createAccessToken">;
-  connections: Pick<McpConnectionRepository, "findById">;
+  tokens: Pick<McpTokenRepositoryPort, "findRefreshTokenByHash" | "rotateRefreshToken" | "createAccessToken">;
+  connections: Pick<McpConnectionRepositoryPort, "findById">;
   hasher: Pick<Hasher, "sha256Hex">;
   issueToken: () => Promise<{ raw: string; hash: string }>;
   clock: Clock;

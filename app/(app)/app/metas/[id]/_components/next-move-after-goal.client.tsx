@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 import { fetchPrescription } from "@/app/(app)/app/_actions/prescription-queries";
 import { moveCtaFor } from "@/app/(app)/app/_components/move-cta";

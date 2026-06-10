@@ -1,7 +1,7 @@
 import type { EntityNoteEntity } from "@/domain/entities/entity-note.entity";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
-export interface EntityNoteRepository {
+export interface EntityNoteRepositoryPort {
   find(
     userId: string,
     entityType: AttachableEntityType,

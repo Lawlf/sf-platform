@@ -4,10 +4,10 @@ import type { CreditCardDebt } from "@/domain/entities/debt.entity";
 import type { NotificationPreferencesEntity } from "@/domain/entities/notification-preferences.entity";
 import type { PushSubscriptionEntity } from "@/domain/entities/push-subscription.entity";
 import type { UserEntity } from "@/domain/entities/user.entity";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
-import type { PushSubscriptionRepository } from "@/domain/ports/repositories/push-subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { PushSubscriptionRepositoryPort } from "@/domain/ports/repositories/push-subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { PushPayload, PushService } from "@/domain/ports/services/push.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
@@ -100,11 +100,11 @@ function makeDeps(opts: {
     upsert: vi.fn(),
     touchLastSeen: vi.fn(),
     deleteForUser: vi.fn(),
-  } as unknown as PushSubscriptionRepository;
+  } as unknown as PushSubscriptionRepositoryPort;
   const preferences = {
     findForUser: vi.fn(async () => opts.prefs ?? makePrefs()),
     upsert: vi.fn(),
-  } as unknown as NotificationPreferencesRepository;
+  } as unknown as NotificationPreferencesRepositoryPort;
   const users = {
     findAllPro: vi.fn(async () => opts.pro ?? [makeUser()]),
     findById: vi.fn(),
@@ -115,7 +115,7 @@ function makeDeps(opts: {
     markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn(),
     update: vi.fn(),
-  } as unknown as UserRepository;
+  } as unknown as UserRepositoryPort;
   const debts = {
     listForUser: vi.fn(async () => opts.debts ?? []),
     findById: vi.fn(),
@@ -123,7 +123,7 @@ function makeDeps(opts: {
     update: vi.fn(),
     setStatus: vi.fn(),
     softDelete: vi.fn(),
-  } as unknown as DebtRepository;
+  } as unknown as DebtRepositoryPort;
   const clock = { now: vi.fn(() => opts.now) };
   return { pushService, pushSubscriptions, preferences, users, debts, clock, send };
 }

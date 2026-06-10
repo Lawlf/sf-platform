@@ -1,10 +1,10 @@
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 import type { SendPushToUserDeps } from "./send-push-to-user.use-case";
 import { sendPushToUser } from "./send-push-to-user.use-case";
 
 export interface DispatchMonthlySummaryDeps extends SendPushToUserDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
 }
 
 export interface DispatchMonthlySummaryResult {

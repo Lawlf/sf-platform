@@ -1,6 +1,6 @@
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 
-export interface IncomeRepository {
+export interface IncomeRepositoryPort {
   /**
    * Retorna a renda pelo id ou `null`. Ignora linhas soft-deleted
    * (`deleted_at IS NOT NULL`) por padrão; a UI nunca deve enxergar uma

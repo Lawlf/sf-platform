@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type {
-  AchievementProgressRepository,
+  AchievementProgressRepositoryPort,
   AchievementProgressState,
 } from "@/domain/ports/repositories/achievement-progress.repository";
 
@@ -9,7 +9,7 @@ import { recomputeDerivedAchievementsForUser } from "./recompute-derived-achieve
 
 function progressFake() {
   const store = new Map<string, AchievementProgressState>();
-  const repo: AchievementProgressRepository = {
+  const repo: AchievementProgressRepositoryPort = {
     async get(userId, slug) {
       return store.get(`${userId}:${slug}`) ?? null;
     },

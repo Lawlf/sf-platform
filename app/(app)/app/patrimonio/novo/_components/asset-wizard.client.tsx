@@ -397,7 +397,7 @@ export function AssetWizardClient({
       }
       allocationsPayload = [
         {
-          debtId: debtResult.debtId,
+          debtId: debtResult.data.debtId,
           allocationOriginalCents: principalCents.toString(),
         },
       ];
@@ -427,7 +427,7 @@ export function AssetWizardClient({
         return;
       }
       await invalidateAssetCaches(queryClient);
-      router.push(`/app/patrimonio/${r.assetId}` as Route);
+      router.push(`/app/patrimonio/${r.data.assetId}` as Route);
     });
   }
 

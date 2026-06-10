@@ -4,7 +4,7 @@ export interface LiteUser {
   displayName: string | null;
 }
 
-export interface UserActivityRepository {
+export interface UserActivityRepositoryPort {
   /**
    * Marca o usuário como ativo agora. Throttled: só escreve se `last_active_at`
    * estiver mais velho que `staleAfterMs` (evita 1 write por request).

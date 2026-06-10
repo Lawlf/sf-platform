@@ -3,7 +3,7 @@
 import { countUnread } from "@/application/use-cases/notification/count-unread.use-case";
 import { listNotifications } from "@/application/use-cases/notification/list-notifications.use-case";
 import { getAchievement } from "@/domain/achievements/achievement.catalog";
-import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -31,7 +31,7 @@ export async function fetchNotifications(opts?: {
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const repo = new DrizzleNotificationRepository();
+  const repo = repos.notifications;
   const result = await listNotifications(
     { notifications: repo },
     opts?.onlyUndismissed === true
@@ -78,7 +78,7 @@ export async function fetchUnreadNotificationsCount(): Promise<number> {
   const user = await getCurrentUser();
   if (!user) return 0;
   const result = await countUnread(
-    { notifications: new DrizzleNotificationRepository() },
+    { notifications: repos.notifications },
     { userId: user.id },
   );
   return isOk(result) ? result.value : 0;

@@ -1,30 +1,22 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { mapStripeInvoice } from "@/infrastructure/billing/stripe/mappers/stripe-invoice.mapper";
 import { getStripeClient } from "@/infrastructure/billing/stripe/stripe-client";
-import { DrizzlePaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-payment.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
 
-export interface RefreshPaymentsResult {
-  ok: boolean;
-  created: number;
-  message?: string;
-}
+export const refreshPaymentsAction = action({
+  schema: z.void(),
+  revalidates: ["billing"],
+  handler: async (_input, { userId }) => {
+    const sub = await repos.subscriptions.findActiveByUserId(userId);
 
-export async function refreshPaymentsAction(): Promise<RefreshPaymentsResult> {
-  const user = await requireUser();
-  const subRepo = new DrizzleSubscriptionRepository();
-  const paymentRepo = new DrizzlePaymentRepository();
-  const sub = await subRepo.findActiveByUserId(user.id);
+    if (!sub || sub.provider !== "stripe" || !sub.providerSubscriptionId) {
+      return { created: 0 };
+    }
 
-  if (!sub || sub.provider !== "stripe" || !sub.providerSubscriptionId) {
-    return { ok: true, created: 0 };
-  }
-
-  try {
     const stripe = getStripeClient();
     const invoiceList = await stripe.invoices.list({
       subscription: sub.providerSubscriptionId,
@@ -34,13 +26,13 @@ export async function refreshPaymentsAction(): Promise<RefreshPaymentsResult> {
     const now = new Date();
     for (const inv of invoiceList.data) {
       if (!inv.id) continue;
-      const existing = await paymentRepo.findByProviderPaymentId("stripe", inv.id);
+      const existing = await repos.payments.findByProviderPaymentId("stripe", inv.id);
       if (existing) continue;
       const snapshot = mapStripeInvoice(inv);
-      await paymentRepo.save({
+      await repos.payments.save({
         id: crypto.randomUUID(),
         subscriptionId: sub.id,
-        userId: user.id,
+        userId,
         provider: "stripe",
         providerPaymentId: snapshot.providerPaymentId,
         amountCents: snapshot.amountCents,
@@ -56,11 +48,6 @@ export async function refreshPaymentsAction(): Promise<RefreshPaymentsResult> {
       });
       created += 1;
     }
-    revalidatePath("/app/configuracoes/planos");
-    return { ok: true, created };
-  } catch (e) {
-    const msg = e instanceof Error ? e.message : String(e);
-    console.error("[refresh-payments] failure:", e);
-    return { ok: false, created: 0, message: msg };
-  }
-}
+    return { created };
+  },
+});

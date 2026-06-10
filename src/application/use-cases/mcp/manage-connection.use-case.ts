@@ -1,14 +1,14 @@
 import { McpUnauthorized } from "@/domain/errors/mcp-errors";
 import type { McpScope } from "@/domain/mcp/scopes";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpConnectionRepository } from "@/domain/ports/repositories/mcp-connection.repository";
-import type { McpTokenRepository } from "@/domain/ports/repositories/mcp-token.repository";
+import type { McpConnectionRepositoryPort } from "@/domain/ports/repositories/mcp-connection.repository";
+import type { McpTokenRepositoryPort } from "@/domain/ports/repositories/mcp-token.repository";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, isErr, ok, type Result } from "@/shared/errors/result";
 
 export interface ManageConnectionDeps {
-  connections: Pick<McpConnectionRepository, "findById" | "revoke" | "addScope" | "removeScope">;
-  tokens: Pick<McpTokenRepository, "deleteForConnection">;
+  connections: Pick<McpConnectionRepositoryPort, "findById" | "revoke" | "addScope" | "removeScope">;
+  tokens: Pick<McpTokenRepositoryPort, "deleteForConnection">;
   clock: Clock;
 }
 

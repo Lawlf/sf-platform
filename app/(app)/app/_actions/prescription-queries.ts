@@ -1,15 +1,10 @@
 "use server";
 
-import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { buildPrescription } from "@/application/use-cases/prescription/build-prescription.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
-import { isOk } from "@/shared/errors/result";
 import type { MoveType, Prescription } from "@/domain/services/prescription/prescription.types";
+import { clock, repos } from "@/infrastructure/container";
+import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { isOk } from "@/shared/errors/result";
 
 export interface PrescriptionViewPayload {
   isPro: boolean;
@@ -30,15 +25,14 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
   const user = await getCurrentUser();
   if (!user) return null;
 
-  const clock = new SystemClock();
   const r = await buildPrescription(
     {
-      debts: new DrizzleDebtRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      assets: new DrizzleAssetRepository(),
+      debts: repos.debts,
+      incomes: repos.incomes,
+      assets: repos.assets,
       now: () => clock.now(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
       clock,
     },
     { userId: user.id },

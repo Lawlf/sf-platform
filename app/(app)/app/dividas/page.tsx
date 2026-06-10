@@ -6,7 +6,7 @@ import { Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import type { DebtStatusFilter } from "../_actions/debt-queries";
@@ -32,7 +32,7 @@ export default async function DividasPage({ searchParams }: PageProps) {
       : "active";
 
   const user = await requireUser();
-  const prefs = await new DrizzleNotificationPreferencesRepository().findForUser(user.id);
+  const prefs = await repos.notificationPreferences.findForUser(user.id);
   const upcomingDues = await fetchUpcomingDues();
 
   return (

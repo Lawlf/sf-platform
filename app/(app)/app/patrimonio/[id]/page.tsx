@@ -4,9 +4,7 @@ import { notFound } from "next/navigation";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 import { formatCents } from "@/shared/format/money-format";
@@ -51,9 +49,9 @@ export default async function AssetDetailPage({ params }: PageProps) {
 
   const detail = await getAssetDetail(
     {
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
     },
     { userId: user.id, assetId: id },
   );
@@ -67,7 +65,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
   const isWallet = asset.category === "cash" && asset.label === "Carteira";
 
   const allDebtsResult = await listDebts(
-    { debts: new DrizzleDebtRepository() },
+    { debts: repos.debts },
     { userId: user.id, status: "active" },
   );
   const allActiveDebts = isOk(allDebtsResult) ? allDebtsResult.value : [];

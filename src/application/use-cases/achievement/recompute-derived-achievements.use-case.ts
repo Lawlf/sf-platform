@@ -1,5 +1,5 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AchievementProgressRepository } from "@/domain/ports/repositories/achievement-progress.repository";
+import type { AchievementProgressRepositoryPort } from "@/domain/ports/repositories/achievement-progress.repository";
 
 import { longestConsecutiveMonths, totalDistinctMonths } from "./streak-math";
 
@@ -10,7 +10,7 @@ export interface SustainedEvaluation {
 }
 
 export interface RecomputeDerivedDeps {
-  progress: AchievementProgressRepository;
+  progress: AchievementProgressRepositoryPort;
   clock: Clock;
   award: (userId: string, slug: string) => Promise<void>;
   activeMonths: string[];

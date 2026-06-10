@@ -7,7 +7,7 @@ import {
   type McpScope,
   parseScopeString,
 } from "@/domain/mcp/scopes";
-import { DrizzleMcpOauthClientRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-oauth-client.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -95,7 +95,7 @@ export default async function AutorizarPage({
   const sp = await searchParams;
   const clientId = sp.client_id ?? "";
   const client = clientId
-    ? await new DrizzleMcpOauthClientRepository().findByClientId(clientId)
+    ? await repos.mcpOauthClients.findByClientId(clientId)
     : null;
   const shipped = new Set<McpScope>(MCP_SHIPPED_SCOPES);
   const scopes = parseScopeString(sp.scope).filter((scope) => shipped.has(scope));

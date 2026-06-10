@@ -1,11 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { isOk } from "@/shared/errors/result";
 
 import { listDebts } from "./list-debts.use-case";
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

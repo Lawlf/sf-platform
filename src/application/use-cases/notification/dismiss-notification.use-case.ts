@@ -1,11 +1,11 @@
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { NotificationNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface DismissNotificationDeps {
-  notifications: NotificationRepository;
+  notifications: NotificationRepositoryPort;
   clock: Clock;
 }
 

@@ -37,7 +37,7 @@ export function ArchiveDebtButton({ debtId, label, recurring = false, valueLabel
   function onConfirm() {
     setError(null);
     startTransition(async () => {
-      const r = await archiveDebtAction(debtId, "paid_off");
+      const r = await archiveDebtAction({ debtId, reason: "paid_off" });
       if (!r.ok) {
         setError(r.message);
         return;

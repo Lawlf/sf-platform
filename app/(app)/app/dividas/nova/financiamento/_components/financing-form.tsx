@@ -323,12 +323,13 @@ export function FinancingForm({
           setServerError(r.message);
           return;
         }
-        assetIdToLink = r.assetId;
+        assetIdToLink = r.data.assetId;
       } else if (v.linkAssetChoice === "existing") {
         assetIdToLink = v.linkedAssetId ?? null;
       }
 
-      const debtRes = await createDebtAction("financing", fd);
+      fd.set("kind", "financing");
+      const debtRes = await createDebtAction(fd);
       if (!debtRes.ok) {
         setServerError(debtRes.message);
         return;
@@ -341,20 +342,20 @@ export function FinancingForm({
             : principalForServer;
         const linkRes = await linkDebtToAssetAction({
           assetId: assetIdToLink,
-          debtId: debtRes.debtId,
+          debtId: debtRes.data.debtId,
           allocationOriginalCents: allocationCents.toString(),
         });
         if (!linkRes.ok) {
           // Dívida foi criada; só falhou o vínculo. Avisamos e seguimos para a dívida.
           setServerError(`Dívida criada, mas falha ao vincular bem: ${linkRes.message}`);
           await invalidateDebtCaches(queryClient);
-          router.push(`/app/dividas/${debtRes.debtId}` as Route);
+          router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
           return;
         }
       }
 
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${debtRes.debtId}` as Route);
+      router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
     });
   }
 

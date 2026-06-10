@@ -6,7 +6,7 @@ import { cookies } from "next/headers";
 
 import { verifyPin } from "@/infrastructure/auth/pin-hash";
 import { loadEnv } from "@/infrastructure/config/env";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
 import { UpstashRateLimiter } from "@/infrastructure/rate-limit/upstash-rate-limiter";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -20,7 +20,7 @@ export async function unlockWithPinAction(pin: string): Promise<R> {
   const user = await requireUser();
   const rl = new UpstashRateLimiter();
   if (!(await rl.check(`applock-pin:${user.id}`, { window: "15 m", max: 10 })).ok) return { ok: false, message: "Muitas tentativas. Aguarde." };
-  const cred = await new DrizzleUserCredentialsRepository().find(user.id);
+  const cred = await repos.userCredentials.find(user.id);
   if (!cred?.pinHash) return { ok: false, message: "PIN não configurado." };
   if (!(await verifyPin(pin, cred.pinHash))) return { ok: false, message: "PIN incorreto." };
   return { ok: true };
@@ -29,7 +29,7 @@ export async function unlockWithPinAction(pin: string): Promise<R> {
 export async function beginUnlockPasskeyAction() {
   const user = await requireUser();
   const { rpID } = rp();
-  const creds = await new DrizzleUserCredentialsRepository().listWebauthn(user.id);
+  const creds = await repos.userCredentials.listWebauthn(user.id);
   const options = await generateAuthenticationOptions({
     rpID,
     allowCredentials: creds.map((c) => { const t = parseTransports(c.transports); return t ? { id: c.credentialId, transports: t } : { id: c.credentialId }; }),
@@ -45,7 +45,7 @@ export async function confirmUnlockPasskeyAction(response: AuthenticationRespons
   const expectedChallenge = jar.get(CHALLENGE_COOKIE)?.value;
   jar.delete(CHALLENGE_COOKIE);
   if (!expectedChallenge) return { ok: false, message: "Sessão de verificação expirada." };
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const stored = await repo.findWebauthnByCredentialId(response.id);
   if (!stored || stored.userId !== user.id) return { ok: false, message: "Credencial não encontrada." };
   const { rpID, origin } = rp();

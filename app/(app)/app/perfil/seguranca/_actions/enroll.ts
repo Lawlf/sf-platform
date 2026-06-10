@@ -11,7 +11,8 @@ import type { UserEntity } from "@/domain/entities/user.entity";
 import { encryptSecret } from "@/infrastructure/auth/secret-cipher";
 import { generateTotpSecret, totpAuthUri, verifyTotp } from "@/infrastructure/auth/totp";
 import { loadEnv, requireAdminTotpKey } from "@/infrastructure/config/env";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
+import type { UserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/user-credentials.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isAdminElevated } from "@/presentation/http/middleware/require-elevated-admin";
 
@@ -30,7 +31,7 @@ function rp() {
  */
 async function guardFactorMutation(
   user: UserEntity,
-  repo: DrizzleUserCredentialsRepository,
+  repo: UserCredentialsRepository,
 ): Promise<string | null> {
   if (user.role !== "admin") return null;
   const hasFactor = await repo.hasAnyFactor(user.id);
@@ -51,7 +52,7 @@ export async function confirmTotpEnrollAction(
   code: string,
 ): Promise<{ ok: boolean; message?: string }> {
   const user = await requireUser();
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const blocked = await guardFactorMutation(user, repo);
   if (blocked) return { ok: false, message: blocked };
   if (!(await verifyTotp(secret, code, new Date()))) {
@@ -86,7 +87,7 @@ export async function confirmPasskeyEnrollAction(
   response: RegistrationResponseJSON,
 ): Promise<{ ok: boolean; message?: string }> {
   const user = await requireUser();
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const blocked = await guardFactorMutation(user, repo);
   if (blocked) return { ok: false, message: blocked };
   const { rpID, origin } = rp();

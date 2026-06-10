@@ -2,18 +2,18 @@ import { MCP_CONFIRMATION_TOKEN_TTL_MS } from "@/domain/mcp/constants";
 import type { McpContext } from "@/domain/mcp/mcp-context";
 import { findWriteAction, requiresConfirmation } from "@/domain/mcp/write-actions";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpAuditLogRepository } from "@/domain/ports/repositories/mcp-audit-log.repository";
-import type { McpPendingActionRepository } from "@/domain/ports/repositories/mcp-pending-action.repository";
-import type { McpWriteIdempotencyRepository } from "@/domain/ports/repositories/mcp-write-idempotency.repository";
+import type { McpAuditLogRepositoryPort } from "@/domain/ports/repositories/mcp-audit-log.repository";
+import type { McpPendingActionRepositoryPort } from "@/domain/ports/repositories/mcp-pending-action.repository";
+import type { McpWriteIdempotencyRepositoryPort } from "@/domain/ports/repositories/mcp-write-idempotency.repository";
 import { issueOpaqueToken } from "@/infrastructure/mcp/mcp-token-factory";
 
 import { executeWrite, type WriteExecutorDeps, type WriteExecutorResult } from "./write-executor";
 
 export interface PerformMcpWriteDeps {
   executor: WriteExecutorDeps;
-  audit: McpAuditLogRepository;
-  pending: McpPendingActionRepository;
-  idempotency: McpWriteIdempotencyRepository;
+  audit: McpAuditLogRepositoryPort;
+  pending: McpPendingActionRepositoryPort;
+  idempotency: McpWriteIdempotencyRepositoryPort;
   clock: Clock;
 }
 

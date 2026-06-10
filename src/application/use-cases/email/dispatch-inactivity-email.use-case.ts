@@ -1,7 +1,7 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { EmailSendRepository } from "@/domain/ports/repositories/email-send.repository";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
-import type { UserActivityRepository } from "@/domain/ports/repositories/user-activity.repository";
+import type { EmailSendRepositoryPort } from "@/domain/ports/repositories/email-send.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { UserActivityRepositoryPort } from "@/domain/ports/repositories/user-activity.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { renderEmailToHtml } from "@/infrastructure/email/email-renderer";
 import { INACTIVITY_SUBJECT, InactivityEmail } from "@/infrastructure/email/templates/inactivity.email";
@@ -11,9 +11,9 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const LAPSE_DAYS = 45;
 
 export interface DispatchInactivityEmailDeps {
-  userActivity: UserActivityRepository;
-  preferences: NotificationPreferencesRepository;
-  emailSends: EmailSendRepository;
+  userActivity: UserActivityRepositoryPort;
+  preferences: NotificationPreferencesRepositoryPort;
+  emailSends: EmailSendRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

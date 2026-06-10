@@ -8,11 +8,11 @@ import {
 } from "@/domain/errors/asset-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { FipeClient } from "@/domain/ports/external/fipe-client.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RefreshAssetFromFipeDeps {
-  assets: AssetRepository;
+  assets: AssetRepositoryPort;
   fipe: FipeClient;
   clock: Clock;
 }

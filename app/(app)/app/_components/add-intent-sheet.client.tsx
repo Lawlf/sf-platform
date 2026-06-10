@@ -15,7 +15,6 @@ import {
 } from "@/app/components/ui/sheet";
 
 import { useOnline } from "../_lib/offline/use-online";
-
 import { KindCard } from "../dividas/nova/_components/kind-card";
 
 interface IntentOption {

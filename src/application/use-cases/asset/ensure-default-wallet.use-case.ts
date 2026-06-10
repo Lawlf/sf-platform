@@ -1,9 +1,9 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 
 export interface EnsureDefaultWalletDeps {
-  assets: Pick<AssetRepository, "findActiveByUserAndCategory" | "createDefaultWallet">;
+  assets: Pick<AssetRepositoryPort, "findActiveByUserAndCategory" | "createDefaultWallet">;
   clock: Clock;
   newId: () => string;
 }

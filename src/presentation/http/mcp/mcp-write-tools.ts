@@ -13,17 +13,7 @@ import {
 import { findWriteAction } from "@/domain/mcp/write-actions";
 import { CURRENCIES } from "@/domain/value-objects/money.vo";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleMcpAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-audit-log.repository";
-import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
-import { DrizzleMcpWriteIdempotencyRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-write-idempotency.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { DomainError } from "@/shared/errors/domain-error";
 import { isErr } from "@/shared/errors/result";
 
@@ -40,38 +30,38 @@ function errorText(message: string) {
 function writeDeps(): PerformMcpWriteDeps {
   return {
     executor: {
-      incomes: new DrizzleIncomeRepository(),
-      debts: new DrizzleDebtRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      assets: new DrizzleAssetRepository(),
-      goals: new DrizzleGoalRepository(),
-      transactions: new DrizzleTransactionRepository(),
-      clock: new SystemClock(),
+      incomes: repos.incomes,
+      debts: repos.debts,
+      payments: repos.debtPayments,
+      allocations: repos.assetDebtAllocations,
+      assets: repos.assets,
+      goals: repos.goals,
+      transactions: repos.transactions,
+      clock,
     },
-    audit: new DrizzleMcpAuditLogRepository(),
-    pending: new DrizzleMcpPendingActionRepository(),
-    idempotency: new DrizzleMcpWriteIdempotencyRepository(),
-    clock: new SystemClock(),
+    audit: repos.mcpAuditLogs,
+    pending: repos.mcpPendingActions,
+    idempotency: repos.mcpWriteIdempotency,
+    clock,
   };
 }
 
 function confirmDeps(): ConfirmMcpActionDeps {
   return {
     executor: {
-      incomes: new DrizzleIncomeRepository(),
-      debts: new DrizzleDebtRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      assets: new DrizzleAssetRepository(),
-      goals: new DrizzleGoalRepository(),
-      transactions: new DrizzleTransactionRepository(),
-      clock: new SystemClock(),
+      incomes: repos.incomes,
+      debts: repos.debts,
+      payments: repos.debtPayments,
+      allocations: repos.assetDebtAllocations,
+      assets: repos.assets,
+      goals: repos.goals,
+      transactions: repos.transactions,
+      clock,
     },
-    audit: new DrizzleMcpAuditLogRepository(),
-    pending: new DrizzleMcpPendingActionRepository(),
+    audit: repos.mcpAuditLogs,
+    pending: repos.mcpPendingActions,
     hasher: new WebCryptoHasher(),
-    clock: new SystemClock(),
+    clock,
   };
 }
 

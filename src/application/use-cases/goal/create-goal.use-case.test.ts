@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 import type { CreateGoalInput } from "./create-goal.use-case";
 import { createGoal } from "./create-goal.use-case";
@@ -36,7 +36,7 @@ function repoWith(activeCount: number, activeGoals: GoalEntity[] = []) {
     countActive: async () => activeCount,
     listForUser: async () => activeGoals,
     create: async (g: Omit<GoalEntity, "createdAt" | "updatedAt">) => ({ ...g, createdAt: new Date(), updatedAt: new Date() }),
-  } as unknown as GoalRepository;
+  } as unknown as GoalRepositoryPort;
 }
 
 describe("createGoal", () => {

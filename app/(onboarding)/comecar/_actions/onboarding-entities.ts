@@ -2,11 +2,11 @@
 
 import { fetchDebts } from "@/app/(app)/app/_actions/debt-queries";
 import { fetchIncomes } from "@/app/(app)/app/_actions/income-queries";
+import { updateDebtAction } from "@/app/(app)/app/dividas/[id]/_actions/update-debt.action";
 import {
   createDebtAction,
   type CreateDebtResult,
 } from "@/app/(app)/app/dividas/_actions/create-debt.action";
-import { updateDebtAction } from "@/app/(app)/app/dividas/[id]/_actions/update-debt.action";
 import { createIncomeAction } from "@/app/(app)/app/renda/_actions/create-income.action";
 import { updateIncomeAction } from "@/app/(app)/app/renda/_actions/update-income.action";
 
@@ -36,5 +36,6 @@ export async function upsertOnboardingDebtAction(formData: FormData): Promise<Cr
     formData.set("debtId", existing.id);
     return updateDebtAction(formData);
   }
-  return createDebtAction("credit_card", formData);
+  formData.set("kind", "credit_card");
+  return createDebtAction(formData);
 }

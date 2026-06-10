@@ -133,7 +133,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
       // timeline em memória. Quando o usuário voltar pra detail page, o
       // revalidatePath do server traz o estado autoritativo.
       const optimistic: SerializedAdjustment = {
-        id: result.adjustmentId,
+        id: result.data.adjustmentId,
         kind: "period",
         startMonth,
         endMonth,
@@ -154,7 +154,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
             ...row,
             amountCents: cents.toString(),
             source: "period",
-            adjustmentId: result.adjustmentId,
+            adjustmentId: result.data.adjustmentId,
             note: null,
           };
         }),
@@ -183,7 +183,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
         return;
       }
       const optimistic: SerializedAdjustment = {
-        id: result.adjustmentId,
+        id: result.data.adjustmentId,
         kind: "override",
         startMonth: null,
         endMonth: null,
@@ -202,7 +202,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                 ...row,
                 amountCents: cents.toString(),
                 source: "override",
-                adjustmentId: result.adjustmentId,
+                adjustmentId: result.data.adjustmentId,
                 note: null,
               }
             : row,
@@ -215,7 +215,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
   function handleDelete(adjustmentId: string) {
     setError(null);
     startTransition(async () => {
-      const result = await deleteAdjustmentAction(debtId, adjustmentId);
+      const result = await deleteAdjustmentAction({ debtId, adjustmentId });
       if (!result.ok) {
         setError(result.message);
         return;

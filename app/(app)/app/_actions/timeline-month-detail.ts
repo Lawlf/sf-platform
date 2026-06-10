@@ -1,6 +1,6 @@
 "use server";
 
-import type { AssetCategory } from "@/domain/entities/asset.entity";
+import type { AssetCategory, AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
 import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
@@ -16,13 +16,7 @@ import {
 } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-amount-adjustment.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
@@ -165,6 +159,53 @@ function frequencyFor(debt: DebtEntity): "monthly" | "weekly" | "annual" {
   return "monthly";
 }
 
+function storyDetectionWindowStart(month: MonthYear): MonthYear {
+  let m = month;
+  for (let i = 0; i < 24; i++) m = m.previous();
+  return m;
+}
+
+function assetAddedEvent(asset: AssetEntity, lastDay: Date): SerializedTimelineEvent {
+  return {
+    id: `asset-${asset.id}`,
+    kind: "asset_added",
+    label: asset.label,
+    detail: ASSET_CATEGORY_LABEL[asset.category],
+    dateIso: asset.createdAt.toISOString(),
+    href: `/app/patrimonio/${asset.id}`,
+    amount: serializeMoney(AssetValuationService.computeCurrentValue(asset, lastDay)),
+    direction: "positive",
+  };
+}
+
+function assetRevaluedEvent(
+  asset: AssetEntity,
+  month: MonthYear,
+  firstDay: Date,
+  lastDay: Date,
+): SerializedTimelineEvent | null {
+  if (asset.depreciationRatePctYear === 0) return null;
+  if (!asset.purchaseDate) return null;
+  const acquired = asset.acquiredAt ?? asset.createdAt;
+  if (acquired > lastDay) return null;
+  const valueStart = AssetValuationService.computeCurrentValue(asset, firstDay);
+  const valueEnd = AssetValuationService.computeCurrentValue(asset, lastDay);
+  const deltaCents = valueEnd.toCents() - valueStart.toCents();
+  if (deltaCents === 0n) return null;
+  const isPositive = deltaCents > 0n;
+  const absCents = isPositive ? deltaCents : -deltaCents;
+  return {
+    id: `asset-revalue-${asset.id}-${month.toIso()}`,
+    kind: "asset_revalued",
+    label: asset.label,
+    detail: isPositive ? "Apreciação" : "Depreciação",
+    dateIso: lastDay.toISOString(),
+    href: `/app/patrimonio/${asset.id}`,
+    amount: serializeMoney(Money.fromCents(absCents)),
+    direction: isPositive ? "positive" : "negative",
+  };
+}
+
 export async function fetchMonthDetail(input: {
   monthIso: string;
 }): Promise<SerializedMonthDetail | null> {
@@ -177,21 +218,15 @@ export async function fetchMonthDetail(input: {
     return null;
   }
 
-  const debtPayments = new DrizzleDebtPaymentRepository();
-  const debts = new DrizzleDebtRepository();
-  const incomes = new DrizzleIncomeRepository();
-  const assets = new DrizzleAssetRepository();
-  const debtAmountAdjustmentsRepo = new DrizzleDebtAmountAdjustmentRepository();
-  const settlementsRepo = new DrizzleRecurringSettlementRepository();
-  const incomeSettlementsRepo = new DrizzleIncomeSettlementRepository();
+  const debtPayments = repos.debtPayments;
+  const debts = repos.debts;
+  const incomes = repos.incomes;
+  const assets = repos.assets;
+  const debtAmountAdjustmentsRepo = repos.debtAmountAdjustments;
+  const settlementsRepo = repos.recurringSettlements;
+  const incomeSettlementsRepo = repos.incomeSettlements;
 
-  // Para detectar conquistas/marcos do mês, precisamos rodar a detecção
-  // numa janela maior (24 meses antes até o mês alvo) e filtrar pra este.
-  const windowFrom = (() => {
-    let m = month;
-    for (let i = 0; i < 24; i++) m = m.previous();
-    return m;
-  })();
+  const windowFrom = storyDetectionWindowStart(month);
 
   const [
     paymentsRaw,
@@ -286,9 +321,6 @@ export async function fetchMonthDetail(input: {
     };
   });
 
-  // Compromissos recorrentes ativos no mês. Populamos o array
-  // `expenses` (nome mantido por compatibilidade UI) a partir das dívidas
-  // do tipo `recurring`.
   const recurringRows = debtsRaw.filter((d) => isRecurringActiveInMonth(d, month));
   const serializedExpenses: SerializedExpenseRow[] = recurringRows.map((d) => {
     const recurrenceDay = d.kind === "recurring" ? d.dueDay : null;
@@ -305,10 +337,10 @@ export async function fetchMonthDetail(input: {
     };
   });
 
-  // Obrigação mensal projetada das dívidas não-recorrentes (cartão, financiamento,
-  // empréstimo, cheque especial). Sem isso, um cartão recém cadastrado projetava
-  // R$ 0 no "vai sair / comprometido". Guarda anti-double-count: se já há pagamento
-  // registrado da dívida neste mês, o pagamento real é a verdade, não a projeção.
+  // Obrigação mensal projetada das dívidas não-recorrentes: sem ela, um cartão
+  // recém cadastrado projetava R$ 0 no "vai sair / comprometido". Guarda
+  // anti-double-count: se já há pagamento registrado da dívida neste mês, o
+  // pagamento real é a verdade, não a projeção.
   const currentMonth = MonthYear.fromDate(new Date());
   const paidDebtIdsThisMonth = new Set(paymentsRaw.map((p) => p.debtId));
   for (const d of debtsRaw) {
@@ -330,7 +362,6 @@ export async function fetchMonthDetail(input: {
     });
   }
 
-  // Constroi timeline da janela e detecta conquistas/marcos
   const timeline = TimelineService.buildTimeline({
     incomes: incomesRaw,
     debts: debtsRaw,
@@ -346,9 +377,8 @@ export async function fetchMonthDetail(input: {
   const allStories = StoryDetectionService.detect(timeline.points);
   const monthIso = month.toIso();
 
-  // Warnings (saldo negativo) agora vivem no modulo de Notificacoes
-  // (`/app/notificacoes`), nao na linha do tempo. Filtra fora aqui para nao
-  // duplicar a informacao e poupar payload trafegado.
+  // Warnings (saldo negativo) vivem no módulo de Notificações, não na linha
+  // do tempo; filtrados aqui para não duplicar a informação.
   const monthIsComplete = month.isBefore(MonthYear.fromDate(new Date()));
   const serializedStories: SerializedStoryRow[] = monthIsComplete
     ? allStories
@@ -363,59 +393,25 @@ export async function fetchMonthDetail(input: {
         }))
     : [];
 
-  // Eventos de "cadastro no mês": derivamos do `createdAt` das entidades
-  // (assets, incomes, debts). MVP simples sem tabela `events` dedicada.
+  // Eventos derivados do `createdAt` das entidades; MVP sem tabela `events` dedicada.
   const events: SerializedTimelineEvent[] = [];
 
   for (const asset of assetsRaw) {
-    const createdMonth = MonthYear.fromDate(asset.createdAt);
-    if (createdMonth.equals(month)) {
-      events.push({
-        id: `asset-${asset.id}`,
-        kind: "asset_added",
-        label: asset.label,
-        detail: ASSET_CATEGORY_LABEL[asset.category],
-        dateIso: asset.createdAt.toISOString(),
-        href: `/app/patrimonio/${asset.id}`,
-        amount: serializeMoney(AssetValuationService.computeCurrentValue(asset, lastDay)),
-        direction: "positive",
-      });
+    if (MonthYear.fromDate(asset.createdAt).equals(month)) {
+      events.push(assetAddedEvent(asset, lastDay));
       continue;
     }
-
-    // Revalorização (apreciação/depreciação) de ativos pré-existentes ativos no mês.
-    if (asset.depreciationRatePctYear === 0) continue;
-    if (!asset.purchaseDate) continue;
-    const acquired = asset.acquiredAt ?? asset.createdAt;
-    if (acquired > lastDay) continue;
-    const valueStart = AssetValuationService.computeCurrentValue(asset, firstDay);
-    const valueEnd = AssetValuationService.computeCurrentValue(asset, lastDay);
-    const deltaCents = valueEnd.toCents() - valueStart.toCents();
-    if (deltaCents === 0n) continue;
-    const isPositive = deltaCents > 0n;
-    const absCents = isPositive ? deltaCents : -deltaCents;
-    events.push({
-      id: `asset-revalue-${asset.id}-${month.toIso()}`,
-      kind: "asset_revalued",
-      label: asset.label,
-      detail: isPositive ? "Apreciação" : "Depreciação",
-      dateIso: lastDay.toISOString(),
-      href: `/app/patrimonio/${asset.id}`,
-      amount: serializeMoney(Money.fromCents(absCents)),
-      direction: isPositive ? "positive" : "negative",
-    });
+    const revalued = assetRevaluedEvent(asset, month, firstDay, lastDay);
+    if (revalued) events.push(revalued);
   }
 
-  // Eventos "Nova renda" (`income_added`) não são mais emitidos: a própria
-  // linha de renda já carrega o estado "Nova renda" via `isNew`, então o event
-  // duplicaria a mesma informação no mesmo dia.
+  // `income_added` não é emitido: a linha de renda já carrega "Nova renda" via
+  // `isNew`, e o event duplicaria a mesma informação no mesmo dia.
 
-  // Só geramos event "Nova dívida" pra dívidas reais (financiamento, empréstimo,
-  // cartão, cheque especial) em curso (status `active`). Compromissos
-  // recorrentes (`recurring`) já aparecem como linha de despesa do mês; emitir
-  // também o event duplicaria a mesma informação. Dívidas já quitadas ou baixadas
-  // geram payment rows redundantes na timeline (com `isClosingPayment` quando
-  // aplicável); o event de criação fica suprimido pra não duplicar.
+  // Só dívidas reais em curso geram event "Nova dívida": recorrentes já aparecem
+  // como linha de despesa do mês, e quitadas/baixadas já têm payment rows na
+  // timeline (com `isClosingPayment` quando aplicável); emitir o event de
+  // criação duplicaria a informação.
   for (const debt of debtsRaw) {
     if (debt.status !== "active") continue;
     if (debt.kind === "recurring") continue;

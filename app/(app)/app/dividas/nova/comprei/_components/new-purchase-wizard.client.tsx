@@ -27,8 +27,7 @@ import { DetailsStep } from "./steps/details-step";
 import { HowStep } from "./steps/how-step";
 import { WhatStep } from "./steps/what-step";
 
-// "new" sinaliza que o usuário escolheu cadastrar um cartão novo inline. UUIDs
-// são tratados como ids de cartões existentes. null = não escolhido ainda.
+// "new" = cadastrar um cartão novo inline; UUID = cartão existente; null = não escolhido.
 export type CreditCardChoice = string | "new" | null;
 
 // Plan C: quando o usuário escolhe "à vista" e ainda não tem cash asset cadastrado,
@@ -45,31 +44,25 @@ export interface NewPurchaseFormValues {
   valueCents: bigint;
   category: PurchaseCategory | null;
   paymentMethod: PaymentMethod | null;
-  // value behavior (Step 3, só pra categorias que geram patrimônio)
   valueBehavior: ValueBehavior | null;
   annualRatePct: number | null;
-  // cash
   fromCashAssetId: string | null;
   cashOnboarding: CashOnboardingChoice;
   cashAssetName: string;
   currentBalanceCents: bigint;
-  // credit_card
   installments: number;
   creditCardChoice: CreditCardChoice;
   newCardLabel: string;
   newCardLimitCents: bigint;
   newCardClosingDay: number;
   newCardDueDay: number;
-  // loan
   monthlyPaymentCents: bigint;
-  // financing (casa/carro)
   downPaymentCents: bigint;
   financingAnnualRatePct: number | null;
   financingTermMonths: number;
 }
 
-// Passos internos. O Step 3 (comportamento de valor) foi removido do fluxo; a
-// curva é definida pelo default por categoria na criação. O número 3 nunca é
+// O Step 3 (comportamento de valor) foi removido do fluxo; o número 3 nunca é
 // usado, mas mantemos o tipo 1..6 para não renumerar a máquina de estados.
 type Step = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -81,8 +74,6 @@ const ASSET_CATEGORIES: ReadonlySet<PurchaseCategory> = new Set<PurchaseCategory
   "other",
 ]);
 
-// Default da taxa de depreciação por categoria (% positivo). Aplicado
-// silenciosamente quando a categoria gera patrimônio.
 const DEFAULT_DEPRECIATION_RATE: Record<PurchaseCategory, number> = {
   electronics: 25,
   furniture: 10,
@@ -124,8 +115,7 @@ function descriptionFor(step: Step, method: PaymentMethod | null, hasCashAssets:
   return "Confira antes de salvar.";
 }
 
-// Mapeia o step interno para a posição visível na barra de progresso. O Step 3
-// nunca é usado, então os passos 4..6 sempre aparecem como 3..5 (5 no total).
+// Como o Step 3 não existe, os passos internos 4..6 aparecem como 3..5 na barra.
 function visibleStepInfo(step: Step): { currentStep: 1 | 2 | 3 | 4 | 5; totalSteps: number } {
   const total = 5;
   if (step >= 4) {
@@ -167,14 +157,12 @@ export function NewPurchaseWizard() {
   });
 
   const { control, register, watch, formState, getValues, setValue } = form;
-  // Assina só os campos lidos neste render (título/progresso/CTA). Evita o
+  // useWatch assina só os campos lidos neste render (título/progresso/CTA); evita
   // re-render da wizard inteira a cada tecla, que somava lag ao avançar.
   const watchedName = useWatch({ control, name: "name" });
   const watchedValueCents = useWatch({ control, name: "valueCents" });
   const watchedPaymentMethod = useWatch({ control, name: "paymentMethod" });
 
-  // Pre-fetch listas no step 5 para construir o resumo. Tem cache via useQuery, então
-  // se um step anterior já fetchou, isso vira no-op.
   const { data: cashAssets } = useQuery<CashAssetPayload[]>({
     queryKey: ["comprei", "cash-assets"],
     queryFn: () => listCashAssetsForPurchase(),
@@ -193,11 +181,9 @@ export function NewPurchaseWizard() {
   function selectCategory(category: PurchaseCategory) {
     setValue("category", category, { shouldDirty: true });
     if (ASSET_CATEGORIES.has(category)) {
-      // Curva de valor definida pelo default por categoria, sem perguntar.
       setValue("valueBehavior", "depreciating", { shouldDirty: true });
       setValue("annualRatePct", DEFAULT_DEPRECIATION_RATE[category], { shouldDirty: true });
     } else {
-      // travel/education: não gera patrimônio.
       setValue("valueBehavior", null, { shouldDirty: true });
       setValue("annualRatePct", null, { shouldDirty: true });
     }
@@ -206,7 +192,7 @@ export function NewPurchaseWizard() {
 
   function selectMethod(method: PaymentMethod) {
     setValue("paymentMethod", method, { shouldDirty: true });
-    // Reset defaults relevantes pra evitar leaked state quando o usuário volta e troca.
+    // Limpa o estado do método anterior pra não vazar quando o usuário volta e troca.
     if (method !== "cash") {
       setValue("fromCashAssetId", null, { shouldDirty: true });
       setValue("cashOnboarding", null, { shouldDirty: true });
@@ -240,8 +226,6 @@ export function NewPurchaseWizard() {
   function validateStep5(): string | null {
     const v = getValues();
     if (v.paymentMethod === "cash") {
-      // Se tem cash asset existente selecionado, ok. Sem cash assets, exigimos uma
-      // escolha (create ou skip). Se "create", exigimos name + balance preenchidos.
       if (v.fromCashAssetId) return null;
       if (hasCashAssets) return null;
       if (!v.cashOnboarding) {
@@ -263,8 +247,8 @@ export function NewPurchaseWizard() {
         return "Informe um número de parcelas entre 1 e 60.";
       }
       if (!v.creditCardChoice) {
-        // Lista vazia: o details-step mostra o form direto sem o picker, então
-        // creditCardChoice fica null. Aceitamos e validamos o new-card form abaixo.
+        // Lista de cartões vazia: o details-step mostra o form direto sem o picker,
+        // então creditCardChoice fica null e validamos o new-card form mesmo assim.
         if (!v.newCardLabel || v.newCardLabel.trim().length === 0) {
           return "Informe o nome do novo cartão.";
         }
@@ -333,8 +317,6 @@ export function NewPurchaseWizard() {
     setStep(6);
   }
 
-  // Step 5 back: volta pra Step 4 (how) sempre.
-  // Step 4 back: volta pra Step 2 (categoria) sempre, já que não há mais Step 3.
   function backFromStep4() {
     setStep(2);
   }
@@ -418,12 +400,12 @@ export function NewPurchaseWizard() {
         queryClient.invalidateQueries({ queryKey: ["assetsWithAllocations"] }),
       ]);
 
-      if (result.assetId) {
-        router.push(`/app/patrimonio/${result.assetId}` as Route);
+      if (result.data.assetId) {
+        router.push(`/app/patrimonio/${result.data.assetId}` as Route);
         return;
       }
-      if (result.debtId) {
-        router.push(`/app/dividas/${result.debtId}` as Route);
+      if (result.data.debtId) {
+        router.push(`/app/dividas/${result.data.debtId}` as Route);
         return;
       }
       router.push("/app" as Route);

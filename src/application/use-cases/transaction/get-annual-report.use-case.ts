@@ -1,4 +1,4 @@
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { classifyExpense } from "@/domain/services/ofx/classify-expense";
 import { classifyConsumo } from "@/domain/services/ofx/consumo-classifier";
 import { isReserveTransfer } from "@/domain/services/ofx/reserve-transfer";
@@ -10,7 +10,7 @@ import {
 const EXCLUDED_CATEGORIES = new Set(["promoted_debt", "promoted_income", "internal_transfer"]);
 
 export interface GetAnnualReportDeps {
-  transactions: TransactionRepository;
+  transactions: TransactionRepositoryPort;
 }
 
 export type GetAnnualReportResult =

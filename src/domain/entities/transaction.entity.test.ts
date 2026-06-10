@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
-import { INCOME_SOURCES, isIncomeSource, type TransactionEntity } from "./transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
+
+import { INCOME_SOURCES, isIncomeSource, type TransactionEntity } from "./transaction.entity";
 
 describe("transaction entity", () => {
   it("expõe as fontes de entrada", () => {

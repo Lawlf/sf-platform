@@ -1,6 +1,6 @@
 import { Check, ChevronRight, Lock } from "lucide-react";
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 
 import type { ModuleSpec } from "../_lib/trilhas";
 

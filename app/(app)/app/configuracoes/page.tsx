@@ -3,8 +3,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
-import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
-import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../_components/page-shell";
@@ -17,8 +16,8 @@ export const metadata: Metadata = { title: "Configurações" };
 
 export default async function ConfiguracoesPage() {
   const user = await requireUser();
-  const avatarUrl = await new DrizzleUserAvatarRepository().get(user.id);
-  const achievementCount = (await new DrizzleUserAchievementRepository().listForUser(user.id))
+  const avatarUrl = await repos.userAvatars.get(user.id);
+  const achievementCount = (await repos.userAchievements.listForUser(user.id))
     .length;
 
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;

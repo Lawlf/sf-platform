@@ -20,7 +20,7 @@ export interface StockCatalogUpsertEntry {
  * da última atualização. Alimentado pelo refresh em lote (cron Pro) e
  * pelo refresh individual.
  */
-export interface StockCatalogRepository {
+export interface StockCatalogRepositoryPort {
   upsert(entry: StockCatalogUpsertEntry): Promise<void>;
   upsertMany(entries: StockCatalogUpsertEntry[]): Promise<void>;
   findByTicker(ticker: string): Promise<StockCatalogEntity | null>;

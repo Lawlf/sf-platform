@@ -1,9 +1,9 @@
 import type { UserEntity } from "@/domain/entities/user.entity";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { MAX_QUICK_ACCESS, normalizeQuickAccess } from "@/domain/services/quick-access.service";
 
 export interface UpdateQuickAccessDeps {
-  users: Pick<UserRepository, "update">;
+  users: Pick<UserRepositoryPort, "update">;
 }
 
 export interface UpdateQuickAccessInput {

@@ -1,10 +1,10 @@
-import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
-import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import { FxRateUnavailableError } from "@/domain/errors/financial-errors";
+import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { err, isErr, ok, type Result } from "@/shared/errors/result";
 

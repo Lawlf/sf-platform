@@ -1,8 +1,8 @@
 import { and, desc, eq, ilike } from "drizzle-orm";
 
 import type { PaymentProvider } from "@/domain/entities/subscription.entity";
+import { repos } from "@/infrastructure/container";
 import { getDb } from "@/infrastructure/persistence/drizzle/client";
-import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
 import { subscriptions } from "@/infrastructure/persistence/drizzle/schema/subscriptions.schema";
 import { users } from "@/infrastructure/persistence/drizzle/schema/users.schema";
 
@@ -57,7 +57,7 @@ export async function searchUsers(query: string, limit = 25): Promise<AdminUserR
   }));
 
   const now = new Date();
-  const usageMap = await new DrizzleUsageRepository().getUserUsageMap(
+  const usageMap = await repos.usage.getUserUsageMap(
     rows.map((r) => r.id),
     now,
   );

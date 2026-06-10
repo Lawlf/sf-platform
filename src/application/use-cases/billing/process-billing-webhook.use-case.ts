@@ -8,11 +8,11 @@ import type {
   ProviderInvoiceSnapshot,
   ProviderSubscriptionSnapshot,
 } from "@/domain/ports/external/billing-provider.port";
-import type { PaymentRepository } from "@/domain/ports/repositories/payment.repository";
-import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
-import type { WebhookEventRepository } from "@/domain/ports/repositories/webhook-event.repository";
+import type { PaymentRepositoryPort } from "@/domain/ports/repositories/payment.repository";
+import type { PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
+import type { WebhookEventRepositoryPort } from "@/domain/ports/repositories/webhook-event.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { renderEmailToHtml } from "@/infrastructure/email/email-renderer";
 import {
@@ -29,11 +29,11 @@ import { activatePro } from "./activate-pro.use-case";
 import { downgradeToFree } from "./downgrade-to-free.use-case";
 
 export interface ProcessBillingWebhookDeps {
-  webhookEvents: WebhookEventRepository;
-  subscriptions: SubscriptionRepository;
-  payments: PaymentRepository;
-  plans: PlanRepository;
-  users: UserRepository;
+  webhookEvents: WebhookEventRepositoryPort;
+  subscriptions: SubscriptionRepositoryPort;
+  payments: PaymentRepositoryPort;
+  plans: PlanRepositoryPort;
+  users: UserRepositoryPort;
   billing: BillingProvider;
   email: EmailService;
   clock: Clock;

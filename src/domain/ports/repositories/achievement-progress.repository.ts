@@ -3,7 +3,7 @@ export interface AchievementProgressState {
   lastQualifiedMonth: string | null;
 }
 
-export interface AchievementProgressRepository {
+export interface AchievementProgressRepositoryPort {
   get(userId: string, slug: string): Promise<AchievementProgressState | null>;
   set(
     userId: string,

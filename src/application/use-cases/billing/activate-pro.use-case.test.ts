@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { UserEntity } from "@/domain/entities/user.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 
 import { activatePro } from "./activate-pro.use-case";
@@ -41,7 +41,7 @@ function makeDeps(user: UserEntity) {
       update: vi.fn(async (u: UserEntity) => {
         usersUpdated.push(u);
       }),
-    } as unknown as UserRepository,
+    } as unknown as UserRepositoryPort,
     email: {
       send: vi.fn(async (m: { to: string; subject: string }) => {
         emailsSent.push({ to: m.to, subject: m.subject });
