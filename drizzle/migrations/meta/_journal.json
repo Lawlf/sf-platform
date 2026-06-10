@@ -435,6 +435,20 @@
       "when": 1781109201067,
       "tag": "0061_sweet_cobalt_man",
       "breakpoints": true
+    },
+    {
+      "idx": 62,
+      "version": "7",
+      "when": 1781122861938,
+      "tag": "0062_odd_rockslide",
+      "breakpoints": true
+    },
+    {
+      "idx": 63,
+      "version": "7",
+      "when": 1781125508859,
+      "tag": "0063_zippy_jimmy_woo",
+      "breakpoints": true
     }
   ]
 }

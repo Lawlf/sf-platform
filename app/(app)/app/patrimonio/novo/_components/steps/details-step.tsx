@@ -1,8 +1,9 @@
 "use client";
 
-import { useId, useState } from "react";
+import { useEffect, useId, useState } from "react";
 import { Controller } from "react-hook-form";
 
+import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { formatCents } from "@/shared/format/money-format";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
@@ -19,6 +20,7 @@ import {
   type YieldType,
 } from "../asset-wizard.client";
 
+import { CryptoCombobox } from "./crypto-combobox";
 import { TickerCombobox } from "./ticker-combobox";
 
 const DEPRECIATION_KINDS: readonly DepreciationKind[] = [
@@ -76,14 +78,18 @@ export function DetailsStep({
   const depreciationRateId = useId();
   const tickerId = useId();
   const sharesId = useId();
-  // O valor já vem com a curva default por categoria (carro deprecia, imóvel
-  // aprecia). Só quem quer ajustar abre a seção; o caso comum nem vê.
+  const cryptoQtyId = useId();
+  const fixedRateId = useId();
   const [showValueCurve, setShowValueCurve] = useState(false);
-  // Marca/modelo/ano/cor (veículo) e cidade/m²/aluguel (imóvel) são opcionais e
-  // pesam visualmente como formulário de despachante. Ficam atrás de um toggle:
-  // o caminho comum é só Nome + Valor.
   const [showMoreFields, setShowMoreFields] = useState(false);
+  const [showRate, setShowRate] = useState(false);
+  const [showCryptoExtra, setShowCryptoExtra] = useState(() => {
+    const avg = form.getValues("avgPriceCents");
+    return avg != null && avg > 0n;
+  });
+  const [showRename, setShowRename] = useState(false);
   const avgPriceId = useId();
+  const cryptoPriceId = useId();
 
   const category = form.watch("category");
   const investmentType = form.watch("investmentType");
@@ -92,7 +98,32 @@ export function DetailsStep({
   const ticker = form.watch("ticker");
   const lastQuoteCents = form.watch("lastQuoteCents");
   const tickerCompanyName = form.watch("tickerCompanyName");
+  const cryptoSharesRaw = form.watch("shares");
+  const cryptoCoinId = form.watch("coinId");
+  const cryptoAvgCents = form.watch("avgPriceCents");
+  const isCrypto = category === "investment" && investmentType === "crypto";
+  const cryptoCoinSelected = isCrypto && typeof cryptoCoinId === "string" && cryptoCoinId.length > 0;
+  const cryptoQtyNum = cryptoSharesRaw
+    ? Number.parseFloat(cryptoSharesRaw.replace(",", "."))
+    : Number.NaN;
+  const cryptoQtyValid = Number.isFinite(cryptoQtyNum) && cryptoQtyNum > 0;
+  const cryptoCurrentTotalCents =
+    isCrypto && lastQuoteCents != null && cryptoQtyValid
+      ? valueCryptoCents(cryptoQtyNum, lastQuoteCents)
+      : null;
+  const cryptoPaidTotalCents =
+    isCrypto && cryptoAvgCents != null && cryptoAvgCents > 0n && cryptoQtyValid
+      ? valueCryptoCents(cryptoQtyNum, cryptoAvgCents)
+      : null;
   const errors = form.formState.errors;
+
+  useEffect(() => {
+    if (!isCrypto) return;
+    if (cryptoCurrentTotalCents !== null) {
+      form.setValue("currentValueCents", cryptoCurrentTotalCents, { shouldDirty: true });
+    }
+    form.setValue("purchasePriceCents", cryptoPaidTotalCents, { shouldDirty: true });
+  }, [isCrypto, cryptoCurrentTotalCents, cryptoPaidTotalCents, form]);
 
   function handleYieldTypeChange(next: YieldType) {
     form.setValue("yieldType", next, { shouldDirty: true });
@@ -107,8 +138,6 @@ export function DetailsStep({
   }
 
   async function handleNext() {
-    // Validate the universal required field (label) plus category/sub-type
-    // specific fields. Then move forward.
     const valid = await form.trigger(["label"]);
     if (!valid) return;
     onNext();
@@ -142,27 +171,30 @@ export function DetailsStep({
         icon: nextIcon,
       }}
     >
-      {/* Universal: name field first */}
-      <WizardField label="Nome" htmlFor={labelInputId} error={errors.label?.message}>
-        <input
-          id={labelInputId}
-          {...form.register("label")}
-          placeholder={
-            category === "vehicle"
-              ? "Ex: Honda Civic 2020"
-              : category === "real_estate"
-                ? "Ex: Apto Vila Mariana"
-                : category === "investment"
-                  ? investmentType === "stocks"
-                    ? "Ex: Carteira de ações"
-                    : "Ex: Tesouro IPCA+ 2035"
-                  : category === "cash"
-                    ? "Ex: Saldo Nubank"
-                    : "Ex: Playstation 6"
-          }
-          className={wizardInputClass}
-        />
-      </WizardField>
+      {/* Nome universal primeiro — exceto cripto, onde o nome vem depois da
+          busca da moeda (auto-preenchido e editável). */}
+      {isCrypto ? null : (
+        <WizardField label="Nome" htmlFor={labelInputId} error={errors.label?.message}>
+          <input
+            id={labelInputId}
+            {...form.register("label")}
+            placeholder={
+              category === "vehicle"
+                ? "Ex: Honda Civic 2020"
+                : category === "real_estate"
+                  ? "Ex: Apto Vila Mariana"
+                  : category === "investment"
+                    ? investmentType === "stocks"
+                      ? "Ex: Carteira de ações"
+                      : "Ex: Tesouro IPCA+ 2035"
+                    : category === "cash"
+                      ? "Ex: Saldo Nubank"
+                      : "Ex: Playstation 6"
+            }
+            className={wizardInputClass}
+          />
+        </WizardField>
+      )}
 
       {/* Stocks-specific fields: ticker combobox + quantity + average price */}
       {category === "investment" && investmentType === "stocks" ? (
@@ -185,7 +217,6 @@ export function DetailsStep({
               value={ticker ?? ""}
               onChangeText={(text) => {
                 form.setValue("ticker", text, { shouldDirty: true, shouldValidate: false });
-                // When user manually clears or edits, drop the cached quote.
                 form.setValue("lastQuoteCents", null, { shouldDirty: false });
                 form.setValue("tickerCompanyName", "", { shouldDirty: false });
               }}
@@ -242,8 +273,6 @@ export function DetailsStep({
           <button
             type="button"
             onClick={() => {
-              // Atalho: quem não sabe ticker/quantidade cadastra como
-              // investimento genérico, capturando só o valor atual.
               form.setValue("ticker", "", { shouldDirty: false, shouldValidate: false });
               form.setValue("lastQuoteCents", null, { shouldDirty: false });
               form.setValue("tickerCompanyName", "", { shouldDirty: false });
@@ -254,6 +283,119 @@ export function DetailsStep({
             Não sei os detalhes, só sei quanto vale
           </button>
         </section>
+      ) : null}
+
+      {/* Cripto: busca primeiro; preço editável; nome atrás de "Renomear". */}
+      {isCrypto ? (
+        <>
+          <WizardField label="Qual moeda?" htmlFor={tickerId} error={errors.ticker?.message}>
+            <CryptoCombobox
+              id={tickerId}
+              value={ticker ?? ""}
+              onChangeText={(text) => {
+                form.setValue("ticker", text, { shouldDirty: true, shouldValidate: false });
+                form.setValue("coinId", "", { shouldDirty: false });
+                form.setValue("lastQuoteCents", null, { shouldDirty: false });
+                form.setValue("tickerCompanyName", "", { shouldDirty: false });
+              }}
+              onSelect={(symbol, coinId, unitPriceCents, name) => {
+                form.setValue("ticker", symbol, { shouldDirty: true, shouldValidate: true });
+                form.setValue("coinId", coinId, { shouldDirty: true });
+                form.setValue("lastQuoteCents", unitPriceCents, { shouldDirty: false });
+                form.setValue("tickerCompanyName", name ?? "", { shouldDirty: false });
+                if (name) form.setValue("label", name, { shouldDirty: true });
+              }}
+              ariaInvalid={Boolean(errors.ticker)}
+            />
+          </WizardField>
+
+          {!cryptoCoinSelected ? (
+            <button
+              type="button"
+              onClick={() => {
+                form.setValue("ticker", "", { shouldDirty: false, shouldValidate: false });
+                form.setValue("coinId", "", { shouldDirty: false });
+                form.setValue("shares", "", { shouldDirty: false });
+                form.setValue("investmentType", "other", { shouldDirty: true });
+              }}
+              className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              Não acho minha moeda
+            </button>
+          ) : null}
+
+          <WizardField
+            label="Quanto você tem"
+            htmlFor={cryptoQtyId}
+            error={errors.shares?.message}
+            helper="Em moedas, não em reais."
+          >
+            <input
+              id={cryptoQtyId}
+              type="number"
+              inputMode="decimal"
+              step="any"
+              min={0}
+              {...form.register("shares")}
+              placeholder="Ex: 0,2"
+              className={wizardInputClass}
+            />
+          </WizardField>
+
+          {cryptoCoinSelected ? (
+            <WizardField
+              label="Preço da moeda hoje"
+              htmlFor={cryptoPriceId}
+              helper="A gente já buscou. Mude se estiver diferente onde você comprou."
+            >
+              <WizardMoneyField
+                control={form.control}
+                name="lastQuoteCents"
+                id={cryptoPriceId}
+                placeholder="R$ 0,00"
+              />
+            </WizardField>
+          ) : null}
+
+          {cryptoCurrentTotalCents !== null ? (
+            <div className="glass-tier-1 relative overflow-hidden px-4 py-3 text-white">
+              <div
+                className="absolute -bottom-8 -right-6 h-24 w-24 rounded-full bg-white/[0.12]"
+                aria-hidden
+              />
+              <div className="relative text-[0.625rem] font-semibold uppercase tracking-wide opacity-90">
+                Valor atual
+              </div>
+              <div className="relative mt-1 text-[1.5rem] font-extrabold leading-none">
+                {formatCents(cryptoCurrentTotalCents)}
+              </div>
+              <div className="relative mt-1 text-[0.6875rem] opacity-80">
+                {cryptoSharesRaw} {(ticker ?? "").toUpperCase()} pela cotação de hoje
+              </div>
+            </div>
+          ) : null}
+
+          {cryptoCoinSelected ? (
+            showRename ? (
+              <WizardField label="Nome" htmlFor={labelInputId} error={errors.label?.message}>
+                <input
+                  id={labelInputId}
+                  {...form.register("label")}
+                  placeholder="Ex: Minha cripto da reserva"
+                  className={wizardInputClass}
+                />
+              </WizardField>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowRename(true)}
+                className="focus-ring w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+              >
+                Renomear
+              </button>
+            )
+          ) : null}
+        </>
       ) : null}
 
       {(category === "vehicle" || category === "real_estate") && !showMoreFields ? (
@@ -341,7 +483,7 @@ export function DetailsStep({
       ) : null}
 
       {/* Investment (non-stocks) institution + free-form */}
-      {category === "investment" && investmentType !== "stocks" ? (
+      {category === "investment" && investmentType !== "stocks" && investmentType !== "crypto" ? (
         <WizardField label="Instituição (opcional)" htmlFor={institutionId}>
           <input
             id={institutionId}
@@ -350,6 +492,36 @@ export function DetailsStep({
             className={wizardInputClass}
           />
         </WizardField>
+      ) : null}
+
+      {category === "investment" && investmentType === "fixed_income" ? (
+        showRate ? (
+          <WizardField
+            label="Sabe quanto rende por ano? (opcional)"
+            htmlFor={fixedRateId}
+            helper="Sem isso, a gente só guarda o valor. Com isso, mostramos uma projeção."
+          >
+            <input
+              id={fixedRateId}
+              type="number"
+              inputMode="decimal"
+              step={0.1}
+              min={0}
+              max={100}
+              placeholder="ex: 11% ao ano"
+              {...form.register("annualRatePct")}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowRate(true)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Sabe quanto rende por ano? (opcional)
+          </button>
+        )
       ) : null}
 
       {/* Cash fields */}
@@ -435,59 +607,112 @@ export function DetailsStep({
         </WizardField>
       ) : null}
 
-      <WizardField
-        label="Valor atual"
-        htmlFor={valueInputId}
-        error={errors.currentValueCents?.message}
-        helper={
-          category === "investment" && investmentType === "stocks"
-            ? "Se preenchido com quantidade × preço médio, calculamos automaticamente."
-            : undefined
-        }
-      >
-        <WizardMoneyField
-          control={form.control}
-          name="currentValueCents"
-          id={valueInputId}
-          placeholder={formatCents(0n, currency ?? "BRL")}
-          currency={currency ?? "BRL"}
-          onCurrencyChange={(next) => form.setValue("currency", next, { shouldDirty: true })}
-        />
-      </WizardField>
-
-      {/*
-       * Purchase price (opcional). Não mostrado para ações: já temos
-       * `avgPriceCents` por ação no metadata, e o wizard espelha o total
-       * `shares × avgPrice` no submit.
-       */}
-      {!(category === "investment" && investmentType === "stocks") ? (
+      {/* Valor atual: não aparece na cripto (derivado de quantidade x preço editável). */}
+      {isCrypto ? null : (
         <WizardField
-          label="Quanto você pagou? (opcional)"
-          htmlFor={purchasePriceId}
-          helper="Útil pra saber se valorizou ou perdeu valor."
+          label="Valor atual"
+          htmlFor={valueInputId}
+          error={errors.currentValueCents?.message}
+          helper={
+            category === "investment" && investmentType === "stocks"
+              ? "Se preenchido com quantidade × preço médio, calculamos automaticamente."
+              : undefined
+          }
         >
           <WizardMoneyField
             control={form.control}
-            name="purchasePriceCents"
-            id={purchasePriceId}
-            placeholder="R$ 0,00"
+            name="currentValueCents"
+            id={valueInputId}
+            placeholder={formatCents(0n, currency ?? "BRL")}
+            currency={currency ?? "BRL"}
+            onCurrencyChange={(next) => form.setValue("currency", next, { shouldDirty: true })}
           />
         </WizardField>
-      ) : null}
+      )}
 
-      <WizardField
-        label="Data de aquisição (opcional)"
-        htmlFor={acquiredAtId}
-        helper="Sem data, o valor não muda com o tempo."
-        error={errors.acquiredAt?.message}
-      >
-        <input
-          id={acquiredAtId}
-          type="date"
-          {...form.register("acquiredAt")}
-          className={wizardInputClass}
-        />
-      </WizardField>
+      {isCrypto ? (
+        showCryptoExtra ? (
+          <>
+            <WizardField
+              label="Preço médio de compra (por moeda)"
+              htmlFor={avgPriceId}
+              helper="Quanto você pagou em média por cada moeda. A corretora costuma mostrar esse número."
+            >
+              <WizardMoneyField
+                control={form.control}
+                name="avgPriceCents"
+                id={avgPriceId}
+                placeholder="R$ 0,00"
+              />
+            </WizardField>
+            {cryptoPaidTotalCents !== null && cryptoCurrentTotalCents !== null
+              ? (() => {
+                  const delta = cryptoCurrentTotalCents - cryptoPaidTotalCents;
+                  const isNeg = delta < 0n;
+                  const abs = isNeg ? -delta : delta;
+                  const sign = delta === 0n ? "" : isNeg ? "−" : "+";
+                  const deltaColor =
+                    delta === 0n
+                      ? "text-[color:var(--text-muted)]"
+                      : isNeg
+                        ? "text-[color:var(--semantic-negative)]"
+                        : "text-[color:var(--semantic-positive)]";
+                  return (
+                    <div className="rounded-xl bg-[color:var(--surface-1)] px-3 py-2.5">
+                      <div className="text-[0.75rem] text-[color:var(--text-primary)] opacity-80">
+                        Pagou {formatCents(cryptoPaidTotalCents)} · Vale agora{" "}
+                        {formatCents(cryptoCurrentTotalCents)}
+                      </div>
+                      <div className={`mt-0.5 text-[0.875rem] font-bold ${deltaColor}`}>
+                        {sign}
+                        {formatCents(abs)}
+                      </div>
+                    </div>
+                  );
+                })()
+              : null}
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowCryptoExtra(true)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Informar quanto paguei (opcional)
+          </button>
+        )
+      ) : (
+        <>
+          {category === "investment" && investmentType === "stocks" ? null : (
+            <WizardField
+              label="Quanto você pagou? (opcional)"
+              htmlFor={purchasePriceId}
+              helper="Útil pra saber se valorizou ou perdeu valor."
+            >
+              <WizardMoneyField
+                control={form.control}
+                name="purchasePriceCents"
+                id={purchasePriceId}
+                placeholder="R$ 0,00"
+              />
+            </WizardField>
+          )}
+
+          <WizardField
+            label="Data de aquisição (opcional)"
+            htmlFor={acquiredAtId}
+            helper="Sem data, o valor não muda com o tempo."
+            error={errors.acquiredAt?.message}
+          >
+            <input
+              id={acquiredAtId}
+              type="date"
+              {...form.register("acquiredAt")}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </>
+      )}
 
       {/* Depreciation section, hidden for cash and investment. Colapsada por
           padrão: a curva default por categoria já é aplicada pelo wizard. */}

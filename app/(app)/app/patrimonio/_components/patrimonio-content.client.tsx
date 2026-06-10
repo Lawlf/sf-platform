@@ -11,6 +11,7 @@ import { queryKeys } from "../../_lib/query-keys";
 
 import { CarteiraBalanceCard } from "./carteira-balance-card.client";
 import { CategorySection, type CategoryAssetItem } from "./category-section";
+import { InvestmentEvolutionCard } from "./investment-evolution-card.client";
 import { PatrimonyEmptyState } from "./empty-state";
 import { PatrimonyHero } from "./patrimony-hero";
 
@@ -60,6 +61,7 @@ export function PatrimonioContentClient() {
       />
 
       <CarteiraBalanceCard />
+      <InvestmentEvolutionCard />
 
       <Link
         href={"/app/patrimonio/novo" as Route}

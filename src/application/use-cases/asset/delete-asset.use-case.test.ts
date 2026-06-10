@@ -22,6 +22,7 @@ function makeAssetRepo(): AssetRepositoryPort {
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async () => []),
+    listCryptoTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),

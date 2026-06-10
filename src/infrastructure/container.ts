@@ -4,6 +4,7 @@ import { AdminAuditLogRepository } from "@/infrastructure/persistence/drizzle/re
 import { AdminMetricsRepository } from "@/infrastructure/persistence/drizzle/repositories/admin-metrics.repository";
 import { AssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/asset-debt-allocation.repository";
 import { AssetRepository } from "@/infrastructure/persistence/drizzle/repositories/asset.repository";
+import { CryptoPriceCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/crypto-price-catalog.repository";
 import { DebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/debt-amount-adjustment.repository";
 import { DebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/debt-payment.repository";
 import { DebtRepository } from "@/infrastructure/persistence/drizzle/repositories/debt.repository";
@@ -18,6 +19,7 @@ import { GoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/rep
 import { GoalRepository } from "@/infrastructure/persistence/drizzle/repositories/goal.repository";
 import { IncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/income-settlement.repository";
 import { IncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/income.repository";
+import { InvestmentSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/investment-snapshot.repository";
 import { MagicLinkTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/magic-link-token.repository";
 import { McpAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-audit-log.repository";
 import { McpAuthorizationCodeRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-authorization-code.repository";
@@ -56,6 +58,7 @@ export const repos = {
   adminMetrics: new AdminMetricsRepository(),
   assetDebtAllocations: new AssetDebtAllocationRepository(),
   assets: new AssetRepository(),
+  cryptoPriceCatalog: new CryptoPriceCatalogRepository(),
   debtAmountAdjustments: new DebtAmountAdjustmentRepository(),
   debtPayments: new DebtPaymentRepository(),
   debts: new DebtRepository(),
@@ -70,6 +73,7 @@ export const repos = {
   goals: new GoalRepository(),
   incomeSettlements: new IncomeSettlementRepository(),
   incomes: new IncomeRepository(),
+  investmentSnapshots: new InvestmentSnapshotRepository(),
   magicLinkTokens: new MagicLinkTokenRepository(),
   mcpAuditLogs: new McpAuditLogRepository(),
   mcpAuthorizationCodes: new McpAuthorizationCodeRepository(),

@@ -9,6 +9,7 @@ import { useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { z } from "zod";
 
+import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
 import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
@@ -61,18 +62,19 @@ export const wizardFormSchema = z.object({
   // investment
   investmentType: z.enum(INVESTMENT_TYPES).optional(),
   institution: z.string().optional(),
+  annualRatePct: z.string().optional(),
 
   // stock-specific
   ticker: z
     .string()
     .optional()
     .refine(
-      (v) => v === undefined || v === "" || /^[A-Z0-9]{3,8}$/i.test(v),
-      "Ticker inválido (ex.: PETR4, VALE3).",
+      (v) => v === undefined || v === "" || /^[A-Z0-9.]{1,15}$/i.test(v),
+      "Sigla inválida.",
     ),
+  coinId: z.string().optional(),
   shares: z.string().optional(),
   avgPriceCents: z.bigint().nullable().optional(),
-  // Read-only display of the last known catalog quote.
   lastQuoteCents: z.bigint().nullable().optional(),
   tickerCompanyName: z.string().optional(),
 
@@ -135,7 +137,12 @@ const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 export function AssetWizardClient({
   initialCategory,
   defaultCurrency = "BRL",
-}: { initialCategory?: Category | undefined; defaultCurrency?: Currency } = {}) {
+  onClose,
+}: {
+  initialCategory?: Category | undefined;
+  defaultCurrency?: Currency;
+  onClose?: (() => void) | undefined;
+} = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<WizardStepId>(
@@ -162,7 +169,9 @@ export function AssetWizardClient({
       rentMonthlyCents: null,
       investmentType: "stocks",
       institution: "",
+      annualRatePct: "",
       ticker: "",
+      coinId: "",
       shares: "",
       avgPriceCents: null,
       lastQuoteCents: null,
@@ -202,12 +211,13 @@ export function AssetWizardClient({
 
   function gotoNext() {
     if (step === "category") {
-      // When changing category, reset depreciation defaults to match it.
-      const nextKind = defaultKindForCategory(category);
-      const nextRate = defaultRateForKind(nextKind, category);
+      // getValues, não watch: onChange + onNext no mesmo tick deixa watch stale.
+      const selectedCategory = form.getValues("category");
+      const nextKind = defaultKindForCategory(selectedCategory);
+      const nextRate = defaultRateForKind(nextKind, selectedCategory);
       form.setValue("depreciationKind", nextKind, { shouldDirty: false });
       form.setValue("depreciationRatePctYear", String(nextRate), { shouldDirty: false });
-      if (category === "investment") setStep("investment_type");
+      if (selectedCategory === "investment") setStep("investment_type");
       else setStep("details");
       return;
     }
@@ -243,8 +253,8 @@ export function AssetWizardClient({
       setStep("category");
       return;
     }
-    // step === "category": exit to parent.
-    router.push("/app/patrimonio" as Route);
+    if (onClose) onClose();
+    else router.push("/app/patrimonio" as Route);
   }
 
   async function handleSubmit() {
@@ -259,8 +269,6 @@ export function AssetWizardClient({
       return;
     }
 
-    // Purchase price: user-provided when present; for stocks we override
-    // below using `shares * avgPriceCents` so both representations agree.
     let purchasePriceCents: bigint | null =
       values.purchasePriceCents !== undefined &&
       values.purchasePriceCents !== null &&
@@ -298,28 +306,59 @@ export function AssetWizardClient({
       const invType = values.investmentType ?? "other";
       const institution = values.institution?.trim() ?? "";
       const isStock = invType === "stocks";
+      const isCrypto = invType === "crypto";
       const tickerRaw = (values.ticker ?? "").trim().toUpperCase();
-      const sharesNum = values.shares ? Number.parseInt(values.shares, 10) : NaN;
+      const sharesIntRaw = values.shares ? Number.parseInt(values.shares, 10) : NaN;
+      const sharesFloatRaw = values.shares
+        ? Number.parseFloat(values.shares.replace(",", "."))
+        : NaN;
       const avgPrice = values.avgPriceCents ?? null;
-      const tickerValid = isStock && /^[A-Z0-9]{3,8}$/.test(tickerRaw);
-      const sharesValid = isStock && Number.isFinite(sharesNum) && sharesNum > 0;
-      const avgPriceValid = isStock && avgPrice !== null && avgPrice > 0n;
 
-      // When a stock is fully described, compute initial currentValue from
-      // shares * avgPrice. refresh-quote will recompute later using last quote.
-      if (isStock && tickerValid && sharesValid && avgPriceValid) {
-        currentValueCents = avgPrice * BigInt(sharesNum);
-        // Mirror redundant purchase price for consistency with other assets.
-        purchasePriceCents = avgPrice * BigInt(sharesNum);
+      const stockTickerValid = isStock && /^[A-Z0-9]{3,8}$/.test(tickerRaw);
+      const cryptoTickerValid = isCrypto && tickerRaw.length > 0;
+      const tickerValid = stockTickerValid || cryptoTickerValid;
+      const stockSharesValid = isStock && Number.isFinite(sharesIntRaw) && sharesIntRaw > 0;
+      const cryptoQtyValid = isCrypto && Number.isFinite(sharesFloatRaw) && sharesFloatRaw > 0;
+      const avgPriceValid = isStock && avgPrice !== null && avgPrice > 0n;
+      const cryptoAvgValid = isCrypto && avgPrice !== null && avgPrice > 0n;
+      const cryptoCoinId = (values.coinId ?? "").trim().toLowerCase();
+      const cryptoCoinIdValid = isCrypto && cryptoCoinId.length > 0;
+
+      if (isStock && tickerValid && stockSharesValid && avgPriceValid) {
+        currentValueCents = avgPrice * BigInt(sharesIntRaw);
+        purchasePriceCents = avgPrice * BigInt(sharesIntRaw);
       }
+
+      const cryptoUnitPrice = values.lastQuoteCents ?? null;
+      const cryptoPriceValid = isCrypto && cryptoUnitPrice !== null && cryptoUnitPrice > 0n;
+      if (isCrypto && cryptoQtyValid && cryptoPriceValid) {
+        currentValueCents = valueCryptoCents(sharesFloatRaw, cryptoUnitPrice);
+      }
+      if (isCrypto && cryptoQtyValid && cryptoAvgValid && avgPrice !== null) {
+        purchasePriceCents = valueCryptoCents(sharesFloatRaw, avgPrice);
+      }
+
+      const isFixedIncome = invType === "fixed_income";
+      const rateParsed = values.annualRatePct
+        ? Number.parseFloat(values.annualRatePct.replace(",", "."))
+        : NaN;
+      const rateValid = isFixedIncome && Number.isFinite(rateParsed) && rateParsed > 0;
 
       metadataJson = JSON.stringify({
         kind: "investment",
         investmentType: invType,
         ...(institution ? { institution } : {}),
-        ...(isStock && tickerValid ? { ticker: tickerRaw } : {}),
-        ...(isStock && sharesValid ? { shares: sharesNum } : {}),
-        ...(isStock && avgPriceValid ? { avgPriceCents: avgPrice.toString() } : {}),
+        ...((isStock || isCrypto) && tickerValid ? { ticker: tickerRaw } : {}),
+        ...(cryptoCoinIdValid ? { coinId: cryptoCoinId } : {}),
+        ...(isStock && stockSharesValid ? { shares: sharesIntRaw } : {}),
+        ...(isCrypto && cryptoQtyValid ? { shares: sharesFloatRaw } : {}),
+        ...(avgPrice !== null && avgPrice > 0n && (isStock || isCrypto)
+          ? { avgPriceCents: avgPrice.toString() }
+          : {}),
+        ...(isCrypto && cryptoPriceValid
+          ? { lastQuoteCents: cryptoUnitPrice.toString(), lastQuoteAt: new Date().toISOString() }
+          : {}),
+        ...(rateValid ? { annualRatePct: rateParsed } : {}),
       });
     } else if (values.category === "cash") {
       const institution = values.institution?.trim() ?? "";

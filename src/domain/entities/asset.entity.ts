@@ -25,9 +25,11 @@ export type AssetMetadata =
       investmentType: "fixed_income" | "stocks" | "crypto" | "fund" | "other";
       institution?: string;
       /**
-       * Ticker da ação (ex.: "PETR4", "VALE3"). Apenas para investmentType "stocks".
+       * Ticker da ação (ex.: "PETR4", "VALE3") ou sigla da cripto (ex.: "BTC").
        */
       ticker?: string;
+      // id CoinGecko (chave da cotação; símbolos não são únicos).
+      coinId?: string;
       /**
        * Quantidade de ações detidas.
        */
@@ -44,6 +46,8 @@ export type AssetMetadata =
        * Momento em que `lastQuoteCents` foi buscado.
        */
       lastQuoteAt?: Date;
+      // taxa a.a. só pra projeção de renda fixa; não altera currentValue.
+      annualRatePct?: number;
     }
   | {
       kind: "cash";

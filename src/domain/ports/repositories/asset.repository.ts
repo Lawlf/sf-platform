@@ -40,6 +40,11 @@ export interface AssetRepositoryPort {
    */
   listStockTickersForUser(userId: string): Promise<string[]>;
   /**
+   * Retorna todos os símbolos (uppercase, deduplicados) presentes em ativos
+   * ativos de investimento do tipo `crypto` pertencentes ao usuário.
+   */
+  listCryptoTickersForUser(userId: string): Promise<string[]>;
+  /**
    * Marca o ativo como apagado (soft delete). Usado pelo use case
    * `deleteAsset`. Sub-records (asset_debt_allocations) são removidos pelo
    * próprio use case via repositório dedicado antes do soft delete aqui.

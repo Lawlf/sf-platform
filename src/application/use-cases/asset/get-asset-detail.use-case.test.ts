@@ -114,6 +114,7 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     findByIdWithAllocations: vi.fn(async () => withAllocations),
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(async () => []),
+    listCryptoTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),

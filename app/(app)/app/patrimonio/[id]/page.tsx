@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
+import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projection.service";
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
@@ -22,6 +23,7 @@ import {
   AssetDetailView,
   type AvailableDebtView,
   type CashYieldView,
+  type CryptoView,
   type LinkedDebtView,
   type PurchasePriceView,
   type StockView,
@@ -177,6 +179,50 @@ export default async function AssetDetailPage({ params }: PageProps) {
     };
   }
 
+  let crypto: CryptoView | null = null;
+  if (
+    asset.category === "investment" &&
+    asset.metadata &&
+    asset.metadata.kind === "investment" &&
+    asset.metadata.investmentType === "crypto" &&
+    typeof asset.metadata.ticker === "string" &&
+    asset.metadata.ticker.length > 0
+  ) {
+    const lastQuoteCents =
+      typeof asset.metadata.lastQuoteCents === "bigint" ? asset.metadata.lastQuoteCents : null;
+    const lastQuoteAt =
+      asset.metadata.lastQuoteAt instanceof Date ? asset.metadata.lastQuoteAt : null;
+    const qty = asset.metadata.shares ?? 0;
+    crypto = {
+      symbol: asset.metadata.ticker,
+      quantityFormatted: qty.toLocaleString("pt-BR", { maximumFractionDigits: 8 }),
+      lastQuoteFormatted:
+        lastQuoteCents !== null ? formatCents(lastQuoteCents, asset.currentValue.currency) : null,
+      lastQuoteAt: lastQuoteAt ? DATETIME_FMT.format(lastQuoteAt) : null,
+    };
+  }
+
+  let fixedIncomeProjection: { ratePct: string; oneYearFormatted: string } | null = null;
+  if (
+    asset.category === "investment" &&
+    asset.metadata &&
+    asset.metadata.kind === "investment" &&
+    asset.metadata.investmentType === "fixed_income" &&
+    typeof asset.metadata.annualRatePct === "number" &&
+    asset.metadata.annualRatePct > 0
+  ) {
+    const projected = projectFixedIncomeOneYear(
+      asset.currentValue.toCents(),
+      asset.metadata.annualRatePct,
+    );
+    if (projected !== null) {
+      fixedIncomeProjection = {
+        ratePct: asset.metadata.annualRatePct.toLocaleString("pt-BR", { maximumFractionDigits: 2 }),
+        oneYearFormatted: formatCents(projected, asset.currentValue.currency),
+      };
+    }
+  }
+
   const linkedGoals = await fetchGoalsLinkedToAsset(id);
 
   const isCash = asset.category === "cash";
@@ -254,6 +300,8 @@ export default async function AssetDetailPage({ params }: PageProps) {
         availableDebts={availableDebts}
         cashYield={cashYield}
         stock={stock}
+        crypto={crypto}
+        fixedIncomeProjection={fixedIncomeProjection}
         purchasePrice={purchasePrice}
         isPro={user.isPro}
         description={description}

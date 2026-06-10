@@ -57,6 +57,7 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
     listStockTickersForUser: vi.fn(),
+    listCryptoTickersForUser: vi.fn(),
     softDelete: vi.fn(),
   };
   const goals = {

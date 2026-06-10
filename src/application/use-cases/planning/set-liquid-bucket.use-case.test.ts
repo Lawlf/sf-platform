@@ -46,6 +46,7 @@ function makeAssetsRepo(initial: AssetEntity[]): AssetRepositoryPort {
     findByIdWithAllocations: async () => { throw new Error("not used"); },
     findActiveWithAllocations: async () => { throw new Error("not used"); },
     listStockTickersForUser: async () => { throw new Error("not used"); },
+    listCryptoTickersForUser: async () => { throw new Error("not used"); },
     softDelete: async () => { throw new Error("not used"); },
   } as unknown as AssetRepositoryPort;
 }
