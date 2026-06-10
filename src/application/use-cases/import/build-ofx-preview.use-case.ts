@@ -64,22 +64,24 @@ export async function buildOfxPreview(
     .filter((t) => !movement.internalFitIds.has(t.fitId))
     .reduce((acc, t) => acc + (t.direction === "in" ? t.amountCents : -t.amountCents), 0n);
 
+  const existingReserve = await deps.assets.findByExternalAccountKey(
+    input.userId,
+    `${st.accountKey}:reserve`,
+  );
+  const existingReserveCents = existingReserve?.currentValue.toCents() ?? null;
+
   let reserve: OfxReservePreview | null = null;
-  if (reserveTxns.length > 0) {
+  if (reserveTxns.length > 0 || existingReserveCents !== null) {
     const guardouCents = reserveTxns
       .filter((t) => t.direction === "out")
       .reduce((acc, t) => acc + t.amountCents, 0n);
     const tirouCents = reserveTxns
       .filter((t) => t.direction === "in")
       .reduce((acc, t) => acc + t.amountCents, 0n);
-    const existingReserve = await deps.assets.findByExternalAccountKey(
-      input.userId,
-      `${st.accountKey}:reserve`,
-    );
     reserve = {
       guardouCents,
       tirouCents,
-      existingValueCents: existingReserve?.currentValue.toCents() ?? null,
+      existingValueCents: existingReserveCents,
     };
   }
 

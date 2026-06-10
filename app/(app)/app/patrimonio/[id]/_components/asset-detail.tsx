@@ -19,7 +19,6 @@ import { useForm } from "react-hook-form";
 
 
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
-import type { Currency } from "@/domain/value-objects/money.vo";
 import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { Button } from "@/app/components/ui/button";
 import {
@@ -29,6 +28,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
@@ -100,6 +100,7 @@ export interface AssetDetailViewProps {
   currency: Currency;
   netWorthFormatted: string;
   netWorthIsNegative: boolean;
+  netWorthDiffersFromValue: boolean;
   fipeCode: string | null;
   fipeLastSyncedAt: string | null;
   linkedDebts: LinkedDebtView[];
@@ -184,25 +185,33 @@ export function AssetDetailView(props: AssetDetailViewProps) {
           </div>
           <span className="opacity-80">{categoryIcon(props.category)}</span>
         </div>
-        <div className="relative mt-4 grid grid-cols-2 gap-3 border-t border-white/20 pt-3 text-sm">
+        <div
+          className={`relative mt-4 grid gap-3 border-t border-white/20 pt-3 text-sm ${
+            props.netWorthDiffersFromValue ? "grid-cols-2" : "grid-cols-1"
+          }`}
+        >
           <div>
             <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
-              Valor atual
+              {props.netWorthDiffersFromValue ? "Vale" : "Valor atual"}
             </div>
             <div className="mt-0.5 font-bold">
               <HideableValue>{props.currentValueFormatted}</HideableValue>
             </div>
           </div>
-          <div>
-            <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
-              Patrimônio
+          {props.netWorthDiffersFromValue ? (
+            <div>
+              <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
+                Seu, livre da dívida
+              </div>
+              <div className={`mt-0.5 font-bold ${nwColor}`}>
+                <HideableValue>{props.netWorthFormatted}</HideableValue>
+              </div>
             </div>
-            <div className={`mt-0.5 font-bold ${nwColor}`}>
-              <HideableValue>{props.netWorthFormatted}</HideableValue>
-            </div>
-          </div>
+          ) : null}
         </div>
       </section>
+
+      <RenameSection assetId={props.assetId} label={props.label} />
 
       <EditValueSection
         assetId={props.assetId}
@@ -282,6 +291,92 @@ export function AssetDetailView(props: AssetDetailViewProps) {
 
       <DeactivateSection assetId={props.assetId} label={props.label} />
     </div>
+  );
+}
+
+function RenameSection({ assetId, label }: { assetId: string; label: string }) {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [value, setValue] = useState(label);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function onSave() {
+    setError(null);
+    const trimmed = value.trim();
+    if (trimmed.length === 0 || trimmed.length > 120) {
+      setError("O nome deve ter entre 1 e 120 caracteres.");
+      return;
+    }
+    startTransition(async () => {
+      const r = await updateAssetAction({ assetId, label: trimmed });
+      if (!r.ok) {
+        setError(r.message);
+        return;
+      }
+      await invalidateAssetCaches(queryClient);
+      setOpen(false);
+    });
+  }
+
+  return (
+    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Nome</h2>
+          {!open ? (
+            <p className="mt-0.5 truncate text-[0.8125rem] text-[color:var(--text-secondary)]">
+              {label}
+            </p>
+          ) : null}
+        </div>
+        {!open ? (
+          <Button
+            type="button"
+            size="sm"
+            variant="ghost"
+            onClick={() => {
+              setValue(label);
+              setError(null);
+              setOpen(true);
+            }}
+          >
+            Editar
+          </Button>
+        ) : null}
+      </div>
+      {open ? (
+        <div className="mt-3 flex flex-col gap-2">
+          <input
+            type="text"
+            value={value}
+            onChange={(e) => setValue(e.target.value)}
+            maxLength={120}
+            placeholder="Nome do bem"
+            className={wizardInputClass}
+          />
+          {error ? (
+            <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
+              {error}
+            </span>
+          ) : null}
+          <div className="flex gap-2">
+            <Button type="button" size="sm" onClick={onSave} loading={pending}>
+              Salvar
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              variant="ghost"
+              onClick={() => setOpen(false)}
+              disabled={pending}
+            >
+              Cancelar
+            </Button>
+          </div>
+        </div>
+      ) : null}
+    </section>
   );
 }
 

@@ -64,3 +64,7 @@ ESTRATEGIA-RECEITA.md
 
 # fonte de design da marca (mantida local, nao versionada)
 /icons/
+
+# local bank statement test files (personal financial data, never commit)
+*.ofx
+account_statement_*.csv

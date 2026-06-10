@@ -1,7 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { commitOfxImport } from "./commit-ofx-import.use-case";
 import { isErr, isOk } from "@/shared/errors/result";
+
+import { commitOfxImport } from "./commit-ofx-import.use-case";
 
 const SGML = `<OFX><BANKMSGSRSV1><STMTTRNRS><STMTRS><CURDEF>BRL
 <BANKACCTFROM><BANKID>341<ACCTID>1</BANKACCTFROM>

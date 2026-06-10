@@ -30,8 +30,9 @@ export default async function ImportacaoDeDadosPage() {
             Importar extrato do banco
           </div>
           <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-            Pega o arquivo de extrato que seu banco exporta. 1 conta no plano gratuito, várias no
-            Pro.
+            O arquivo do banco traz suas movimentações e o saldo da conta. O dinheiro das caixinhas
+            não vem no arquivo, então a gente pergunta esse valor na hora. 1 conta no plano gratuito,
+            várias no Pro.
           </div>
         </div>
         <ChevronRight

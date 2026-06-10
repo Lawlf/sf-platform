@@ -6,6 +6,7 @@ import type { AssetRepository } from "@/domain/ports/repositories/asset.reposito
 import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
 import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import { bankNameFromId } from "@/domain/services/ofx/bank-names";
 import { detectPatterns } from "@/domain/services/ofx/detect-patterns";
 import { findInternalTransfers } from "@/domain/services/ofx/internal-transfers";
 import { mergeOfxStatements } from "@/domain/services/ofx/merge-ofx-statements";
@@ -70,6 +71,7 @@ export async function commitOfxImport(
   const now = deps.clock.now();
 
   const bankId = st.accountKey.split(":")[0] ?? st.accountKey;
+  const bankName = bankNameFromId(bankId);
   const existing = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
   let assetId: string;
 
@@ -87,7 +89,7 @@ export async function commitOfxImport(
       id: newId,
       userId: input.userId,
       category: "cash",
-      label: `Conta ${bankId}`,
+      label: bankName ?? `Conta ${bankId}`,
       currentValue: Money.fromCents(st.ledgerBalanceCents),
       metadata: { kind: "cash" },
       fipeCode: null,
@@ -232,7 +234,7 @@ export async function commitOfxImport(
         id: crypto.randomUUID(),
         userId: input.userId,
         category: "cash",
-        label: `Reserva ${bankId}`,
+        label: `Reserva ${bankName ?? bankId}`,
         currentValue: reserveValue,
         metadata: { kind: "cash" },
         fipeCode: null,

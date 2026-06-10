@@ -32,8 +32,10 @@ const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { dateStyle: "medium" });
 
 export function PayoffForm({
   debts,
+  defaultDebtId,
 }: {
   debts: { id: string; label: string; currentBalanceFormatted: string }[];
+  defaultDebtId?: string;
 }) {
   const [pending, startTransition] = useTransition();
   const [result, setResult] = useState<PayoffActionResult | null>(null);
@@ -41,7 +43,7 @@ export function PayoffForm({
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      debtId: debts[0]?.id ?? "",
+      debtId: defaultDebtId ?? debts[0]?.id ?? "",
       monthlyPaymentCents: 0n as unknown as bigint,
       extraPaymentCents: null,
     },

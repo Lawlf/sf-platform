@@ -366,17 +366,28 @@ export interface AnnualReportMonth {
 }
 
 export interface AnnualReportCategory {
-  category: string | null;
   label: string;
+  totalCents: string;
   totalFormatted: string;
+}
+
+export interface AnnualReportConsumo {
+  essencialCents: string;
+  essencialFormatted: string;
+  parceladoCents: string;
+  parceladoFormatted: string;
+  restoCents: string;
+  restoFormatted: string;
 }
 
 export interface AnnualReportPayload {
   isPro: boolean;
   year: number;
   hasData: boolean;
+  excludedMovements: number;
   totalFormatted: string;
   byMonth: AnnualReportMonth[];
+  consumo: AnnualReportConsumo;
   byCategory: AnnualReportCategory[];
 }
 
@@ -396,12 +407,22 @@ const SHORT_MONTH_LABELS = [
 ];
 
 function emptyAnnualReport(year: number, isPro: boolean): AnnualReportPayload {
+  const zero = Money.zero().format();
   return {
     isPro,
     year,
     hasData: false,
-    totalFormatted: Money.zero().format(),
+    excludedMovements: 0,
+    totalFormatted: zero,
     byMonth: [],
+    consumo: {
+      essencialCents: "0",
+      essencialFormatted: zero,
+      parceladoCents: "0",
+      parceladoFormatted: zero,
+      restoCents: "0",
+      restoFormatted: zero,
+    },
     byCategory: [],
   };
 }
@@ -424,6 +445,7 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
     isPro: true,
     year,
     hasData: report.totalCents > 0n,
+    excludedMovements: result.excludedMovements,
     totalFormatted: Money.fromCents(report.totalCents).format(),
     byMonth: report.byMonth.map((m) => ({
       month: m.month,
@@ -431,9 +453,17 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
       totalCents: m.totalCents.toString(),
       totalFormatted: Money.fromCents(m.totalCents).format(),
     })),
+    consumo: {
+      essencialCents: report.consumo.essencialCents.toString(),
+      essencialFormatted: Money.fromCents(report.consumo.essencialCents).format(),
+      parceladoCents: report.consumo.parceladoCents.toString(),
+      parceladoFormatted: Money.fromCents(report.consumo.parceladoCents).format(),
+      restoCents: report.consumo.restoCents.toString(),
+      restoFormatted: Money.fromCents(report.consumo.restoCents).format(),
+    },
     byCategory: report.byCategory.map((c) => ({
-      category: c.category,
-      label: c.category ?? "Sem categoria",
+      label: c.category,
+      totalCents: c.totalCents.toString(),
       totalFormatted: Money.fromCents(c.totalCents).format(),
     })),
   };

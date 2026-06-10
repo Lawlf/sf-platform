@@ -3,6 +3,8 @@ import { Fragment, type ReactNode, Suspense } from "react";
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
 import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -15,12 +17,14 @@ import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { ConsumoCard } from "./_components/consumo-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
+import { HomeBringDataCard } from "./_components/home-bring-data-card";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MonthClosingCard } from "./_components/month-closing-card.client";
 import { NextStepCard } from "./_components/next-step-card";
 import { OfflineStaleNote } from "./_components/offline-stale-note.client";
+import { allChecklistDone } from "./_components/onboarding/checklist-items";
 import { HomeCoachmarks } from "./_components/onboarding/home-coachmarks.client";
 import { OnboardingChecklistCard } from "./_components/onboarding/onboarding-checklist-card.client";
 import { PageShell } from "./_components/page-shell";
@@ -61,6 +65,8 @@ export default async function DashboardPage() {
     prescription,
     consumo,
     outOfMonth,
+    externalAccountKeys,
+    mcpConnections,
   ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
     fetchMaintenancePrompts(),
@@ -73,7 +79,14 @@ export default async function DashboardPage() {
       { userId: user.id, from: consumoFrom, to: consumoTo },
     ),
     fetchOutOfMonthSummary(),
+    new DrizzleAssetRepository().listExternalAccountKeys(user.id),
+    new DrizzleMcpConnectionRepository().listForUser(user.id),
   ]);
+
+  const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
+  const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
+  const bringDataEligible =
+    allChecklistDone(onboardingState.checklist) && !hasImportedAccount && !hasMcpConnection;
 
   const hasPlan = prescription?.hasPlan ?? false;
   const order = hasPlan
@@ -105,6 +118,11 @@ export default async function DashboardPage() {
         </Suspense>
       </div>
     ),
+    bringData: bringDataEligible ? (
+      <div className="md:col-span-2">
+        <HomeBringDataCard />
+      </div>
+    ) : null,
     commitment: (
       <div className="md:col-span-2" data-tour="health">
         <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
