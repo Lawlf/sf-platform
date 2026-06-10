@@ -1,4 +1,4 @@
-import { and, desc, eq, gte, inArray, isNull, lte } from "drizzle-orm";
+import { and, count, desc, eq, gte, inArray, isNull, lt, lte, or } from "drizzle-orm";
 
 import type {
   TransactionDirection,
@@ -106,6 +106,87 @@ export class DrizzleTransactionRepository implements TransactionRepository {
       .where(and(eq(transactions.accountId, accountId), eq(transactions.userId, userId), isNull(transactions.deletedAt)))
       .orderBy(desc(transactions.occurredAt));
     return rows.map(rowToEntity);
+  }
+
+  async listByAccountPaged(
+    accountId: string,
+    userId: string,
+    opts: { limit: number; beforeOccurredAt?: Date; beforeId?: string },
+  ): Promise<TransactionEntity[]> {
+    const base = and(
+      eq(transactions.accountId, accountId),
+      eq(transactions.userId, userId),
+      isNull(transactions.deletedAt),
+    );
+    const cursor =
+      opts.beforeOccurredAt && opts.beforeId
+        ? or(
+            lt(transactions.occurredAt, opts.beforeOccurredAt),
+            and(
+              eq(transactions.occurredAt, opts.beforeOccurredAt),
+              lt(transactions.id, opts.beforeId),
+            ),
+          )
+        : undefined;
+    const rows = await getDb()
+      .select()
+      .from(transactions)
+      .where(cursor ? and(base, cursor) : base)
+      .orderBy(desc(transactions.occurredAt), desc(transactions.id))
+      .limit(opts.limit);
+    return rows.map(rowToEntity);
+  }
+
+  async monthSummariesByAccount(
+    accountId: string,
+    userId: string,
+  ): Promise<Array<{ key: string; inCents: bigint; outCents: bigint; currency: string }>> {
+    const rows = await getDb()
+      .select({
+        occurredAt: transactions.occurredAt,
+        direction: transactions.direction,
+        amountCents: transactions.amountCents,
+        currency: transactions.currency,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.accountId, accountId),
+          eq(transactions.userId, userId),
+          isNull(transactions.deletedAt),
+        ),
+      );
+
+    const map = new Map<string, { inCents: bigint; outCents: bigint; currency: string }>();
+    for (const r of rows) {
+      const key = r.occurredAt.toISOString().slice(0, 7);
+      let g = map.get(key);
+      if (!g) {
+        g = { inCents: 0n, outCents: 0n, currency: r.currency };
+        map.set(key, g);
+      }
+      const c = r.amountCents;
+      if (r.direction === "in") g.inCents += c;
+      else g.outCents += c;
+    }
+
+    return [...map.entries()]
+      .map(([key, v]) => ({ key, ...v }))
+      .sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
+  }
+
+  async countByAccount(accountId: string, userId: string): Promise<number> {
+    const rows = await getDb()
+      .select({ value: count() })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.accountId, accountId),
+          eq(transactions.userId, userId),
+          isNull(transactions.deletedAt),
+        ),
+      );
+    return rows[0]?.value ?? 0;
   }
 
   async listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> {

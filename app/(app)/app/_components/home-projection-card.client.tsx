@@ -30,27 +30,35 @@ export function HomeProjectionCard({ initialData }: Props) {
   const { topLine } = data;
 
   return (
-    <Link
-      href={"/app/linha-do-tempo/projecao" as Route}
-      aria-label="Ver a projeção do seu patrimônio no ritmo atual"
-      className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
-    >
-      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-        <TrendingUp size={18} strokeWidth={2} aria-hidden />
-      </span>
-      <span className="min-w-0 flex-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-        No ritmo atual, seu patrimônio cresce{" "}
-        <span className="font-semibold text-[color:var(--color-brand-800)]">
-          <HideableValue>{topLine.monthlyContributionFormatted}</HideableValue>
-        </span>{" "}
-        por mês
-      </span>
-      <ChevronRight
-        size={18}
-        strokeWidth={2.25}
-        className="shrink-0 text-[color:var(--text-muted)]"
-        aria-hidden
-      />
-    </Link>
+    <div className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)]">
+      <Link
+        href={"/app/linha-do-tempo/projecao" as Route}
+        aria-label="Ver a projeção do seu patrimônio no ritmo atual"
+        className="focus-ring flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
+      >
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+          <TrendingUp size={18} strokeWidth={2} aria-hidden />
+        </span>
+        <span className="min-w-0 flex-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
+          No ritmo atual, seu patrimônio cresce{" "}
+          <span className="font-semibold text-[color:var(--color-brand-800)]">
+            <HideableValue>{topLine.monthlyContributionFormatted}</HideableValue>
+          </span>{" "}
+          por mês
+        </span>
+        <ChevronRight
+          size={18}
+          strokeWidth={2.25}
+          className="shrink-0 text-[color:var(--text-muted)]"
+          aria-hidden
+        />
+      </Link>
+      <Link
+        href={"/app/simular/juros-compostos" as Route}
+        className="focus-ring flex items-center justify-center border-t border-[color:var(--border-soft)] px-4 py-2.5 text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)] transition-colors hover:bg-[color:var(--surface-2)]"
+      >
+        E se você guardasse mais por mês?
+      </Link>
+    </div>
   );
 }

@@ -4,11 +4,9 @@ import { notFound } from "next/navigation";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { listTransactionsByAccount } from "@/application/use-cases/transaction/list-transactions-by-account.use-case";
 import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 import { formatCents } from "@/shared/format/money-format";
@@ -17,6 +15,10 @@ import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-
 import { PageShell } from "../../_components/page-shell";
 import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
 
+import {
+  fetchAccountTransactionCount,
+  fetchAccountTransactionsPage,
+} from "./_actions/account-transactions-queries";
 import { AccountTransactionsSection } from "./_components/account-transactions";
 import {
   AssetDetailView,
@@ -179,13 +181,14 @@ export default async function AssetDetailPage({ params }: PageProps) {
 
   const linkedGoals = await fetchGoalsLinkedToAsset(id);
 
-  const accountTransactions =
-    asset.category === "cash"
-      ? await listTransactionsByAccount(
-          { transactions: new DrizzleTransactionRepository() },
-          { userId: user.id, accountId: asset.id },
-        )
-      : [];
+  const isCash = asset.category === "cash";
+  const txnPreview = isCash
+    ? await fetchAccountTransactionsPage({ accountId: asset.id, limit: 3 })
+    : null;
+  const txnTotal = isCash ? await fetchAccountTransactionCount(asset.id) : 0;
+  const txnFraming: "extrato" | "lancamentos" = asset.externalAccountKey
+    ? "extrato"
+    : "lancamentos";
 
   // Carteira: tela própria. Saldo reativo + projeção + ajustar/ancorar
   // (CarteiraBalanceCard, mesmo do dashboard) + extrato. Sem detalhe de bem.
@@ -193,7 +196,12 @@ export default async function AssetDetailPage({ params }: PageProps) {
     return (
       <PageShell title="Carteira" backHref={"/app/patrimonio" as Route}>
         <CarteiraBalanceCard asDetail />
-        <AccountTransactionsSection transactions={accountTransactions} />
+        <AccountTransactionsSection
+          accountId={asset.id}
+          items={txnPreview?.items ?? []}
+          total={txnTotal}
+          framing={txnFraming}
+        />
       </PageShell>
     );
   }
@@ -241,6 +249,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
         currency={asset.currentValue.currency}
         netWorthFormatted={netWorth.format()}
         netWorthIsNegative={netWorth.isNegative()}
+        netWorthDiffersFromValue={!netWorth.equals(asset.currentValue)}
         fipeCode={asset.fipeCode}
         fipeLastSyncedAt={asset.fipeLastSyncedAt ? DATE_FMT.format(asset.fipeLastSyncedAt) : null}
         linkedDebts={linkedView}
@@ -253,8 +262,13 @@ export default async function AssetDetailPage({ params }: PageProps) {
         depreciation={depreciation}
         linkedGoals={linkedGoals}
       />
-      {asset.category === "cash" ? (
-        <AccountTransactionsSection transactions={accountTransactions} />
+      {isCash ? (
+        <AccountTransactionsSection
+          accountId={asset.id}
+          items={txnPreview?.items ?? []}
+          total={txnTotal}
+          framing={txnFraming}
+        />
       ) : null}
 
       <EntityNotesAndFiles

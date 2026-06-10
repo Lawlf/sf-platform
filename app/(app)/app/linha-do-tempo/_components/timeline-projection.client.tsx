@@ -18,9 +18,18 @@ import {
   fetchPlanningProjection,
   type PlanningProjectionPayload,
 } from "../../_actions/planning-queries";
-import { ProjectionCurve } from "../../_components/projection-curve";
+import { useMoneyVisibility } from "../../_components/money-visibility/money-visibility-provider.client";
 
 import { CascadeConfigPanel } from "./cascade-config-panel.client";
+import { UnifiedTrajectoryChart, type UnifiedPoint } from "./unified-trajectory-chart.client";
+
+const HORIZON_MONTHS = 12;
+
+function futureIso(offsetMonths: number): string {
+  const now = new Date();
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + offsetMonths, 1));
+  return `${d.getUTCFullYear()}-${String(d.getUTCMonth() + 1).padStart(2, "0")}`;
+}
 
 interface Props {
   initialData: PlanningProjectionPayload | null;
@@ -59,6 +68,7 @@ function EmptyState() {
 }
 
 export function TimelineProjection({ initialData }: Props) {
+  const { hidden } = useMoneyVisibility();
   const { data } = useSuspenseQuery({
     queryKey: ["planning", "projection"],
     queryFn: fetchPlanningProjection,
@@ -71,6 +81,15 @@ export function TimelineProjection({ initialData }: Props) {
 
   const datedGoals = data.goals.filter((g) => g.etaLabel !== null);
 
+  const futureSource = data.points.filter((p) => p.month >= 1 && p.month <= HORIZON_MONTHS);
+  const future: UnifiedPoint[] = futureSource.map((p) => ({
+    monthIso: futureIso(p.month),
+    netWorthCents: p.netWorthCents,
+  }));
+  const horizonPoint =
+    futureSource.find((p) => p.month === HORIZON_MONTHS) ??
+    (futureSource.length > 0 ? futureSource[futureSource.length - 1] : null);
+
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5">
       <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--color-brand-800)]">
@@ -81,8 +100,18 @@ export function TimelineProjection({ initialData }: Props) {
       </p>
 
       <div className="mt-3">
-        <ProjectionCurve points={data.points} />
+        <UnifiedTrajectoryChart past={[]} future={future} hidden={hidden} />
       </div>
+
+      {horizonPoint ? (
+        <p className="mt-3 text-[0.8125rem] text-[color:var(--text-secondary)]">
+          Daqui {HORIZON_MONTHS} meses, no ritmo atual, por volta de{" "}
+          <span className="font-semibold text-[color:var(--text-primary)]">
+            {hidden ? "R$ •••" : horizonPoint.netWorthFormatted}
+          </span>
+          .
+        </p>
+      ) : null}
 
       {datedGoals.length > 0 ? (
         <ul className="mt-4 flex flex-col gap-2">

@@ -1,14 +1,16 @@
-import { ChevronRight, TrendingUp } from "lucide-react";
 import type { Metadata } from "next";
-import type { Route } from "next";
-import Link from "next/link";
 import { Suspense } from "react";
 
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { fetchPlanningProjection } from "../_actions/planning-queries";
 import { fetchTimelinePage } from "../_actions/timeline-queries";
 import { PageShell } from "../_components/page-shell";
 
+import {
+  PatrimonyTrajectoryChart,
+  type TrajectoryPoint,
+} from "./_components/patrimony-trajectory-chart.client";
 import { TimelineContent } from "./_components/timeline-content.client";
 import { TimelineHero } from "./_components/timeline-hero.client";
 import { TimelineSkeleton } from "./_components/timeline-skeleton";
@@ -86,6 +88,23 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
   const streakCount = initialPage ? computeStreakCount(initialPage.points) : 0;
   const oldestUserDataIso = initialPage?.oldestUserDataIso ?? null;
 
+  const trajectoryPage = await fetchTimelinePage({
+    beforeIso: nowMonthIso(),
+    limit: 12,
+    range,
+  });
+  const trajectoryPoints: TrajectoryPoint[] = trajectoryPage
+    ? [...trajectoryPage.points]
+        .reverse()
+        .map((p) => ({
+          monthIso: p.monthIso,
+          netWorthCents: p.netWorth.cents,
+          debtsCents: p.debtsBalance.cents,
+        }))
+    : [];
+
+  const projectionInitial = await fetchPlanningProjection();
+
   return (
     <PageShell title="Linha do tempo" description="Sua trajetória financeira mês a mês.">
       <TimelineHero
@@ -95,23 +114,7 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
         streakCount={streakCount}
         oldestUserDataIso={oldestUserDataIso}
       />
-      <Link
-        href={"/app/linha-do-tempo/projecao" as Route}
-        className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-          <TrendingUp size={18} strokeWidth={2} aria-hidden />
-        </span>
-        <span className="min-w-0 flex-1 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-          Projeção futura
-        </span>
-        <ChevronRight
-          size={18}
-          strokeWidth={2.25}
-          className="shrink-0 text-[color:var(--text-muted)]"
-          aria-hidden
-        />
-      </Link>
+      <PatrimonyTrajectoryChart points={trajectoryPoints} projectionInitial={projectionInitial} />
       <Suspense fallback={<TimelineSkeleton />}>
         <TimelineContent />
       </Suspense>

@@ -13,8 +13,13 @@ import { PayoffForm } from "./_components/payoff-form";
 
 export const metadata: Metadata = { title: "Projeção de quitação" };
 
-export default async function QuitacaoPage() {
+export default async function QuitacaoPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ debtId?: string }>;
+}) {
   const user = await requireUser();
+  const { debtId: requestedDebtId } = await searchParams;
   const listed = await listDebts(
     { debts: new DrizzleDebtRepository() },
     { userId: user.id, status: "active" },
@@ -26,6 +31,8 @@ export default async function QuitacaoPage() {
         currentBalanceFormatted: d.currentBalance.format(),
       }))
     : [];
+  const defaultDebtId =
+    requestedDebtId && debts.some((d) => d.id === requestedDebtId) ? requestedDebtId : undefined;
 
   return (
     <PageShell
@@ -44,7 +51,7 @@ export default async function QuitacaoPage() {
           ctaLabel="Cadastrar dívida"
         />
       ) : (
-        <PayoffForm debts={debts} />
+        <PayoffForm debts={debts} {...(defaultDebtId ? { defaultDebtId } : {})} />
       )}
     </PageShell>
   );

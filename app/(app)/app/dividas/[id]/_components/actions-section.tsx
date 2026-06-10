@@ -68,6 +68,13 @@ export function ActionsSection({
             <Button asChild size="sm" variant="outline">
               <Link href={`/app/dividas/${debt.id}/historico` as Route}>Histórico mensal</Link>
             </Button>
+            {!isRecurring ? (
+              <Button asChild size="sm" variant="outline">
+                <Link href={`/app/simular/quitacao?debtId=${debt.id}` as Route}>
+                  Ver se vale adiantar essa dívida
+                </Link>
+              </Button>
+            ) : null}
             {isRecurring ? (
               <Button asChild size="sm" variant="outline">
                 <Link href={"/app/metas/nova" as Route}>Guardar esse valor</Link>

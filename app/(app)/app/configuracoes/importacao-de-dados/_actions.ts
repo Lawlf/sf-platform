@@ -1,7 +1,10 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+
 import { buildOfxPreview } from "@/application/use-cases/import/build-ofx-preview.use-case";
 import { commitOfxImport } from "@/application/use-cases/import/commit-ofx-import.use-case";
+import { bankNameFromId } from "@/domain/services/ofx/bank-names";
 import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
 import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
@@ -13,6 +16,7 @@ import { isErr } from "@/shared/errors/result";
 export interface SerializablePreview {
   statementCount: number;
   accountKey: string;
+  bankLabel: string;
   ledgerBalance: number;
   matchedAssetLabel: string | null;
   newTransactionCount: number;
@@ -82,6 +86,9 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
     preview: {
       statementCount: files.length,
       accountKey: preview.accountKey,
+      bankLabel:
+        bankNameFromId(preview.accountKey.split(":")[0] ?? "") ??
+        `Conta ${preview.accountKey.split(":")[0] ?? preview.accountKey}`,
       ledgerBalance: Number(preview.ledgerBalanceCents) / 100,
       matchedAssetLabel: preview.matchedAssetLabel,
       newTransactionCount: preview.newTransactionCount,
@@ -164,6 +171,10 @@ export async function commitOfxAction(input: {
     }
     return { ok: false, message: "Não foi possível processar este OFX." };
   }
+
+  revalidatePath("/app");
+  revalidatePath("/app/linha-do-tempo");
+  revalidatePath("/app/patrimonio");
 
   return {
     ok: true,
