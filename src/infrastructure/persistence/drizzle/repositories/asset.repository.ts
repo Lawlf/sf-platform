@@ -324,6 +324,19 @@ export class AssetRepository implements AssetRepositoryPort {
     return Array.from(tickers).sort();
   }
 
+  async listCryptoTickersForUser(userId: string): Promise<string[]> {
+    const rows = await this.findActiveByUserAndCategory(userId, "investment");
+    const tickers = new Set<string>();
+    for (const a of rows) {
+      const meta = a.metadata;
+      if (meta && meta.kind === "investment" && meta.investmentType === "crypto") {
+        const t = typeof meta.ticker === "string" ? meta.ticker.trim().toUpperCase() : "";
+        if (t.length > 0) tickers.add(t);
+      }
+    }
+    return Array.from(tickers).sort();
+  }
+
   async softDelete(id: string, deletedAt: Date): Promise<void> {
     await getDb().update(assets).set({ deletedAt, updatedAt: deletedAt }).where(eq(assets.id, id));
   }

@@ -4,9 +4,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
   Car,
+  Coins,
   Home,
   RefreshCw,
-  Sparkles,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -38,6 +38,7 @@ import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";
 import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { deactivateAssetAction } from "../_actions/deactivate-asset.action";
 import { linkDebtAction } from "../_actions/link-debt.action";
+import { refreshCryptoQuoteAction } from "../_actions/refresh-crypto-quote.action";
 import { refreshFipeAction } from "../_actions/refresh-fipe.action";
 import { refreshStockQuoteAction } from "../_actions/refresh-stock-quote.action";
 import { unlinkDebtAction } from "../_actions/unlink-debt.action";
@@ -78,6 +79,13 @@ export interface StockView {
   gainLossPctFormatted: string | null;
 }
 
+export interface CryptoView {
+  symbol: string;
+  quantityFormatted: string;
+  lastQuoteFormatted: string | null;
+  lastQuoteAt: string | null;
+}
+
 export interface PurchasePriceView {
   /** Formatted "R$ X" of what the user paid. */
   paidFormatted: string;
@@ -107,6 +115,8 @@ export interface AssetDetailViewProps {
   availableDebts: AvailableDebtView[];
   cashYield: CashYieldView | null;
   stock: StockView | null;
+  crypto: CryptoView | null;
+  fixedIncomeProjection: { ratePct: string; oneYearFormatted: string } | null;
   /**
    * Comparação Pagou vs Vale agora. Não passada para ações (stocks já têm
    * sua própria seção de ganho/perda via avgPrice). `null` quando o usuário
@@ -239,6 +249,14 @@ export function AssetDetailView(props: AssetDetailViewProps) {
 
       {props.category === "investment" && props.stock ? (
         <StockSection assetId={props.assetId} stock={props.stock} isPro={props.isPro} />
+      ) : null}
+
+      {props.crypto ? (
+        <CryptoSection assetId={props.assetId} crypto={props.crypto} isPro={props.isPro} />
+      ) : null}
+
+      {props.fixedIncomeProjection ? (
+        <FixedIncomeProjectionSection projection={props.fixedIncomeProjection} />
       ) : null}
 
       <LinkedDebtsSection assetId={props.assetId} linkedDebts={props.linkedDebts} />
@@ -558,7 +576,7 @@ function StockSection({
         {stock.gainLossFormatted ? (
           <div className="col-span-2">
             <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-              Ganho / perda
+              {stock.gainLossIsNegative ? "Quanto caiu" : "Quanto rendeu"}
             </dt>
             <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${gainLossColor}`}>
               <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
@@ -573,16 +591,17 @@ function StockSection({
         ) : null}
       </dl>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3">
         <Button type="button" size="sm" variant="ghost" onClick={onRefresh} loading={pending}>
           <RefreshCw size={14} strokeWidth={2} aria-hidden />
           Atualizar cotação
         </Button>
-        <span className="inline-flex items-center gap-1 rounded-full bg-[color:var(--color-brand-500)]/[0.12] px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
-          <Sparkles size={10} strokeWidth={2.5} aria-hidden />
-          {isPro ? "Atualização diária ativada · Pro" : "Atualização diária no plano Pro"}
-        </span>
       </div>
+      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-secondary)]">
+        {isPro
+          ? "A gente atualiza essa cotação todo dia."
+          : "No Pro, a gente atualiza essa cotação todo dia pra você."}
+      </p>
 
       {error ? (
         <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
@@ -594,6 +613,138 @@ function StockSection({
           {success}
         </span>
       ) : null}
+    </section>
+  );
+}
+
+function CryptoSection({
+  assetId,
+  crypto,
+  isPro,
+}: {
+  assetId: string;
+  crypto: CryptoView;
+  isPro: boolean;
+}) {
+  const queryClient = useQueryClient();
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const [nudgeOpen, setNudgeOpen] = useState(false);
+
+  function onRefresh() {
+    if (!isPro) {
+      setNudgeOpen(true);
+      return;
+    }
+    setError(null);
+    setSuccess(null);
+    startTransition(async () => {
+      const r = await refreshCryptoQuoteAction({ assetId });
+      if (!r.ok) {
+        setError(r.message ?? "Não foi possível atualizar o preço.");
+      } else {
+        setSuccess(`Preço de ${r.data.symbol} atualizado.`);
+        await invalidateAssetCaches(queryClient);
+      }
+    });
+  }
+
+  const updatedLabel = crypto.lastQuoteAt
+    ? isPro
+      ? `Atualizado ${crypto.lastQuoteAt}`
+      : `Você atualizou em ${crypto.lastQuoteAt}`
+    : null;
+
+  return (
+    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Cripto</h2>
+
+      <div className="mt-2 flex items-center gap-2 text-[0.8125rem] text-[color:var(--text-primary)]">
+        <Coins size={15} strokeWidth={2} aria-hidden className="text-[color:var(--text-secondary)]" />
+        <span>
+          <span className="font-semibold">
+            {crypto.quantityFormatted} {crypto.symbol}
+          </span>
+          {crypto.lastQuoteFormatted ? (
+            <>
+              {" · cada uma custa "}
+              <HideableValue>{crypto.lastQuoteFormatted}</HideableValue>
+              {" hoje"}
+            </>
+          ) : (
+            " · sem preço ainda"
+          )}
+        </span>
+      </div>
+      {updatedLabel ? (
+        <p className="mt-1 text-[0.625rem] text-[color:var(--text-muted)]">{updatedLabel}</p>
+      ) : null}
+
+      <div className="mt-3">
+        <Button type="button" size="sm" variant="ghost" onClick={onRefresh} loading={pending}>
+          <RefreshCw size={14} strokeWidth={2} aria-hidden />
+          Atualizar preço
+        </Button>
+      </div>
+      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-secondary)]">
+        {isPro
+          ? "A gente atualiza esse preço todo dia."
+          : "No Pro, a gente atualiza esse preço todo dia pra você."}
+      </p>
+
+      {error ? (
+        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
+          {error}
+        </span>
+      ) : null}
+      {success ? (
+        <span className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-positive)]">
+          {success}
+        </span>
+      ) : null}
+
+      <Sheet open={nudgeOpen} onOpenChange={setNudgeOpen}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>Deixa o preço se atualizar sozinho</SheetTitle>
+            <SheetDescription>
+              O preço da cripto muda toda hora. No Pro, a gente atualiza pra você todo dia, sem
+              você precisar lembrar.
+            </SheetDescription>
+          </SheetHeader>
+          <div className="mt-4">
+            <Link
+              href={"/app/configuracoes/planos" as Route}
+              className="focus-ring inline-flex h-10 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)] px-4 text-[0.8125rem] font-semibold text-white"
+            >
+              Conhecer o Pro
+            </Link>
+          </div>
+        </SheetContent>
+      </Sheet>
+    </section>
+  );
+}
+
+function FixedIncomeProjectionSection({
+  projection,
+}: {
+  projection: { ratePct: string; oneYearFormatted: string };
+}) {
+  return (
+    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Projeção</h2>
+      <p className="mt-2 text-[0.8125rem] text-[color:var(--text-primary)] opacity-80">
+        No ritmo de {projection.ratePct}% ao ano, em 1 ano você teria cerca de{" "}
+        <span className="font-semibold">
+          <HideableValue>{projection.oneYearFormatted}</HideableValue>
+        </span>
+        .
+      </p>
+      <p className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">
+        Estimativa no ritmo atual. O valor real depende da taxa que continuar valendo.
+      </p>
     </section>
   );
 }
@@ -832,7 +983,7 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
 
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Valorização</h2>
+      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Quanto mudou de valor</h2>
       <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.75rem]">
         <div>
           <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
@@ -852,7 +1003,7 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
         </div>
         <div className="col-span-2">
           <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            {view.isNegative ? "Perda" : "Ganho"}
+            {view.isNegative ? "Quanto caiu" : "Quanto rendeu"}
           </dt>
           <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${deltaColor}`}>
             <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
@@ -863,6 +1014,9 @@ function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
               <span className="text-[0.6875rem] opacity-80">({view.deltaPctFormatted})</span>
             ) : null}
           </dd>
+          <p className="mt-1 text-[0.625rem] text-[color:var(--text-muted)]">
+            desde que você comprou
+          </p>
         </div>
       </dl>
     </section>

@@ -15,7 +15,7 @@ import { queryKeys } from "../../_lib/query-keys";
 import { updateIncomeAction } from "../_actions/update-income.action";
 
 const formSchema = z.object({
-  label: z.string().min(1, "Informe um rótulo.").max(120),
+  label: z.string().min(1, "Informe um nome.").max(120),
   amountCents: z.bigint().positive("Valor deve ser positivo."),
   currency: z.enum(CURRENCIES),
   frequency: z.enum(["monthly", "weekly", "one_off"]),
@@ -70,6 +70,10 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
   const currency = form.watch("currency");
   const frequency = form.watch("frequency");
   const [showEnd, setShowEnd] = useState(Boolean(income.endDateIso));
+  const [showStart, setShowStart] = useState(() => {
+    const start = new Date(income.startDateIso);
+    return Number.isFinite(start.getTime()) && start.getTime() > Date.now();
+  });
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -135,7 +139,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
           <select id="renda-edit-frequency" {...form.register("frequency")} className={fieldClass}>
             <option value="monthly">Todo mês</option>
             <option value="weekly">Toda semana</option>
-            <option value="one_off">Foi uma vez só</option>
+            <option value="one_off">Uma vez só</option>
           </select>
         </div>
 
@@ -159,7 +163,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         ) : (
           <div>
             <label className={labelClass} htmlFor="renda-edit-start">
-              Início
+              {frequency === "one_off" ? "Quando caiu ou vai cair?" : "A partir de quando?"}
             </label>
             <input
               id="renda-edit-start"
@@ -170,6 +174,30 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
           </div>
         )}
       </div>
+
+      {frequency === "monthly" ? (
+        showStart ? (
+          <div>
+            <label className={labelClass} htmlFor="renda-edit-start-monthly">
+              A partir de quando?
+            </label>
+            <input
+              id="renda-edit-start-monthly"
+              type="date"
+              {...form.register("startDate")}
+              className={fieldClass}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowStart(true)}
+            className="focus-ring -mt-1 w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Ainda não recebo essa renda
+          </button>
+        )
+      ) : null}
 
       {showEnd ? (
         <div>

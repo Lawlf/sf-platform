@@ -25,6 +25,7 @@ export function AssetCard({
   const nwColor = netWorthIsNegative
     ? "text-[color:var(--semantic-negative)]"
     : "text-[color:var(--semantic-positive)]";
+  const showNet = netWorthFormatted !== valueFormatted;
   return (
     <Link
       href={href}
@@ -40,11 +41,15 @@ export function AssetCard({
           <span className="font-semibold text-[color:var(--text-primary)]">
             <HideableValue>{valueFormatted}</HideableValue>
           </span>
-          <span className="text-[color:var(--text-muted)]">·</span>
-          <span className="text-[color:var(--text-muted)]">Líquido</span>
-          <span className={`font-semibold ${nwColor}`}>
-            <HideableValue>{netWorthFormatted}</HideableValue>
-          </span>
+          {showNet ? (
+            <>
+              <span className="text-[color:var(--text-muted)]">·</span>
+              <span className="text-[color:var(--text-muted)]">Líquido</span>
+              <span className={`font-semibold ${nwColor}`}>
+                <HideableValue>{netWorthFormatted}</HideableValue>
+              </span>
+            </>
+          ) : null}
         </div>
       </div>
       <ChevronRight

@@ -18,7 +18,7 @@ import { parseIncomeSeed } from "../../simular/_lib/income-seed";
 import { createIncomeAction } from "../_actions/create-income.action";
 
 const formSchema = z.object({
-  label: z.string().min(1, "Informe um rótulo.").max(120),
+  label: z.string().min(1, "Informe um nome.").max(120),
   amountCents: z.bigint().positive("Valor deve ser positivo."),
   currency: z.enum(CURRENCIES),
   frequency: z.enum(["monthly", "weekly", "one_off"]),
@@ -66,6 +66,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
   const currency = form.watch("currency");
   const frequency = form.watch("frequency");
   const [showEnd, setShowEnd] = useState(false);
+  const [showStart, setShowStart] = useState(false);
   const [showDetails, setShowDetails] = useState(
     seed?.frequency != null && seed.frequency !== "monthly",
   );
@@ -156,6 +157,30 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         </div>
       ) : null}
 
+      {frequency === "monthly" ? (
+        showStart ? (
+          <div>
+            <label className={labelClass} htmlFor="renda-start-monthly">
+              A partir de quando?
+            </label>
+            <input
+              id="renda-start-monthly"
+              type="date"
+              {...form.register("startDate")}
+              className={fieldClass}
+            />
+          </div>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowStart(true)}
+            className="focus-ring -mt-1 w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Ainda não recebo essa renda
+          </button>
+        )
+      ) : null}
+
       {showDetails ? (
         <>
           <div className="grid gap-3 sm:grid-cols-2">
@@ -166,14 +191,14 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
               <select id="renda-frequency" {...form.register("frequency")} className={fieldClass}>
                 <option value="monthly">Todo mês</option>
                 <option value="weekly">Toda semana</option>
-                <option value="one_off">Foi uma vez só</option>
+                <option value="one_off">Uma vez só</option>
               </select>
             </div>
 
             {frequency === "monthly" ? null : (
               <div>
                 <label className={labelClass} htmlFor="renda-start">
-                  Início
+                  {frequency === "one_off" ? "Quando caiu ou vai cair?" : "A partir de quando?"}
                 </label>
                 <input
                   id="renda-start"

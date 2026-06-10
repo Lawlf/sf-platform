@@ -8,10 +8,10 @@ import { WizardShell, type WizardStep } from "../../../../dividas/nova/_componen
 import type { AssetWizardForm, InvestmentType } from "../asset-wizard.client";
 
 const INVESTMENT_TYPE_OPTIONS: { id: InvestmentType; title: string; description: string }[] = [
-  { id: "stocks", title: "Ações", description: "B3, ticker, quantidade." },
-  { id: "fund", title: "Fundo", description: "FIIs, FIA, fundos de investimento." },
   { id: "fixed_income", title: "Renda fixa", description: "Tesouro, CDB, LCI/LCA." },
   { id: "crypto", title: "Cripto", description: "BTC, ETH, stablecoins." },
+  { id: "stocks", title: "Ações", description: "B3, ticker, quantidade." },
+  { id: "fund", title: "Fundo", description: "Fundos imobiliários (FIIs) e outros." },
   { id: "other", title: "Outro", description: "Qualquer outro investimento." },
 ];
 
@@ -34,7 +34,7 @@ export function InvestmentTypeStep({
     <WizardShell
       currentStep={visualStep}
       title="Tipo de investimento"
-      description="Escolha o tipo mais próximo. Os campos do próximo passo são específicos para cada tipo."
+      description="Escolha o que mais combina. Dá pra ajustar depois."
       onBack={onBack}
       totalSteps={totalSteps}
     >

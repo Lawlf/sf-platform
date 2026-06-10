@@ -128,3 +128,11 @@ export class AssetNotCash extends DomainError {
     super(message);
   }
 }
+
+export class AssetNotCrypto extends DomainError {
+  readonly code = "ASSET_NOT_CRYPTO" as const;
+
+  constructor(message = "Esse ativo não é uma cripto.") {
+    super(message);
+  }
+}

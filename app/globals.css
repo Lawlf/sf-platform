@@ -207,6 +207,11 @@
     font-family: var(--font-sans);
     font-feature-settings: "cv11", "ss01";
     -webkit-font-smoothing: antialiased;
+  }
+
+  /* clip só no body: html precisa ficar visible pra overflow:hidden do
+     react-remove-scroll (Radix) propagar pro viewport e travar o fundo. */
+  body {
     overflow-x: clip;
   }
 

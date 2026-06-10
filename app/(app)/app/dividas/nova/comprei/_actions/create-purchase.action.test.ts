@@ -74,6 +74,7 @@ function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepositoryPort {
     findByIdWithAllocations: vi.fn(async () => null),
     findActiveWithAllocations: vi.fn(async () => []),
     listStockTickersForUser: vi.fn(async () => []),
+    listCryptoTickersForUser: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),

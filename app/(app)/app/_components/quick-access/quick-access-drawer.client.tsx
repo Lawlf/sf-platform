@@ -2,7 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import dynamic from "next/dynamic";
-import type { ReactNode } from "react";
+import { Suspense, type ReactNode } from "react";
 
 import {
   Sheet,
@@ -11,6 +11,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
 
 import { fetchActiveDebtsForSim, type SimDebt } from "../../_actions/sim-debts.action";
 
@@ -88,7 +89,19 @@ export function QuickAccessDrawer({
                 {config.description}
               </SheetDescription>
             </SheetHeader>
-            <div className="mt-4">{open ? <DrawerBody itemKey={itemKey!} /> : null}</div>
+            <div className="mt-4">
+              {open ? (
+                <Suspense
+                  fallback={
+                    <div className="flex h-32 items-center justify-center">
+                      <Spinner size={20} />
+                    </div>
+                  }
+                >
+                  <DrawerBody itemKey={itemKey!} onClose={onClose} />
+                </Suspense>
+              ) : null}
+            </div>
           </>
         ) : null}
       </SheetContent>
@@ -96,7 +109,7 @@ export function QuickAccessDrawer({
   );
 }
 
-function DrawerBody({ itemKey }: { itemKey: string }) {
+function DrawerBody({ itemKey, onClose }: { itemKey: string; onClose: () => void }) {
   switch (itemKey) {
     case "sim_quitacao":
       return <DebtsGate>{(debts) => <PayoffForm debts={debts} />}</DebtsGate>;
@@ -109,7 +122,7 @@ function DrawerBody({ itemKey }: { itemKey: string }) {
     case "add_income":
       return <IncomeForm />;
     case "add_asset":
-      return <AssetWizardClient />;
+      return <AssetWizardClient onClose={onClose} />;
     default:
       return null;
   }
