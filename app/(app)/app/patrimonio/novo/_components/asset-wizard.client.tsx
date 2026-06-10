@@ -15,6 +15,8 @@ import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
 
+import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
+
 import { CATEGORIES, type Category } from "./asset-categories";
 import { CategoryStep } from "./steps/category-step";
 import { ConfirmStep } from "./steps/confirm-step";
@@ -184,16 +186,19 @@ export function AssetWizardClient({
   const investmentType = form.watch("investmentType");
 
   const hasInvestmentStep = category === "investment";
+  // Dívida atrelada só faz sentido pra bem financiável (carro, imóvel). Reserva,
+  // investimento e "outro" pulam essa tela direto pro resumo.
+  const hasDebtStep = category === "vehicle" || category === "real_estate";
 
-  const totalSteps = hasInvestmentStep ? 5 : 4;
+  const totalSteps = 3 + (hasInvestmentStep ? 1 : 0) + (hasDebtStep ? 1 : 0);
 
   const visualStep = useMemo(() => {
     if (step === "category") return 1 as const;
     if (step === "investment_type") return 2 as const;
     if (step === "details") return hasInvestmentStep ? 3 : 2;
     if (step === "linked_debt") return hasInvestmentStep ? 4 : 3;
-    return hasInvestmentStep ? 5 : 4;
-  }, [step, hasInvestmentStep]);
+    return totalSteps as WizardStep;
+  }, [step, hasInvestmentStep, totalSteps]);
 
   function gotoNext() {
     if (step === "category") {
@@ -211,7 +216,7 @@ export function AssetWizardClient({
       return;
     }
     if (step === "details") {
-      setStep("linked_debt");
+      setStep(hasDebtStep ? "linked_debt" : "confirm");
       return;
     }
     if (step === "linked_debt") {
@@ -222,7 +227,7 @@ export function AssetWizardClient({
 
   function gotoBack() {
     if (step === "confirm") {
-      setStep("linked_debt");
+      setStep(hasDebtStep ? "linked_debt" : "details");
       return;
     }
     if (step === "linked_debt") {

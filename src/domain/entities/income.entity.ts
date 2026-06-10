@@ -17,6 +17,13 @@ export interface IncomeEntity {
    */
   paymentDay: number | null;
   /**
+   * Renda cujo valor oscila mês a mês (comissão, freela, PJ). O valor segue
+   * sendo um número só (a média informada pelo usuário); a flag só sinaliza
+   * que é estimativa, não promessa, pra UI e prescrição não tratarem como
+   * receita garantida.
+   */
+  isEstimated: boolean;
+  /**
    * Momento em que a renda foi cadastrada no sistema. Distinto de `startDate`
    * (data em que a renda começa a valer pro usuário), permite que a linha do
    * tempo posicione o evento "Nova renda" no mês de criação real mesmo

@@ -33,6 +33,10 @@ export const incomes = pgTable(
     // Alimenta o saldo reativo da Carteira (crédito na data real, não no
     // começo do mês).
     paymentDay: integer("payment_day"),
+    // Renda de valor variável (comissao/freela/PJ): o valor segue sendo um
+    // numero so (media), a flag so marca que e estimativa pra UI e prescricao
+    // nao tratarem como receita garantida.
+    isEstimated: boolean("is_estimated").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

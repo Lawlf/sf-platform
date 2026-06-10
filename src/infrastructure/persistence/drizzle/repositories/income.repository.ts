@@ -20,6 +20,7 @@ function rowToEntity(row: IncomeRow): IncomeEntity {
     paymentDay: row.paymentDay,
     endDate: row.endDate,
     isActive: row.isActive,
+    isEstimated: row.isEstimated,
     createdAt: row.createdAt,
     deletedAt: row.deletedAt ?? null,
   };
@@ -37,6 +38,7 @@ function entityToRow(entity: IncomeEntity): NewIncomeRow {
     paymentDay: entity.paymentDay,
     endDate: entity.endDate,
     isActive: entity.isActive,
+    isEstimated: entity.isEstimated,
     createdAt: entity.createdAt,
     deletedAt: entity.deletedAt,
   };

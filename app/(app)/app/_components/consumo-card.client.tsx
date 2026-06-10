@@ -30,7 +30,7 @@ export function ConsumoCard({ total, essencial, parcelado, resto }: ConsumoCardP
         R$ {formatBrl(total)}
       </div>
       <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
-        Saíram fora de dívida e reserva.
+        O que você gastou no dia a dia, fora dívida e reserva.
       </p>
       <div className="flex h-2 w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
         <div className="h-full bg-[color:var(--color-brand-800)]" style={{ width: `${pe}%` }} />

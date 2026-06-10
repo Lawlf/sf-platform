@@ -17,6 +17,7 @@ export interface RegisterIncomeInput {
   startDate: Date;
   endDate: Date | null;
   paymentDay?: number | null;
+  isEstimated?: boolean;
 }
 
 export async function registerIncome(
@@ -33,6 +34,7 @@ export async function registerIncome(
     startDate: input.startDate,
     endDate: input.endDate,
     paymentDay: input.frequency === "monthly" ? (input.paymentDay ?? null) : null,
+    isEstimated: input.isEstimated ?? false,
     isActive: true,
     createdAt: now,
     deletedAt: null,

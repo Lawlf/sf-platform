@@ -314,7 +314,7 @@ export function CreditCardForm({
         title={existing ? "Cartão com saldo antigo" : "Limites e fatura"}
         description={
           existing
-            ? "Dados do cartão e do saldo devedor atual."
+            ? "Dados do cartão e de quanto ainda falta pagar."
             : "Dados do cartão e da fatura atual."
         }
         onBack={() =>
@@ -342,7 +342,7 @@ export function CreditCardForm({
           />
         </WizardField>
 
-        <WizardField label="Rótulo do cartão" htmlFor={labelId} error={errors.label?.message}>
+        <WizardField label="Nome do cartão" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
@@ -367,7 +367,7 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label={existing ? "Saldo devedor atual" : "Fatura atual em aberto"}
+          label={existing ? "Quanto ainda falta pagar" : "Quanto tem de fatura agora"}
           htmlFor={statementId}
           error={errors.currentStatementCents?.message}
         >
@@ -448,7 +448,7 @@ export function CreditCardForm({
         currentStep={visibleStep(3)}
         totalSteps={totalSteps}
         title="Taxas"
-        description="Taxa do rotativo e data de início."
+        description="Juros do cartão e data de início."
         onBack={() => setStep(2)}
         primary={{
           label: "Continuar",
@@ -459,7 +459,7 @@ export function CreditCardForm({
         }}
       >
         <WizardField
-          label="Taxa do rotativo por mês (opcional)"
+          label="Juros do cartão por mês (opcional)"
           htmlFor={rateId}
           error={errors.revolvingMonthlyRatePct?.message}
           helpLink={<HowItWorksSheet topic="rotativo" variant="brand" />}
@@ -480,7 +480,7 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label="Saldo rotativo de faturas anteriores (opcional)"
+          label="Sobrou fatura de mÃªs passado sem pagar? (opcional)"
           htmlFor={revolvingBalanceId}
           error={errors.revolvingBalanceCents?.message}
         >
@@ -571,7 +571,7 @@ export function CreditCardForm({
 
   const rateLabel =
     values.revolvingMonthlyRatePct !== null && values.revolvingMonthlyRatePct !== undefined
-      ? `${values.revolvingMonthlyRatePct}% a.m.`
+      ? `${values.revolvingMonthlyRatePct}% por mÃªs`
       : "Sem taxa";
 
   const linkSummary = buildLinkSummary(values);
@@ -593,14 +593,14 @@ export function CreditCardForm({
       }}
     >
       <ComputedCard
-        label="Juros mensais se ficar no rotativo"
+        label="Juros por mÃªs se nÃ£o pagar tudo"
         value={interestText}
         sub="Considerando a taxa atual"
       />
 
       <SummaryList
         items={[
-          { label: "Rótulo", value: values.label || "Sem rótulo" },
+          { label: "Nome", value: values.label || "Sem nome" },
           { label: "Tipo", value: "Cartão de crédito" },
           {
             label: "Limite",
@@ -611,7 +611,7 @@ export function CreditCardForm({
           { label: "Fatura atual", value: formatCentsBRL(values.currentStatementCents) },
           { label: "Fechamento", value: `Dia ${values.statementDay}` },
           { label: "Vencimento", value: `Dia ${values.dueDay}` },
-          { label: "Taxa rotativo", value: rateLabel },
+          { label: "Juros do cartÃ£o", value: rateLabel },
           {
             label: "Compras parceladas",
             value:

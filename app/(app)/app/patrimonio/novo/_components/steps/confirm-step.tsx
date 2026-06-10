@@ -20,7 +20,7 @@ const CATEGORY_LABEL: Record<Category, string> = {
   vehicle: "Veículo",
   real_estate: "Imóvel",
   investment: "Investimento",
-  cash: "Reserva / Conta",
+  cash: "Dinheiro em conta",
   other: "Outro",
 };
 

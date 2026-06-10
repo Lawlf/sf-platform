@@ -54,6 +54,7 @@ function makeIncome(amountReais: number): IncomeEntity {
     startDate: new Date("2025-01-01T00:00:00Z"),
     paymentDay: null,
     endDate: null,
+    isEstimated: false,
     isActive: true,
     createdAt: new Date("2025-01-01T00:00:00Z"),
     deletedAt: null,

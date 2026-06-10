@@ -26,7 +26,9 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
         <div>
           <h2 className="text-sm font-semibold">Complete seu perfil</h2>
           <p className="text-xs opacity-70">
-            {doneCount} de {items.length} prontos. Quanto mais completo, melhor o seu plano.
+            {doneCount === 0
+              ? `Faltam ${items.length} passos pro seu plano ficar completo.`
+              : `${doneCount} de ${items.length} prontos. Quanto mais completo, melhor o seu plano.`}
           </p>
         </div>
         <button

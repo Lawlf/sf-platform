@@ -25,6 +25,7 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Informe a data inicial."),
   endDate: z.string().nullable().optional(),
   paymentDay: z.number().int().min(1).max(31).nullable(),
+  isEstimated: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -58,12 +59,16 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       startDate: TODAY,
       endDate: null,
       paymentDay: 5,
+      isEstimated: false,
     },
   });
 
   const currency = form.watch("currency");
   const frequency = form.watch("frequency");
   const [showEnd, setShowEnd] = useState(false);
+  const [showDetails, setShowDetails] = useState(
+    seed?.frequency != null && seed.frequency !== "monthly",
+  );
 
   async function onSubmit(values: FormValues) {
     setServerError(null);
@@ -78,6 +83,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       "paymentDay",
       values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
     );
+    if (values.isEstimated) fd.set("isEstimated", "true");
     startTransition(async () => {
       const r = await createIncomeAction(fd);
       if (!r.ok) {
@@ -128,67 +134,101 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         href={"/app/simular/salario-clt" as Route}
         className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
       >
-        Não sabe o líquido? Calcular a partir do bruto
+        Só sei o salário no papel? Calcular o que cai na conta
       </Link>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      {frequency === "monthly" ? (
         <div>
-          <label className={labelClass} htmlFor="renda-frequency">
-            Frequência
+          <label className={labelClass} htmlFor="renda-payment-day">
+            Que dia costuma cair?
           </label>
-          <select id="renda-frequency" {...form.register("frequency")} className={fieldClass}>
-            <option value="monthly">Mensal</option>
-            <option value="weekly">Semanal</option>
-            <option value="one_off">Uma vez só</option>
+          <select
+            id="renda-payment-day"
+            {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
+            className={fieldClass}
+          >
+            {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+              <option key={d} value={d}>
+                Dia {d}
+              </option>
+            ))}
           </select>
         </div>
+      ) : null}
 
-        {frequency === "monthly" ? (
-          <div>
-            <label className={labelClass} htmlFor="renda-payment-day">
-              Que dia costuma cair?
-            </label>
-            <select
-              id="renda-payment-day"
-              {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
-              className={fieldClass}
+      {showDetails ? (
+        <>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <label className={labelClass} htmlFor="renda-frequency">
+                Com que frequência cai?
+              </label>
+              <select id="renda-frequency" {...form.register("frequency")} className={fieldClass}>
+                <option value="monthly">Todo mês</option>
+                <option value="weekly">Toda semana</option>
+                <option value="one_off">Foi uma vez só</option>
+              </select>
+            </div>
+
+            {frequency === "monthly" ? null : (
+              <div>
+                <label className={labelClass} htmlFor="renda-start">
+                  Início
+                </label>
+                <input
+                  id="renda-start"
+                  type="date"
+                  {...form.register("startDate")}
+                  className={fieldClass}
+                />
+              </div>
+            )}
+          </div>
+
+          {showEnd ? (
+            <div>
+              <label className={labelClass} htmlFor="renda-end">
+                Quando essa renda acaba?
+              </label>
+              <input
+                id="renda-end"
+                type="date"
+                {...form.register("endDate")}
+                className={fieldClass}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowEnd(true)}
+              className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
             >
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                <option key={d} value={d}>
-                  Dia {d}
-                </option>
-              ))}
-            </select>
-          </div>
-        ) : (
-          <div>
-            <label className={labelClass} htmlFor="renda-start">
-              Início
-            </label>
-            <input
-              id="renda-start"
-              type="date"
-              {...form.register("startDate")}
-              className={fieldClass}
-            />
-          </div>
-        )}
-      </div>
+              Essa renda vai acabar um dia? (ex: contrato, freela)
+            </button>
+          )}
 
-      {showEnd ? (
-        <div>
-          <label className={labelClass} htmlFor="renda-end">
-            Quando essa renda acaba?
+          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
+            <input
+              type="checkbox"
+              {...form.register("isEstimated")}
+              className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
+            />
+            <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
+              Esse valor varia mês a mês (é uma média)
+              <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
+                Pra comissão, freela ou renda de PJ. Tratamos como estimativa,
+                não como receita garantida.
+              </span>
+            </span>
           </label>
-          <input id="renda-end" type="date" {...form.register("endDate")} className={fieldClass} />
-        </div>
+        </>
       ) : (
         <button
           type="button"
-          onClick={() => setShowEnd(true)}
+          onClick={() => setShowDetails(true)}
           className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
         >
-          Essa renda tem prazo? (ex: contrato, freela)
+          Cai todo mês? Ajustar frequência e prazo
         </button>
       )}
 

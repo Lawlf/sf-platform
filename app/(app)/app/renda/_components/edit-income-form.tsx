@@ -22,6 +22,7 @@ const formSchema = z.object({
   startDate: z.string().min(1, "Informe a data inicial."),
   endDate: z.string().nullable().optional(),
   paymentDay: z.number().int().min(1).max(31).nullable(),
+  isEstimated: z.boolean(),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -42,6 +43,7 @@ export interface EditIncomeFormProps {
     startDateIso: string;
     endDateIso: string | null;
     paymentDay: number | null;
+    isEstimated: boolean;
   };
 }
 
@@ -61,6 +63,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       startDate: income.startDateIso,
       endDate: income.endDateIso,
       paymentDay: income.paymentDay ?? 5,
+      isEstimated: income.isEstimated,
     },
   });
 
@@ -82,6 +85,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       "paymentDay",
       values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
     );
+    if (values.isEstimated) fd.set("isEstimated", "true");
     startTransition(async () => {
       const r = await updateIncomeAction(fd);
       if (!r.ok) {
@@ -126,12 +130,12 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
           <label className={labelClass} htmlFor="renda-edit-frequency">
-            Frequência
+            Com que frequência cai?
           </label>
           <select id="renda-edit-frequency" {...form.register("frequency")} className={fieldClass}>
-            <option value="monthly">Mensal</option>
-            <option value="weekly">Semanal</option>
-            <option value="one_off">Uma vez só</option>
+            <option value="monthly">Todo mês</option>
+            <option value="weekly">Toda semana</option>
+            <option value="one_off">Foi uma vez só</option>
           </select>
         </div>
 
@@ -185,9 +189,24 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
           onClick={() => setShowEnd(true)}
           className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
         >
-          Essa renda tem prazo? (ex: contrato, freela)
+          Essa renda vai acabar um dia? (ex: contrato, freela)
         </button>
       )}
+
+      <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
+        <input
+          type="checkbox"
+          {...form.register("isEstimated")}
+          className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
+        />
+        <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
+          Esse valor varia mês a mês (é uma média)
+          <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
+            Pra comissão, freela ou renda de PJ. Tratamos como estimativa, não
+            como receita garantida.
+          </span>
+        </span>
+      </label>
 
       {serverError ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">

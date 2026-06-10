@@ -24,7 +24,7 @@ export function buildLoanSummary({
   if (values.scenario === "new") {
     const cashSummary = buildCashSummaryNew(values, cashAssets);
     return [
-      { label: "Rótulo", value: values.label || "Sem rótulo" },
+      { label: "Nome", value: values.label || "Sem nome" },
       { label: "Tipo", value: "Empréstimo ou crediário" },
       { label: "Valor recebido", value: formatCentsBRL(values.netReceivedCents) },
       { label: "Valor contratado", value: formatCentsBRL(values.principalCents) },
@@ -42,10 +42,10 @@ export function buildLoanSummary({
     ];
   }
   return [
-    { label: "Rótulo", value: values.label || "Sem rótulo" },
+    { label: "Nome", value: values.label || "Sem nome" },
     { label: "Tipo", value: "Empréstimo ou crediário" },
     { label: "Valor original contratado", value: formatCentsBRL(values.originalPrincipalCents) },
-    { label: "Saldo devedor atual", value: formatCentsBRL(values.currentBalanceCents) },
+    { label: "Quanto ainda falta pagar", value: formatCentsBRL(values.currentBalanceCents) },
     { label: "Parcela", value: formatCentsBRL(values.monthlyInstallmentCents) },
     { label: "Parcelas pagas", value: `${values.paidInstallments}` },
     { label: "Parcelas restantes", value: `${values.remainingTerms}` },

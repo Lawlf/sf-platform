@@ -18,6 +18,10 @@ export const incomeFormSchema = z.object({
     ])
     .nullable()
     .default(null),
+  isEstimated: z
+    .union([z.boolean(), z.literal("true"), z.literal("false"), z.literal("")])
+    .optional()
+    .transform((v) => v === true || v === "true"),
 });
 
 export type IncomeFormInput = z.infer<typeof incomeFormSchema>;

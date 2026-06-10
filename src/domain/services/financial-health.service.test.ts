@@ -36,6 +36,7 @@ function income(over: Partial<IncomeEntity> = {}): IncomeEntity {
     startDate: new Date("2024-01-01"),
     paymentDay: null,
     endDate: null,
+    isEstimated: false,
     isActive: true,
     createdAt: new Date("2024-01-01"),
     deletedAt: null,

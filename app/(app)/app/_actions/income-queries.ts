@@ -14,6 +14,7 @@ export interface IncomeListItemPayload {
   amount: SerializedMoney;
   frequency: IncomeFrequency;
   isActive: boolean;
+  isEstimated: boolean;
 }
 
 export async function fetchIncomes(): Promise<IncomeListItemPayload[]> {
@@ -27,5 +28,6 @@ export async function fetchIncomes(): Promise<IncomeListItemPayload[]> {
     amount: serializeMoney(i.amount),
     frequency: i.frequency,
     isActive: i.isActive,
+    isEstimated: i.isEstimated,
   }));
 }

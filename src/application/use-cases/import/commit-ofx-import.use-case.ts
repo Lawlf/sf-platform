@@ -173,6 +173,7 @@ export async function commitOfxImport(
       startDate: now,
       endDate: null,
       paymentDay: null,
+      isEstimated: false,
       isActive: true,
       createdAt: now,
       deletedAt: null,

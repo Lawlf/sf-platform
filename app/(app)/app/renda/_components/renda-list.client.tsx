@@ -70,6 +70,16 @@ export function RendaListClient() {
                       <span className="text-[color:var(--text-muted)]">
                         {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
                       </span>
+                      {income.isEstimated ? (
+                        <>
+                          <span className="text-[color:var(--text-muted)]">·</span>
+                          <SimpleTooltip label="Valor varia mês a mês. Tratamos como média, não receita garantida.">
+                            <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+                              estimada
+                            </span>
+                          </SimpleTooltip>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
@@ -120,6 +130,14 @@ export function RendaListClient() {
                       <span className="text-[color:var(--text-muted)]">
                         {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
                       </span>
+                      {income.isEstimated ? (
+                        <>
+                          <span className="text-[color:var(--text-muted)]">·</span>
+                          <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+                            estimada
+                          </span>
+                        </>
+                      ) : null}
                     </div>
                   </div>
                   <div className="flex shrink-0 items-center gap-1">

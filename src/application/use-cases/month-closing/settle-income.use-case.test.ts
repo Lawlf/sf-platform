@@ -23,6 +23,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     frequency: "monthly",
     startDate: new Date(Date.UTC(2026, 0, 1)),
     endDate: null,
+    isEstimated: false,
     isActive: true,
     paymentDay: 5,
     createdAt: new Date(Date.UTC(2026, 0, 1)),
