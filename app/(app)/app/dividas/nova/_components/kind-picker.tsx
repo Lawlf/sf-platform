@@ -75,7 +75,7 @@ export function KindPicker() {
       currentStep={1}
       title="O que aconteceu?"
       description="Uma compra, um cartão, uma assinatura, dinheiro que você deve pra alguém ou algo antigo. Pode ser pequeno."
-      onBack={() => router.push("/app" as Route)}
+      onBack={() => router.push("/app/dividas" as Route)}
     >
       <div role="radiogroup" aria-label="O que aconteceu" className="flex flex-col gap-2 md:gap-3.5">
         {ACTIONS.map((action) => (

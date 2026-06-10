@@ -423,7 +423,7 @@ export function NewPurchaseWizard() {
         totalSteps={totalSteps}
         title={title}
         description={description}
-        onBack={() => router.push("/app" as Route)}
+        onBack={() => router.push("/app/dividas/nova" as Route)}
         primary={{
           label: "Continuar",
           onClick: goToStep2,
