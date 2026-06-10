@@ -32,15 +32,15 @@ function brl(cents: bigint): string {
 
 type AssetCategoryUi = "vehicle" | "real_estate" | "investment" | "cash" | "other";
 type ExpenseCategoryUi =
-  | "housing"
-  | "utilities"
-  | "food"
-  | "transport"
-  | "health"
-  | "leisure"
-  | "subscriptions"
-  | "education"
-  | "other";
+  | "moradia"
+  | "contas"
+  | "alimentacao"
+  | "transporte"
+  | "saude"
+  | "lazer"
+  | "assinaturas"
+  | "educacao"
+  | "outros";
 type DepreciationKindUi = "appreciating" | "stable" | "depreciating" | "consumable";
 type PaymentMethodUi = "cash" | "card";
 
@@ -53,15 +53,15 @@ const ASSET_CATEGORY_META: Record<AssetCategoryUi, { title: string; description:
 };
 
 const EXPENSE_CATEGORY_META: Record<ExpenseCategoryUi, { title: string; description: string }> = {
-  housing: { title: "Moradia", description: "Aluguel, condomínio." },
-  utilities: { title: "Contas", description: "Luz, água, internet." },
-  food: { title: "Alimentação", description: "Mercado, refeições." },
-  transport: { title: "Transporte", description: "Combustível, app." },
-  health: { title: "Saúde", description: "Plano, remédios." },
-  leisure: { title: "Lazer", description: "Passeios, hobbies." },
-  subscriptions: { title: "Assinaturas", description: "Streaming, apps." },
-  education: { title: "Educação", description: "Cursos, livros." },
-  other: { title: "Outros", description: "Demais despesas." },
+  moradia: { title: "Moradia", description: "Aluguel, condomínio." },
+  contas: { title: "Contas", description: "Luz, água, internet." },
+  alimentacao: { title: "Alimentação", description: "Mercado, refeições." },
+  transporte: { title: "Transporte", description: "Combustível, app." },
+  saude: { title: "Saúde", description: "Plano, remédios." },
+  lazer: { title: "Lazer", description: "Passeios, hobbies." },
+  assinaturas: { title: "Assinaturas", description: "Streaming, apps." },
+  educacao: { title: "Educação", description: "Cursos, livros." },
+  outros: { title: "Outros", description: "Demais despesas." },
 };
 
 function defaultDepKindForCategory(category: AssetCategoryUi): DepreciationKindUi {
@@ -97,7 +97,7 @@ export function PurchaseSimulatorClient() {
   const [showSaveForm, setShowSaveForm] = useState(false);
   const [assetLabel, setAssetLabel] = useState("");
   const [assetCategory, setAssetCategory] = useState<AssetCategoryUi>("other");
-  const [expenseCategory, setExpenseCategory] = useState<ExpenseCategoryUi>("leisure");
+  const [expenseCategory, setExpenseCategory] = useState<ExpenseCategoryUi>("lazer");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethodUi>("cash");
   const [purchaseDate, setPurchaseDate] = useState<string>(todayIso());
   const [serverError, setServerError] = useState<string | null>(null);

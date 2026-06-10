@@ -6,6 +6,8 @@ import {
   updateDebt,
   type UpdateDebtInput,
 } from "@/application/use-cases/debt/update-debt.use-case";
+import { normalizeLegacyExpenseCategory } from "@/domain/categories/default-categories";
+import { activeCategories, resolveCategories } from "@/domain/categories/resolve-categories";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
@@ -79,19 +81,7 @@ const schema = z.object({
     .union([positiveBigint, z.literal("").transform(() => null)])
     .optional(),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]).optional(),
-  expenseCategory: z
-    .enum([
-      "housing",
-      "utilities",
-      "food",
-      "transport",
-      "health",
-      "leisure",
-      "subscriptions",
-      "education",
-      "other",
-    ])
-    .optional(),
+  expenseCategory: z.string().min(1).optional(),
   installmentPurchasesJson: z.string().optional(),
 });
 
@@ -153,7 +143,15 @@ export const updateDebtAction = action({
     if (overdraftMonthlyRate !== undefined) input.monthlyRate = overdraftMonthlyRate;
     if (d.recurringAmountCents != null) input.recurringAmountCents = d.recurringAmountCents;
     if (d.recurringFrequency !== undefined) input.recurringFrequency = d.recurringFrequency;
-    if (d.expenseCategory !== undefined) input.expenseCategory = d.expenseCategory;
+    if (d.expenseCategory !== undefined) {
+      const expenseCategory = normalizeLegacyExpenseCategory(d.expenseCategory);
+      const rows = await repos.userCategories.listForUser(userId);
+      const valid = activeCategories(resolveCategories("expense", rows)).some(
+        (c) => c.key === expenseCategory,
+      );
+      if (!valid) throw new ActionError("Categoria inválida.");
+      input.expenseCategory = expenseCategory;
+    }
 
     if (d.installmentPurchasesJson !== undefined) {
       let parsedJson: unknown;

@@ -22,4 +22,6 @@ export interface DebtRepositoryPort {
    * próprio use case via repositórios dedicados antes do soft delete aqui.
    */
   softDelete(id: string, deletedAt: Date): Promise<void>;
+  countByExpenseCategory(userId: string, categoryKey: string): Promise<number>;
+  reassignExpenseCategory(userId: string, fromKey: string, toKey: string): Promise<void>;
 }

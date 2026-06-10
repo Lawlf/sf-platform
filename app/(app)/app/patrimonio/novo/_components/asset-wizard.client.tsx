@@ -11,11 +11,11 @@ import { z } from "zod";
 
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
+import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
 import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
 
-import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
 
 import { CATEGORIES, type Category } from "./asset-categories";
 import { CategoryStep } from "./steps/category-step";

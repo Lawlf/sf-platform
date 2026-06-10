@@ -37,6 +37,7 @@ function writeDeps(): PerformMcpWriteDeps {
       assets: repos.assets,
       goals: repos.goals,
       transactions: repos.transactions,
+      userCategories: repos.userCategories,
       clock,
     },
     audit: repos.mcpAuditLogs,
@@ -56,6 +57,7 @@ function confirmDeps(): ConfirmMcpActionDeps {
       assets: repos.assets,
       goals: repos.goals,
       transactions: repos.transactions,
+      userCategories: repos.userCategories,
       clock,
     },
     audit: repos.mcpAuditLogs,
@@ -86,17 +88,13 @@ const currency = z.enum(CURRENCIES).optional();
 
 const incomeFrequency = z.enum(["monthly", "weekly", "one_off"]);
 const recurringFrequency = z.enum(["monthly", "weekly", "annual"]);
-const expenseCategory = z.enum([
-  "housing",
-  "utilities",
-  "food",
-  "transport",
-  "health",
-  "leisure",
-  "subscriptions",
-  "education",
-  "other",
-]);
+const expenseCategory = z
+  .string()
+  .min(1)
+  .max(64)
+  .describe(
+    "Slug da categoria de despesa (moradia, contas, mercado, alimentacao, transporte, saude, assinaturas, educacao, lazer, compras, outros) ou id de categoria criada pelo usuário.",
+  );
 
 const debtCreateShape = {
   kind: z.enum(["financing", "personal_loan", "credit_card", "overdraft", "recurring"]),

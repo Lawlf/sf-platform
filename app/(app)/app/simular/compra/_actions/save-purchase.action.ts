@@ -16,19 +16,7 @@ const schema = z.object({
   depreciationKind: z.enum(["appreciating", "stable", "depreciating", "consumable"]),
   depreciationRatePctYear: z.coerce.number().min(-50).max(100),
   purchaseDate: z.string().min(1),
-  expenseCategory: z
-    .enum([
-      "housing",
-      "utilities",
-      "food",
-      "transport",
-      "health",
-      "leisure",
-      "subscriptions",
-      "education",
-      "other",
-    ])
-    .optional(),
+  expenseCategory: z.string().optional(),
   paymentMethod: z.enum(["cash"]),
 });
 

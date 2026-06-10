@@ -1,3 +1,8 @@
+import {
+  FALLBACK_CATEGORY_SLUG,
+  normalizeLegacyExpenseCategory,
+} from "@/domain/categories/default-categories";
+import { activeCategories, resolveCategories } from "@/domain/categories/resolve-categories";
 import type { AssetCategory, AssetMetadata } from "@/domain/entities/asset.entity";
 import type {
   ExpenseCategory,
@@ -15,6 +20,7 @@ import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.reposi
 import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
+import type { UserCategoryRepositoryPort } from "@/domain/ports/repositories/user-category.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { serialize } from "@/presentation/http/mcp/serialize";
@@ -50,6 +56,7 @@ export interface WriteExecutorDeps {
   assets: AssetRepositoryPort;
   goals: GoalRepositoryPort;
   transactions: TransactionRepositoryPort;
+  userCategories: Pick<UserCategoryRepositoryPort, "listForUser">;
   clock: Clock;
 }
 
@@ -150,9 +157,13 @@ export async function executeWrite(
 
     case "debt_create": {
       const currency: Currency = (args.currency as Currency) ?? "BRL";
+      const debtArgs =
+        str(args.kind) === "recurring"
+          ? { ...args, expenseCategory: await resolveExpenseCategoryKey(deps, userId, args) }
+          : args;
       const result = await registerDebt(
         { debts: deps.debts, clock: deps.clock },
-        buildRegisterDebtInput(userId, args, currency),
+        buildRegisterDebtInput(userId, debtArgs, currency),
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
@@ -427,6 +438,24 @@ function buildRegisterDebtInput(
     default:
       throw new Error(`Tipo de dívida não suportado: ${kind}`);
   }
+}
+
+async function resolveExpenseCategoryKey(
+  deps: WriteExecutorDeps,
+  userId: string,
+  args: Record<string, unknown>,
+): Promise<string> {
+  const raw = optStr(args.expenseCategory);
+  if (!raw) return FALLBACK_CATEGORY_SLUG;
+  const key = normalizeLegacyExpenseCategory(raw);
+  const rows = await deps.userCategories.listForUser(userId);
+  const valid = activeCategories(resolveCategories("expense", rows)).some((c) => c.key === key);
+  if (!valid) {
+    throw new Error(
+      "Categoria de despesa inválida. Use um dos slugs padrão (moradia, contas, mercado, alimentacao, transporte, saude, assinaturas, educacao, lazer, compras, outros) ou o id de uma categoria criada pelo usuário.",
+    );
+  }
+  return key;
 }
 
 function buildGoalPatch(args: Record<string, unknown>): Partial<GoalEntity> {

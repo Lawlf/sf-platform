@@ -5,16 +5,7 @@ export type DebtKind = "financing" | "personal_loan" | "credit_card" | "overdraf
 export type DebtStatus = "active" | "paid_off" | "written_off";
 export type AmortizationMethod = "PRICE" | "SAC";
 
-export type ExpenseCategory =
-  | "housing"
-  | "utilities"
-  | "food"
-  | "transport"
-  | "health"
-  | "leisure"
-  | "subscriptions"
-  | "education"
-  | "other";
+export type ExpenseCategory = string;
 
 export type RecurringFrequency = "monthly" | "weekly" | "annual";
 

@@ -136,6 +136,8 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     update: vi.fn(),
     setStatus: vi.fn(),
     softDelete: vi.fn(),
+    countByExpenseCategory: vi.fn(async () => 0),
+    reassignExpenseCategory: vi.fn(),
   };
 
   return { assets: assetRepo, allocations: allocationRepo, debts: debtRepo };

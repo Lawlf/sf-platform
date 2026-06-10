@@ -44,6 +44,7 @@ import { UsageRepository } from "@/infrastructure/persistence/drizzle/repositori
 import { UserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/user-achievement.repository";
 import { UserActivityRepository } from "@/infrastructure/persistence/drizzle/repositories/user-activity.repository";
 import { UserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/user-avatar.repository";
+import { UserCategoryRepository } from "@/infrastructure/persistence/drizzle/repositories/user-category.repository";
 import { UserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/user-credentials.repository";
 import { UserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/user-fx-override.repository";
 import { UserRepository } from "@/infrastructure/persistence/drizzle/repositories/user.repository";
@@ -95,6 +96,7 @@ export const repos = {
   userAchievements: new UserAchievementRepository(),
   userActivity: new UserActivityRepository(),
   userAvatars: new UserAvatarRepository(),
+  userCategories: new UserCategoryRepository(),
   userCredentials: new UserCredentialsRepository(),
   userFxOverrides: new UserFxOverrideRepository(),
   users: new UserRepository(),

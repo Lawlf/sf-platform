@@ -26,6 +26,7 @@ function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
   }
 }
 
+import { buildCategoryLabeler } from "../../_actions/_category-labels";
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 
@@ -69,10 +70,14 @@ export default async function DebtDetailPage({ params }: PageProps) {
   const defaultAlarm = alarmFromDaysBefore(prefs?.debtDueDaysBefore);
 
   const linkedGoals = await fetchGoalsLinkedToDebt(id);
+  const labelCategory = await buildCategoryLabeler(user.id);
 
   return (
     <PageShell backHref={"/app/dividas" as Route}>
-      <DebtHeader debt={debt} />
+      <DebtHeader
+        debt={debt}
+        categoryLabelText={labelCategory(debt.expenseCategory) ?? "Outros"}
+      />
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
       {debt.status === "written_off" ? <OutOfMonthBanner /> : null}

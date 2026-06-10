@@ -61,6 +61,12 @@ function fakeRepo(rows: TransactionEntity[]): TransactionRepositoryPort {
     async existingExternalIds() {
       throw new Error("not used");
     },
+    async countByCategory() {
+      throw new Error("not used");
+    },
+    async reassignCategory() {
+      throw new Error("not used");
+    },
     async listForUserInRange(_userId, from, to) {
       return rows.filter((r) => r.occurredAt >= from && r.occurredAt <= to);
     },
@@ -127,7 +133,7 @@ describe("getAnnualReport", () => {
     }
   });
 
-  it("buckets spending into macro consumo and PT-BR categories", async () => {
+  it("buckets spending into macro consumo and category keys", async () => {
     const repo = fakeRepo([
       txn("2026-01-10T00:00:00Z", 5000n, { description: "SUPERMERCADO EXTRA" }),
       txn("2026-01-12T00:00:00Z", 2000n, { description: "PARCELA 3/10 LOJA" }),
@@ -142,9 +148,26 @@ describe("getAnnualReport", () => {
       expect(result.report.consumo.essencialCents).toBe(5000n);
       expect(result.report.consumo.parceladoCents).toBe(2000n);
       expect(result.report.consumo.restoCents).toBe(3000n);
-      const labels = result.report.byCategory.map((c) => c.category);
-      expect(labels).toContain("Mercado");
-      expect(labels).toContain("Outros");
+      const keys = result.report.byCategory.map((c) => c.category);
+      expect(keys).toContain("mercado");
+      expect(keys).toContain("outros");
+    }
+  });
+
+  it("groups by stored category when present, falling back to the classifier", async () => {
+    const repo = fakeRepo([
+      txn("2026-01-10T00:00:00Z", 5000n, { description: "QUALQUER", category: "pet-uuid" }),
+      txn("2026-01-12T00:00:00Z", 2000n, { description: "SUPERMERCADO EXTRA", category: null }),
+    ]);
+    const result = await getAnnualReport(
+      { transactions: repo },
+      { userId: "u1", year: 2026, isPro: true },
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      const keys = result.report.byCategory.map((c) => c.category);
+      expect(keys).toContain("pet-uuid");
+      expect(keys).toContain("mercado");
     }
   });
 });

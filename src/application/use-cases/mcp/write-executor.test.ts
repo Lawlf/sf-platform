@@ -69,6 +69,7 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     listAllActive: vi.fn(),
   };
   const clock = { now: vi.fn(() => new Date("2026-06-03T12:00:00Z")) };
+  const userCategories = { listForUser: vi.fn(async () => []) };
 
   return {
     incomes,
@@ -77,6 +78,7 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     allocations,
     assets,
     goals,
+    userCategories,
     clock,
     ...overrides,
   } as unknown as WriteExecutorDeps;

@@ -70,6 +70,7 @@ function pendingExecutorDeps() {
       assets: repos.assets,
       goals: repos.goals,
       transactions: repos.transactions,
+      userCategories: repos.userCategories,
       clock,
     },
     audit: repos.mcpAuditLogs,

@@ -1,22 +1,10 @@
-export type ExpenseCategory =
-  | "Mercado"
-  | "Alimentação"
-  | "Transporte"
-  | "Moradia"
-  | "Saúde"
-  | "Compras"
-  | "Lazer"
-  | "Educação"
-  | "Serviços"
-  | "Outros";
-
-const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly string[] }> = [
+const RULES: ReadonlyArray<{ category: string; keywords: readonly string[] }> = [
   {
-    category: "Mercado",
+    category: "mercado",
     keywords: ["mercado", "supermerc", "atacad", "hortifruti", "padaria", "acougue", "sacolao"],
   },
   {
-    category: "Alimentação",
+    category: "alimentacao",
     keywords: [
       "restaurante",
       "ifood",
@@ -33,7 +21,7 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Transporte",
+    category: "transporte",
     keywords: [
       "uber",
       "99app",
@@ -54,7 +42,7 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Moradia",
+    category: "moradia",
     keywords: [
       "aluguel",
       "condominio",
@@ -79,7 +67,7 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Saúde",
+    category: "saude",
     keywords: [
       "farmacia",
       "drogaria",
@@ -97,7 +85,7 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Compras",
+    category: "compras",
     keywords: [
       "loja",
       "magaz",
@@ -116,7 +104,7 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Lazer",
+    category: "lazer",
     keywords: [
       "netflix",
       "spotify",
@@ -140,29 +128,23 @@ const RULES: ReadonlyArray<{ category: ExpenseCategory; keywords: readonly strin
     ],
   },
   {
-    category: "Educação",
+    category: "educacao",
     keywords: ["escola", "faculdade", "universidade", "curso", "udemy", "alura", "livraria", "ensino"],
   },
   {
-    category: "Serviços",
-    keywords: [
-      "assinatura",
-      "mensalidade",
-      "anuidade",
-      "tarifa",
-      "taxa ",
-      "seguro",
-      "cartorio",
-      "advog",
-      "contabil",
-    ],
+    category: "assinaturas",
+    keywords: ["assinatura", "mensalidade", "anuidade"],
+  },
+  {
+    category: "contas",
+    keywords: ["tarifa", "taxa ", "seguro", "cartorio", "advog", "contabil"],
   },
 ];
 
-export function classifyExpense(description: string): ExpenseCategory {
+export function classifyExpense(description: string): string {
   const memo = description.toLowerCase();
   for (const rule of RULES) {
     if (rule.keywords.some((kw) => memo.includes(kw))) return rule.category;
   }
-  return "Outros";
+  return "outros";
 }

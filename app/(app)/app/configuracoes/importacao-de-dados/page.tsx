@@ -55,7 +55,7 @@ export default async function ImportacaoDeDadosPage() {
             Importar com IA
           </div>
           <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-            Conecte sua IA (Claude) ao MCP da Sabor e deixe ela lançar seus dados por você.
+            Conecte o ChatGPT ou Claude e deixe a IA lançar seus dados por você.
           </div>
         </div>
         <ChevronRight
