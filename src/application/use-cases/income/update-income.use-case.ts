@@ -20,6 +20,7 @@ export interface UpdateIncomeInput {
   startDate?: Date;
   endDate?: Date | null;
   paymentDay?: number | null;
+  isEstimated?: boolean;
 }
 
 export async function updateIncome(
@@ -39,6 +40,7 @@ export async function updateIncome(
     ...(input.startDate !== undefined && { startDate: input.startDate }),
     ...(input.endDate !== undefined && { endDate: input.endDate }),
     ...(input.paymentDay !== undefined && { paymentDay: input.paymentDay }),
+    ...(input.isEstimated !== undefined && { isEstimated: input.isEstimated }),
   };
   const persisted = await deps.incomes.update(updated);
   return ok(persisted);

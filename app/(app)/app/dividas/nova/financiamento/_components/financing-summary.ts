@@ -19,7 +19,7 @@ export function buildFinancingSummary({
 }: SummaryInputs): SummaryItem[] {
   if (values.scenario === "new") {
     return [
-      { label: "Rótulo", value: values.label || "Sem rótulo" },
+      { label: "Nome", value: values.label || "Sem nome" },
       { label: "Tipo", value: "Financiamento" },
       { label: "Valor", value: formatCentsBRL(values.principalCents) },
       { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
@@ -30,10 +30,10 @@ export function buildFinancingSummary({
     ];
   }
   return [
-    { label: "Rótulo", value: values.label || "Sem rótulo" },
+    { label: "Nome", value: values.label || "Sem nome" },
     { label: "Tipo", value: "Financiamento" },
     { label: "Valor original", value: formatCentsBRL(values.originalPrincipalCents) },
-    { label: "Saldo devedor", value: formatCentsBRL(values.currentBalanceCents) },
+    { label: "Quanto falta pagar", value: formatCentsBRL(values.currentBalanceCents) },
     { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
     { label: "CET (custo real)", value: cetValue },
     { label: "Parcelas pagas", value: `${values.paidInstallments}` },

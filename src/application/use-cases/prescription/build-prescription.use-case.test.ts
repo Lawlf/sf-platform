@@ -51,6 +51,7 @@ const income: IncomeEntity = {
   startDate: NOW,
   paymentDay: null,
   endDate: null,
+  isEstimated: false,
   isActive: true,
   createdAt: NOW,
   deletedAt: null,

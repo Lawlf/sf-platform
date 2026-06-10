@@ -1,6 +1,6 @@
 "use client";
 
-import { CreditCard, Home, Wallet } from "lucide-react";
+import { CreditCard, HandCoins, Home } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -23,20 +23,20 @@ const TYPES: readonly AntigaTypeOption[] = [
     id: "cartao",
     href: "/app/dividas/nova/cartao?existing=1" as Route,
     title: "Cartão com saldo",
-    description: "Cartão que você já usa e tem saldo devedor pra registrar.",
+    description: "Cartão que você já usa e tem fatura pra registrar.",
     icon: <CreditCard size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
     id: "emprestimo",
     href: "/app/dividas/nova/emprestimo?existing=1" as Route,
-    title: "Empréstimo que já corre",
+    title: "Empréstimo que já começou",
     description: "Empréstimo pessoal, consignado ou crediário que começou antes do app.",
-    icon: <Wallet size={20} strokeWidth={1.75} aria-hidden />,
+    icon: <HandCoins size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
     id: "financiamento",
     href: "/app/dividas/nova/financiamento?existing=1" as Route,
-    title: "Financiamento que já corre",
+    title: "Financiamento que já começou",
     description: "Casa ou carro financiado iniciado antes do app.",
     icon: <Home size={20} strokeWidth={1.75} aria-hidden />,
   },

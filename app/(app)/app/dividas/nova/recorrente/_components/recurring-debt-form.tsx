@@ -5,7 +5,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { type ReactNode, useId, useState, useTransition } from "react";
+import { useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -37,7 +37,7 @@ const formSchema = z.object({
     "other",
   ]),
   recurringFrequency: z.enum(["monthly", "weekly", "annual"]),
-  label: z.string().min(1, "Informe um rótulo.").max(120),
+  label: z.string().min(1, "Informe um nome.").max(120),
   recurringAmountCents: z.bigint().positive("Valor deve ser positivo."),
   currency: z.enum(CURRENCIES),
   startDate: z.string().min(1, "Informe a data de início."),
@@ -48,10 +48,9 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+type Step = 1 | 2 | 3;
 
-type Step = 1 | 2 | 3 | 4;
-
-const STEP3_FIELDS = ["label", "recurringAmountCents", "startDate"] as const;
+const STEP2_FIELDS = ["label", "recurringAmountCents", "startDate"] as const;
 
 function formatAmount(cents: bigint | null | undefined, currency: Currency): string {
   return formatCents(cents ?? 0n, currency);
@@ -74,58 +73,6 @@ function categoryLabel(id: ExpenseCategory): string {
   return expenseCategoryLabel(id);
 }
 
-interface CategoryCardProps {
-  icon: ReactNode;
-  title: string;
-  description: string;
-  active: boolean;
-  pending: boolean;
-  onSelect: () => void;
-}
-
-function CategoryCard({ icon, title, description, active, pending, onSelect }: CategoryCardProps) {
-  const filled = active || pending;
-  return (
-    <button
-      type="button"
-      onClick={onSelect}
-      aria-pressed={filled}
-      disabled={pending}
-      className={`flex w-full items-center gap-3 rounded-[14px] border-[1.5px] p-3 backdrop-blur-[16px] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
-        filled
-          ? "scale-[0.98] border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
-          : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-2)] active:scale-[0.99]"
-      }`}
-    >
-      <span
-        className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] transition-colors duration-200 ${
-          filled
-            ? "bg-white/25 text-white"
-            : "bg-[color:var(--color-brand-500)]/15 text-[color:var(--color-brand-800)]"
-        }`}
-      >
-        {icon}
-      </span>
-      <span className="flex-1 text-left">
-        <span
-          className={`block text-[0.875rem] font-bold transition-colors duration-200 ${
-            filled ? "text-white" : "text-[color:var(--text-primary)]"
-          }`}
-        >
-          {title}
-        </span>
-        <span
-          className={`mt-0.5 block text-[0.6875rem] leading-[1.3] transition-colors duration-200 ${
-            filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-65"
-          }`}
-        >
-          {description}
-        </span>
-      </span>
-    </button>
-  );
-}
-
 export function RecurringDebtForm({
   defaultCurrency = "BRL",
 }: { defaultCurrency?: Currency } = {}) {
@@ -133,7 +80,6 @@ export function RecurringDebtForm({
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(1);
   const [pending, startTransition] = useTransition();
-  const [pendingCategory, setPendingCategory] = useState<ExpenseCategory | null>(null);
   const [pendingFrequency, setPendingFrequency] = useState<Frequency | null>(null);
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -143,11 +89,14 @@ export function RecurringDebtForm({
   const endDateId = useId();
   const dueDayId = useId();
   const notesId = useId();
+  const categoryId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      expenseCategory: undefined as unknown as ExpenseCategory,
+      // Categoria é só rótulo (não afeta nenhum cálculo) e é editável depois.
+      // Default "Outros" pra não bloquear o registro rápido de uma assinatura.
+      expenseCategory: "other",
       recurringFrequency: undefined as unknown as Frequency,
       label: "",
       recurringAmountCents: 0n as unknown as bigint,
@@ -162,29 +111,19 @@ export function RecurringDebtForm({
   const values = form.watch();
   const errors = form.formState.errors;
 
-  function selectCategory(id: ExpenseCategory) {
-    if (pendingCategory) return;
-    setPendingCategory(id);
-    form.setValue("expenseCategory", id, { shouldValidate: false });
-    window.setTimeout(() => {
-      setPendingCategory(null);
-      setStep(2);
-    }, 240);
-  }
-
   function selectFrequency(freq: Frequency) {
     if (pendingFrequency) return;
     setPendingFrequency(freq);
     form.setValue("recurringFrequency", freq, { shouldValidate: false });
     window.setTimeout(() => {
       setPendingFrequency(null);
-      setStep(3);
+      setStep(2);
     }, 240);
   }
 
-  async function goToStep4() {
-    const valid = await form.trigger(STEP3_FIELDS as Parameters<typeof form.trigger>[0]);
-    if (valid) setStep(4);
+  async function goToConfirm() {
+    const valid = await form.trigger(STEP2_FIELDS as Parameters<typeof form.trigger>[0]);
+    if (valid) setStep(3);
   }
 
   async function handleSubmit() {
@@ -219,39 +158,10 @@ export function RecurringDebtForm({
     return (
       <WizardShell
         currentStep={1}
-        totalSteps={4}
-        title="Qual a categoria?"
-        description="Escolha a categoria que melhor descreve esse compromisso."
-        onBack={() => router.push("/app/dividas/nova" as Route)}
-      >
-        <div role="radiogroup" aria-label="Categoria" className="flex flex-col gap-2 md:gap-3.5">
-          {EXPENSE_CATEGORIES.map((cat) => {
-            const Icon = cat.icon;
-            return (
-              <CategoryCard
-                key={cat.id}
-                icon={<Icon size={20} strokeWidth={1.75} aria-hidden />}
-                title={cat.label}
-                description={cat.description}
-                active={values.expenseCategory === cat.id}
-                pending={pendingCategory === cat.id}
-                onSelect={() => selectCategory(cat.id)}
-              />
-            );
-          })}
-        </div>
-      </WizardShell>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <WizardShell
-        currentStep={2}
-        totalSteps={4}
+        totalSteps={3}
         title="Com que frequência?"
         description="Quantas vezes esse compromisso aparece no seu fluxo."
-        onBack={() => setStep(1)}
+        onBack={() => router.push("/app/dividas/nova" as Route)}
       >
         <div role="radiogroup" aria-label="Frequência" className="grid grid-cols-3 gap-2">
           <button
@@ -304,7 +214,7 @@ export function RecurringDebtForm({
     );
   }
 
-  if (step === 3) {
+  if (step === 2) {
     const periodLabel =
       values.recurringFrequency === "monthly"
         ? "Valor por mês"
@@ -313,20 +223,20 @@ export function RecurringDebtForm({
           : "Valor por ano";
     return (
       <WizardShell
-        currentStep={3}
-        totalSteps={4}
+        currentStep={2}
+        totalSteps={3}
         title="Detalhes"
         description="Nome do compromisso, valor por período e datas."
-        onBack={() => setStep(2)}
+        onBack={() => setStep(1)}
         primary={{
           label: "Continuar",
           onClick: () => {
-            void goToStep4();
+            void goToConfirm();
           },
           icon: arrowRight,
         }}
       >
-        <WizardField label="Rótulo" htmlFor={labelId} error={errors.label?.message}>
+        <WizardField label="Nome" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
@@ -398,6 +308,20 @@ export function RecurringDebtForm({
           </WizardField>
         ) : null}
 
+        <WizardField
+          label="Categoria (opcional)"
+          htmlFor={categoryId}
+          helper="Só pra organizar. Não muda nenhum cálculo."
+        >
+          <select id={categoryId} {...form.register("expenseCategory")} className={wizardInputClass}>
+            {EXPENSE_CATEGORIES.map((c) => (
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
+            ))}
+          </select>
+        </WizardField>
+
         <WizardField label="Observações (opcional)" htmlFor={notesId}>
           <textarea
             id={notesId}
@@ -411,11 +335,10 @@ export function RecurringDebtForm({
     );
   }
 
-  // step 4
+  // step 3
   const summary = [
-    { label: "Categoria", value: categoryLabel(values.expenseCategory) },
     { label: "Frequência", value: frequencyLabel(values.recurringFrequency) },
-    { label: "Rótulo", value: values.label || "Sem rótulo" },
+    { label: "Nome", value: values.label || "Sem nome" },
     {
       label: values.recurringFrequency === "monthly" ? "Valor mensal" : "Valor semanal",
       value: formatAmount(values.recurringAmountCents, values.currency),
@@ -430,15 +353,18 @@ export function RecurringDebtForm({
           },
         ]
       : []),
+    ...(values.expenseCategory && values.expenseCategory !== "other"
+      ? [{ label: "Categoria", value: categoryLabel(values.expenseCategory) }]
+      : []),
   ];
 
   return (
     <WizardShell
-      currentStep={4}
-      totalSteps={4}
+      currentStep={3}
+      totalSteps={3}
       title="Confirme os dados"
       description="Confere os números e salva."
-      onBack={() => setStep(3)}
+      onBack={() => setStep(2)}
       primary={{
         label: "Salvar compromisso",
         onClick: () => {

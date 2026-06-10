@@ -1,9 +1,9 @@
 "use client";
 
-import { ArrowLeftRight, Coins, ShoppingBag, Target, TrendingUp } from "lucide-react";
+import { ArrowDownUp, CreditCard, Landmark, Target, Wallet } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import { Fragment, type ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -21,7 +21,7 @@ interface IntentOption {
   id: string;
   href: Route;
   title: string;
-  description: string;
+  description?: string;
   icon: ReactNode;
 }
 
@@ -33,37 +33,36 @@ const INTENTS: readonly IntentOption[] = [
   {
     id: "divida",
     href: "/app/dividas/nova" as Route,
-    title: "Comprei algo ou tenho conta pra pagar",
-    description: "Algo que você vai pagar ao longo dos meses: compra parcelada, cartão, empréstimo, conta fixa.",
-    icon: <ShoppingBag size={20} strokeWidth={1.75} aria-hidden />,
+    title: "Comprei ou tenho conta pra pagar",
+    description: "Parcela, cartão, empréstimo, conta fixa.",
+    icon: <CreditCard size={22} strokeWidth={2} aria-hidden />,
   },
   {
     id: "renda",
     href: "/app/renda/nova" as Route,
-    title: "Ganho isso todo mês",
+    title: "Recebo todo mês",
     description: "Salário, aposentadoria, aluguel, freela fixo.",
-    icon: <TrendingUp size={20} strokeWidth={1.75} aria-hidden />,
+    icon: <Wallet size={22} strokeWidth={2} aria-hidden />,
   },
   {
     id: "patrimonio",
     href: "/app/patrimonio/novo" as Route,
-    title: "Já tenho um bem ou guardado",
+    title: "O que já é meu",
     description: "Carro, casa, reserva, investimento.",
-    icon: <Coins size={20} strokeWidth={1.75} aria-hidden />,
+    icon: <Landmark size={22} strokeWidth={2} aria-hidden />,
   },
   {
     id: "meta",
     href: "/app/metas/nova" as Route,
     title: "Quero juntar pra um objetivo",
-    description: "Uma meta pra guardar dinheiro.",
-    icon: <Target size={20} strokeWidth={1.75} aria-hidden />,
+    icon: <Target size={22} strokeWidth={2} aria-hidden />,
   },
   {
     id: "lancar",
     href: "/app/lancar" as Route,
-    title: "Entrou ou saiu agora",
-    description: "Já entrou ou saiu, e acabou ali: um PIX, uma venda, um gasto do dia.",
-    icon: <ArrowLeftRight size={20} strokeWidth={1.75} aria-hidden />,
+    title: "Um gasto ou recebimento do dia",
+    description: "Um PIX, uma venda, um gasto avulso.",
+    icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
   },
 ] as const;
 
@@ -85,21 +84,25 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
         </SheetHeader>
         <div role="list" className="flex flex-col gap-2">
           {INTENTS.map((intent) => (
-            <KindCard
-              key={intent.id}
-              icon={intent.icon}
-              title={intent.title}
-              description={intent.description}
-              selected={false}
-              onSelect={() => {
-                onOpenChange(false);
-                if (!online) {
-                  toast("Sem internet. Você registra isso quando o sinal voltar.");
-                  return;
-                }
-                router.push(intent.href);
-              }}
-            />
+            <Fragment key={intent.id}>
+              {intent.id === "lancar" ? (
+                <div className="my-0.5 h-px bg-[color:var(--border-soft)]" aria-hidden />
+              ) : null}
+              <KindCard
+                icon={intent.icon}
+                title={intent.title}
+                description={intent.description}
+                selected={false}
+                onSelect={() => {
+                  onOpenChange(false);
+                  if (!online) {
+                    toast("Sem internet. Você registra isso quando o sinal voltar.");
+                    return;
+                  }
+                  router.push(intent.href);
+                }}
+              />
+            </Fragment>
           ))}
         </div>
       </SheetContent>

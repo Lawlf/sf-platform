@@ -5,7 +5,7 @@ import { type ReactNode, useState } from "react";
 export interface KindCardProps {
   icon: ReactNode;
   title: string;
-  description: string;
+  description?: string | undefined;
   selected: boolean;
   onSelect: () => void;
 }
@@ -52,13 +52,15 @@ export function KindCard({ icon, title, description, selected, onSelect }: KindC
         >
           {title}
         </span>
-        <span
-          className={`mt-0.5 block text-[0.6875rem] leading-[1.3] transition-colors duration-200 ${
-            filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-65"
-          }`}
-        >
-          {description}
-        </span>
+        {description ? (
+          <span
+            className={`mt-0.5 block text-[0.6875rem] leading-[1.3] transition-colors duration-200 ${
+              filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-65"
+            }`}
+          >
+            {description}
+          </span>
+        ) : null}
       </span>
     </button>
   );

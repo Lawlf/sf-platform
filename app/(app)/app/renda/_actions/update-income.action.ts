@@ -30,6 +30,7 @@ export const updateIncomeAction = action({
           startDate: data.startDate,
           endDate: data.endDate,
           paymentDay: data.paymentDay,
+          isEstimated: data.isEstimated,
         },
       ),
     );

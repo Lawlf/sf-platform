@@ -24,6 +24,7 @@ export const createIncomeAction = action({
         startDate: data.startDate,
         endDate: data.endDate,
         paymentDay: data.paymentDay,
+        isEstimated: data.isEstimated,
       },
     );
 

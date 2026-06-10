@@ -29,10 +29,10 @@ const DEPRECIATION_KINDS: readonly DepreciationKind[] = [
 ];
 
 const DEPRECIATION_KIND_META: Record<DepreciationKind, { title: string; description: string }> = {
-  appreciating: { title: "Aprecia", description: "Imóveis bem localizados, terrenos." },
-  stable: { title: "Estável", description: "Investimentos, ouro, conta poupança." },
-  depreciating: { title: "Deprecia", description: "Carros, eletrônicos, móveis." },
-  consumable: { title: "Consumível", description: "Viagens, eventos, refeições caras." },
+  appreciating: { title: "Valoriza", description: "Imóveis bem localizados, terrenos." },
+  stable: { title: "Fica igual", description: "Investimentos, ouro, conta poupança." },
+  depreciating: { title: "Perde valor", description: "Carros, eletrônicos, móveis." },
+  consumable: { title: "Acaba", description: "Viagens, eventos, refeições caras." },
 };
 
 const YIELD_TYPE_META: Record<YieldType, { title: string; description: string }> = {
@@ -79,6 +79,10 @@ export function DetailsStep({
   // O valor já vem com a curva default por categoria (carro deprecia, imóvel
   // aprecia). Só quem quer ajustar abre a seção; o caso comum nem vê.
   const [showValueCurve, setShowValueCurve] = useState(false);
+  // Marca/modelo/ano/cor (veículo) e cidade/m²/aluguel (imóvel) são opcionais e
+  // pesam visualmente como formulário de despachante. Ficam atrás de um toggle:
+  // o caminho comum é só Nome + Valor.
+  const [showMoreFields, setShowMoreFields] = useState(false);
   const avgPriceId = useId();
 
   const category = form.watch("category");
@@ -154,7 +158,7 @@ export function DetailsStep({
                     : "Ex: Tesouro IPCA+ 2035"
                   : category === "cash"
                     ? "Ex: Saldo Nubank"
-                    : "Ex: Teclado Keychron"
+                    : "Ex: Playstation 6"
           }
           className={wizardInputClass}
         />
@@ -252,8 +256,20 @@ export function DetailsStep({
         </section>
       ) : null}
 
+      {(category === "vehicle" || category === "real_estate") && !showMoreFields ? (
+        <button
+          type="button"
+          onClick={() => setShowMoreFields(true)}
+          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          {category === "vehicle"
+            ? "Adicionar detalhes (marca, modelo, ano)"
+            : "Adicionar detalhes (cidade, m², aluguel)"}
+        </button>
+      ) : null}
+
       {/* Vehicle fields */}
-      {category === "vehicle" ? (
+      {category === "vehicle" && showMoreFields ? (
         <>
           <WizardField label="Marca (opcional)" htmlFor={brandId}>
             <input
@@ -293,7 +309,7 @@ export function DetailsStep({
       ) : null}
 
       {/* Real estate fields */}
-      {category === "real_estate" ? (
+      {category === "real_estate" && showMoreFields ? (
         <>
           <WizardField label="Cidade (opcional)" htmlFor={cityId}>
             <input
@@ -489,7 +505,7 @@ export function DetailsStep({
         <section className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
           <div>
             <div className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-              Comportamento do valor
+              O valor muda com o tempo?
             </div>
             <div className="mt-1 text-[0.6875rem] text-[color:var(--text-primary)] opacity-60">
               Como o valor desse ativo muda com o tempo. O valor atual recalcula conforme o tempo
@@ -501,7 +517,7 @@ export function DetailsStep({
             control={form.control}
             name="depreciationKind"
             render={({ field }) => (
-              <WizardField label="Tipo de comportamento">
+              <WizardField label="O que acontece com o valor">
                 <div className="grid grid-cols-2 gap-2">
                   {DEPRECIATION_KINDS.map((k) => (
                     <WizardRadioCard

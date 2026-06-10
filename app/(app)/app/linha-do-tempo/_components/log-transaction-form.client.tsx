@@ -148,6 +148,10 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   // Quando só existe a Carteira, o campo Conta some atrás de um link. O caminho
   // feliz não escolhe conta.
   const [showAccount, setShowAccount] = useState(false);
+  // Categoria fica atrás de link: é o campo mais micro da tela, e o app é macro.
+  // Esconder protege o posicionamento (não vira tracker de cafezinho) e limpa o
+  // caminho feliz pra valor + descrição.
+  const [showCategory, setShowCategory] = useState(false);
   const [accountPending, startAccountTransition] = useTransition();
   const dateId = useId();
   const categoryId = useId();
@@ -209,7 +213,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     }
     const description = values.description.trim();
     if (description.length === 0) {
-      setServerError("Descreva o lançamento.");
+      setServerError("Descreva o que foi.");
       return;
     }
     startTransition(async () => {
@@ -234,6 +238,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       setOccurredAt(todayIso(defaultMonthIso));
       setShowSchedule(false);
       setShowDate(false);
+      setShowCategory(false);
       await queryClient.invalidateQueries({ queryKey: ["annual-report"] });
       toast.success(direction === "in" ? "Entrada registrada." : "Saída registrada.");
     });
@@ -303,7 +308,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         ) : null}
       </div>
 
-      <div className="flex flex-col gap-1.5">
+      <div className={`flex flex-col gap-1.5 ${showCategory ? "" : "hidden"}`}>
         <span
           id={categoryId}
           className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
@@ -503,8 +508,18 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         </div>
       ) : null}
 
-      {!showSchedule || !showDate ? (
+      {!showSchedule || !showDate || !showCategory ? (
         <div className="flex flex-wrap gap-x-4 gap-y-2">
+          {!showCategory ? (
+            <button
+              type="button"
+              onClick={() => setShowCategory(true)}
+              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              <Tag size={14} strokeWidth={2.25} aria-hidden />
+              Classificar
+            </button>
+          ) : null}
           {!showSchedule ? (
             <button
               type="button"

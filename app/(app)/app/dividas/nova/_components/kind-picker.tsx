@@ -1,6 +1,6 @@
 "use client";
 
-import { AlertTriangle, Clock, CreditCard, Repeat, ShoppingBag, Wallet } from "lucide-react";
+import { AlertTriangle, Clock, CreditCard, HandCoins, Repeat, ShoppingBag } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
@@ -47,7 +47,7 @@ const ACTIONS: readonly ActionOption[] = [
     title: "Peguei dinheiro emprestado",
     description:
       "Empréstimo do banco, consignado, ou dinheiro que você deve pra alguém (amigo, família). Sem compra atrelada.",
-    icon: <Wallet size={20} strokeWidth={1.75} aria-hidden />,
+    icon: <HandCoins size={20} strokeWidth={1.75} aria-hidden />,
   },
   {
     id: "antiga",

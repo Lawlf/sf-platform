@@ -113,6 +113,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     startDate,
     paymentDay: null,
     endDate: null,
+    isEstimated: false,
     isActive: true,
     createdAt: startDate,
     deletedAt: null,

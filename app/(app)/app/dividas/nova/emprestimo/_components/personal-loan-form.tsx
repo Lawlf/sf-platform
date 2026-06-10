@@ -79,6 +79,10 @@ export function PersonalLoanForm({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
+  // O cenário "ongoing" pedia 6 campos numa tela só (pânico de formulário de
+  // banco). Quebrado em 2 sub-páginas dentro do step 2: A = os 3 valores
+  // (refine currentBalance<=original exige os dois juntos), B = contagens + taxa.
+  const [ongoingStep, setOngoingStep] = useState<1 | 2>(1);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -222,6 +226,7 @@ export function PersonalLoanForm({
 
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
+    setOngoingStep(1);
     // Reset shared/relevant fields when toggling scenarios to avoid leaking values.
     if (next === "new") {
       form.reset(
@@ -267,6 +272,16 @@ export function PersonalLoanForm({
         { keepErrors: false },
       );
     }
+  }
+
+  async function goToOngoingStep2() {
+    const valid = await form.trigger([
+      "label",
+      "originalPrincipalCents",
+      "currentBalanceCents",
+      "monthlyInstallmentCents",
+    ] as Parameters<typeof form.trigger>[0]);
+    if (valid) setOngoingStep(2);
   }
 
   async function goToStep3() {
@@ -470,6 +485,80 @@ export function PersonalLoanForm({
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
+  if (step === 2 && scenario === "ongoing" && ongoingStep === 2) {
+    return (
+      <WizardShell
+        currentStep={1}
+        totalSteps={5}
+        title="Quase lá"
+        description="Quantas parcelas e a taxa do contrato."
+        onBack={() => setOngoingStep(1)}
+        primary={{
+          label: "Continuar",
+          onClick: () => {
+            void goToStep3();
+          },
+          icon: arrowRight,
+        }}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <WizardField
+            label="Parcelas já pagas"
+            error={
+              (errors as { paidInstallments?: { message?: string } }).paidInstallments?.message
+            }
+          >
+            <input
+              type="number"
+              inputMode="numeric"
+              min={0}
+              max={420}
+              placeholder="Ex: 6"
+              {...form.register("paidInstallments" as never, { valueAsNumber: true })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+
+          <WizardField
+            label="Parcelas restantes"
+            htmlFor={remainingTermsId}
+            error={
+              (errors as { remainingTerms?: { message?: string } }).remainingTerms?.message ??
+              undefined
+            }
+          >
+            <input
+              id={remainingTermsId}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={420}
+              {...form.register("remainingTerms" as never, { valueAsNumber: true })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </div>
+
+        <WizardField
+          label="Taxa por ano (opcional)"
+          htmlFor={rateId}
+          error={errors.annualRatePct?.message}
+          helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
+          helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
+        >
+          <WizardPercentField
+            control={form.control}
+            name="annualRatePct"
+            id={rateId}
+            step="0.01"
+            min={0}
+            max={1000}
+          />
+        </WizardField>
+      </WizardShell>
+    );
+  }
+
   if (step === 2) {
     return (
       <WizardShell
@@ -481,7 +570,7 @@ export function PersonalLoanForm({
         primary={{
           label: "Continuar",
           onClick: () => {
-            void goToStep3();
+            void (scenario === "ongoing" ? goToOngoingStep2() : goToStep3());
           },
           icon: arrowRight,
         }}
@@ -507,7 +596,7 @@ export function PersonalLoanForm({
           />
         </WizardField>
 
-        <WizardField label="Rótulo da dívida" htmlFor={labelId} error={errors.label?.message}>
+        <WizardField label="Nome da dívida" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
@@ -618,7 +707,7 @@ export function PersonalLoanForm({
             </WizardField>
 
             <WizardField
-              label="Saldo devedor atual"
+              label="Quanto ainda falta pagar"
               htmlFor={balanceId}
               error={
                 (errors as { currentBalanceCents?: { message?: string } }).currentBalanceCents
@@ -649,59 +738,6 @@ export function PersonalLoanForm({
               />
             </WizardField>
 
-            <div className="grid grid-cols-2 gap-3">
-              <WizardField
-                label="Parcelas já pagas"
-                error={
-                  (errors as { paidInstallments?: { message?: string } }).paidInstallments?.message
-                }
-              >
-                <input
-                  type="number"
-                  inputMode="numeric"
-                  min={0}
-                  max={420}
-                  placeholder="Ex: 6"
-                  {...form.register("paidInstallments" as never, { valueAsNumber: true })}
-                  className={wizardInputClass}
-                />
-              </WizardField>
-
-              <WizardField
-                label="Parcelas restantes"
-                htmlFor={remainingTermsId}
-                error={
-                  (errors as { remainingTerms?: { message?: string } }).remainingTerms?.message ??
-                  undefined
-                }
-              >
-                <input
-                  id={remainingTermsId}
-                  type="number"
-                  inputMode="numeric"
-                  min={1}
-                  max={420}
-                  {...form.register("remainingTerms" as never, { valueAsNumber: true })}
-                  className={wizardInputClass}
-                />
-              </WizardField>
-            </div>
-
-            <WizardField
-              label="Taxa por ano (opcional)"
-              htmlFor={rateId}
-              error={errors.annualRatePct?.message}
-              helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
-            >
-              <WizardPercentField
-                control={form.control}
-                name="annualRatePct"
-                id={rateId}
-                step="0.01"
-                min={0}
-                max={1000}
-              />
-            </WizardField>
           </>
         )}
       </WizardShell>
@@ -720,7 +756,10 @@ export function PersonalLoanForm({
         totalSteps={5}
         title="Detalhes"
         description="Parcela e data de início do contrato."
-        onBack={() => setStep(2)}
+        onBack={() => {
+          setStep(2);
+          if (scenario === "ongoing") setOngoingStep(2);
+        }}
         primary={{
           label: "Continuar",
           onClick: () => {

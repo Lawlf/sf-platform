@@ -29,7 +29,8 @@ export async function HomeGoalCard() {
 
   const { goal, progress, etaLocked } = primary;
   const pct = Math.min(100, Math.max(0, progress.pct));
-  const remainingCents = Math.max(0, Number(progress.targetCents) - Number(progress.currentCents));
+  const targetCents = Number(progress.targetCents);
+  const remainingCents = Math.max(0, targetCents - Number(progress.currentCents));
 
   return (
     <Link
@@ -64,7 +65,11 @@ export async function HomeGoalCard() {
 
       <div className="flex items-baseline justify-between gap-2 text-[0.75rem]">
         <span className="text-[color:var(--text-secondary)]">
-          {progress.reached ? (
+          {targetCents <= 0 ? (
+            <span className="font-semibold text-[color:var(--color-brand-700)]">
+              Defina o valor da meta
+            </span>
+          ) : progress.reached ? (
             <span className="font-semibold text-[color:var(--semantic-positive)]">Concluída</span>
           ) : (
             <>
@@ -88,7 +93,7 @@ export async function HomeGoalCard() {
             </span>
           </span>
         ) : (
-          <span className="text-[color:var(--text-muted)]">Sem previsão</span>
+          <span className="text-[color:var(--text-muted)]">Guarde pra ver a previsão</span>
         )}
       </div>
     </Link>

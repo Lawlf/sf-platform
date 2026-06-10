@@ -50,6 +50,7 @@ function makeIncome(overrides: {
     startDate,
     paymentDay: null,
     endDate: overrides.endDate ?? null,
+    isEstimated: false,
     isActive: overrides.isActive ?? true,
     createdAt: overrides.createdAt ?? startDate,
     deletedAt: null,

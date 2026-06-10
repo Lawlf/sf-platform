@@ -52,6 +52,7 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
     frequency: "monthly",
     startDate: utc(2026, 1, 1),
     endDate: null,
+    isEstimated: false,
     isActive: true,
     paymentDay: 5,
     createdAt: utc(2026, 1, 1),

@@ -421,6 +421,13 @@
       "when": 1780969616182,
       "tag": "0059_dedup_ofx_external_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 60,
+      "version": "7",
+      "when": 1781102321063,
+      "tag": "0060_exotic_baron_strucker",
+      "breakpoints": true
     }
   ]
 }

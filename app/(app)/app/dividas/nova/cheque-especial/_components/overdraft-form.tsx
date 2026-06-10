@@ -136,7 +136,7 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
       <WizardShell
         currentStep={1}
         totalSteps={3}
-        title="Saldo devedor"
+        title="Quanto vocÃª deve"
         description="Quanto está usando do cheque especial agora."
         onBack={() => router.push("/app/dividas/nova" as Route)}
         primary={{
@@ -164,7 +164,7 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
           />
         </WizardField>
 
-        <WizardField label="Rótulo" htmlFor={labelId} error={errors.label?.message}>
+        <WizardField label="Nome" htmlFor={labelId} error={errors.label?.message}>
           <input
             id={labelId}
             {...form.register("label")}
@@ -174,7 +174,7 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
         </WizardField>
 
         <WizardField
-          label="Saldo devedor atual"
+          label="Quanto ainda falta pagar"
           htmlFor={balanceId}
           error={errors.currentBalanceCents?.message}
         >
@@ -269,10 +269,10 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
 
       <SummaryList
         items={[
-          { label: "Rótulo", value: values.label || "Sem rótulo" },
+          { label: "Nome", value: values.label || "Sem nome" },
           { label: "Tipo", value: "Cheque especial" },
           { label: "Banco", value: values.bankName || "Sem banco" },
-          { label: "Saldo devedor", value: formatAmount(values.currentBalanceCents, currency) },
+          { label: "Quanto falta", value: formatAmount(values.currentBalanceCents, currency) },
           { label: "Taxa", value: `${values.monthlyRatePct}% por mês` },
         ]}
       />

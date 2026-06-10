@@ -33,14 +33,14 @@ export function HomeProjectionCard({ initialData }: Props) {
     <div className="overflow-hidden rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)]">
       <Link
         href={"/app/linha-do-tempo/projecao" as Route}
-        aria-label="Ver a projeção do seu patrimônio no ritmo atual"
+        aria-label="Ver sua projeção no ritmo atual"
         className="focus-ring flex items-center gap-3 px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
       >
         <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
           <TrendingUp size={18} strokeWidth={2} aria-hidden />
         </span>
         <span className="min-w-0 flex-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-          No ritmo atual, seu patrimônio cresce{" "}
+          No ritmo atual, o que é seu cresce{" "}
           <span className="font-semibold text-[color:var(--color-brand-800)]">
             <HideableValue>{topLine.monthlyContributionFormatted}</HideableValue>
           </span>{" "}

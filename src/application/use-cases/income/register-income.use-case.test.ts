@@ -100,6 +100,7 @@ describe("registerIncome", () => {
       startDate: new Date("2026-01-01"),
       paymentDay: null,
       endDate: null,
+      isEstimated: false,
       isActive: true,
       createdAt: new Date("2026-01-15T10:00:00Z"),
       deletedAt: null,
