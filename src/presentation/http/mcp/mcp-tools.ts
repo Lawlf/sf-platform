@@ -1,7 +1,6 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { repos } from "@/infrastructure/container";
 import { serialize } from "@/presentation/http/mcp/serialize";
 
 import { registerMcpReadTools } from "./mcp-read-tools";
@@ -18,7 +17,7 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "assets:read");
       await enforceUsageOrThrow(ctx);
-      const assets = await new DrizzleAssetRepository().findActiveByUser(ctx.userId);
+      const assets = await repos.assets.findActiveByUser(ctx.userId);
       return text(serialize(assets));
     },
   );
@@ -30,7 +29,7 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "incomes:read");
       await enforceUsageOrThrow(ctx);
-      const incomes = await new DrizzleIncomeRepository().listForUser(ctx.userId);
+      const incomes = await repos.incomes.listForUser(ctx.userId);
       return text(serialize(incomes));
     },
   );

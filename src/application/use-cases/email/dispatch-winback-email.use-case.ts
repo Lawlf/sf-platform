@@ -1,8 +1,8 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { EmailSendRepository } from "@/domain/ports/repositories/email-send.repository";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { EmailSendRepositoryPort } from "@/domain/ports/repositories/email-send.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { renderEmailToHtml } from "@/infrastructure/email/email-renderer";
 import { WINBACK_SUBJECT, WinbackEmail } from "@/infrastructure/email/templates/winback.email";
@@ -12,10 +12,10 @@ const DAY_MS = 24 * 60 * 60 * 1000;
 const WINDOW_DAYS = 14;
 
 export interface DispatchWinbackEmailDeps {
-  subscriptions: SubscriptionRepository;
-  users: UserRepository;
-  preferences: NotificationPreferencesRepository;
-  emailSends: EmailSendRepository;
+  subscriptions: SubscriptionRepositoryPort;
+  users: UserRepositoryPort;
+  preferences: NotificationPreferencesRepositoryPort;
+  emailSends: EmailSendRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

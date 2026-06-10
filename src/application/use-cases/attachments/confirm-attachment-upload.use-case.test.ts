@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 
 import { buildStorageKey } from "./attachment-storage-key";
 import { confirmAttachmentUpload } from "./confirm-attachment-upload.use-case";
@@ -8,7 +8,7 @@ import { confirmAttachmentUpload } from "./confirm-attachment-upload.use-case";
 const clock = { now: () => new Date("2026-06-08T00:00:00Z") };
 
 function makeDeps(over: { isPro?: boolean } = {}) {
-  const attachments: Pick<EntityAttachmentRepository, "add" | "totalBytesForUser"> = {
+  const attachments: Pick<EntityAttachmentRepositoryPort, "add" | "totalBytesForUser"> = {
     add: vi.fn(),
     totalBytesForUser: vi.fn().mockResolvedValue(0),
   };

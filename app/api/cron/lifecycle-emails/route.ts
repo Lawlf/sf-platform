@@ -1,19 +1,15 @@
 import { timingSafeEqual } from "node:crypto";
 
+
 import { NextResponse } from "next/server";
 
 import { dispatchInactivityEmail } from "@/application/use-cases/email/dispatch-inactivity-email.use-case";
 import { dispatchMonthlyEmail } from "@/application/use-cases/email/dispatch-monthly-email.use-case";
 import { dispatchUpsellEmail } from "@/application/use-cases/email/dispatch-upsell-email.use-case";
 import { dispatchWinbackEmail } from "@/application/use-cases/email/dispatch-winback-email.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { ResendEmailService } from "@/infrastructure/email/resend-email.service";
-import { DrizzleEmailSendRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-email-send.repository";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { DrizzleUserActivityRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-activity.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -42,15 +38,14 @@ export async function GET(request: Request) {
   }
 
   const appUrl = loadEnv().NEXT_PUBLIC_APP_URL;
-  const clock = new SystemClock();
   const email = new ResendEmailService();
-  const users = new DrizzleUserRepository();
-  const userActivity = new DrizzleUserActivityRepository();
-  const preferences = new DrizzleNotificationPreferencesRepository();
-  const emailSends = new DrizzleEmailSendRepository();
+  const users = repos.users;
+  const userActivity = repos.userActivity;
+  const preferences = repos.notificationPreferences;
+  const emailSends = repos.emailSends;
 
   const winback = await dispatchWinbackEmail({
-    subscriptions: new DrizzleSubscriptionRepository(),
+    subscriptions: repos.subscriptions,
     users,
     preferences,
     emailSends,

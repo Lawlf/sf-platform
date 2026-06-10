@@ -1,39 +1,16 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { markAssetReviewed } from "@/application/use-cases/asset/mark-asset-reviewed.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors/result";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 
-const inputSchema = z.object({
-  assetId: z.string().uuid(),
+export const markReviewedAction = action({
+  schema: z.string().uuid(),
+  revalidates: ["home", "assets"],
+  handler: async (assetId, { userId }) => {
+    unwrap(await markAssetReviewed({ assets: repos.assets, clock }, { userId, assetId }));
+  },
+  revalidatePaths: (_data, assetId) => [`/app/patrimonio/${assetId}`],
 });
-
-export type MarkReviewedResult = { ok: true } | { ok: false; message: string };
-
-export async function markReviewedAction(assetId: string): Promise<MarkReviewedResult> {
-  const parsed = inputSchema.safeParse({ assetId });
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
-
-  const user = await requireUser();
-
-  const r = await markAssetReviewed(
-    { assets: new DrizzleAssetRepository(), clock: new SystemClock() },
-    { userId: user.id, assetId: parsed.data.assetId },
-  );
-
-  if (!isOk(r)) {
-    return { ok: false, message: r.error.message ?? "Erro ao marcar como revisada." };
-  }
-
-  revalidatePath("/app");
-  revalidatePath("/app/patrimonio");
-  revalidatePath(`/app/patrimonio/${parsed.data.assetId}`);
-  return { ok: true };
-}

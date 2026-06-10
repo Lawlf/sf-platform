@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
-import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
@@ -34,7 +34,7 @@ export default async function GoalDetailPage({ params }: Props) {
   try {
     const now = new Date();
     const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-    const snapshotRepo = new DrizzleGoalSnapshotRepository();
+    const snapshotRepo = repos.goalSnapshots;
     await snapshotRepo.upsert({
       goalId: detail.goal.id,
       month,

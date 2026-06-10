@@ -8,16 +8,16 @@ import type {
   TransactionStatus,
 } from "@/domain/entities/transaction.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 import type { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface CreateTransactionDeps {
-  transactions: Pick<TransactionRepository, "create">;
+  transactions: Pick<TransactionRepositoryPort, "create">;
   assets: Pick<
-    AssetRepository,
+    AssetRepositoryPort,
     "findById" | "findActiveByUserAndCategory" | "createDefaultWallet" | "update"
   >;
   clock: Clock;

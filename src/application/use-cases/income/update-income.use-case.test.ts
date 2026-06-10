@@ -3,13 +3,13 @@ import { describe, expect, it, vi } from "vitest";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { updateIncome } from "./update-income.use-case";
 
-function makeIncomeRepo(): IncomeRepository {
+function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

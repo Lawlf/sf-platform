@@ -4,12 +4,12 @@ import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { PersonalLoanDebt, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -17,7 +17,7 @@ import { isErr, isOk } from "@/shared/errors/result";
 
 import { getTimelineForUser } from "./get-timeline-for-user.use-case";
 
-function makeIncomeRepo(): IncomeRepository {
+function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),
@@ -29,7 +29,7 @@ function makeIncomeRepo(): IncomeRepository {
   };
 }
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),
@@ -40,7 +40,7 @@ function makeDebtRepo(): DebtRepository {
   };
 }
 
-function makePaymentsRepo(): DebtPaymentRepository {
+function makePaymentsRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
     listForUserInRange: vi.fn(),
@@ -50,7 +50,7 @@ function makePaymentsRepo(): DebtPaymentRepository {
   };
 }
 
-function makeAssetRepo(): AssetRepository {
+function makeAssetRepo(): AssetRepositoryPort {
   return {
     create: vi.fn(),
     update: vi.fn(),
@@ -191,11 +191,11 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
 const NOW = new Date("2026-06-15T00:00:00Z");
 
 function makeFx(rate: string | null = null) {
-  const rates: ExchangeRateRepository = {
+  const rates: ExchangeRateRepositoryPort = {
     upsertDaily: vi.fn(),
     findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
   };
-  const overrides: UserFxOverrideRepository = {
+  const overrides: UserFxOverrideRepositoryPort = {
     find: vi.fn(async () => null),
     upsert: vi.fn(),
     remove: vi.fn(),

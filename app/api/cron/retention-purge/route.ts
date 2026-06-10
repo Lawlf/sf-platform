@@ -1,6 +1,5 @@
 import { timingSafeStringEqual } from "@/infrastructure/auth/timing-safe-compare";
-import { DrizzleMagicLinkTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-magic-link-token.repository";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
+import { repos } from "@/infrastructure/container";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,8 +23,8 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   const now = new Date();
-  const sessions = await new DrizzleSessionRepository().deleteExpired(now);
-  const magicLinkTokens = await new DrizzleMagicLinkTokenRepository().deleteExpired(now);
+  const sessions = await repos.sessions.deleteExpired(now);
+  const magicLinkTokens = await repos.magicLinkTokens.deleteExpired(now);
 
   return Response.json({ ok: true, sessions, magicLinkTokens, purgedBefore: now.toISOString() });
 }

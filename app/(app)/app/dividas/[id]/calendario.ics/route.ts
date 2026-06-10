@@ -7,8 +7,7 @@ import {
   type AlarmOffset,
 } from "@/infrastructure/calendar/ics-builder";
 import { loadEnv } from "@/infrastructure/config/env";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -26,8 +25,8 @@ export async function GET(
 
   const detail = await getDebtDetail(
     {
-      debts: new DrizzleDebtRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
+      debts: repos.debts,
+      payments: repos.debtPayments,
     },
     { userId: user.id, debtId: id },
   );

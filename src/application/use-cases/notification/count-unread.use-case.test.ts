@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isOk } from "@/shared/errors/result";
 
 import { countUnread } from "./count-unread.use-case";
 
-function repoWithUnread(n: number): NotificationRepository {
+function repoWithUnread(n: number): NotificationRepositoryPort {
   return {
     async findById() {
       return null;

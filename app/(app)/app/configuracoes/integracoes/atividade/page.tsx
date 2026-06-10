@@ -3,22 +3,21 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 
 import { listMcpAudit } from "@/application/use-cases/mcp/list-mcp-audit.use-case";
-import { DrizzleMcpAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-audit-log.repository";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
-import { undoAuditAction } from "../_actions";
+import { undoAuditFormAction } from "../_actions";
 import { entityLabel, formatDate, toolLabel } from "../_labels";
 
 export const metadata: Metadata = { title: "Atividade" };
 
 export default async function AtividadePage() {
   const user = await requireUser();
-  const connections = await new DrizzleMcpConnectionRepository().listForUser(user.id);
+  const connections = await repos.mcpConnections.listForUser(user.id);
   const nameById = new Map(connections.map((c) => [c.id, c.clientName]));
   const audit = await listMcpAudit(
-    { audit: new DrizzleMcpAuditLogRepository() },
+    { audit: repos.mcpAuditLogs },
     { userId: user.id, limit: 50 },
   );
 
@@ -60,7 +59,7 @@ export default async function AtividadePage() {
                   </div>
                 </div>
                 {canUndo ? (
-                  <form action={undoAuditAction} className="flex-none">
+                  <form action={undoAuditFormAction} className="flex-none">
                     <input type="hidden" name="audit_id" value={entry.id} />
                     <button
                       type="submit"

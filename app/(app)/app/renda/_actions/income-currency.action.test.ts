@@ -27,9 +27,9 @@ vi.mock("@/infrastructure/clock/system-clock", () => ({
 }));
 
 vi.mock(
-  "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository",
+  "@/infrastructure/persistence/drizzle/repositories/income.repository",
   () => ({
-    DrizzleIncomeRepository: class {},
+    IncomeRepository: class {},
   }),
 );
 

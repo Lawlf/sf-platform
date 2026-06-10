@@ -1,6 +1,6 @@
 import type { MagicLinkTokenEntity } from "@/domain/entities/magic-link-token.entity";
 
-export interface MagicLinkTokenRepository {
+export interface MagicLinkTokenRepositoryPort {
   findByTokenHash(tokenHash: string): Promise<MagicLinkTokenEntity | null>;
   findActiveByEmail(email: string): Promise<MagicLinkTokenEntity | null>;
   create(input: {

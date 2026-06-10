@@ -1,34 +1,28 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { reactivateDebt } from "@/application/use-cases/debt/reactivate-debt.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors/result";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 
 import { detectNotificationsForUser } from "../../../_actions/_notifications";
 
-export async function reactivateDebtAction(
-  debtId: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  const user = await requireUser();
-  const r = await reactivateDebt(
-    {
-      debts: new DrizzleDebtRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, debtId },
-  );
-  if (isErr(r)) return { ok: false, message: r.error.message };
-  await detectNotificationsForUser(user.id);
-  revalidatePath(`/app/dividas/${debtId}`);
-  revalidatePath("/app/dividas");
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app/notificacoes");
-  revalidatePath("/app");
-  return { ok: true };
-}
+export const reactivateDebtAction = action({
+  schema: z.string(),
+  revalidates: ["debts", "timeline", "notifications", "home"],
+  handler: async (debtId, { userId }) => {
+    unwrap(
+      await reactivateDebt(
+        {
+          debts: repos.debts,
+          payments: repos.debtPayments,
+          clock,
+        },
+        { userId, debtId },
+      ),
+    );
+    await detectNotificationsForUser(userId);
+  },
+  revalidatePaths: (_data, debtId) => [`/app/dividas/${debtId}`],
+});

@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+
 import { PRESCRIPTION_CONFIG } from "./prescription-config";
 
 describe("PRESCRIPTION_CONFIG", () => {

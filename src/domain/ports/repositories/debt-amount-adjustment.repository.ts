@@ -1,6 +1,6 @@
 import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 
-export interface DebtAmountAdjustmentRepository {
+export interface DebtAmountAdjustmentRepositoryPort {
   // Lista todos os ajustes (períodos + overrides) de uma dívida, ordenados por
   // startMonth/month asc.
   listForDebt(debtId: string, userId: string): Promise<DebtAmountAdjustmentEntity[]>;

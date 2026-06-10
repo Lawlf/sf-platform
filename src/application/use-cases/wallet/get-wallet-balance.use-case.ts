@@ -9,6 +9,7 @@ import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 import { WalletBalanceService } from "@/domain/services/wallet-balance.service";
 import { type EventWindow, WalletEventGenerator } from "@/domain/services/wallet-event-generator.service";
 import type { Money } from "@/domain/value-objects/money.vo";
+import { DomainError } from "@/shared/errors/domain-error";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface GetWalletBalanceDeps {
@@ -38,10 +39,11 @@ export interface WalletBalanceResult {
   needsAnchor: boolean;
 }
 
-export class NoWalletError extends Error {
+export class NoWalletError extends DomainError {
+  readonly code = "NO_WALLET" as const;
+
   constructor() {
     super("Usuário não tem Carteira.");
-    this.name = "NoWalletError";
   }
 }
 

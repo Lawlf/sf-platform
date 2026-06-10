@@ -7,7 +7,7 @@ export interface McpOauthClient {
   createdAt: Date;
 }
 
-export interface McpOauthClientRepository {
+export interface McpOauthClientRepositoryPort {
   create(input: {
     clientId: string;
     clientSecretHash: string | null;

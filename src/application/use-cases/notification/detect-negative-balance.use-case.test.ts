@@ -2,12 +2,12 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isOk } from "@/shared/errors/result";
 
 import { detectNegativeBalance } from "./detect-negative-balance.use-case";
 
-function makeNotificationsRepo(): NotificationRepository {
+function makeNotificationsRepo(): NotificationRepositoryPort {
   return {
     findById: vi.fn(),
     findByUserAndKindAndMonth: vi.fn(),

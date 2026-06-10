@@ -4,11 +4,11 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { MCP_SCOPE_DESCRIPTIONS, MCP_SHIPPED_SCOPES, type McpScope } from "@/domain/mcp/scopes";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
-import { revokeConnectionAction, toggleScopeAction } from "../_actions";
+import { revokeConnectionFormAction, toggleScopeFormAction } from "../_actions";
 import { formatDate } from "../_labels";
 
 export const metadata: Metadata = { title: "Conexão" };
@@ -56,7 +56,7 @@ function ScopeGroup({
               <span className="text-[color:var(--text-secondary)]">
                 {MCP_SCOPE_DESCRIPTIONS[scope]}
               </span>
-              <form action={toggleScopeAction} className="flex-none">
+              <form action={toggleScopeFormAction} className="flex-none">
                 <input type="hidden" name="connection_id" value={connectionId} />
                 <input type="hidden" name="scope" value={scope} />
                 <input type="hidden" name="grant" value={(!isOn).toString()} />
@@ -91,7 +91,7 @@ export default async function ConnectionDetailPage({
 }) {
   const user = await requireUser();
   const { connectionId } = await params;
-  const repo = new DrizzleMcpConnectionRepository();
+  const repo = repos.mcpConnections;
   const connection = await repo.findById(connectionId);
   if (!connection || connection.userId !== user.id || connection.status !== "active") {
     notFound();
@@ -131,7 +131,7 @@ export default async function ConnectionDetailPage({
         danger
       />
 
-      <form action={revokeConnectionAction} className="mt-2">
+      <form action={revokeConnectionFormAction} className="mt-2">
         <input type="hidden" name="connection_id" value={connectionId} />
         <button
           type="submit"

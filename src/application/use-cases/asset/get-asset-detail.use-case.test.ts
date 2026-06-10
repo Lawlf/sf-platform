@@ -4,12 +4,12 @@ import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocatio
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtStatus, FinancingDebt } from "@/domain/entities/debt.entity";
 import { AssetNotFound } from "@/domain/errors/asset-errors";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type {
-  AssetRepository,
+  AssetRepositoryPort,
   AssetWithAllocations,
 } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
@@ -104,7 +104,7 @@ interface BuildDepsOptions {
 }
 
 function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
-  const assetRepo: AssetRepository = {
+  const assetRepo: AssetRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
@@ -119,7 +119,7 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     listExternalAccountKeys: vi.fn(async () => []),
   };
 
-  const allocationRepo: AssetDebtAllocationRepository = {
+  const allocationRepo: AssetDebtAllocationRepositoryPort = {
     upsert: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -129,7 +129,7 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     sumAllocationsByDebt: vi.fn(),
   };
 
-  const debtRepo: DebtRepository = {
+  const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(async (id: string) => debtsById.get(id) ?? null),
     listForUser: vi.fn(),
     create: vi.fn(),

@@ -3,9 +3,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -29,9 +27,9 @@ export default async function AccountMovementsPage({ params }: PageProps) {
 
   const detail = await getAssetDetail(
     {
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
     },
     { userId: user.id, assetId: id },
   );

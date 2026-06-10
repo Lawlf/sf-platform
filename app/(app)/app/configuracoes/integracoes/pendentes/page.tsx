@@ -3,23 +3,21 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 
 import { listPendingActions } from "@/application/use-cases/mcp/list-pending-actions.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
-import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
-import { approvePendingAction, rejectPendingAction } from "../_actions";
+import { approvePendingFormAction, rejectPendingFormAction } from "../_actions";
 import { formatDate, previewSummary, toolLabel } from "../_labels";
 
 export const metadata: Metadata = { title: "Ações pendentes" };
 
 export default async function PendentesPage() {
   const user = await requireUser();
-  const connections = await new DrizzleMcpConnectionRepository().listForUser(user.id);
+  const connections = await repos.mcpConnections.listForUser(user.id);
   const nameById = new Map(connections.map((c) => [c.id, c.clientName]));
   const pending = await listPendingActions(
-    { pending: new DrizzleMcpPendingActionRepository(), clock: new SystemClock() },
+    { pending: repos.mcpPendingActions, clock },
     { userId: user.id },
   );
 
@@ -66,7 +64,7 @@ export default async function PendentesPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 border-t border-[color:var(--color-brand-500)]/20 pt-3">
-                <form action={approvePendingAction} className="flex-1">
+                <form action={approvePendingFormAction} className="flex-1">
                   <input type="hidden" name="pending_id" value={p.id} />
                   <button
                     type="submit"
@@ -76,7 +74,7 @@ export default async function PendentesPage() {
                     Aprovar
                   </button>
                 </form>
-                <form action={rejectPendingAction} className="flex-1">
+                <form action={rejectPendingFormAction} className="flex-1">
                   <input type="hidden" name="pending_id" value={p.id} />
                   <button
                     type="submit"

@@ -1,15 +1,15 @@
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface DeleteDebtDeps {
-  debts: DebtRepository;
-  payments: DebtPaymentRepository;
-  allocations: AssetDebtAllocationRepository;
+  debts: DebtRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
   clock: Clock;
 }
 

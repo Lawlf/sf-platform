@@ -2,8 +2,8 @@ import { describe, expect, it } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { FinancialPlanningSettingsEntity } from "@/domain/entities/financial-planning-settings.entity";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { FinancialPlanningSettingsRepository } from "@/domain/ports/repositories/financial-planning-settings.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { FinancialPlanningSettingsRepositoryPort } from "@/domain/ports/repositories/financial-planning-settings.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 
 import { setLiquidBucket } from "./set-liquid-bucket.use-case";
@@ -33,7 +33,7 @@ function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" |
   };
 }
 
-function makeAssetsRepo(initial: AssetEntity[]): AssetRepository {
+function makeAssetsRepo(initial: AssetEntity[]): AssetRepositoryPort {
   return {
     findById: async (id: string, userId: string) => {
       const found = initial.find((a) => a.id === id && a.userId === userId);
@@ -47,10 +47,10 @@ function makeAssetsRepo(initial: AssetEntity[]): AssetRepository {
     findActiveWithAllocations: async () => { throw new Error("not used"); },
     listStockTickersForUser: async () => { throw new Error("not used"); },
     softDelete: async () => { throw new Error("not used"); },
-  } as unknown as AssetRepository;
+  } as unknown as AssetRepositoryPort;
 }
 
-function makeSettingsRepo(): FinancialPlanningSettingsRepository {
+function makeSettingsRepo(): FinancialPlanningSettingsRepositoryPort {
   const store = new Map<string, FinancialPlanningSettingsEntity>();
   return {
     findByUser: async (userId: string) => store.get(userId) ?? null,

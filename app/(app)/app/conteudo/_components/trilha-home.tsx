@@ -1,6 +1,6 @@
+import { computeTrilhaProgress } from "../_lib/progress";
 import type { TrilhaSpec } from "../_lib/trilhas";
 
-import { computeTrilhaProgress } from "../_lib/progress";
 import { BookCard } from "./book-card";
 import { ModuleRow } from "./module-row";
 import { NextModuleHero } from "./next-module-hero";

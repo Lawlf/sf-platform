@@ -1,7 +1,7 @@
 import { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import type { Currency } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -9,8 +9,8 @@ const DEFAULT_STALE_AFTER_DAYS = 7;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 export interface ResolveFxRateDeps {
-  rates: ExchangeRateRepository;
-  overrides: UserFxOverrideRepository;
+  rates: ExchangeRateRepositoryPort;
+  overrides: UserFxOverrideRepositoryPort;
   clock: Clock;
 }
 

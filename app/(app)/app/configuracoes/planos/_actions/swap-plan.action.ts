@@ -1,38 +1,30 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { swapPlan } from "@/application/use-cases/billing/swap-plan.use-case";
 import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/stripe-billing.adapter";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 import { isUserSteppedUp } from "@/presentation/http/middleware/require-user-stepup";
-import { isErr } from "@/shared/errors/result";
 
-export interface SwapPlanResult {
-  ok: boolean;
-  code?: string;
-  message?: string;
-}
-
-export async function swapPlanAction(targetPlanSlug: string): Promise<SwapPlanResult> {
-  const user = await requireUser();
-  if (!(await isUserSteppedUp(user.id))) {
-    return { ok: false, code: "STEPUP_REQUIRED" as const, message: "Confirme sua identidade para continuar." };
-  }
-  const r = await swapPlan(
-    {
-      subscriptions: new DrizzleSubscriptionRepository(),
-      plans: new DrizzlePlanRepository(),
-      billing: buildStripeBillingAdapter(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, targetPlanSlug },
-  );
-  if (isErr(r)) return { ok: false, message: r.error.message };
-  revalidatePath("/app/configuracoes/planos");
-  revalidatePath("/app/configuracoes/planos/ajustar");
-  return { ok: true };
-}
+export const swapPlanAction = action({
+  schema: z.string(),
+  revalidates: ["billing"],
+  handler: async (targetPlanSlug, { userId }) => {
+    if (!(await isUserSteppedUp(userId))) return { stepupRequired: true };
+    unwrap(
+      await swapPlan(
+        {
+          subscriptions: repos.subscriptions,
+          plans: repos.plans,
+          billing: buildStripeBillingAdapter(),
+          clock,
+        },
+        { userId, targetPlanSlug },
+      ),
+    );
+    return { stepupRequired: false };
+  },
+  revalidatePaths: () => ["/app/configuracoes/planos/ajustar"],
+});

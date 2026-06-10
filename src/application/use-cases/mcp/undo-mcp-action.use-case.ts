@@ -5,11 +5,11 @@ import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { McpPendingNotFound } from "@/domain/errors/mcp-errors";
 import { findWriteAction } from "@/domain/mcp/write-actions";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { McpAuditLogRepository } from "@/domain/ports/repositories/mcp-audit-log.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { McpAuditLogRepositoryPort } from "@/domain/ports/repositories/mcp-audit-log.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { CURRENCIES, type Currency, Money } from "@/domain/value-objects/money.vo";
 import { DomainError } from "@/shared/errors/domain-error";
@@ -23,11 +23,11 @@ export class McpUndoNotReversible extends DomainError {
 }
 
 export interface UndoMcpActionDeps {
-  audit: McpAuditLogRepository;
-  incomes: IncomeRepository;
-  debts: DebtRepository;
-  assets: AssetRepository;
-  goals: GoalRepository;
+  audit: McpAuditLogRepositoryPort;
+  incomes: IncomeRepositoryPort;
+  debts: DebtRepositoryPort;
+  assets: AssetRepositoryPort;
+  goals: GoalRepositoryPort;
   clock: Clock;
 }
 

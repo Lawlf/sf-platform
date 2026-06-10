@@ -1,11 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import type { AchievementProgressRepository } from "@/domain/ports/repositories/achievement-progress.repository";
+import type { AchievementProgressRepositoryPort } from "@/domain/ports/repositories/achievement-progress.repository";
 
 import { runAchievementsRecompute } from "./run-achievements-recompute.use-case";
 
 const clock = { now: () => new Date("2026-06-15T00:00:00Z") };
-const noopProgress: AchievementProgressRepository = {
+const noopProgress: AchievementProgressRepositoryPort = {
   async get() {
     return null;
   },

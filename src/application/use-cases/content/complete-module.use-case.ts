@@ -1,7 +1,7 @@
-import type { Clock } from "@/domain/ports/clock.port";
-import type { ModuleProgressRepository } from "@/domain/ports/repositories/module-progress.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
 import { UserNotFound } from "@/domain/errors/auth-errors";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { ModuleProgressRepositoryPort } from "@/domain/ports/repositories/module-progress.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -12,8 +12,8 @@ export interface CompleteModuleInput {
 }
 
 export interface CompleteModuleDeps {
-  users: Pick<UserRepository, "findById">;
-  progress: ModuleProgressRepository;
+  users: Pick<UserRepositoryPort, "findById">;
+  progress: ModuleProgressRepositoryPort;
   clock: Clock;
 }
 

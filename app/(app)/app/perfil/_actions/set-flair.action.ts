@@ -1,20 +1,22 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { setProfileFlair } from "@/application/use-cases/profile/set-profile-flair.use-case";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
+import { DomainError } from "@/shared/errors/domain-error";
 
-export async function setFlairAction(flairKey: string | null): Promise<{ ok: boolean }> {
-  const user = await requireUser();
-  const ok = await setProfileFlair(
-    { users: new DrizzleUserRepository() },
-    { userId: user.id, flairKey },
-  );
-  if (ok) {
-    revalidatePath("/app/perfil");
-    revalidatePath("/app/configuracoes/estilo");
-  }
-  return { ok };
+class FlairUpdateFailed extends DomainError {
+  readonly code = "FLAIR_UPDATE_FAILED" as const;
 }
+
+export const setFlairAction = action({
+  schema: z.string().nullable(),
+  revalidates: ["profile"],
+  handler: async (flairKey, { userId }) => {
+    const ok = await setProfileFlair({ users: repos.users }, { userId, flairKey });
+    if (!ok) throw new FlairUpdateFailed("Não foi possível atualizar o destaque.");
+  },
+  revalidatePaths: () => ["/app/configuracoes/estilo"],
+});

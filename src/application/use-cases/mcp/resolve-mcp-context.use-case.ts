@@ -1,18 +1,18 @@
 import { McpConnectionRevoked, McpUnauthorized } from "@/domain/errors/mcp-errors";
 import type { McpContext } from "@/domain/mcp/mcp-context";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpConnectionRepository } from "@/domain/ports/repositories/mcp-connection.repository";
-import type { McpTokenRepository } from "@/domain/ports/repositories/mcp-token.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { McpConnectionRepositoryPort } from "@/domain/ports/repositories/mcp-connection.repository";
+import type { McpTokenRepositoryPort } from "@/domain/ports/repositories/mcp-token.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface ResolveMcpContextDeps {
   hasher: Pick<Hasher, "sha256Hex">;
-  tokens: Pick<McpTokenRepository, "findAccessTokenByHash">;
-  connections: Pick<McpConnectionRepository, "findById" | "listScopes" | "touch">;
-  users: Pick<UserRepository, "findById">;
+  tokens: Pick<McpTokenRepositoryPort, "findAccessTokenByHash">;
+  connections: Pick<McpConnectionRepositoryPort, "findById" | "listScopes" | "touch">;
+  users: Pick<UserRepositoryPort, "findById">;
   clock: Clock;
 }
 

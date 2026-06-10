@@ -3,8 +3,7 @@ import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -32,7 +31,7 @@ export default async function EditarMetaPage({ params }: Props) {
     loadSimPrefill(user.id),
     (async () => {
       const r = await listDebts(
-        { debts: new DrizzleDebtRepository() },
+        { debts: repos.debts },
         { userId: user.id, status: "active" },
       );
       if (!isOk(r)) return [];
@@ -43,7 +42,7 @@ export default async function EditarMetaPage({ params }: Props) {
       }));
     })(),
     (async () => {
-      const repo = new DrizzleAssetRepository();
+      const repo = repos.assets;
       const assets = await repo.findActiveByUser(user.id);
       return assets
         .filter((a) => a.category === "cash" || a.category === "investment")

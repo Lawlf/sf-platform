@@ -7,9 +7,7 @@ import type { ReactNode } from "react";
 import { DEFAULT_PLAN_SLUG } from "@/application/use-cases/billing/create-checkout-session.use-case";
 import { LIFETIME_LIMIT } from "@/domain/entities/plan.entity";
 import { accessEndDate } from "@/domain/entities/subscription.entity";
-import { DrizzlePaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-payment.repository";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -79,9 +77,9 @@ export default async function ConfiguracoesPlanosPage({ searchParams }: PageProp
   const params = (await searchParams) ?? {};
   const page = parsePage(params.p);
 
-  const subRepo = new DrizzleSubscriptionRepository();
-  const paymentRepo = new DrizzlePaymentRepository();
-  const planRepo = new DrizzlePlanRepository();
+  const subRepo = repos.subscriptions;
+  const paymentRepo = repos.payments;
+  const planRepo = repos.plans;
   const sub = await subRepo.findActiveByUserId(user.id);
   const totalPayments = await paymentRepo.countByUserId(user.id);
   const pageCount = Math.max(1, Math.ceil(totalPayments / PAGE_SIZE));

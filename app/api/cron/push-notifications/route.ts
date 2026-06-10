@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 
+
 import { NextResponse } from "next/server";
 
 import { awardEventAchievement } from "@/app/(app)/app/_actions/_achievements";
@@ -13,20 +14,7 @@ import { captureGoalSnapshots } from "@/application/use-cases/goal/capture-goal-
 import { dispatchDebtDueNotifications } from "@/application/use-cases/push/dispatch-debt-due-notifications.use-case";
 import { dispatchGoalReachedNotifications } from "@/application/use-cases/push/dispatch-goal-reached-notifications.use-case";
 import { dispatchMonthlySummaryNotifications } from "@/application/use-cases/push/dispatch-monthly-summary-notifications.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAchievementProgressRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-achievement-progress.repository";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
-import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
-import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getWebPushService } from "@/infrastructure/push/web-push.service";
 import { isOk } from "@/shared/errors/result";
 
@@ -64,12 +52,12 @@ export async function GET(request: Request) {
   }
 
   const deps = {
-    users: new DrizzleUserRepository(),
-    debts: new DrizzleDebtRepository(),
-    pushSubscriptions: new DrizzlePushSubscriptionRepository(),
-    preferences: new DrizzleNotificationPreferencesRepository(),
+    users: repos.users,
+    debts: repos.debts,
+    pushSubscriptions: repos.pushSubscriptions,
+    preferences: repos.notificationPreferences,
     pushService: getWebPushService(),
-    clock: new SystemClock(),
+    clock,
   };
 
   const debtResult = await dispatchDebtDueNotifications(deps);
@@ -84,18 +72,17 @@ export async function GET(request: Request) {
   if (isFirstOfMonth) {
     summaryResult = await dispatchMonthlySummaryNotifications(deps);
 
-    const assets = new DrizzleAssetRepository();
-    const allocations = new DrizzleAssetDebtAllocationRepository();
-    const debts = new DrizzleDebtRepository();
-    const incomes = new DrizzleIncomeRepository();
-    const clock = new SystemClock();
-    const rates = new DrizzleExchangeRateRepository();
-    const overrides = new DrizzleUserFxOverrideRepository();
+    const assets = repos.assets;
+    const allocations = repos.assetDebtAllocations;
+    const debts = repos.debts;
+    const incomes = repos.incomes;
+    const rates = repos.exchangeRates;
+    const overrides = repos.userFxOverrides;
 
     snapshotResult = await captureGoalSnapshots(
       {
-        goals: new DrizzleGoalRepository(),
-        snapshots: new DrizzleGoalSnapshotRepository(),
+        goals: repos.goals,
+        snapshots: repos.goalSnapshots,
         buildMacro: (userId) =>
           buildGoalMacro(
             { assets, allocations, debts, incomes, clock, rates, overrides },
@@ -109,25 +96,24 @@ export async function GET(request: Request) {
   }
 
   const evaluateSustained = async (userId: string): Promise<SustainedEvaluation> => {
-    const clock = new SystemClock();
-    const debtsRepo = new DrizzleDebtRepository();
+    const debtsRepo = repos.debts;
     const snapshotR = await getDashboardSnapshot(
       {
         debts: debtsRepo,
-        incomes: new DrizzleIncomeRepository(),
+        incomes: repos.incomes,
         clock,
-        rates: new DrizzleExchangeRateRepository(),
-        overrides: new DrizzleUserFxOverrideRepository(),
+        rates: repos.exchangeRates,
+        overrides: repos.userFxOverrides,
       },
       { userId },
     );
     const netWorthR = await getNetWorth(
       {
-        assets: new DrizzleAssetRepository(),
-        allocations: new DrizzleAssetDebtAllocationRepository(),
+        assets: repos.assets,
+        allocations: repos.assetDebtAllocations,
         debts: debtsRepo,
-        rates: new DrizzleExchangeRateRepository(),
-        overrides: new DrizzleUserFxOverrideRepository(),
+        rates: repos.exchangeRates,
+        overrides: repos.userFxOverrides,
         clock,
       },
       { userId },
@@ -142,11 +128,11 @@ export async function GET(request: Request) {
   };
 
   const reconcileEvents = async (userId: string): Promise<void> => {
-    const userDebts = await new DrizzleDebtRepository().listForUser(userId, { status: "all" });
+    const userDebts = await repos.debts.listForUser(userId, { status: "all" });
     const [userAssets, userIncomes, userGoals] = await Promise.all([
-      new DrizzleAssetRepository().findActiveByUser(userId),
-      new DrizzleIncomeRepository().listForUser(userId),
-      new DrizzleGoalRepository().listForUser(userId),
+      repos.assets.findActiveByUser(userId),
+      repos.incomes.listForUser(userId),
+      repos.goals.listForUser(userId),
     ]);
     await reconcileEventAchievements(
       (uid, slug) => awardEventAchievement(uid, slug),
@@ -161,13 +147,13 @@ export async function GET(request: Request) {
     );
   };
 
-  const usage = new DrizzleUsageRepository();
+  const usage = repos.usage;
   const achievementsResult = await runAchievementsRecompute(
     {
       listRecentlyActiveUserIds: (now, days) => usage.listRecentlyActiveUserIds(now, days),
       listActiveMonthIsos: (userId) => usage.listActiveMonthIsos(userId),
-      progress: new DrizzleAchievementProgressRepository(),
-      clock: new SystemClock(),
+      progress: repos.achievementProgress,
+      clock,
       award: (userId, slug) => awardEventAchievement(userId, slug),
       evaluate: evaluateSustained,
       reconcileEvents,

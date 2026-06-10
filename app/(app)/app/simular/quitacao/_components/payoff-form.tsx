@@ -112,18 +112,20 @@ export function PayoffForm({
             <ResultCard title="Resultado">
               <ResultHeadline
                 value={
-                  result.payoffMonth !== null ? `${result.payoffMonth} meses` : "Sem previsão"
+                  result.data.payoffMonth !== null
+                    ? `${result.data.payoffMonth} meses`
+                    : "Sem previsão"
                 }
-                tone={result.negativeAmortization ? "negative" : "positive"}
+                tone={result.data.negativeAmortization ? "negative" : "positive"}
                 caption={
-                  result.payoffDate
-                    ? `Data prevista: ${DATE_FMT.format(new Date(result.payoffDate))}.`
+                  result.data.payoffDate
+                    ? `Data prevista: ${DATE_FMT.format(new Date(result.data.payoffDate))}.`
                     : undefined
                 }
               />
-              <ResultStat label="Total pago" value={result.totalPaid} />
-              <ResultStat label="Total de juros" value={result.totalInterest} />
-              {result.negativeAmortization ? (
+              <ResultStat label="Total pago" value={result.data.totalPaid} />
+              <ResultStat label="Total de juros" value={result.data.totalInterest} />
+              {result.data.negativeAmortization ? (
                 <p className="text-[0.75rem] font-semibold text-[color:var(--semantic-negative)]">
                   Atenção: o pagamento não cobre os juros. O saldo cresce e a dívida não termina.
                 </p>

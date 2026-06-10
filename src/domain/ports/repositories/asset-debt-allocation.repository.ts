@@ -1,7 +1,7 @@
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type { Money } from "@/domain/value-objects/money.vo";
 
-export interface AssetDebtAllocationRepository {
+export interface AssetDebtAllocationRepositoryPort {
   upsert(allocation: AssetDebtAllocation): Promise<void>;
   delete(assetId: string, debtId: string): Promise<void>;
   /**

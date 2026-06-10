@@ -1,17 +1,13 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { recordPayment } from "@/application/use-cases/debt/record-payment.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
 import { UpstashDistributedLock } from "@/infrastructure/cache/upstash-distributed-lock";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { withTransaction } from "@/infrastructure/persistence/drizzle/with-transaction";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors/result";
+import { action, unwrap } from "@/presentation/actions/action";
 
 import { awardEventAchievement } from "../../../../_actions/_achievements";
 import { detectNotificationsForUser } from "../../../../_actions/_notifications";
@@ -32,43 +28,36 @@ const schema = z.object({
   isExtra: z.enum(["true", "false"]).transform((v) => v === "true"),
 });
 
-export async function recordPaymentAction(
-  formData: FormData,
-): Promise<{ ok: true; debtId: string } | { ok: false; message: string }> {
-  const user = await requireUser();
-  const parsed = schema.safeParse(Object.fromEntries(formData.entries()));
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
-  }
-  const d = parsed.data;
-  const r = await recordPayment(
-    {
-      debts: new DrizzleDebtRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      clock: new SystemClock(),
-      lock: new UpstashDistributedLock(),
-      transaction: withTransaction,
-    },
-    {
-      userId: user.id,
-      debtId: d.debtId,
-      amount: Money.fromCents(d.amountCents),
-      principalPortion: Money.fromCents(d.principalCents),
-      interestPortion: Money.fromCents(d.interestCents),
-      isExtra: d.isExtra,
-      paidAt: d.paidAt,
-    },
-  );
-  if (isErr(r)) return { ok: false, message: r.error.message };
-  await detectNotificationsForUser(user.id);
-  const settledDebt = await new DrizzleDebtRepository().findById(d.debtId);
-  if (settledDebt?.status === "paid_off") {
-    await awardEventAchievement(user.id, "quitacao", { debtLabel: settledDebt.label });
-  }
-  revalidatePath(`/app/dividas/${d.debtId}`);
-  revalidatePath("/app/dividas");
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app/notificacoes");
-  revalidatePath("/app");
-  return { ok: true, debtId: d.debtId };
-}
+export const recordPaymentAction = action({
+  schema,
+  revalidates: ["debts", "timeline", "notifications", "home"],
+  handler: async (d, { userId }) => {
+    unwrap(
+      await recordPayment(
+        {
+          debts: repos.debts,
+          payments: repos.debtPayments,
+          clock,
+          lock: new UpstashDistributedLock(),
+          transaction: withTransaction,
+        },
+        {
+          userId,
+          debtId: d.debtId,
+          amount: Money.fromCents(d.amountCents),
+          principalPortion: Money.fromCents(d.principalCents),
+          interestPortion: Money.fromCents(d.interestCents),
+          isExtra: d.isExtra,
+          paidAt: d.paidAt,
+        },
+      ),
+    );
+    await detectNotificationsForUser(userId);
+    const settledDebt = await repos.debts.findById(d.debtId);
+    if (settledDebt?.status === "paid_off") {
+      await awardEventAchievement(userId, "quitacao", { debtLabel: settledDebt.label });
+    }
+    return { debtId: d.debtId };
+  },
+  revalidatePaths: (_data, { debtId }) => [`/app/dividas/${debtId}`],
+});

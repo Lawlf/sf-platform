@@ -1,4 +1,4 @@
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
 
 export interface SessionDTO {
   id: string;
@@ -11,7 +11,7 @@ export interface SessionDTO {
 }
 
 export interface ListSessionsDeps {
-  sessions: SessionRepository;
+  sessions: SessionRepositoryPort;
 }
 
 export async function listSessions(deps: ListSessionsDeps, userId: string): Promise<SessionDTO[]> {

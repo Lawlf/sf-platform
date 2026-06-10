@@ -1,8 +1,8 @@
 "use client";
 
 import { Captions, ChevronLeft, Pause, Play, SkipBack, SkipForward } from "lucide-react";
-import Link from "next/link";
 import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -11,6 +11,7 @@ import { recordModuleDoneAction } from "../_actions/complete-module.action";
 import { flattenLines } from "../_lib/beats";
 import { findModuleBeats } from "../_lib/module-registry";
 import { useBeatSync } from "../_lib/use-beat-sync";
+
 import { BeatStage } from "./beat-stage.client";
 import { TranscriptDrawer } from "./transcript-drawer.client";
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 
 import { getAnnualReport } from "./get-annual-report.use-case";
@@ -32,7 +32,7 @@ function txn(
   };
 }
 
-function fakeRepo(rows: TransactionEntity[]): TransactionRepository {
+function fakeRepo(rows: TransactionEntity[]): TransactionRepositoryPort {
   return {
     async create() {
       throw new Error("not used");

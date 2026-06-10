@@ -1,10 +1,10 @@
 import { BillingProviderError, NoActiveSubscriptionError } from "@/domain/errors/billing-errors";
 import type { BillingProvider } from "@/domain/ports/external/billing-provider.port";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface CreateSetupSessionDeps {
-  subscriptions: SubscriptionRepository;
+  subscriptions: SubscriptionRepositoryPort;
   billing: BillingProvider;
   appUrl: string;
 }

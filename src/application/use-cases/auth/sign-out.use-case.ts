@@ -1,8 +1,8 @@
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 
 export interface SignOutDeps {
-  sessions: SessionRepository;
+  sessions: SessionRepositoryPort;
   hasher: Hasher;
 }
 

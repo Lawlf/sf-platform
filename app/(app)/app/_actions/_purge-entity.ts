@@ -1,7 +1,6 @@
 import { purgeEntityAttachments } from "@/application/use-cases/attachments/purge-entity-attachments.use-case";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
-import { DrizzleEntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-attachment.repository";
-import { DrizzleEntityNoteRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-note.repository";
+import { repos } from "@/infrastructure/container";
 import { R2FileStorage } from "@/infrastructure/storage/r2-file-storage";
 
 export async function purgeEntityBestEffort(
@@ -12,8 +11,8 @@ export async function purgeEntityBestEffort(
   try {
     await purgeEntityAttachments(
       {
-        notes: new DrizzleEntityNoteRepository(),
-        attachments: new DrizzleEntityAttachmentRepository(),
+        notes: repos.entityNotes,
+        attachments: repos.entityAttachments,
         storage: new R2FileStorage(),
       },
       { userId, entityType, entityId },

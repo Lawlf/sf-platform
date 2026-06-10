@@ -1,9 +1,9 @@
 import type { FileStoragePort } from "@/domain/ports/file-storage.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 
 export async function getAttachmentDownloadUrl(
   deps: {
-    attachments: Pick<EntityAttachmentRepository, "findById">;
+    attachments: Pick<EntityAttachmentRepositoryPort, "findById">;
     storage: Pick<FileStoragePort, "presignDownload">;
   },
   input: { userId: string; attachmentId: string },

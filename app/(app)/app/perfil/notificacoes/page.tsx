@@ -1,8 +1,7 @@
 import type { Metadata, Route } from "next";
 
 import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-preferences.entity";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
-import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -17,9 +16,9 @@ export default async function NotificacoesPage() {
   const user = await requireUser();
 
   const [prefs, subs] = await Promise.all([
-    new DrizzleNotificationPreferencesRepository().findForUser(user.id),
+    repos.notificationPreferences.findForUser(user.id),
     user.isPro
-      ? new DrizzlePushSubscriptionRepository().listForUser(user.id)
+      ? repos.pushSubscriptions.listForUser(user.id)
       : Promise.resolve([]),
   ]);
 

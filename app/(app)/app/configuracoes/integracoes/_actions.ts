@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 
 import {
   revokeConnection,
@@ -10,120 +11,135 @@ import {
 import { resolvePendingAction } from "@/application/use-cases/mcp/resolve-pending-action.use-case";
 import { undoMcpAction } from "@/application/use-cases/mcp/undo-mcp-action.use-case";
 import { isMcpScope } from "@/domain/mcp/scopes";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleMcpAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-audit-log.repository";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
-import { DrizzleMcpPendingActionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-pending-action.repository";
-import { DrizzleMcpTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-token.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { clock, repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 const ROUTE = "/app/configuracoes/integracoes";
 
-export async function revokeConnectionAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const connectionId = String(formData.get("connection_id") ?? "");
-  await revokeConnection(
-    {
-      connections: new DrizzleMcpConnectionRepository(),
-      tokens: new DrizzleMcpTokenRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, connectionId },
-  );
-  revalidatePath(ROUTE);
-  redirect(ROUTE);
-}
-
-export async function toggleScopeAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const connectionId = String(formData.get("connection_id") ?? "");
-  const scope = String(formData.get("scope") ?? "");
-  const grant = String(formData.get("grant") ?? "") === "true";
-  if (!isMcpScope(scope)) return;
-  await setConnectionScope(
-    {
-      connections: new DrizzleMcpConnectionRepository(),
-      tokens: new DrizzleMcpTokenRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, connectionId, scope, grant },
-  );
-  revalidatePath(`${ROUTE}/${connectionId}`);
-}
-
-export async function approvePendingAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const pendingId = String(formData.get("pending_id") ?? "");
-  if (!pendingId) return;
-  await resolvePendingAction(
-    {
-      executor: {
-        incomes: new DrizzleIncomeRepository(),
-        debts: new DrizzleDebtRepository(),
-        payments: new DrizzleDebtPaymentRepository(),
-        allocations: new DrizzleAssetDebtAllocationRepository(),
-        assets: new DrizzleAssetRepository(),
-        goals: new DrizzleGoalRepository(),
-        transactions: new DrizzleTransactionRepository(),
-        clock: new SystemClock(),
+export const revokeConnectionAction = action({
+  schema: z.object({ connection_id: z.string() }),
+  handler: async (input, { userId }) => {
+    await revokeConnection(
+      {
+        connections: repos.mcpConnections,
+        tokens: repos.mcpTokens,
+        clock,
       },
-      audit: new DrizzleMcpAuditLogRepository(),
-      pending: new DrizzleMcpPendingActionRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, isPro: user.isPro, pendingId, decision: "approve" },
-  );
-  revalidatePath(`${ROUTE}/pendentes`);
-  revalidatePath(ROUTE);
-}
+      { userId, connectionId: input.connection_id },
+    );
+    revalidatePath(ROUTE);
+    redirect(ROUTE);
+  },
+});
 
-export async function rejectPendingAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const pendingId = String(formData.get("pending_id") ?? "");
-  if (!pendingId) return;
-  await resolvePendingAction(
-    {
-      executor: {
-        incomes: new DrizzleIncomeRepository(),
-        debts: new DrizzleDebtRepository(),
-        payments: new DrizzleDebtPaymentRepository(),
-        allocations: new DrizzleAssetDebtAllocationRepository(),
-        assets: new DrizzleAssetRepository(),
-        goals: new DrizzleGoalRepository(),
-        transactions: new DrizzleTransactionRepository(),
-        clock: new SystemClock(),
+export const toggleScopeAction = action({
+  schema: z.object({
+    connection_id: z.string(),
+    scope: z.string(),
+    grant: z.string().optional(),
+  }),
+  handler: async (input, { userId }) => {
+    if (!isMcpScope(input.scope)) return;
+    await setConnectionScope(
+      {
+        connections: repos.mcpConnections,
+        tokens: repos.mcpTokens,
+        clock,
       },
-      audit: new DrizzleMcpAuditLogRepository(),
-      pending: new DrizzleMcpPendingActionRepository(),
-      clock: new SystemClock(),
+      {
+        userId,
+        connectionId: input.connection_id,
+        scope: input.scope,
+        grant: input.grant === "true",
+      },
+    );
+  },
+  revalidatePaths: (_data, input) => [`${ROUTE}/${input.connection_id}`],
+});
+
+const pendingSchema = z.object({ pending_id: z.string().min(1) });
+
+function pendingExecutorDeps() {
+  return {
+    executor: {
+      incomes: repos.incomes,
+      debts: repos.debts,
+      payments: repos.debtPayments,
+      allocations: repos.assetDebtAllocations,
+      assets: repos.assets,
+      goals: repos.goals,
+      transactions: repos.transactions,
+      clock,
     },
-    { userId: user.id, isPro: user.isPro, pendingId, decision: "reject" },
-  );
-  revalidatePath(`${ROUTE}/pendentes`);
-  revalidatePath(ROUTE);
+    audit: repos.mcpAuditLogs,
+    pending: repos.mcpPendingActions,
+    clock,
+  };
 }
 
-export async function undoAuditAction(formData: FormData): Promise<void> {
-  const user = await requireUser();
-  const auditId = String(formData.get("audit_id") ?? "");
-  if (!auditId) return;
-  await undoMcpAction(
-    {
-      audit: new DrizzleMcpAuditLogRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      debts: new DrizzleDebtRepository(),
-      assets: new DrizzleAssetRepository(),
-      goals: new DrizzleGoalRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, auditId },
-  );
-  revalidatePath(`${ROUTE}/atividade`);
+export const approvePendingAction = action({
+  schema: pendingSchema,
+  handler: async (input, { userId }) => {
+    const user = await requireUser();
+    await resolvePendingAction(pendingExecutorDeps(), {
+      userId,
+      isPro: user.isPro,
+      pendingId: input.pending_id,
+      decision: "approve",
+    });
+  },
+  revalidatePaths: () => [`${ROUTE}/pendentes`, ROUTE],
+});
+
+export const rejectPendingAction = action({
+  schema: pendingSchema,
+  handler: async (input, { userId }) => {
+    const user = await requireUser();
+    await resolvePendingAction(pendingExecutorDeps(), {
+      userId,
+      isPro: user.isPro,
+      pendingId: input.pending_id,
+      decision: "reject",
+    });
+  },
+  revalidatePaths: () => [`${ROUTE}/pendentes`, ROUTE],
+});
+
+export const undoAuditAction = action({
+  schema: z.object({ audit_id: z.string().min(1) }),
+  handler: async (input, { userId }) => {
+    await undoMcpAction(
+      {
+        audit: repos.mcpAuditLogs,
+        incomes: repos.incomes,
+        debts: repos.debts,
+        assets: repos.assets,
+        goals: repos.goals,
+        clock,
+      },
+      { userId, auditId: input.audit_id },
+    );
+  },
+  revalidatePaths: () => [`${ROUTE}/atividade`],
+});
+
+export async function revokeConnectionFormAction(formData: FormData): Promise<void> {
+  await revokeConnectionAction(formData);
+}
+
+export async function toggleScopeFormAction(formData: FormData): Promise<void> {
+  await toggleScopeAction(formData);
+}
+
+export async function approvePendingFormAction(formData: FormData): Promise<void> {
+  await approvePendingAction(formData);
+}
+
+export async function rejectPendingFormAction(formData: FormData): Promise<void> {
+  await rejectPendingAction(formData);
+}
+
+export async function undoAuditFormAction(formData: FormData): Promise<void> {
+  await undoAuditAction(formData);
 }

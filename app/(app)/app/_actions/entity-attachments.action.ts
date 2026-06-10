@@ -2,6 +2,7 @@
 
 import { randomUUID } from "node:crypto";
 
+
 import { z } from "zod";
 
 import { confirmAttachmentUpload } from "@/application/use-cases/attachments/confirm-attachment-upload.use-case";
@@ -10,8 +11,9 @@ import { getAttachmentDownloadUrl } from "@/application/use-cases/attachments/ge
 import { listAttachments } from "@/application/use-cases/attachments/list-attachments.use-case";
 import { renameAttachment } from "@/application/use-cases/attachments/rename-attachment.use-case";
 import { requestAttachmentUpload } from "@/application/use-cases/attachments/request-attachment-upload.use-case";
-import { DrizzleEntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-attachment.repository";
+import { repos } from "@/infrastructure/container";
 import { R2FileStorage } from "@/infrastructure/storage/r2-file-storage";
+import { action, ActionError } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 const entityRef = z.object({ entityType: z.string(), entityId: z.string().uuid() });
@@ -31,7 +33,7 @@ export async function listAttachmentsAction(input: {
   const user = await requireUser();
   const parsed = entityRef.safeParse(input);
   if (!parsed.success) return { items: [], totalBytes: 0 };
-  const attachments = new DrizzleEntityAttachmentRepository();
+  const attachments = repos.entityAttachments;
   const [items, totalBytes] = await Promise.all([
     listAttachments({ attachments }, { userId: user.id, ...parsed.data }),
     attachments.totalBytesForUser(user.id),
@@ -66,7 +68,7 @@ export async function requestAttachmentUploadAction(
 
   const result = await requestAttachmentUpload(
     {
-      attachments: new DrizzleEntityAttachmentRepository(),
+      attachments: repos.entityAttachments,
       storage: new R2FileStorage(),
       newId: () => randomUUID(),
       isPro: user.isPro,
@@ -81,54 +83,49 @@ const confirmSchema = requestSchema.extend({
   storageKey: z.string().min(1),
 });
 
-export async function confirmAttachmentUploadAction(
-  input: z.infer<typeof confirmSchema>,
-): Promise<{ ok: boolean }> {
-  const user = await requireUser();
-  const parsed = confirmSchema.safeParse(input);
-  if (!parsed.success) return { ok: false };
+export const confirmAttachmentUploadAction = action({
+  schema: confirmSchema,
+  handler: async (input, { userId }) => {
+    const user = await requireUser();
+    const result = await confirmAttachmentUpload(
+      {
+        attachments: repos.entityAttachments,
+        clock: { now: () => new Date() },
+        isPro: user.isPro,
+      },
+      { userId, ...input },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-  const result = await confirmAttachmentUpload(
-    {
-      attachments: new DrizzleEntityAttachmentRepository(),
-      clock: { now: () => new Date() },
-      isPro: user.isPro,
-    },
-    { userId: user.id, ...parsed.data },
-  );
-  return { ok: result.ok };
-}
-
-export async function deleteAttachmentAction(input: {
-  attachmentId: string;
-}): Promise<{ ok: boolean }> {
-  const user = await requireUser();
-  if (!z.string().uuid().safeParse(input.attachmentId).success) return { ok: false };
-  const result = await deleteAttachment(
-    { attachments: new DrizzleEntityAttachmentRepository(), storage: new R2FileStorage() },
-    { userId: user.id, attachmentId: input.attachmentId },
-  );
-  return { ok: result.ok };
-}
+export const deleteAttachmentAction = action({
+  schema: z.object({ attachmentId: z.string().uuid() }),
+  handler: async ({ attachmentId }, { userId }) => {
+    const result = await deleteAttachment(
+      { attachments: repos.entityAttachments, storage: new R2FileStorage() },
+      { userId, attachmentId },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
 const renameSchema = z.object({
   attachmentId: z.string().uuid(),
   newName: z.string().min(1).max(200),
 });
 
-export async function renameAttachmentAction(input: {
-  attachmentId: string;
-  newName: string;
-}): Promise<{ ok: true; fileName: string } | { ok: false }> {
-  const user = await requireUser();
-  const parsed = renameSchema.safeParse(input);
-  if (!parsed.success) return { ok: false };
-  const result = await renameAttachment(
-    { attachments: new DrizzleEntityAttachmentRepository() },
-    { userId: user.id, attachmentId: parsed.data.attachmentId, newName: parsed.data.newName },
-  );
-  return result.ok ? { ok: true, fileName: result.fileName } : { ok: false };
-}
+export const renameAttachmentAction = action({
+  schema: renameSchema,
+  handler: async ({ attachmentId, newName }, { userId }) => {
+    const result = await renameAttachment(
+      { attachments: repos.entityAttachments },
+      { userId, attachmentId, newName },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+    return { fileName: result.fileName };
+  },
+});
 
 export async function getAttachmentDownloadUrlAction(input: {
   attachmentId: string;
@@ -136,7 +133,7 @@ export async function getAttachmentDownloadUrlAction(input: {
   const user = await requireUser();
   if (!z.string().uuid().safeParse(input.attachmentId).success) return { url: null };
   const url = await getAttachmentDownloadUrl(
-    { attachments: new DrizzleEntityAttachmentRepository(), storage: new R2FileStorage() },
+    { attachments: repos.entityAttachments, storage: new R2FileStorage() },
     { userId: user.id, attachmentId: input.attachmentId },
   );
   return { url };

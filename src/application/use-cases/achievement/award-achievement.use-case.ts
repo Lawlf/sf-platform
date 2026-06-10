@@ -1,12 +1,12 @@
 import { getAchievement } from "@/domain/achievements/achievement.catalog";
 import type { NotificationEntity } from "@/domain/entities/notification.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
-import type { UserAchievementRepository } from "@/domain/ports/repositories/user-achievement.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
+import type { UserAchievementRepositoryPort } from "@/domain/ports/repositories/user-achievement.repository";
 
 export interface AwardAchievementDeps {
-  userAchievements: UserAchievementRepository;
-  notifications: NotificationRepository;
+  userAchievements: UserAchievementRepositoryPort;
+  notifications: NotificationRepositoryPort;
   clock: Clock;
   isPro: (userId: string) => Promise<boolean>;
   sendPush: (input: {

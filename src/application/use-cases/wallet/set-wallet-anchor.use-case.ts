@@ -3,7 +3,7 @@ import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 import { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
-import { NoWalletError } from "./get-wallet-balance.use-case";
+import type { NoWalletError } from "./get-wallet-balance.use-case";
 
 export interface SetWalletAnchorDeps {
   assets: {

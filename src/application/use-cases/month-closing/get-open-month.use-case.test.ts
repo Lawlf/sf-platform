@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import type { MonthClosingEntity } from "@/domain/entities/month-closing.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
+import type { MonthClosingRepositoryPort } from "@/domain/ports/repositories/month-closing.repository";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
 import { getOpenMonth } from "./get-open-month.use-case";
@@ -21,7 +21,7 @@ function makeClosing(monthIso: string): MonthClosingEntity {
   };
 }
 
-function closingsRepo(stored: MonthClosingEntity[]): MonthClosingRepository {
+function closingsRepo(stored: MonthClosingEntity[]): MonthClosingRepositoryPort {
   return {
     upsert: async () => {},
     listForUser: async () => stored,

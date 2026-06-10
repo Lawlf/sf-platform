@@ -16,7 +16,7 @@ export interface DailyPoint {
   value: number; // cents (revenue) or count (signups)
 }
 
-export interface AdminMetricsRepository {
+export interface AdminMetricsRepositoryPort {
   getSummary(now: Date): Promise<AdminMetricsSummary>;
   getRevenueSeries(now: Date, days: number): Promise<DailyPoint[]>;
   getSignupSeries(now: Date, days: number): Promise<DailyPoint[]>;

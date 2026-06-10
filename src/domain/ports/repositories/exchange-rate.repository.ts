@@ -1,7 +1,7 @@
 import type { ExchangeRateEntity } from "@/domain/entities/exchange-rate.entity";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
-export interface ExchangeRateRepository {
+export interface ExchangeRateRepositoryPort {
   upsertDaily(rate: Omit<ExchangeRateEntity, "id" | "fetchedAt">): Promise<void>;
   findLatest(
     fromCurrency: Currency,

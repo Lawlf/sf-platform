@@ -5,12 +5,12 @@ import {
   convertDebtToBase,
 } from "@/application/use-cases/fx/convert-entity-to-base";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import {
   monthlyDebtService,
   monthlyRateFor,
@@ -19,13 +19,13 @@ import type { GoalMacro, GoalMacroDebt } from "@/domain/services/goal-progress.s
 import { isOk } from "@/shared/errors/result";
 
 export interface BuildGoalMacroDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
-  incomes: IncomeRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
+  incomes: IncomeRepositoryPort;
   clock: Clock;
-  rates: ExchangeRateRepository;
-  overrides: UserFxOverrideRepository;
+  rates: ExchangeRateRepositoryPort;
+  overrides: UserFxOverrideRepositoryPort;
 }
 
 export interface BuildGoalMacroInput {

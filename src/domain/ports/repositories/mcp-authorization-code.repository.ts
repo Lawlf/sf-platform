@@ -11,7 +11,7 @@ export interface McpAuthorizationCode {
   consumedAt: Date | null;
 }
 
-export interface McpAuthorizationCodeRepository {
+export interface McpAuthorizationCodeRepositoryPort {
   create(input: Omit<McpAuthorizationCode, "consumedAt">): Promise<void>;
   findByHash(codeHash: string): Promise<McpAuthorizationCode | null>;
   markConsumed(codeHash: string, now: Date): Promise<boolean>;

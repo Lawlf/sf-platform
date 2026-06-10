@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { QuoteAdapter, StockQuoteResult } from "@/domain/ports/external/quote-adapter.port";
 import type {
-  StockCatalogRepository,
+  StockCatalogRepositoryPort,
   StockCatalogUpsertEntry,
 } from "@/domain/ports/repositories/stock-catalog.repository";
 
@@ -10,7 +10,7 @@ import { refreshStockCatalog } from "./refresh-stock-catalog.use-case";
 
 function makeCatalogSpy() {
   const upsertMany = vi.fn(async (_entries: StockCatalogUpsertEntry[]) => undefined);
-  const repo: StockCatalogRepository = {
+  const repo: StockCatalogRepositoryPort = {
     upsert: vi.fn(async () => undefined),
     upsertMany,
     findByTicker: vi.fn(async () => null),

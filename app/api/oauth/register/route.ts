@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { registerClient } from "@/application/use-cases/mcp/register-client.use-case";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { DrizzleMcpOauthClientRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-oauth-client.repository";
+import { repos } from "@/infrastructure/container";
 import { isErr } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "invalid_client_metadata" }, { status: 400 });
   }
   const result = await registerClient(
-    { clients: new DrizzleMcpOauthClientRepository(), random: new WebCryptoRandomGenerator() },
+    { clients: repos.mcpOauthClients, random: new WebCryptoRandomGenerator() },
     {
       clientName: parsed.data.client_name ?? "Cliente MCP",
       redirectUris: parsed.data.redirect_uris,

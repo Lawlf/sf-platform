@@ -2,7 +2,7 @@
 
 import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
 import type { IncomeFrequency } from "@/domain/entities/income.entity";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -19,7 +19,7 @@ export interface IncomeListItemPayload {
 export async function fetchIncomes(): Promise<IncomeListItemPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const r = await listIncomes({ incomes: new DrizzleIncomeRepository() }, { userId: user.id });
+  const r = await listIncomes({ incomes: repos.incomes }, { userId: user.id });
   const list = isOk(r) ? r.value : [];
   return list.map((i) => ({
     id: i.id,

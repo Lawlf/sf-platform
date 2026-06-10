@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
-import { updateQuickAccess } from "./update-quick-access.use-case";
+
 import type { UserEntity } from "@/domain/entities/user.entity";
+
+import { updateQuickAccess } from "./update-quick-access.use-case";
 
 const NOW = new Date("2026-05-26T00:00:00Z");
 const LATER = new Date("2026-05-27T12:00:00Z");

@@ -10,16 +10,16 @@ import {
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface LinkAssetToDebtDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 

@@ -87,17 +87,6 @@ export interface BuildTimelineInput {
 // 52 semanas / 12 meses = 4.333...
 const WEEKS_PER_MONTH = 4.33;
 
-/**
- * Equivalência mensal de uma renda em um dado mês.
- *
- * - `monthly`: o valor próprio (se ativa naquele mês).
- * - `weekly`: amount * 4.33 (se ativa naquele mês).
- * - `one_off`: amount apenas no mês de `startDate`.
- *
- * Considera `startDate`, `endDate` e o flag `isActive` para zerar fora do
- * intervalo. `isActive=false` zera meses posteriores a `endDate` (ou todos,
- * se `endDate` for null).
- */
 function incomeMonthlyEquivalent(
   income: IncomeEntity,
   month: MonthYear,
@@ -138,14 +127,8 @@ function incomeMonthlyEquivalent(
 
 /**
  * Equivalência mensal de uma dívida do tipo `recurring` em um dado mês.
- * Para dívidas tradicionais (financing/personal_loan/...) retorna 0 (essas
- * entram na timeline via `payments`, não via projeção da dívida).
- *
- * - `recurring` mensal: `recurringAmountCents` (se ativa naquele mês).
- * - `recurring` semanal: `recurringAmountCents` * 4.33 (se ativa).
- *
- * Considera `startDate`, `expectedEndDate` e `status` para zerar fora do
- * intervalo válido. `status != "active"` zera meses após o fim do compromisso.
+ * Dívidas tradicionais (financing/personal_loan/...) retornam 0: essas
+ * entram na timeline via `payments`, não via projeção da dívida.
  */
 export function recurringMonthlyEquivalent(
   debt: DebtEntity,
@@ -319,10 +302,6 @@ function debtsBalanceAtMonthEnd(
 }
 
 export class TimelineService {
-  /**
-   * Constrói a linha do tempo entre `from` e `to` (inclusivos), gerando um
-   * `MonthlyDataPoint` por mês na ordem cronológica.
-   */
   static buildTimeline(input: BuildTimelineInput): Timeline {
     const points: MonthlyDataPoint[] = [];
     let m = input.from;

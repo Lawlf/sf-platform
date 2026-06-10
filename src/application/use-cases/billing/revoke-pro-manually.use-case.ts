@@ -1,7 +1,7 @@
 import { BillingProviderError } from "@/domain/errors/billing-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -13,8 +13,8 @@ export interface RevokeProManuallyInput {
 }
 
 export interface RevokeProManuallyDeps {
-  users: UserRepository;
-  subscriptions: SubscriptionRepository;
+  users: UserRepositoryPort;
+  subscriptions: SubscriptionRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

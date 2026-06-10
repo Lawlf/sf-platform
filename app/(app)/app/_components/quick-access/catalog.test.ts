@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { CATALOG_KEYS, QUICK_ACCESS_CATALOG, resolveQuickAccess } from "./catalog";
+
 import { DEFAULT_QUICK_ACCESS } from "@/domain/services/quick-access.service";
+
+import { CATALOG_KEYS, QUICK_ACCESS_CATALOG, resolveQuickAccess } from "./catalog";
 import { QUICK_ACCESS_ICONS } from "./icons";
 describe("catalog", () => {
   it("CATALOG_KEYS lists the expected curated keys", () => {

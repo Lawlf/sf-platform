@@ -1,8 +1,8 @@
 import type { FileStoragePort } from "@/domain/ports/file-storage.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 
 export interface DeleteAttachmentDeps {
-  attachments: Pick<EntityAttachmentRepository, "findById" | "remove">;
+  attachments: Pick<EntityAttachmentRepositoryPort, "findById" | "remove">;
   storage: Pick<FileStoragePort, "delete">;
 }
 

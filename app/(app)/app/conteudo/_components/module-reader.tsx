@@ -1,6 +1,7 @@
 import { MDXRemote } from "next-mdx-remote/rsc";
 
 import type { ModuleFrontmatter } from "../_lib/module-doc";
+
 import { mdxComponents } from "./mdx-components";
 import { ModuleCta } from "./module-cta.client";
 import { QuizCheckpoint, type ResolvedQuiz } from "./quiz-checkpoint.client";

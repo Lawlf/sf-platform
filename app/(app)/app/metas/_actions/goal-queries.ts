@@ -2,18 +2,11 @@
 
 import { getGoalDetail } from "@/application/use-cases/goal/get-goal-detail.use-case";
 import { listGoalsWithProgress } from "@/application/use-cases/goal/list-goals-with-progress.use-case";
-import { filterByLinkedAsset, filterByLinkedDebt } from "./linked-goals";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleGoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-contribution.repository";
-import { DrizzleGoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal-snapshot.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+
+import { filterByLinkedAsset, filterByLinkedDebt } from "./linked-goals";
+
 
 export interface SerializedGoalProgress {
   currentCents: string;
@@ -117,14 +110,14 @@ function serializeProgress(progress: {
 
 function buildDeps() {
   return {
-    goals: new DrizzleGoalRepository(),
-    assets: new DrizzleAssetRepository(),
-    allocations: new DrizzleAssetDebtAllocationRepository(),
-    debts: new DrizzleDebtRepository(),
-    incomes: new DrizzleIncomeRepository(),
-    clock: new SystemClock(),
-    rates: new DrizzleExchangeRateRepository(),
-    overrides: new DrizzleUserFxOverrideRepository(),
+    goals: repos.goals,
+    assets: repos.assets,
+    allocations: repos.assetDebtAllocations,
+    debts: repos.debts,
+    incomes: repos.incomes,
+    clock,
+    rates: repos.exchangeRates,
+    overrides: repos.userFxOverrides,
   };
 }
 
@@ -167,8 +160,8 @@ export async function fetchGoalDetail(
 
   const deps = {
     ...buildDeps(),
-    snapshots: new DrizzleGoalSnapshotRepository(),
-    contributions: new DrizzleGoalContributionRepository(),
+    snapshots: repos.goalSnapshots,
+    contributions: repos.goalContributions,
   };
 
   const result = await getGoalDetail(deps, {

@@ -11,19 +11,19 @@ import type {
   InvalidAmortizationParamsError,
 } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
 import { err, isErr, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface GetDashboardSnapshotDeps {
-  debts: DebtRepository;
-  incomes: IncomeRepository;
+  debts: DebtRepositoryPort;
+  incomes: IncomeRepositoryPort;
   clock: Clock;
-  rates: ExchangeRateRepository;
-  overrides: UserFxOverrideRepository;
+  rates: ExchangeRateRepositoryPort;
+  overrides: UserFxOverrideRepositoryPort;
 }
 
 /**

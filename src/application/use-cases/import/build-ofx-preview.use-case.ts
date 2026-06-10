@@ -1,5 +1,5 @@
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { detectPatterns } from "@/domain/services/ofx/detect-patterns";
 import { findInternalTransfers } from "@/domain/services/ofx/internal-transfers";
 import { mergeOfxStatements } from "@/domain/services/ofx/merge-ofx-statements";
@@ -8,8 +8,8 @@ import { parseOfx } from "@/domain/services/ofx/parse-ofx";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface BuildOfxPreviewDeps {
-  assets: Pick<AssetRepository, "findByExternalAccountKey">;
-  transactions: Pick<TransactionRepository, "existingExternalIds">;
+  assets: Pick<AssetRepositoryPort, "findByExternalAccountKey">;
+  transactions: Pick<TransactionRepositoryPort, "existingExternalIds">;
 }
 
 export interface BuildOfxPreviewInput {

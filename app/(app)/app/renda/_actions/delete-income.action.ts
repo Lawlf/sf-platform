@@ -1,41 +1,22 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
 import { deleteIncome } from "@/application/use-cases/income/delete-income.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-import { isErr } from "@/shared/errors/result";
+import { clock, repos } from "@/infrastructure/container";
+import { action, unwrap } from "@/presentation/actions/action";
 
 import { detectNotificationsForUser } from "../../_actions/_notifications";
 import { purgeEntityBestEffort } from "../../_actions/_purge-entity";
 
-export async function deleteIncomeAction(
-  incomeId: string,
-): Promise<{ ok: true } | { ok: false; message: string }> {
-  const user = await requireUser();
-  const r = await deleteIncome(
-    {
-      incomes: new DrizzleIncomeRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, incomeId },
-  );
-  if (isErr(r)) return { ok: false, message: r.error.message };
+export const deleteIncomeAction = action({
+  schema: z.string(),
+  revalidates: ["incomes", "timeline", "notifications", "home"],
+  handler: async (incomeId, { userId }) => {
+    unwrap(await deleteIncome({ incomes: repos.incomes, clock }, { userId, incomeId }));
 
-  await purgeEntityBestEffort(user.id, "income", incomeId);
-
-  // Saldo do mes muda quando uma renda some: dispara redeteccao de
-  // notificacoes (negative-balance) com o cenario atualizado.
-  await detectNotificationsForUser(user.id);
-
-  // A renda some: invalidamos paginas que listam rendas, dashboard, timeline,
-  // notificacoes.
-  revalidatePath("/app/renda");
-  revalidatePath(`/app/renda/${incomeId}`);
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app/notificacoes");
-  revalidatePath("/app");
-  return { ok: true };
-}
+    await purgeEntityBestEffort(userId, "income", incomeId);
+    await detectNotificationsForUser(userId);
+  },
+  revalidatePaths: (_data, incomeId) => [`/app/renda/${incomeId}`],
+});

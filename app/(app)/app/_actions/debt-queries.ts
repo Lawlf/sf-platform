@@ -7,7 +7,7 @@ import type {
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
 import { Money } from "@/domain/value-objects/money.vo";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -34,7 +34,7 @@ export async function fetchDebts({
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const r = await listDebts({ debts: new DrizzleDebtRepository() }, { userId: user.id, status });
+  const r = await listDebts({ debts: repos.debts }, { userId: user.id, status });
   const list = isOk(r) ? r.value : [];
   return list.map((d) => ({
     id: d.id,
@@ -64,7 +64,7 @@ export async function fetchOutOfMonthSummary(): Promise<OutOfMonthSummary> {
   if (!user) return { count: 0, total: serializeMoney(Money.fromCents(0n)) };
 
   const r = await listDebts(
-    { debts: new DrizzleDebtRepository() },
+    { debts: repos.debts },
     { userId: user.id, status: "written_off" },
   );
   const list = isOk(r) ? r.value : [];

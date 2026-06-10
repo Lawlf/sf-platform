@@ -4,13 +4,8 @@ import { after } from "next/server";
 
 import { awardAchievement } from "@/application/use-cases/achievement/award-achievement.use-case";
 import { sendPushToUser } from "@/application/use-cases/push/send-push-to-user.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { clock, repos } from "@/infrastructure/container";
 import { sendFirstDebtEmail } from "@/infrastructure/email/send-first-debt-email";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
-import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
-import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
-import { DrizzleUserAchievementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-achievement.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { getWebPushService } from "@/infrastructure/push/web-push.service";
 
 /**
@@ -24,12 +19,12 @@ export async function awardEventAchievement(
   payload?: Record<string, unknown>,
 ): Promise<void> {
   try {
-    const users = new DrizzleUserRepository();
+    const users = repos.users;
     const result = await awardAchievement(
       {
-        userAchievements: new DrizzleUserAchievementRepository(),
-        notifications: new DrizzleNotificationRepository(),
-        clock: new SystemClock(),
+        userAchievements: repos.userAchievements,
+        notifications: repos.notifications,
+        clock,
         isPro: async (id) => {
           const u = await users.findById(id);
           return Boolean(u?.isPro);
@@ -38,8 +33,8 @@ export async function awardEventAchievement(
           const r = await sendPushToUser(
             {
               pushService: getWebPushService(),
-              pushSubscriptions: new DrizzlePushSubscriptionRepository(),
-              preferences: new DrizzleNotificationPreferencesRepository(),
+              pushSubscriptions: repos.pushSubscriptions,
+              preferences: repos.notificationPreferences,
             },
             input,
           );

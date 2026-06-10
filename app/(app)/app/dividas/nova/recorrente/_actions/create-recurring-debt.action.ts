@@ -1,13 +1,11 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
 import { CURRENCIES } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError } from "@/presentation/actions/action";
 import { isOk } from "@/shared/errors/result";
 
 import { awardEventAchievement } from "../../../../_actions/_achievements";
@@ -37,49 +35,29 @@ const schema = z.object({
     .optional(),
 });
 
-export type CreateRecurringDebtResult =
-  | { ok: true; debtId: string }
-  | { ok: false; message: string };
-
-export async function createRecurringDebtAction(
-  formData: FormData,
-): Promise<CreateRecurringDebtResult> {
-  const parsed = schema.safeParse({
-    label: formData.get("label"),
-    recurringFrequency: formData.get("recurringFrequency"),
-    recurringAmountCents: formData.get("recurringAmountCents"),
-    currency: formData.get("currency") ?? undefined,
-    expenseCategory: formData.get("expenseCategory"),
-    startDate: formData.get("startDate"),
-    endDate: formData.get("endDate") || null,
-    notes: formData.get("notes") || undefined,
-    dueDay: formData.get("dueDay"),
-  });
-  if (!parsed.success) return { ok: false, message: "Dados inválidos." };
-
-  const user = await requireUser();
-  const r = await registerDebt(
-    { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
-    {
-      kind: "recurring",
-      userId: user.id,
-      label: parsed.data.label,
-      recurringFrequency: parsed.data.recurringFrequency,
-      recurringAmountCents: parsed.data.recurringAmountCents,
-      currency: parsed.data.currency,
-      expenseCategory: parsed.data.expenseCategory,
-      startDate: new Date(parsed.data.startDate),
-      endDate: parsed.data.endDate ? new Date(parsed.data.endDate) : null,
-      notes: parsed.data.notes,
-      dueDay: parsed.data.dueDay ?? null,
-    },
-  );
-  if (!isOk(r)) return { ok: false, message: "Erro ao criar compromisso." };
-  await awardEventAchievement(user.id, "primeiro-passo");
-  revalidatePath(`/app/dividas/${r.value.id}`);
-  revalidatePath("/app/dividas");
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app/notificacoes");
-  revalidatePath("/app");
-  return { ok: true, debtId: r.value.id };
-}
+export const createRecurringDebtAction = action({
+  schema,
+  revalidates: ["debts", "timeline", "notifications", "home"],
+  handler: async (d, { userId }) => {
+    const r = await registerDebt(
+      { debts: repos.debts, clock },
+      {
+        kind: "recurring",
+        userId,
+        label: d.label,
+        recurringFrequency: d.recurringFrequency,
+        recurringAmountCents: d.recurringAmountCents,
+        currency: d.currency,
+        expenseCategory: d.expenseCategory,
+        startDate: new Date(d.startDate),
+        endDate: d.endDate ? new Date(d.endDate) : null,
+        notes: d.notes || undefined,
+        dueDay: d.dueDay ?? null,
+      },
+    );
+    if (!isOk(r)) throw new ActionError("Erro ao criar compromisso.");
+    await awardEventAchievement(userId, "primeiro-passo");
+    return { debtId: r.value.id };
+  },
+  revalidatePaths: (data) => [`/app/dividas/${data.debtId}`],
+});

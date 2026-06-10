@@ -1,14 +1,3 @@
-import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
-import type { IncomeEntity } from "@/domain/entities/income.entity";
-import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import { monthlyDebtService } from "@/domain/services/financial-health.service";
-import { PrescriptionEngine } from "@/domain/services/prescription/prescription-engine.service";
-import type { Prescription } from "@/domain/services/prescription/prescription.types";
-import { isErr, isOk, ok, type Result } from "@/shared/errors/result";
-
 import {
   BASE_CURRENCY,
   convertAssetToBase,
@@ -16,11 +5,22 @@ import {
   convertIncomeToBase,
   type ConvertEntityDeps,
 } from "@/application/use-cases/fx/convert-entity-to-base";
+import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
+import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import { monthlyDebtService } from "@/domain/services/financial-health.service";
+import { PrescriptionEngine } from "@/domain/services/prescription/prescription-engine.service";
+import type { Prescription } from "@/domain/services/prescription/prescription.types";
+import { isErr, isOk, ok, type Result } from "@/shared/errors/result";
+
 
 export interface BuildPrescriptionDeps extends ConvertEntityDeps {
-  debts: Pick<DebtRepository, "listForUser">;
-  incomes: Pick<IncomeRepository, "listForUser">;
-  assets: Pick<AssetRepository, "findActiveByUser">;
+  debts: Pick<DebtRepositoryPort, "listForUser">;
+  incomes: Pick<IncomeRepositoryPort, "listForUser">;
+  assets: Pick<AssetRepositoryPort, "findActiveByUser">;
   now: () => Date;
 }
 

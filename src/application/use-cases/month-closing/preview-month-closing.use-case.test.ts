@@ -4,12 +4,12 @@ import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { MonthClosingEntity } from "@/domain/entities/month-closing.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { MonthClosingRepository } from "@/domain/ports/repositories/month-closing.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { MonthClosingRepositoryPort } from "@/domain/ports/repositories/month-closing.repository";
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
@@ -85,7 +85,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
   const incomesStore = stored.incomes ?? [];
   const rateDecimal = stored.rate ?? null;
 
-  const closings: MonthClosingRepository = {
+  const closings: MonthClosingRepositoryPort = {
     upsert: async () => {},
     listForUser: async () => closingsStore,
     latest: async () => {
@@ -96,23 +96,23 @@ function makeDeps(stored: Stored): MonthClosingDeps {
 
   const assets = {
     findActiveByUser: async () => assetsStore,
-  } as unknown as AssetRepository;
+  } as unknown as AssetRepositoryPort;
 
   const allocations = {
     findByAsset: async () => [],
-  } as unknown as AssetDebtAllocationRepository;
+  } as unknown as AssetDebtAllocationRepositoryPort;
 
   const debts = {
     listForUser: async () => [],
-  } as unknown as DebtRepository;
+  } as unknown as DebtRepositoryPort;
 
   const incomes = {
     listForUser: async () => incomesStore,
-  } as unknown as IncomeRepository;
+  } as unknown as IncomeRepositoryPort;
 
   const payments = {
     listForUserInRange: async () => [],
-  } as unknown as DebtPaymentRepository;
+  } as unknown as DebtPaymentRepositoryPort;
 
   const rates = {
     findLatest: async () =>

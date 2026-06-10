@@ -1,6 +1,6 @@
 import type { UserEntity } from "@/domain/entities/user.entity";
 
-export interface UserRepository {
+export interface UserRepositoryPort {
   findById(id: string): Promise<UserEntity | null>;
   findByUsername(username: string): Promise<UserEntity | null>;
   findByEmail(email: string): Promise<UserEntity | null>;

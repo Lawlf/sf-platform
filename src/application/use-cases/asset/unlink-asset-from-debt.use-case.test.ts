@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import { AssetNotFound } from "@/domain/errors/asset-errors";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { unlinkAssetFromDebt } from "./unlink-asset-from-debt.use-case";
 
-function makeAssetRepo(): AssetRepository {
+function makeAssetRepo(): AssetRepositoryPort {
   return {
     create: vi.fn(),
     update: vi.fn(),
@@ -26,7 +26,7 @@ function makeAssetRepo(): AssetRepository {
   };
 }
 
-function makeAllocRepo(): AssetDebtAllocationRepository {
+function makeAllocRepo(): AssetDebtAllocationRepositoryPort {
   return {
     upsert: vi.fn(),
     delete: vi.fn(),

@@ -1,6 +1,6 @@
 import { UserNotFound } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -10,7 +10,7 @@ export interface UpdateUserDisplayNameInput {
 }
 
 export interface UpdateUserDisplayNameDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
   clock: Clock;
 }
 

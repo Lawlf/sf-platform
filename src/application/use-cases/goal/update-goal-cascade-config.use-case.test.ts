@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 import { updateGoalCascadeConfig } from "./update-goal-cascade-config.use-case";
 
@@ -30,7 +30,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   };
 }
 
-function makeGoalsRepo(initial: GoalEntity[]): GoalRepository {
+function makeGoalsRepo(initial: GoalEntity[]): GoalRepositoryPort {
   const store = new Map<string, GoalEntity>(initial.map((g) => [g.id, g]));
   return {
     findById: async (id: string) => store.get(id) ?? null,
@@ -47,7 +47,7 @@ function makeGoalsRepo(initial: GoalEntity[]): GoalRepository {
     softDelete: async () => { throw new Error("not used"); },
     restore: async () => { throw new Error("not used"); },
     listAllActive: async () => { throw new Error("not used"); },
-  } as unknown as GoalRepository;
+  } as unknown as GoalRepositoryPort;
 }
 
 const goals = makeGoalsRepo([makeGoal()]);

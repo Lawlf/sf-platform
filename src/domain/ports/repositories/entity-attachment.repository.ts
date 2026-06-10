@@ -1,7 +1,7 @@
 import type { EntityAttachmentEntity } from "@/domain/entities/entity-attachment.entity";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
-export interface EntityAttachmentRepository {
+export interface EntityAttachmentRepositoryPort {
   add(attachment: EntityAttachmentEntity): Promise<void>;
   findById(id: string, userId: string): Promise<EntityAttachmentEntity | null>;
   listForEntity(

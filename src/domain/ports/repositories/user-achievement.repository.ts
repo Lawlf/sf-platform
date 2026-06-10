@@ -1,6 +1,6 @@
 import type { UserAchievementEntity } from "@/domain/entities/user-achievement.entity";
 
-export interface UserAchievementRepository {
+export interface UserAchievementRepositoryPort {
   unlock(
     userId: string,
     slug: string,

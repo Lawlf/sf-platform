@@ -10,17 +10,17 @@ import {
 } from "@/domain/errors/billing-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { BillingProvider } from "@/domain/ports/external/billing-provider.port";
-import type { PlanRepository } from "@/domain/ports/repositories/plan.repository";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export const DEFAULT_PLAN_SLUG = "pro-monthly";
 
 export interface CreateCheckoutSessionDeps {
-  users: UserRepository;
-  subscriptions: SubscriptionRepository;
-  plans: PlanRepository;
+  users: UserRepositoryPort;
+  subscriptions: SubscriptionRepositoryPort;
+  plans: PlanRepositoryPort;
   billing: BillingProvider;
   clock: Clock;
   appUrl: string;

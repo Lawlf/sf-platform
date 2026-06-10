@@ -1,9 +1,9 @@
 import type { NotificationPreferencesEntity } from "@/domain/entities/notification-preferences.entity";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
 import type { EmailCategory } from "@/infrastructure/email/unsubscribe-token";
 
 export interface UnsubscribeFromEmailsDeps {
-  preferences: NotificationPreferencesRepository;
+  preferences: NotificationPreferencesRepositoryPort;
 }
 
 const FIELD_BY_CATEGORY: Record<

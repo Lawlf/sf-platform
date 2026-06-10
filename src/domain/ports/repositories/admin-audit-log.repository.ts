@@ -16,7 +16,7 @@ export interface RecordAuditInput {
   metadata?: Record<string, unknown>;
 }
 
-export interface AdminAuditLogRepository {
+export interface AdminAuditLogRepositoryPort {
   record(input: RecordAuditInput): Promise<void>;
   list(limit: number, offset?: number): Promise<AdminAuditLogEntry[]>;
 }

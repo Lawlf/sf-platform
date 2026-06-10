@@ -2,10 +2,9 @@
 
 import { seedStockCatalog } from "@/application/use-cases/stocks/seed-stock-catalog.use-case";
 import { timingSafeStringEqual } from "@/infrastructure/auth/timing-safe-compare";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { BrapiQuoteAdapter } from "@/infrastructure/external/brapi/brapi-quote.adapter";
-import { DrizzleStockCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-stock-catalog.repository";
 
 export type SeedStockCatalogResult =
   | { ok: true; inserted: number; pages: number }
@@ -31,9 +30,9 @@ export async function seedStockCatalogAction(
     if (typeof opts?.pageSize === "number") input.pageSize = opts.pageSize;
     const result = await seedStockCatalog(
       {
-        catalog: new DrizzleStockCatalogRepository(),
+        catalog: repos.stockCatalog,
         quotes: new BrapiQuoteAdapter(),
-        clock: new SystemClock(),
+        clock,
       },
       input,
     );

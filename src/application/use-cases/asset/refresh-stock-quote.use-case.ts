@@ -8,14 +8,14 @@ import {
 } from "@/domain/errors/asset-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { QuoteAdapter } from "@/domain/ports/external/quote-adapter.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { StockCatalogRepository } from "@/domain/ports/repositories/stock-catalog.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { StockCatalogRepositoryPort } from "@/domain/ports/repositories/stock-catalog.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RefreshStockQuoteDeps {
-  assets: AssetRepository;
-  catalog: StockCatalogRepository;
+  assets: AssetRepositoryPort;
+  catalog: StockCatalogRepositoryPort;
   quotes: QuoteAdapter;
   clock: Clock;
 }

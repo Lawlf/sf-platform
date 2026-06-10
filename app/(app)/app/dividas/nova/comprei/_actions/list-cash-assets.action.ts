@@ -1,6 +1,6 @@
 "use server";
 
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { serializeMoney, type SerializedMoney } from "../../../../_actions/_serialize";
@@ -17,7 +17,7 @@ export interface CashAssetPayload {
 export async function listCashAssetsForPurchase(): Promise<CashAssetPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const repo = new DrizzleAssetRepository();
+  const repo = repos.assets;
   const assets = await repo.findActiveByUserAndCategory(user.id, "cash");
   return assets.map((a) => ({
     id: a.id,

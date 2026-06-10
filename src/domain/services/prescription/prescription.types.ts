@@ -1,6 +1,6 @@
 // src/domain/services/prescription/prescription.types.ts
-import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { PrescriptionConfig } from "@/domain/config/prescription-config";
+import type { DebtEntity } from "@/domain/entities/debt.entity";
 
 export type PrescriptionState =
   | "incomplete"

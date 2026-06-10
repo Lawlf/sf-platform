@@ -249,7 +249,7 @@ function CascadeQueue({ goals }: { goals: PlanningGoalConfig[] }) {
     setError(null);
     setPendingGoalId(goal.goalId);
     startTransition(async () => {
-      const result = await updateGoalCascadeConfigAction(goal.goalId, patch);
+      const result = await updateGoalCascadeConfigAction({ goalId: goal.goalId, ...patch });
       if (!result.ok) {
         setError(result.message ?? "Não foi possível salvar.");
         setPendingGoalId(null);
@@ -268,7 +268,8 @@ function CascadeQueue({ goals }: { goals: PlanningGoalConfig[] }) {
     setError(null);
     setPendingGoalId(a.goalId);
     startTransition(async () => {
-      const first = await updateGoalCascadeConfigAction(a.goalId, {
+      const first = await updateGoalCascadeConfigAction({
+        goalId: a.goalId,
         mode: a.mode,
         order: b.order,
         parallelFraction: a.parallelPct / 100,
@@ -278,7 +279,8 @@ function CascadeQueue({ goals }: { goals: PlanningGoalConfig[] }) {
         setPendingGoalId(null);
         return;
       }
-      const second = await updateGoalCascadeConfigAction(b.goalId, {
+      const second = await updateGoalCascadeConfigAction({
+        goalId: b.goalId,
         mode: b.mode,
         order: a.order,
         parallelFraction: b.parallelPct / 100,

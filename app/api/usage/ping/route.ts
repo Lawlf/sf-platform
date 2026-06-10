@@ -1,4 +1,4 @@
-import { DrizzleUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-usage.repository";
+import { repos } from "@/infrastructure/container";
 import { getUsagePingLimiter } from "@/infrastructure/rate-limit/usage-ping-limiter";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -23,6 +23,6 @@ export async function POST(req: Request): Promise<Response> {
     // ignore: path is optional
   }
 
-  await new DrizzleUsageRepository().recordPing(user.id, path, new Date());
+  await repos.usage.recordPing(user.id, path, new Date());
   return new Response(null, { status: 204 });
 }

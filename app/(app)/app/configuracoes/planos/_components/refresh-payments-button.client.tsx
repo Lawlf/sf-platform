@@ -20,11 +20,11 @@ export function RefreshPaymentsButton() {
         });
         return;
       }
-      if (r.created > 0) {
+      if (r.data.created > 0) {
         toast.success(
-          r.created === 1
+          r.data.created === 1
             ? "1 cobrança nova sincronizada."
-            : `${r.created} cobranças sincronizadas.`,
+            : `${r.data.created} cobranças sincronizadas.`,
         );
       } else {
         toast.info("Tudo em dia.", {

@@ -1,8 +1,8 @@
 import type { GoalEntity, GoalFundingMode, GoalType } from "@/domain/entities/goal.entity";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 export interface CreateGoalDeps {
-  goals: GoalRepository;
+  goals: GoalRepositoryPort;
 }
 
 export interface CreateGoalInput {

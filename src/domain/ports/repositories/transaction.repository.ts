@@ -1,6 +1,6 @@
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 
-export interface TransactionRepository {
+export interface TransactionRepositoryPort {
   create(transaction: Omit<TransactionEntity, "createdAt">): Promise<TransactionEntity>;
   update(transaction: TransactionEntity): Promise<TransactionEntity>;
   findByIdForUser(id: string, userId: string): Promise<TransactionEntity | null>;

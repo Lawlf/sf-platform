@@ -85,7 +85,7 @@ export function RecordPaymentForm({
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
         queryClient.invalidateQueries({ queryKey: ["timeline"] }),
       ]);
-      router.push(`/app/dividas/${r.debtId}` as Route);
+      router.push(`/app/dividas/${r.data.debtId}` as Route);
     });
   }
 

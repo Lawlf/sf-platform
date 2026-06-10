@@ -1,11 +1,11 @@
-import { isReserveTransfer } from "./reserve-transfer";
-
 import type {
   DebtSuggestion,
   IncomeSuggestion,
   OfxSuggestions,
   OfxTxn,
 } from "./ofx-types";
+import { isReserveTransfer } from "./reserve-transfer";
+
 
 function normalizeMemo(memo: string): string {
   return memo

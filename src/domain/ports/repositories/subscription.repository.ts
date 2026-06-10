@@ -1,6 +1,6 @@
 import type { PaymentProvider, Subscription } from "@/domain/entities/subscription.entity";
 
-export interface SubscriptionRepository {
+export interface SubscriptionRepositoryPort {
   findById(id: string): Promise<Subscription | null>;
   findByProviderSubscriptionId(
     provider: PaymentProvider,

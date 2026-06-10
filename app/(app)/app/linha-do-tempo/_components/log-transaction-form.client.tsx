@@ -186,8 +186,8 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         setServerError(result.message);
         return;
       }
-      setAccounts((prev) => [...(prev ?? []), result.account]);
-      setAccountId(result.account.id);
+      setAccounts((prev) => [...(prev ?? []), result.data.account]);
+      setAccountId(result.data.account.id);
       setNewAccountName("");
       setShowNewAccount(false);
     });

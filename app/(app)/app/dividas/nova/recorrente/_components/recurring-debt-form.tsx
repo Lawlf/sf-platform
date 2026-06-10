@@ -209,7 +209,7 @@ export function RecurringDebtForm({
         return;
       }
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${r.debtId}` as Route);
+      router.push(`/app/dividas/${r.data.debtId}` as Route);
     });
   }
 

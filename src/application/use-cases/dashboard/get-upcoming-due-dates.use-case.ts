@@ -1,6 +1,6 @@
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
@@ -12,7 +12,7 @@ export interface UpcomingDue {
 }
 
 export interface GetUpcomingDuesDeps {
-  debts: DebtRepository;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 

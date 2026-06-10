@@ -3,17 +3,17 @@ import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import type { GoalContributionEntity } from "@/domain/entities/goal-contribution.entity";
 import type { GoalSnapshotEntity } from "@/domain/entities/goal-snapshot.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
-import type { GoalContributionRepository } from "@/domain/ports/repositories/goal-contribution.repository";
-import type { GoalSnapshotRepository } from "@/domain/ports/repositories/goal-snapshot.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalContributionRepositoryPort } from "@/domain/ports/repositories/goal-contribution.repository";
+import type { GoalSnapshotRepositoryPort } from "@/domain/ports/repositories/goal-snapshot.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import { GoalProgressService, type GoalProgress } from "@/domain/services/goal-progress.service";
 
 const CONTRIBUTIONS_LIMIT = 20;
 
 export interface GetGoalDetailDeps extends BuildGoalMacroDeps {
-  goals: GoalRepository;
-  snapshots: GoalSnapshotRepository;
-  contributions: GoalContributionRepository;
+  goals: GoalRepositoryPort;
+  snapshots: GoalSnapshotRepositoryPort;
+  contributions: GoalContributionRepositoryPort;
 }
 
 export interface GoalDetailResult {

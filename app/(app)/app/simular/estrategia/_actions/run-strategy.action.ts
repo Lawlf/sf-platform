@@ -2,10 +2,10 @@
 
 import { z } from "zod";
 
+
 import { comparePayoffStrategies } from "@/application/use-cases/simulation/compare-payoff-strategies.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -39,7 +39,7 @@ export async function runStrategyAction(formData: FormData): Promise<StrategyAct
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
 
   const r = await comparePayoffStrategies(
-    { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
+    { debts: repos.debts, clock },
     {
       userId: user.id,
       debtIds: parsed.data.debtIds,

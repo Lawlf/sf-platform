@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+
 import { comparePayoffStrategies } from "@/application/use-cases/simulation/compare-payoff-strategies.use-case";
 import type { SimPrefill } from "@/application/use-cases/simulation/load-sim-prefill.use-case";
 import { projectDebtPayoff } from "@/application/use-cases/simulation/project-debt-payoff.use-case";
@@ -25,8 +26,7 @@ import { SeveranceService } from "@/domain/services/severance.service";
 import { ThirteenthSalaryService } from "@/domain/services/thirteenth-salary.service";
 import { VacationPayService } from "@/domain/services/vacation-pay.service";
 import { Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { isErr } from "@/shared/errors/result";
 
 export interface SimulatorToolDef {
@@ -102,7 +102,7 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
     },
     execute: async (args, ctx) => {
       const result = await projectDebtPayoff(
-        { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
+        { debts: repos.debts, clock },
         {
           userId: ctx.userId,
           debtId: String(args.debtId),
@@ -431,7 +431,7 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
     },
     execute: async (args, ctx) => {
       const result = await simulateExtraPayment(
-        { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
+        { debts: repos.debts, clock },
         {
           userId: ctx.userId,
           debtId: String(args.debtId),
@@ -452,7 +452,7 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
     },
     execute: async (args, ctx) => {
       const result = await comparePayoffStrategies(
-        { debts: new DrizzleDebtRepository(), clock: new SystemClock() },
+        { debts: repos.debts, clock },
         {
           userId: ctx.userId,
           debtIds: (args.debtIds as string[]).map(String),

@@ -1,17 +1,17 @@
 import type { UserEntity } from "@/domain/entities/user.entity";
 import { AccountDeactivated, MagicLinkAlreadyUsed, MagicLinkExpired, MagicLinkInvalid } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { MagicLinkTokenRepository } from "@/domain/ports/repositories/magic-link-token.repository";
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { MagicLinkTokenRepositoryPort } from "@/domain/ports/repositories/magic-link-token.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface VerifyMagicLinkByTokenDeps {
-  users: UserRepository;
-  tokens: MagicLinkTokenRepository;
-  sessions: SessionRepository;
+  users: UserRepositoryPort;
+  tokens: MagicLinkTokenRepositoryPort;
+  sessions: SessionRepositoryPort;
   hasher: Hasher;
   random: RandomGenerator;
   clock: Clock;

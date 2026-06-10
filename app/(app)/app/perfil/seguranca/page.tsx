@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 
 import { listSessions } from "@/application/use-cases/auth/list-sessions.use-case";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -36,13 +35,13 @@ function shortUserAgent(ua: string | null): string {
 export default async function SegurancaPage() {
   const user = await requireUser();
 
-  const credsRepo = new DrizzleUserCredentialsRepository();
+  const credsRepo = repos.userCredentials;
   const [creds, passkeys] = await Promise.all([
     credsRepo.find(user.id),
     credsRepo.listWebauthn(user.id),
   ]);
 
-  const sessions = await listSessions({ sessions: new DrizzleSessionRepository() }, user.id);
+  const sessions = await listSessions({ sessions: repos.sessions }, user.id);
 
   return (
     <PageShell

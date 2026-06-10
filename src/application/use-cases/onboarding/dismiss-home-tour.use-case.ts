@@ -1,9 +1,9 @@
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface DismissHomeTourDeps {
-  users: UserRepository;
+  users: UserRepositoryPort;
 }
 
 export interface DismissHomeTourInput {

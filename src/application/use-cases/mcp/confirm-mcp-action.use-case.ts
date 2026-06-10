@@ -2,8 +2,8 @@ import { McpConfirmationInvalid } from "@/domain/errors/mcp-errors";
 import type { McpContext } from "@/domain/mcp/mcp-context";
 import { findWriteAction } from "@/domain/mcp/write-actions";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpAuditLogRepository } from "@/domain/ports/repositories/mcp-audit-log.repository";
-import type { McpPendingActionRepository } from "@/domain/ports/repositories/mcp-pending-action.repository";
+import type { McpAuditLogRepositoryPort } from "@/domain/ports/repositories/mcp-audit-log.repository";
+import type { McpPendingActionRepositoryPort } from "@/domain/ports/repositories/mcp-pending-action.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -11,8 +11,8 @@ import { executeWrite, type WriteExecutorDeps, type WriteExecutorResult } from "
 
 export interface ConfirmMcpActionDeps {
   executor: WriteExecutorDeps;
-  audit: McpAuditLogRepository;
-  pending: McpPendingActionRepository;
+  audit: McpAuditLogRepositoryPort;
+  pending: McpPendingActionRepositoryPort;
   hasher: Hasher;
   clock: Clock;
 }

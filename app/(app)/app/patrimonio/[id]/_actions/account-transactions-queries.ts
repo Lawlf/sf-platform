@@ -3,7 +3,7 @@
 import { listAccountTransactionsPage } from "@/application/use-cases/transaction/list-account-transactions-page.use-case";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { transactionCategoryLabel } from "@/domain/services/transaction-category-label";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 export interface SerializedAccountTxn {
@@ -47,7 +47,7 @@ export async function fetchAccountTransactionsPage(args: {
   if (!user) return null;
 
   const page = await listAccountTransactionsPage(
-    { transactions: new DrizzleTransactionRepository() },
+    { transactions: repos.transactions },
     {
       userId: user.id,
       accountId: args.accountId,
@@ -64,7 +64,7 @@ export async function fetchAccountTransactionsPage(args: {
 export async function fetchAccountTransactionCount(accountId: string): Promise<number> {
   const user = await getCurrentUser();
   if (!user) return 0;
-  return new DrizzleTransactionRepository().countByAccount(accountId, user.id);
+  return repos.transactions.countByAccount(accountId, user.id);
 }
 
 export interface AccountMonthSummary {
@@ -79,7 +79,7 @@ export async function fetchAccountMonthSummaries(
 ): Promise<AccountMonthSummary[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const rows = await new DrizzleTransactionRepository().monthSummariesByAccount(accountId, user.id);
+  const rows = await repos.transactions.monthSummariesByAccount(accountId, user.id);
   return rows.map((r) => ({
     key: r.key,
     inCents: r.inCents.toString(),

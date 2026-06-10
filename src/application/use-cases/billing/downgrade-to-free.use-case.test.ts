@@ -3,8 +3,8 @@ import { describe, expect, it, vi } from "vitest";
 import type { Subscription } from "@/domain/entities/subscription.entity";
 import type { UserEntity } from "@/domain/entities/user.entity";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { SubscriptionRepository } from "@/domain/ports/repositories/subscription.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { SubscriptionRepositoryPort } from "@/domain/ports/repositories/subscription.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 
 import { downgradeToFree } from "./downgrade-to-free.use-case";
@@ -45,10 +45,10 @@ function makeDeps(opts: { user: UserEntity; otherActive: Subscription | null }) 
       update: vi.fn(async (u: UserEntity) => {
         usersUpdated.push(u);
       }),
-    } as unknown as UserRepository,
+    } as unknown as UserRepositoryPort,
     subscriptions: {
       findActiveByUserId: vi.fn(async () => opts.otherActive),
-    } as unknown as SubscriptionRepository,
+    } as unknown as SubscriptionRepositoryPort,
     email: {
       send: vi.fn(async (m: { subject: string }) => {
         emailsSent.push(m.subject);

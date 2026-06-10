@@ -1,8 +1,7 @@
 import { listAttachments } from "@/application/use-cases/attachments/list-attachments.use-case";
 import { getEntityNote } from "@/application/use-cases/notes/get-entity-note.use-case";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
-import { DrizzleEntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-attachment.repository";
-import { DrizzleEntityNoteRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-entity-note.repository";
+import { repos } from "@/infrastructure/container";
 
 import type { AttachmentDto } from "../../_actions/entity-attachments.action";
 
@@ -21,14 +20,14 @@ interface Props {
 export async function EntityNotesAndFiles({ entityType, entityId, userId, isPro }: Props) {
   const copy = ENTITY_COPY[entityType];
   const note = await getEntityNote(
-    { notes: new DrizzleEntityNoteRepository() },
+    { notes: repos.entityNotes },
     { userId, entityType, entityId },
   );
 
   let items: AttachmentDto[] = [];
   let totalBytes = 0;
   if (isPro) {
-    const attachments = new DrizzleEntityAttachmentRepository();
+    const attachments = repos.entityAttachments;
     const [list, total] = await Promise.all([
       listAttachments({ attachments }, { userId, entityType, entityId }),
       attachments.totalBytesForUser(userId),

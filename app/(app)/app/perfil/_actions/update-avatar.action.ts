@@ -1,22 +1,23 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 
-import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
+import { DomainError } from "@/shared/errors/domain-error";
 
 import { validateAvatarDataUrl } from "./avatar-validation";
 
-export type UpdateAvatarResult = { ok: true } | { ok: false; message: string };
-
-export async function updateAvatarAction(dataUrl: unknown): Promise<UpdateAvatarResult> {
-  const validation = validateAvatarDataUrl(dataUrl);
-  if (!validation.ok) return validation;
-
-  const user = await requireUser();
-  await new DrizzleUserAvatarRepository().upsert(user.id, validation.dataUrl);
-
-  revalidatePath("/app/perfil");
-  revalidatePath("/app");
-  return { ok: true };
+class InvalidAvatar extends DomainError {
+  readonly code = "INVALID_AVATAR" as const;
 }
+
+export const updateAvatarAction = action({
+  schema: z.unknown(),
+  revalidates: ["profile", "home"],
+  handler: async (dataUrl, { userId }) => {
+    const validation = validateAvatarDataUrl(dataUrl);
+    if (!validation.ok) throw new InvalidAvatar(validation.message);
+    await repos.userAvatars.upsert(userId, validation.dataUrl);
+  },
+});

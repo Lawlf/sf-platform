@@ -1,11 +1,11 @@
-import type { GoalSnapshotRepository } from "@/domain/ports/repositories/goal-snapshot.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalSnapshotRepositoryPort } from "@/domain/ports/repositories/goal-snapshot.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import type { GoalMacro } from "@/domain/services/goal-progress.service";
 import { GoalProgressService } from "@/domain/services/goal-progress.service";
 
 export interface CaptureGoalSnapshotsDeps {
-  goals: Pick<GoalRepository, "listAllActive" | "update">;
-  snapshots: Pick<GoalSnapshotRepository, "upsert">;
+  goals: Pick<GoalRepositoryPort, "listAllActive" | "update">;
+  snapshots: Pick<GoalSnapshotRepositoryPort, "upsert">;
   /** Injected factory so callers and tests can provide any macro source. */
   buildMacro: (userId: string) => Promise<GoalMacro>;
 }

@@ -1,32 +1,14 @@
 import { z } from "zod";
 
-import { CURRENCIES } from "@/domain/value-objects/money.vo";
-
-const bigintFromString = z
-  .string()
-  .min(1, "Campo obrigatório.")
-  .transform((v, ctx) => {
-    try {
-      return BigInt(v);
-    } catch {
-      ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Número inválido." });
-      return z.NEVER;
-    }
-  });
-
-const positiveBigint = bigintFromString.refine((v) => v > 0n, "Deve ser positivo.");
-const nonNegativeBigint = bigintFromString.refine((v) => v >= 0n, "Não pode ser negativo.");
+import { currencyEnum, nonNegativeBigint, nullableDate, positiveBigint } from "./shared.validators";
 
 export const financingFormSchema = z.object({
   kind: z.literal("financing"),
-  currency: z.enum(CURRENCIES).default("BRL"),
+  currency: currencyEnum,
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
-  expectedEndDate: z
-    .union([z.coerce.date(), z.literal("").transform(() => null)])
-    .nullable()
-    .default(null),
+  expectedEndDate: nullableDate,
   principalCents: positiveBigint,
   annualRatePct: z
     .union([z.literal("").transform(() => null), z.coerce.number().min(0).max(200)])
@@ -70,14 +52,11 @@ export const financingFormSchema = z.object({
 
 export const personalLoanFormSchema = z.object({
   kind: z.literal("personal_loan"),
-  currency: z.enum(CURRENCIES).default("BRL"),
+  currency: currencyEnum,
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
-  expectedEndDate: z
-    .union([z.coerce.date(), z.literal("").transform(() => null)])
-    .nullable()
-    .default(null),
+  expectedEndDate: nullableDate,
   principalCents: positiveBigint,
   annualRatePct: z
     .union([z.literal("").transform(() => null), z.coerce.number().min(0).max(200)])
@@ -149,14 +128,11 @@ const installmentPurchasesField = z
 
 export const creditCardFormSchema = z.object({
   kind: z.literal("credit_card"),
-  currency: z.enum(CURRENCIES).default("BRL"),
+  currency: currencyEnum,
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
-  expectedEndDate: z
-    .union([z.coerce.date(), z.literal("").transform(() => null)])
-    .nullable()
-    .default(null),
+  expectedEndDate: nullableDate,
   creditLimitCents: z
     .union([positiveBigint, z.literal("").transform(() => null)])
     .nullable()
@@ -187,14 +163,11 @@ export const creditCardFormSchema = z.object({
 
 export const overdraftFormSchema = z.object({
   kind: z.literal("overdraft"),
-  currency: z.enum(CURRENCIES).default("BRL"),
+  currency: currencyEnum,
   label: z.string().min(1).max(120),
   notes: z.string().max(1000).nullable().default(null),
   startDate: z.coerce.date(),
-  expectedEndDate: z
-    .union([z.coerce.date(), z.literal("").transform(() => null)])
-    .nullable()
-    .default(null),
+  expectedEndDate: nullableDate,
   currentBalanceCents: positiveBigint,
   bankName: z.string().min(1).max(120),
   monthlyRatePct: z.coerce.number().min(0).max(1000),

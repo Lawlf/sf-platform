@@ -11,7 +11,7 @@ export interface McpConnection {
   revokedAt: Date | null;
 }
 
-export interface McpConnectionRepository {
+export interface McpConnectionRepositoryPort {
   create(input: {
     userId: string;
     clientId: string;

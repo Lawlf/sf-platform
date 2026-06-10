@@ -8,9 +8,9 @@ import {
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import {
   computeNetWorthSnapshot,
   type NetWorthSnapshot,
@@ -23,9 +23,9 @@ export interface GetNetWorthInput {
 }
 
 export interface GetNetWorthDeps extends ConvertEntityDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
 }
 
 /**

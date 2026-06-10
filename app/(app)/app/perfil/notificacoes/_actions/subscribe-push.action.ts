@@ -1,9 +1,10 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
+import { Forbidden } from "@/domain/errors/auth-errors";
+import { repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 const PUSH_HOST_ALLOWLIST = [
@@ -19,7 +20,6 @@ function isAllowedPushEndpoint(endpointUrl: string): boolean {
     const u = new URL(endpointUrl);
     if (u.protocol !== "https:") return false;
     if (PUSH_HOST_ALLOWLIST.includes(u.hostname)) return true;
-    // Mozilla rotates regional subdomains under autopush.services.mozilla.com etc.
     if (u.hostname.endsWith(".push.services.mozilla.com")) return true;
     if (u.hostname.endsWith(".notify.windows.com")) return true;
     if (u.hostname.endsWith(".push.apple.com")) return true;
@@ -38,35 +38,27 @@ const schema = z.object({
   userAgent: z.string().max(500).nullable().optional(),
 });
 
-export async function subscribePushAction(input: {
-  endpoint: string;
-  p256dh: string;
-  auth: string;
-  userAgent: string | null;
-}): Promise<{ ok: true; deviceCount: number } | { ok: false; message: string }> {
-  const user = await requireUser();
-  if (!user.isPro) {
-    return { ok: false, message: "Notificações push são exclusivas do plano Pro." };
-  }
-  const parsed = schema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
-  }
-  const repo = new DrizzlePushSubscriptionRepository();
-  const existing = await repo.findByEndpoint(parsed.data.endpoint);
-  if (existing && existing.userId !== user.id) {
-    // Prevent endpoint takeover: another user already owns this push channel.
-    // The legitimate owner must explicitly unsubscribe before re-binding.
-    return { ok: false, message: "Endpoint inválido." };
-  }
-  await repo.upsert({
-    userId: user.id,
-    endpoint: parsed.data.endpoint,
-    p256dh: parsed.data.p256dh,
-    auth: parsed.data.auth,
-    userAgent: parsed.data.userAgent ?? null,
-  });
-  const deviceCount = (await repo.listForUser(user.id)).length;
-  revalidatePath("/app/perfil/notificacoes");
-  return { ok: true, deviceCount };
-}
+export const subscribePushAction = action({
+  schema,
+  revalidates: ["notificationPrefs"],
+  handler: async (data, { userId }) => {
+    const user = await requireUser();
+    if (!user.isPro) {
+      throw new Forbidden("Notificações push são exclusivas do plano Pro.");
+    }
+    const repo = repos.pushSubscriptions;
+    const existing = await repo.findByEndpoint(data.endpoint);
+    if (existing && existing.userId !== userId) {
+      throw new Forbidden("Endpoint inválido.");
+    }
+    await repo.upsert({
+      userId,
+      endpoint: data.endpoint,
+      p256dh: data.p256dh,
+      auth: data.auth,
+      userAgent: data.userAgent ?? null,
+    });
+    const deviceCount = (await repo.listForUser(userId)).length;
+    return { deviceCount };
+  },
+});

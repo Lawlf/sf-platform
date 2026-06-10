@@ -1,16 +1,16 @@
 import { McpConfirmationInvalid, McpPendingNotFound } from "@/domain/errors/mcp-errors";
 import { findWriteAction } from "@/domain/mcp/write-actions";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpAuditLogRepository } from "@/domain/ports/repositories/mcp-audit-log.repository";
-import type { McpPendingActionRepository } from "@/domain/ports/repositories/mcp-pending-action.repository";
+import type { McpAuditLogRepositoryPort } from "@/domain/ports/repositories/mcp-audit-log.repository";
+import type { McpPendingActionRepositoryPort } from "@/domain/ports/repositories/mcp-pending-action.repository";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 import { executeWrite, type WriteExecutorDeps, type WriteExecutorResult } from "./write-executor";
 
 export interface ResolvePendingActionDeps {
   executor: WriteExecutorDeps;
-  audit: McpAuditLogRepository;
-  pending: McpPendingActionRepository;
+  audit: McpAuditLogRepositoryPort;
+  pending: McpPendingActionRepositoryPort;
   clock: Clock;
 }
 

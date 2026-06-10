@@ -1,8 +1,7 @@
-import { timingSafeStringEqual } from "@/infrastructure/auth/timing-safe-compare";
-import { AwesomeApiFxClient } from "@/infrastructure/external/awesomeapi/awesomeapi-fx.client";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { refreshExchangeRates } from "@/application/use-cases/fx/refresh-exchange-rates.use-case";
+import { timingSafeStringEqual } from "@/infrastructure/auth/timing-safe-compare";
+import { clock, repos } from "@/infrastructure/container";
+import { AwesomeApiFxClient } from "@/infrastructure/external/awesomeapi/awesomeapi-fx.client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -22,8 +21,8 @@ export async function GET(req: Request): Promise<Response> {
 
   const result = await refreshExchangeRates({
     client: new AwesomeApiFxClient(),
-    rates: new DrizzleExchangeRateRepository(),
-    clock: new SystemClock(),
+    rates: repos.exchangeRates,
+    clock,
   });
 
   return Response.json({ ok: true, ...result });

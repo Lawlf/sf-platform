@@ -1,7 +1,6 @@
 import { seedStockCatalog } from "@/application/use-cases/stocks/seed-stock-catalog.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
+import { clock, repos } from "@/infrastructure/container";
 import { BrapiQuoteAdapter } from "@/infrastructure/external/brapi/brapi-quote.adapter";
-import { DrizzleStockCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-stock-catalog.repository";
 
 async function main() {
   const maxPages = Number(process.argv[2] ?? 10);
@@ -10,9 +9,9 @@ async function main() {
 
   const result = await seedStockCatalog(
     {
-      catalog: new DrizzleStockCatalogRepository(),
+      catalog: repos.stockCatalog,
       quotes: new BrapiQuoteAdapter(),
-      clock: new SystemClock(),
+      clock,
     },
     { maxPages, pageSize },
   );

@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
-import type { WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { markWizardSeenAction } from "@/app/(app)/app/_actions/onboarding";
+import type { WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 
 import {
@@ -14,14 +14,15 @@ import {
   prevStep,
   type WizardStepId,
 } from "../_lib/wizard-machine";
-import { FocusStep } from "./steps/focus-step.client";
-import { IncomeStep } from "./steps/income-step.client";
-import { DebtStep } from "./steps/debt-step.client";
-import { ResultPrescription } from "./steps/result-prescription.client";
-import { GoalStep } from "./steps/goal-step.client";
-import { ResultGoal } from "./steps/result-goal.client";
+
 import { AssetStep } from "./steps/asset-step.client";
+import { DebtStep } from "./steps/debt-step.client";
+import { FocusStep } from "./steps/focus-step.client";
+import { GoalStep } from "./steps/goal-step.client";
+import { IncomeStep } from "./steps/income-step.client";
+import { ResultGoal } from "./steps/result-goal.client";
 import { ResultNetWorth } from "./steps/result-networth.client";
+import { ResultPrescription } from "./steps/result-prescription.client";
 
 export function OnboardingWizardClient({
   initialFocus,

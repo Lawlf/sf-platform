@@ -1,6 +1,6 @@
 import type { NotificationEntity, NotificationKind } from "@/domain/entities/notification.entity";
 
-export interface NotificationRepository {
+export interface NotificationRepositoryPort {
   findById(id: string): Promise<NotificationEntity | null>;
   findByUserAndKindAndMonth(
     userId: string,

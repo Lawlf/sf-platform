@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isOk } from "@/shared/errors/result";
 
 import { markAllRead } from "./mark-all-read.use-case";
@@ -9,7 +9,7 @@ describe("markAllRead", () => {
   it("chama markAllReadForUser com o userId e o now do clock", async () => {
     const calls: { userId: string; readAt: Date }[] = [];
     const now = new Date("2026-06-03T12:00:00Z");
-    const notifications: NotificationRepository = {
+    const notifications: NotificationRepositoryPort = {
       async findById() {
         return null;
       },

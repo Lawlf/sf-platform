@@ -2,16 +2,16 @@ import { McpInvalidClient, McpInvalidGrant } from "@/domain/errors/mcp-errors";
 import { MCP_AUTH_CODE_TTL_MS } from "@/domain/mcp/constants";
 import type { McpScope } from "@/domain/mcp/scopes";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { McpAuthorizationCodeRepository } from "@/domain/ports/repositories/mcp-authorization-code.repository";
-import type { McpOauthClientRepository } from "@/domain/ports/repositories/mcp-oauth-client.repository";
+import type { McpAuthorizationCodeRepositoryPort } from "@/domain/ports/repositories/mcp-authorization-code.repository";
+import type { McpOauthClientRepositoryPort } from "@/domain/ports/repositories/mcp-oauth-client.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface CreateAuthorizationCodeDeps {
-  clients: Pick<McpOauthClientRepository, "findByClientId">;
-  codes: Pick<McpAuthorizationCodeRepository, "create">;
+  clients: Pick<McpOauthClientRepositoryPort, "findByClientId">;
+  codes: Pick<McpAuthorizationCodeRepositoryPort, "create">;
   hasher: Pick<Hasher, "sha256Hex">;
   random: Pick<RandomGenerator, "urlToken">;
   clock: Clock;

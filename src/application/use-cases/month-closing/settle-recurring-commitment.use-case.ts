@@ -2,8 +2,8 @@ import type { RecurringSettlementEntity } from "@/domain/entities/recurring-sett
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { RecurringSettlementRepository } from "@/domain/ports/repositories/recurring-settlement.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
 import { recurringMonthlyEquivalent } from "@/domain/services/timeline.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -12,8 +12,8 @@ import { err, isErr, ok, type Result } from "@/shared/errors/result";
 import { registerDebt } from "../debt/register-debt.use-case";
 
 export interface SettleRecurringCommitmentDeps {
-  debts: DebtRepository;
-  settlements: RecurringSettlementRepository;
+  debts: DebtRepositoryPort;
+  settlements: RecurringSettlementRepositoryPort;
   clock: Clock;
 }
 

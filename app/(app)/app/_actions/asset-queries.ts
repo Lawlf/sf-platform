@@ -4,12 +4,7 @@ import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-cas
 import type { AssetCategory } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { assetNetWorth } from "@/domain/services/patrimony.service";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -41,12 +36,12 @@ export async function fetchNetWorth(): Promise<NetWorthPayload | null> {
   if (!userId) return null;
   const result = await getNetWorth(
     {
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
-      clock: new SystemClock(),
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
+      clock,
     },
     { userId },
   );
@@ -80,8 +75,8 @@ export interface AssetWithNetWorthPayload {
 export async function fetchAssetsWithAllocations(): Promise<AssetWithNetWorthPayload[]> {
   const userId = await authedUserId();
   if (!userId) return [];
-  const assetsRepo = new DrizzleAssetRepository();
-  const debtsRepo = new DrizzleDebtRepository();
+  const assetsRepo = repos.assets;
+  const debtsRepo = repos.debts;
 
   const assetsWithAllocs = await assetsRepo.findActiveWithAllocations(userId);
   const activeDebts = await debtsRepo.listForUser(userId, { status: "active" });

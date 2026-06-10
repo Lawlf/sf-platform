@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { FinancingDebt, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InvalidAmortizationParamsError } from "@/domain/errors/financial-errors";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -16,7 +16,7 @@ import { getDashboardSnapshot } from "./get-dashboard-snapshot.use-case";
 
 const NOW = new Date("2026-05-19T10:00:00Z");
 
-function makeRates(rate: string | null = null): ExchangeRateRepository {
+function makeRates(rate: string | null = null): ExchangeRateRepositoryPort {
   return {
     upsertDaily: vi.fn(),
     findLatest: vi.fn(async () =>
@@ -25,7 +25,7 @@ function makeRates(rate: string | null = null): ExchangeRateRepository {
   };
 }
 
-function makeOverrides(): UserFxOverrideRepository {
+function makeOverrides(): UserFxOverrideRepositoryPort {
   return {
     find: vi.fn(async () => null),
     upsert: vi.fn(),
@@ -34,7 +34,7 @@ function makeOverrides(): UserFxOverrideRepository {
   };
 }
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn().mockResolvedValue([]),
@@ -45,7 +45,7 @@ function makeDebtRepo(): DebtRepository {
   };
 }
 
-function makeIncomeRepo(): IncomeRepository {
+function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn().mockResolvedValue([]),

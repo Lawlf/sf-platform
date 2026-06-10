@@ -3,10 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-// AssetRepository import kept for potential future inline test repos.
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+// AssetRepositoryPort import kept for potential future inline test repos.
 import { Money } from "@/domain/value-objects/money.vo";
 
 import {
@@ -15,7 +15,7 @@ import {
   type ExecutePurchaseInput,
 } from "./create-purchase.action";
 
-function makeAllocationsRepo(): AssetDebtAllocationRepository {
+function makeAllocationsRepo(): AssetDebtAllocationRepositoryPort {
   return {
     upsert: vi.fn(),
     delete: vi.fn(),
@@ -27,11 +27,11 @@ function makeAllocationsRepo(): AssetDebtAllocationRepository {
   };
 }
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   // Em-memory store: create() persiste; findById() retorna o que foi criado/update'd.
   // Permite que linkAssetToDebt encontre a dívida recém-criada.
   const store = new Map<string, DebtEntity>();
-  const repo: DebtRepository = {
+  const repo: DebtRepositoryPort = {
     findById: vi.fn(async (id: string) => store.get(id) ?? null),
     listForUser: vi.fn(async () => []),
     create: vi.fn(async (e: DebtEntity) => {
@@ -51,7 +51,7 @@ function makeDebtRepo(): DebtRepository {
 // Helper: cria um asset repo cujo create()/update() popula um store para que
 // linkAssetToDebt possa encontrar o asset criado. Aceita um `seed` opcional
 // para pré-popular o store com ativos existentes (ex: conta corrente).
-function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepository {
+function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepositoryPort {
   const store = new Map<string, AssetEntity>();
   for (const a of seed) store.set(a.id, a);
   return {

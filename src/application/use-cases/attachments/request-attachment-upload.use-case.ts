@@ -1,12 +1,12 @@
 import type { FileStoragePort } from "@/domain/ports/file-storage.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 import { isAttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 import { type UploadRejectReason, validateUpload } from "./attachment-limits";
 import { buildStorageKey } from "./attachment-storage-key";
 
 export interface RequestUploadDeps {
-  attachments: Pick<EntityAttachmentRepository, "totalBytesForUser">;
+  attachments: Pick<EntityAttachmentRepositoryPort, "totalBytesForUser">;
   storage: Pick<FileStoragePort, "presignUpload">;
   newId: () => string;
   isPro: boolean;

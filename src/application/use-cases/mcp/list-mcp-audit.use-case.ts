@@ -1,10 +1,10 @@
 import type {
   McpAuditEntry,
-  McpAuditLogRepository,
+  McpAuditLogRepositoryPort,
 } from "@/domain/ports/repositories/mcp-audit-log.repository";
 
 export interface ListMcpAuditDeps {
-  audit: McpAuditLogRepository;
+  audit: McpAuditLogRepositoryPort;
 }
 
 export interface ListMcpAuditInput {

@@ -1,4 +1,4 @@
-import type { ModuleProgressRepository } from "@/domain/ports/repositories/module-progress.repository";
+import type { ModuleProgressRepositoryPort } from "@/domain/ports/repositories/module-progress.repository";
 
 export interface GetTrilhaProgressInput {
   userId: string;
@@ -10,7 +10,7 @@ export interface TrilhaProgress {
 }
 
 export interface GetTrilhaProgressDeps {
-  progress: Pick<ModuleProgressRepository, "findCompletedNums">;
+  progress: Pick<ModuleProgressRepositoryPort, "findCompletedNums">;
 }
 
 export async function getTrilhaProgress(

@@ -1,10 +1,11 @@
 import { NextResponse, type NextRequest } from "next/server";
 
+
 import { unsubscribeFromEmails } from "@/application/use-cases/notification/unsubscribe-from-emails.use-case";
 import { loadEnv } from "@/infrastructure/config/env";
+import { repos } from "@/infrastructure/container";
 import type { EmailCategory } from "@/infrastructure/email/unsubscribe-token";
 import { verifyUnsubscribeToken } from "@/infrastructure/email/unsubscribe-token";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,7 +55,7 @@ async function perform(token: string | null): Promise<NextResponse> {
 
   try {
     await unsubscribeFromEmails(
-      { preferences: new DrizzleNotificationPreferencesRepository() },
+      { preferences: repos.notificationPreferences },
       { userId: parsed.userId, category: parsed.category },
     );
   } catch (e) {

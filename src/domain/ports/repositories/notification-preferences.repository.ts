@@ -1,6 +1,6 @@
 import type { NotificationPreferencesEntity } from "@/domain/entities/notification-preferences.entity";
 
-export interface NotificationPreferencesRepository {
+export interface NotificationPreferencesRepositoryPort {
   findForUser(userId: string): Promise<NotificationPreferencesEntity | null>;
   upsert(input: {
     userId: string;

@@ -4,7 +4,7 @@ import {
   WELCOME_FREE_SUBJECT,
   WelcomeFreeEmail,
 } from "@/infrastructure/email/templates/welcome-free.email";
-import { DrizzleEmailSendRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-email-send.repository";
+import { EmailSendRepository } from "@/infrastructure/persistence/drizzle/repositories/email-send.repository";
 
 export async function sendWelcomeFreeEmail(params: {
   userId: string;
@@ -22,7 +22,7 @@ export async function sendWelcomeFreeEmail(params: {
       html,
       purpose: "transactional",
     });
-    await new DrizzleEmailSendRepository().recordSend({
+    await new EmailSendRepository().recordSend({
       userId: params.userId,
       kind: "welcome_free",
       dedupeKey: "welcome_free",

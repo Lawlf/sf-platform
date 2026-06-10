@@ -118,13 +118,14 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
     fd.set("expectedEndDate", v.expectedEndDate ?? "");
     fd.set("notes", v.notes ?? "");
     startTransition(async () => {
-      const r = await createDebtAction("overdraft", fd);
+      fd.set("kind", "overdraft");
+      const r = await createDebtAction(fd);
       if (!r.ok) {
         setServerError(r.message);
         return;
       }
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${r.debtId}` as Route);
+      router.push(`/app/dividas/${r.data.debtId}` as Route);
     });
   }
 

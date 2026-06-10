@@ -1,6 +1,6 @@
 import type { Clock } from "@/domain/ports/clock.port";
 import type { QuoteAdapter } from "@/domain/ports/external/quote-adapter.port";
-import type { StockCatalogRepository } from "@/domain/ports/repositories/stock-catalog.repository";
+import type { StockCatalogRepositoryPort } from "@/domain/ports/repositories/stock-catalog.repository";
 
 export interface SeedStockCatalogInput {
   /**
@@ -15,7 +15,7 @@ export interface SeedStockCatalogInput {
 }
 
 export interface SeedStockCatalogDeps {
-  catalog: StockCatalogRepository;
+  catalog: StockCatalogRepositoryPort;
   quotes: QuoteAdapter;
   clock: Clock;
 }
@@ -29,7 +29,7 @@ export interface SeedStockCatalogResult {
  * Popula o catálogo local de ações em lote, paginando a fonte externa
  * (ex.: brapi `/api/quote/list`) e upsertando o resultado.
  *
- * Use case puro: depende apenas de `QuoteAdapter`, `StockCatalogRepository`
+ * Use case puro: depende apenas de `QuoteAdapter`, `StockCatalogRepositoryPort`
  * e `Clock`. Para com a primeira página vazia (fim do catálogo / erro).
  */
 export async function seedStockCatalog(

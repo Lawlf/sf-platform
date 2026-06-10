@@ -58,7 +58,7 @@ export function SwapPlanCard({ plan, isCurrent, blocked, blockedReason, iconName
       return;
     }
     const r = await swapPlanAction(slug);
-    if (!r.ok && r.code === "STEPUP_REQUIRED") {
+    if (r.ok && r.data.stepupRequired) {
       setPendingSlug(slug);
       setStepUpOpen(true);
       return;
@@ -88,13 +88,15 @@ export function SwapPlanCard({ plan, isCurrent, blocked, blockedReason, iconName
     setPendingSlug(null);
     startTransition(async () => {
       const r = await swapPlanAction(slug);
-      if (r.ok) {
+      if (r.ok && !r.data.stepupRequired) {
         toast.success(`Trocado pra ${title}.`, {
           description: "A gente só cobra a diferença proporcional aos dias que faltavam.",
         });
       } else {
         toast.error("Não rolou trocar plano.", {
-          description: r.message ?? "Tenta de novo em instantes.",
+          description: r.ok
+            ? "Confirme sua identidade para continuar."
+            : r.message ?? "Tenta de novo em instantes.",
         });
       }
     });

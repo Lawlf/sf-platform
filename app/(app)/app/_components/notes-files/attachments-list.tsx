@@ -190,7 +190,7 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
     const id = activeId;
     const res = await renameAttachmentAction({ attachmentId: id, newName: baseName });
     if (res.ok) {
-      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, fileName: res.fileName } : i)));
+      setItems((prev) => prev.map((i) => (i.id === id ? { ...i, fileName: res.data.fileName } : i)));
       toast.success("Renomeado");
     }
   }

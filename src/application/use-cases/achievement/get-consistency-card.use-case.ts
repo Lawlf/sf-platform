@@ -1,5 +1,4 @@
 import type { MonthClosingEntity } from "@/domain/entities/month-closing.entity";
-import type { PrescriptionState } from "@/domain/services/prescription/prescription.types";
 import {
   buildTrail,
   computeDelta,
@@ -8,6 +7,7 @@ import {
   type ClosingWithMetrics,
   type ConsistencyDelta,
 } from "@/domain/services/consistency.service";
+import type { PrescriptionState } from "@/domain/services/prescription/prescription.types";
 
 import { totalDistinctMonths } from "./streak-math";
 

@@ -2,14 +2,14 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { FinancingDebt } from "@/domain/entities/debt.entity";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isErr, isOk } from "@/shared/errors/result";
 
 import { simulateExtraPayment } from "./simulate-extra-payment.use-case";
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),

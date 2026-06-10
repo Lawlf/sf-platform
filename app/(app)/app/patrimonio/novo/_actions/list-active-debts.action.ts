@@ -1,7 +1,7 @@
 "use server";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
+import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -18,7 +18,7 @@ export async function listActiveDebtsForLinking(): Promise<ActiveDebtPayload[]> 
   const user = await getCurrentUser();
   if (!user) return [];
   const r = await listDebts(
-    { debts: new DrizzleDebtRepository() },
+    { debts: repos.debts },
     { userId: user.id, status: "active" },
   );
   if (!isOk(r)) return [];

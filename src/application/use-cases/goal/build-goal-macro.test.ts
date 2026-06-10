@@ -1,12 +1,12 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { DebtStatus, PersonalLoanDebt } from "@/domain/entities/debt.entity";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
@@ -64,7 +64,7 @@ function buildDeps({
   debts: PersonalLoanDebt[];
   rate?: string | null;
 }) {
-  const assets: AssetRepository = {
+  const assets: AssetRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
@@ -79,7 +79,7 @@ function buildDeps({
     listExternalAccountKeys: vi.fn(async () => []),
   };
 
-  const allocations: AssetDebtAllocationRepository = {
+  const allocations: AssetDebtAllocationRepositoryPort = {
     upsert: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -89,7 +89,7 @@ function buildDeps({
     sumAllocationsByDebt: vi.fn(),
   };
 
-  const debtRepo: DebtRepository = {
+  const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(),
     listForUser: vi.fn(async (userId: string, opts?: { status?: DebtStatus | "all" }) => {
       const ofUser = debts.filter((d) => d.userId === userId);
@@ -103,7 +103,7 @@ function buildDeps({
     softDelete: vi.fn(),
   };
 
-  const incomes: IncomeRepository = {
+  const incomes: IncomeRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
@@ -113,12 +113,12 @@ function buildDeps({
     restore: vi.fn(),
   };
 
-  const rates: ExchangeRateRepository = {
+  const rates: ExchangeRateRepositoryPort = {
     upsertDaily: vi.fn(),
     findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
   };
 
-  const overrides: UserFxOverrideRepository = {
+  const overrides: UserFxOverrideRepositoryPort = {
     find: vi.fn(async () => null),
     upsert: vi.fn(),
     remove: vi.fn(),

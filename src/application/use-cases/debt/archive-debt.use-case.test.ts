@@ -4,8 +4,8 @@ import type { PersonalLoanDebt } from "@/domain/entities/debt.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { DistributedLock } from "@/domain/ports/services/distributed-lock.service";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -13,7 +13,7 @@ import { isErr } from "@/shared/errors/result";
 
 import { archiveDebt } from "./archive-debt.use-case";
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
     listForUser: vi.fn(),
@@ -24,7 +24,7 @@ function makeDebtRepo(): DebtRepository {
   };
 }
 
-function makePaymentRepo(): DebtPaymentRepository {
+function makePaymentRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
     listForUserInRange: vi.fn(),
@@ -92,7 +92,7 @@ describe("archiveDebt", () => {
     expect(result._tag).toBe("ok");
     expect(payments.create).toHaveBeenCalledTimes(1);
     const created = (payments.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as Parameters<
-      DebtPaymentRepository["create"]
+      DebtPaymentRepositoryPort["create"]
     >[0];
     expect(created.debtId).toBe("debt-1");
     expect(created.amount.toCents()).toBe(450000n);
@@ -104,7 +104,7 @@ describe("archiveDebt", () => {
 
     expect(debts.update).toHaveBeenCalledTimes(1);
     const updated = (debts.update as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as Parameters<
-      DebtRepository["update"]
+      DebtRepositoryPort["update"]
     >[0];
     expect(updated.currentBalance.toCents()).toBe(0n);
     expect(updated.status).toBe("paid_off");

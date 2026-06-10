@@ -1,13 +1,13 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { NotificationPreferencesEntity } from "@/domain/entities/notification-preferences.entity";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
 
 import { unsubscribeFromEmails } from "./unsubscribe-from-emails.use-case";
 
 function makeRepo(existing: NotificationPreferencesEntity | null) {
   const upsert = vi.fn().mockResolvedValue(undefined);
-  const repo: NotificationPreferencesRepository = {
+  const repo: NotificationPreferencesRepositoryPort = {
     findForUser: vi.fn().mockResolvedValue(existing),
     upsert,
   };

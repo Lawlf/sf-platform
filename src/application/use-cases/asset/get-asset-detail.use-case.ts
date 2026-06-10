@@ -1,9 +1,9 @@
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { AssetNotFound } from "@/domain/errors/asset-errors";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { assetNetWorth, outstandingDebtOnAsset } from "@/domain/services/patrimony.service";
 import type { Money } from "@/domain/value-objects/money.vo";
 import { type DomainError } from "@/shared/errors/domain-error";
@@ -27,9 +27,9 @@ export interface GetAssetDetailOutput {
 }
 
 export interface GetAssetDetailDeps {
-  assets: AssetRepository;
-  allocations: AssetDebtAllocationRepository;
-  debts: DebtRepository;
+  assets: AssetRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  debts: DebtRepositoryPort;
 }
 
 /**

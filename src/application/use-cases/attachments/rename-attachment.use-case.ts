@@ -1,7 +1,7 @@
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 
 export interface RenameAttachmentDeps {
-  attachments: Pick<EntityAttachmentRepository, "findById" | "rename">;
+  attachments: Pick<EntityAttachmentRepositoryPort, "findById" | "rename">;
 }
 
 export type RenameAttachmentResult =

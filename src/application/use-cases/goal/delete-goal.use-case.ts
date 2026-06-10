@@ -1,7 +1,7 @@
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 export interface DeleteGoalDeps {
-  goals: GoalRepository;
+  goals: GoalRepositoryPort;
 }
 
 export type DeleteGoalResult =

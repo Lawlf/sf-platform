@@ -1,15 +1,15 @@
 import type { Clock } from "@/domain/ports/clock.port";
 import type { QuoteAdapter } from "@/domain/ports/external/quote-adapter.port";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { StockCatalogRepository } from "@/domain/ports/repositories/stock-catalog.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { StockCatalogRepositoryPort } from "@/domain/ports/repositories/stock-catalog.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 import { refreshStockCatalog } from "./refresh-stock-catalog.use-case";
 
 export interface RefreshAllUserStocksDeps {
-  users: UserRepository;
-  assets: AssetRepository;
-  catalog: StockCatalogRepository;
+  users: UserRepositoryPort;
+  assets: AssetRepositoryPort;
+  catalog: StockCatalogRepositoryPort;
   quotes: QuoteAdapter;
   clock: Clock;
 }

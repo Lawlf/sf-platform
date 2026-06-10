@@ -5,11 +5,7 @@ import type { McpContext } from "@/domain/mcp/mcp-context";
 import { hasScope } from "@/domain/mcp/mcp-context";
 import type { McpScope } from "@/domain/mcp/scopes";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleMcpConnectionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-connection.repository";
-import { DrizzleMcpTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-token.repository";
-import { DrizzleMcpUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-mcp-usage.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { isErr } from "@/shared/errors/result";
 
 export function assertScope(ctx: McpContext, scope: McpScope): void {
@@ -41,10 +37,10 @@ export async function resolveMcpContextFromToken(rawToken: string): Promise<McpC
   const result = await resolveMcpContext(
     {
       hasher: new WebCryptoHasher(),
-      tokens: new DrizzleMcpTokenRepository(),
-      connections: new DrizzleMcpConnectionRepository(),
-      users: new DrizzleUserRepository(),
-      clock: new SystemClock(),
+      tokens: repos.mcpTokens,
+      connections: repos.mcpConnections,
+      users: repos.users,
+      clock,
     },
     { rawToken },
   );
@@ -54,7 +50,7 @@ export async function resolveMcpContextFromToken(rawToken: string): Promise<McpC
 
 export async function enforceUsageOrThrow(ctx: McpContext): Promise<void> {
   const result = await checkAndIncrementMcpUsage(
-    { usage: new DrizzleMcpUsageRepository(), clock: new SystemClock() },
+    { usage: repos.mcpUsage, clock },
     { userId: ctx.userId, isPro: ctx.isPro },
   );
   if (isErr(result)) throw result.error;

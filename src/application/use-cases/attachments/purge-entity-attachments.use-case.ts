@@ -1,11 +1,11 @@
 import type { FileStoragePort } from "@/domain/ports/file-storage.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
-import type { EntityNoteRepository } from "@/domain/ports/repositories/entity-note.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityNoteRepositoryPort } from "@/domain/ports/repositories/entity-note.repository";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 export interface PurgeEntityDeps {
-  notes: Pick<EntityNoteRepository, "deleteForEntity">;
-  attachments: Pick<EntityAttachmentRepository, "listForEntity" | "remove">;
+  notes: Pick<EntityNoteRepositoryPort, "deleteForEntity">;
+  attachments: Pick<EntityAttachmentRepositoryPort, "listForEntity" | "remove">;
   storage: Pick<FileStoragePort, "delete">;
 }
 

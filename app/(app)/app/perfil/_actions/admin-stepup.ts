@@ -14,7 +14,7 @@ import { buildElevationCookie, signElevation } from "@/infrastructure/auth/admin
 import { decryptSecret } from "@/infrastructure/auth/secret-cipher";
 import { verifyTotp } from "@/infrastructure/auth/totp";
 import { loadEnv, requireAdminTotpKey } from "@/infrastructure/config/env";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { repos } from "@/infrastructure/container";
 import { getAdminStepUpLimiter } from "@/infrastructure/rate-limit/admin-stepup-limiter";
 import { requireAdmin } from "@/presentation/http/middleware/cached-current-user";
 
@@ -46,7 +46,7 @@ async function elevate(adminId: string, factor: "passkey" | "totp"): Promise<voi
 
 export async function getAdminFactorsAction(): Promise<{ hasTotp: boolean; hasPasskey: boolean }> {
   const admin = await requireAdmin();
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const [creds, passkeys] = await Promise.all([repo.find(admin.id), repo.listWebauthn(admin.id)]);
   return { hasTotp: Boolean(creds?.totpSecret), hasPasskey: passkeys.length > 0 };
 }
@@ -54,7 +54,7 @@ export async function getAdminFactorsAction(): Promise<{ hasTotp: boolean; hasPa
 export async function verifyTotpStepUpAction(code: string): Promise<R> {
   const admin = await requireAdmin();
   if (!(await checkLimit(admin.id))) return { ok: false, message: "Muitas tentativas. Aguarde." };
-  const cred = await new DrizzleUserCredentialsRepository().find(admin.id);
+  const cred = await repos.userCredentials.find(admin.id);
   if (!cred?.totpSecret) return { ok: false, message: "TOTP não configurado." };
   const secret = decryptSecret(cred.totpSecret, requireAdminTotpKey());
   if (!(await verifyTotp(secret, code, new Date()))) return { ok: false, message: "Código inválido." };
@@ -66,7 +66,7 @@ export async function beginPasskeyStepUpAction() {
   const admin = await requireAdmin();
   if (!(await checkLimit(admin.id))) throw new Error("rate-limited");
   const { rpID } = rp();
-  const credentials = await new DrizzleUserCredentialsRepository().listWebauthn(admin.id);
+  const credentials = await repos.userCredentials.listWebauthn(admin.id);
   const options = await generateAuthenticationOptions({
     rpID,
     allowCredentials: credentials.map((c) => {
@@ -93,7 +93,7 @@ export async function confirmPasskeyStepUpAction(response: AuthenticationRespons
   jar.delete(CHALLENGE_COOKIE);
   if (!expectedChallenge) return { ok: false, message: "Sessão de verificação expirada." };
 
-  const repo = new DrizzleUserCredentialsRepository();
+  const repo = repos.userCredentials;
   const stored = await repo.findWebauthnByCredentialId(response.id);
   if (!stored || stored.userId !== admin.id) {
     return { ok: false, message: "Credencial não encontrada." };

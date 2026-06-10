@@ -2,15 +2,11 @@
 
 import { revalidatePath, revalidateTag } from "next/cache";
 
+
 import { grantProManually, type ProGrant } from "@/application/use-cases/billing/grant-pro-manually.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { ResendEmailService } from "@/infrastructure/email/resend-email.service";
-import { DrizzleAdminAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-admin-audit-log.repository";
-import { DrizzlePaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-payment.repository";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
 import { withTransaction } from "@/infrastructure/persistence/drizzle/with-transaction";
 import { requireAdmin } from "@/presentation/http/middleware/cached-current-user";
 import { isAdminElevated } from "@/presentation/http/middleware/require-elevated-admin";
@@ -31,12 +27,12 @@ export async function grantProAction(userId: string, grant: ProGrant): Promise<A
   const env = loadEnv();
   const r = await grantProManually(
     {
-      users: new DrizzleUserRepository(),
-      subscriptions: new DrizzleSubscriptionRepository(),
-      payments: new DrizzlePaymentRepository(),
-      plans: new DrizzlePlanRepository(),
+      users: repos.users,
+      subscriptions: repos.subscriptions,
+      payments: repos.payments,
+      plans: repos.plans,
       email: new ResendEmailService(),
-      clock: new SystemClock(),
+      clock,
       appUrl: env.NEXT_PUBLIC_APP_URL,
       transaction: withTransaction,
     },
@@ -52,7 +48,7 @@ export async function grantProAction(userId: string, grant: ProGrant): Promise<A
 async function recordGrantAudit(actorId: string, userId: string, grant: ProGrant): Promise<void> {
   // Audit must never mask a successful grant: swallow logging failures.
   try {
-    await new DrizzleAdminAuditLogRepository().record({
+    await repos.adminAuditLogs.record({
       actorId,
       action: "pro.grant",
       targetUserId: userId,

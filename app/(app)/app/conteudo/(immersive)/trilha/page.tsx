@@ -3,7 +3,7 @@ import type { Route } from "next";
 import { redirect } from "next/navigation";
 
 import { getTrilhaProgress } from "@/application/use-cases/content/get-trilha-progress.use-case";
-import { DrizzleModuleProgressRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-module-progress.repository";
+import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { fetchPrescription } from "../../../_actions/prescription-queries";
@@ -22,7 +22,7 @@ export default async function ConteudoTrilhaPage() {
 
   const trilha = findTrilha(DIAGNOSTIC_TO_TRILHA[user.contentDiagnosticAnswer]);
   const { completedNums } = await getTrilhaProgress(
-    { progress: new DrizzleModuleProgressRepository() },
+    { progress: repos.moduleProgress },
     { userId: user.id, trilhaSlug: trilha.slug },
   );
 

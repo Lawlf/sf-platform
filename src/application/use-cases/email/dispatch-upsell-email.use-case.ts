@@ -1,7 +1,7 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { EmailSendRepository } from "@/domain/ports/repositories/email-send.repository";
-import type { NotificationPreferencesRepository } from "@/domain/ports/repositories/notification-preferences.repository";
-import type { UserActivityRepository } from "@/domain/ports/repositories/user-activity.repository";
+import type { EmailSendRepositoryPort } from "@/domain/ports/repositories/email-send.repository";
+import type { NotificationPreferencesRepositoryPort } from "@/domain/ports/repositories/notification-preferences.repository";
+import type { UserActivityRepositoryPort } from "@/domain/ports/repositories/user-activity.repository";
 import type { EmailService } from "@/domain/ports/services/email.service";
 import { renderEmailToHtml } from "@/infrastructure/email/email-renderer";
 import { UPSELL_PRO_SUBJECT, UpsellProEmail } from "@/infrastructure/email/templates/upsell-pro.email";
@@ -12,9 +12,9 @@ const ENGAGED_DAYS = 30;
 const MIN_ACCOUNT_AGE_DAYS = 14;
 
 export interface DispatchUpsellEmailDeps {
-  userActivity: UserActivityRepository;
-  preferences: NotificationPreferencesRepository;
-  emailSends: EmailSendRepository;
+  userActivity: UserActivityRepositoryPort;
+  preferences: NotificationPreferencesRepositoryPort;
+  emailSends: EmailSendRepositoryPort;
   email: EmailService;
   clock: Clock;
   appUrl: string;

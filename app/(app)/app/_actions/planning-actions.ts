@@ -1,113 +1,82 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
 import { updateGoalCascadeConfig } from "@/application/use-cases/goal/update-goal-cascade-config.use-case";
 import { closeMonth } from "@/application/use-cases/month-closing/close-month.use-case";
 import { settleIncome } from "@/application/use-cases/month-closing/settle-income.use-case";
-import {
-  settleRecurringCommitment,
-  type SettleAction,
-} from "@/application/use-cases/month-closing/settle-recurring-commitment.use-case";
+import { settleRecurringCommitment } from "@/application/use-cases/month-closing/settle-recurring-commitment.use-case";
 import { setLiquidBucket } from "@/application/use-cases/planning/set-liquid-bucket.use-case";
 import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
-import type { GoalCascadeMode } from "@/domain/entities/goal.entity";
 import { Money } from "@/domain/value-objects/money.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleFinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-financial-planning-settings.repository";
-import { DrizzleGoalRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-goal.repository";
-import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleMonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-month-closing.repository";
-import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
+import { action, ActionError, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import type { MonthClosingStatus } from "./planning-queries";
+export const setLiquidBucketAction = action({
+  schema: z.string().nullable(),
+  revalidates: ["timeline", "home"],
+  handler: async (assetId, { userId }) => {
+    const result = await setLiquidBucket(
+      {
+        assets: repos.assets,
+        settings: repos.financialPlanningSettings,
+      },
+      { userId, assetId },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-export interface PlanningActionResult {
-  ok: boolean;
-  message?: string;
-}
+export const closeMonthAction = action({
+  schema: z.void(),
+  revalidates: ["home"],
+  handler: async (_input, { userId }) => {
+    const result = await closeMonth(
+      {
+        closings: repos.monthClosings,
+        assets: repos.assets,
+        allocations: repos.assetDebtAllocations,
+        debts: repos.debts,
+        incomes: repos.incomes,
+        payments: repos.debtPayments,
+        clock,
+        rates: repos.exchangeRates,
+        overrides: repos.userFxOverrides,
+      },
+      { userId },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+    const leakAbsCents = result.leakCents < 0n ? -result.leakCents : result.leakCents;
+    return {
+      status: result.status,
+      leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
+    };
+  },
+});
 
-export interface CloseMonthActionResult {
-  ok: boolean;
-  message?: string;
-  status?: MonthClosingStatus;
-  leakAbsFormatted?: string;
-}
+const settleRecurringCommitmentSchema = z.object({
+  debtId: z.string(),
+  monthIso: z.string(),
+  action: z.enum(["paid", "convert_to_debt", "cancel"]),
+});
 
-export async function setLiquidBucketAction(
-  assetId: string | null,
-): Promise<PlanningActionResult> {
-  const user = await requireUser();
-  const result = await setLiquidBucket(
-    {
-      assets: new DrizzleAssetRepository(),
-      settings: new DrizzleFinancialPlanningSettingsRepository(),
-    },
-    { userId: user.id, assetId },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app");
-  return { ok: true };
-}
-
-export async function closeMonthAction(): Promise<CloseMonthActionResult> {
-  const user = await requireUser();
-  const result = await closeMonth(
-    {
-      closings: new DrizzleMonthClosingRepository(),
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      payments: new DrizzleDebtPaymentRepository(),
-      clock: new SystemClock(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
-    },
-    { userId: user.id },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app");
-  const leakAbsCents = result.leakCents < 0n ? -result.leakCents : result.leakCents;
-  return {
-    ok: true,
-    status: result.status,
-    leakAbsFormatted: Money.fromCents(leakAbsCents).format(),
-  };
-}
-
-export async function settleRecurringCommitmentAction(
-  debtId: string,
-  monthIso: string,
-  action: SettleAction,
-): Promise<PlanningActionResult> {
-  const user = await requireUser();
-  const result = await settleRecurringCommitment(
-    {
-      debts: new DrizzleDebtRepository(),
-      settlements: new DrizzleRecurringSettlementRepository(),
-      clock: new SystemClock(),
-    },
-    { userId: user.id, debtId, monthIso, action },
-  );
-  if (result._tag === "err") {
-    return { ok: false, message: result.error.message };
-  }
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app");
-  return { ok: true };
-}
+export const settleRecurringCommitmentAction = action({
+  schema: settleRecurringCommitmentSchema,
+  revalidates: ["timeline", "home"],
+  handler: async ({ debtId, monthIso, action: settleAction }, { userId }) => {
+    unwrap(
+      await settleRecurringCommitment(
+        {
+          debts: repos.debts,
+          settlements: repos.recurringSettlements,
+          clock,
+        },
+        { userId, debtId, monthIso, action: settleAction },
+      ),
+    );
+  },
+});
 
 const settleIncomeSchema = z
   .object({
@@ -121,126 +90,113 @@ const settleIncomeSchema = z
     { message: "Informe o valor recebido.", path: ["adjustedValueCents"] },
   );
 
-export interface SettleIncomeActionInput {
-  incomeId: string;
-  monthIso: string;
-  status: "received" | "not_received" | "adjusted";
-  adjustedValueCents?: string;
-}
+export const settleIncomeAction = action({
+  schema: settleIncomeSchema,
+  revalidates: ["timeline", "home"],
+  handler: async (input, { userId }) => {
+    unwrap(
+      await settleIncome(
+        {
+          incomes: repos.incomes,
+          settlements: repos.incomeSettlements,
+          clock,
+        },
+        {
+          userId,
+          incomeId: input.incomeId,
+          monthIso: input.monthIso,
+          action: input.status,
+          adjustedAmountCents:
+            input.status === "adjusted" ? (input.adjustedValueCents ?? 0n) : null,
+        },
+      ),
+    );
+  },
+});
 
-export async function settleIncomeAction(
-  input: SettleIncomeActionInput,
-): Promise<PlanningActionResult> {
-  const parsed = settleIncomeSchema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Dados inválidos." };
-  }
+const updateGoalCascadeConfigSchema = z.object({
+  goalId: z.string(),
+  mode: z.enum(["queue", "parallel"]),
+  order: z.number(),
+  parallelFraction: z.number(),
+});
 
-  const user = await requireUser();
-  const result = await settleIncome(
-    {
-      incomes: new DrizzleIncomeRepository(),
-      settlements: new DrizzleIncomeSettlementRepository(),
-      clock: new SystemClock(),
-    },
-    {
-      userId: user.id,
-      incomeId: parsed.data.incomeId,
-      monthIso: parsed.data.monthIso,
-      action: parsed.data.status,
-      adjustedAmountCents:
-        parsed.data.status === "adjusted" ? (parsed.data.adjustedValueCents ?? 0n) : null,
-    },
-  );
-  if (result._tag === "err") {
-    return { ok: false, message: result.error.message };
-  }
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app");
-  return { ok: true };
-}
+export const updateGoalCascadeConfigAction = action({
+  schema: updateGoalCascadeConfigSchema,
+  revalidates: ["timeline", "home"],
+  handler: async (input, { userId }) => {
+    const user = await requireUser();
+    const result = await updateGoalCascadeConfig(
+      { goals: repos.goals },
+      {
+        userId,
+        goalId: input.goalId,
+        isPro: user.isPro,
+        mode: input.mode,
+        order: input.order,
+        parallelFraction: input.parallelFraction,
+      },
+    );
+    if (!result.ok) throw new ActionError(result.message);
+  },
+});
 
-export async function updateGoalCascadeConfigAction(
-  goalId: string,
-  config: { mode: GoalCascadeMode; order: number; parallelFraction: number },
-): Promise<PlanningActionResult> {
-  const user = await requireUser();
-  const result = await updateGoalCascadeConfig(
-    { goals: new DrizzleGoalRepository() },
-    {
-      userId: user.id,
-      goalId,
-      isPro: user.isPro,
-      mode: config.mode,
-      order: config.order,
-      parallelFraction: config.parallelFraction,
-    },
-  );
-  if (!result.ok) return { ok: false, message: result.message };
-  revalidatePath("/app/linha-do-tempo");
-  revalidatePath("/app");
-  return { ok: true };
-}
+const createTransactionSchema = z.object({
+  amountCents: z.string(),
+  description: z.string(),
+  category: z.string().nullable().optional(),
+  occurredAtIso: z.string().nullable().optional(),
+  direction: z.enum(["in", "out"]).optional(),
+  accountId: z.string().nullable().optional(),
+  status: z.enum(["paid", "scheduled"]).optional(),
+});
 
-export interface CreateTransactionActionInput {
-  amountCents: string;
-  description: string;
-  category?: string | null;
-  occurredAtIso?: string | null;
-  direction?: "in" | "out";
-  accountId?: string | null;
-  status?: "paid" | "scheduled";
-}
-
-export async function createTransactionAction(
-  input: CreateTransactionActionInput,
-): Promise<PlanningActionResult> {
-  const user = await requireUser();
-
-  const description = input.description.trim();
-  if (description.length === 0) {
-    return { ok: false, message: "Descreva o gasto." };
-  }
-
-  let amountCents: bigint;
-  try {
-    amountCents = BigInt(input.amountCents);
-  } catch {
-    return { ok: false, message: "Informe um valor válido." };
-  }
-  if (amountCents <= 0n) {
-    return { ok: false, message: "O valor precisa ser maior que zero." };
-  }
-
-  const category = input.category?.trim() ? input.category.trim() : null;
-
-  let occurredAt: Date | null = null;
-  if (input.occurredAtIso) {
-    const parsed = new Date(input.occurredAtIso);
-    if (Number.isNaN(parsed.getTime())) {
-      return { ok: false, message: "Informe uma data válida." };
+export const createTransactionAction = action({
+  schema: createTransactionSchema,
+  revalidates: ["report"],
+  handler: async (input, { userId }) => {
+    const description = input.description.trim();
+    if (description.length === 0) {
+      throw new ActionError("Descreva o gasto.");
     }
-    occurredAt = parsed;
-  }
 
-  await createTransaction(
-    {
-      transactions: new DrizzleTransactionRepository(),
-      assets: new DrizzleAssetRepository(),
-      clock: new SystemClock(),
-    },
-    {
-      userId: user.id,
-      direction: input.direction ?? "out",
-      amount: Money.fromCents(amountCents),
-      description,
-      category,
-      accountId: input.accountId ?? null,
-      occurredAt,
-      status: input.status ?? "paid",
-    },
-  );
+    let amountCents: bigint;
+    try {
+      amountCents = BigInt(input.amountCents);
+    } catch {
+      throw new ActionError("Informe um valor válido.");
+    }
+    if (amountCents <= 0n) {
+      throw new ActionError("O valor precisa ser maior que zero.");
+    }
 
-  revalidatePath("/app/linha-do-tempo/relatorio");
-  return { ok: true };
-}
+    const category = input.category?.trim() ? input.category.trim() : null;
+
+    let occurredAt: Date | null = null;
+    if (input.occurredAtIso) {
+      const parsed = new Date(input.occurredAtIso);
+      if (Number.isNaN(parsed.getTime())) {
+        throw new ActionError("Informe uma data válida.");
+      }
+      occurredAt = parsed;
+    }
+
+    await createTransaction(
+      {
+        transactions: repos.transactions,
+        assets: repos.assets,
+        clock,
+      },
+      {
+        userId,
+        direction: input.direction ?? "out",
+        amount: Money.fromCents(amountCents),
+        description,
+        category,
+        accountId: input.accountId ?? null,
+        occurredAt,
+        status: input.status ?? "paid",
+      },
+    );
+  },
+});

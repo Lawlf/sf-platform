@@ -2,13 +2,13 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { GoalEntity, GoalStatus } from "@/domain/entities/goal.entity";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { UserFxOverrideRepository } from "@/domain/ports/repositories/user-fx-override.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 
 import { listGoalsWithProgress } from "./list-goals-with-progress.use-case";
@@ -75,7 +75,7 @@ function buildDeps({
   asset: AssetEntity;
   rate?: string | null;
 }) {
-  const assets: AssetRepository = {
+  const assets: AssetRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(async (id: string) => (id === asset.id ? asset : null)),
@@ -90,7 +90,7 @@ function buildDeps({
     listExternalAccountKeys: vi.fn(async () => []),
   };
 
-  const allocations: AssetDebtAllocationRepository = {
+  const allocations: AssetDebtAllocationRepositoryPort = {
     upsert: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -100,7 +100,7 @@ function buildDeps({
     sumAllocationsByDebt: vi.fn(),
   };
 
-  const debts: DebtRepository = {
+  const debts: DebtRepositoryPort = {
     findById: vi.fn(),
     listForUser: vi.fn(async () => []),
     create: vi.fn(),
@@ -109,7 +109,7 @@ function buildDeps({
     softDelete: vi.fn(),
   };
 
-  const incomes: IncomeRepository = {
+  const incomes: IncomeRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
@@ -119,7 +119,7 @@ function buildDeps({
     restore: vi.fn(),
   };
 
-  const goals: GoalRepository = {
+  const goals: GoalRepositoryPort = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
@@ -130,14 +130,14 @@ function buildDeps({
     }),
     setStatus: vi.fn(),
     countActiveForUser: vi.fn(async () => 1),
-  } as unknown as GoalRepository;
+  } as unknown as GoalRepositoryPort;
 
-  const rates: ExchangeRateRepository = {
+  const rates: ExchangeRateRepositoryPort = {
     upsertDaily: vi.fn(),
     findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
   };
 
-  const overrides: UserFxOverrideRepository = {
+  const overrides: UserFxOverrideRepositoryPort = {
     find: vi.fn(async () => null),
     upsert: vi.fn(),
     remove: vi.fn(),

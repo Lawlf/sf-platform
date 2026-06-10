@@ -16,7 +16,11 @@ import { simSelectClass } from "../../../simular/_components/sim-result";
 import { SimSlider } from "../../../simular/_components/sim-slider";
 import type { GoalSeed } from "../../../simular/_lib/goal-seed";
 import type { SimPrefill } from "../../../simular/_lib/sim-prefill";
-import { createGoalAction, updateGoalAction } from "../../_actions/goal-actions";
+import {
+  createGoalAction,
+  updateGoalAction,
+  type CreateGoalActionInput,
+} from "../../_actions/goal-actions";
 import type { SerializedGoal } from "../../_actions/goal-queries";
 import { invalidateGoalCaches } from "../../_lib/invalidate";
 
@@ -517,7 +521,7 @@ const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[]
   { type: "financial_independence", title: "Independência", description: "Viver de renda passiva." },
 ];
 
-function toPatch(input: Parameters<typeof createGoalAction>[0]) {
+function toPatch(input: CreateGoalActionInput) {
   const { type: _type, ...patch } = input;
   return patch;
 }
@@ -545,12 +549,12 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
     setSubmitError(null);
   }
 
-  async function handleCreate(input: Parameters<typeof createGoalAction>[0]) {
+  async function handleCreate(input: CreateGoalActionInput) {
     setLoading(true);
     setSubmitError(null);
     startTransition(async () => {
       if (isEdit) {
-        const res = await updateGoalAction(existingGoal.id, toPatch(input));
+        const res = await updateGoalAction({ goalId: existingGoal.id, patch: toPatch(input) });
         setLoading(false);
         if (res.ok) {
           await invalidateGoalCaches(queryClient);
@@ -561,9 +565,9 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
       } else {
         const result = await createGoalAction(input);
         setLoading(false);
-        if (result.ok && result.goalId) {
+        if (result.ok) {
           await invalidateGoalCaches(queryClient);
-          router.push(`/app/metas/${result.goalId}` as Route);
+          router.push(`/app/metas/${result.data.goalId}` as Route);
         } else {
           setSubmitError(result.message ?? "Erro ao criar meta. Tente novamente.");
         }

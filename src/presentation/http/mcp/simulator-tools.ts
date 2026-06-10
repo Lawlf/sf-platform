@@ -1,13 +1,8 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { loadSimPrefill } from "@/application/use-cases/simulation/load-sim-prefill.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset-debt-allocation.repository";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-exchange-rate.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleUserFxOverrideRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-fx-override.repository";
+import { clock, repos } from "@/infrastructure/container";
+
 
 import { text } from "./mcp-response";
 import { assertScope, requireCtxFromExtra } from "./require-mcp-context";
@@ -17,13 +12,13 @@ import { SIMULATOR_TOOLS } from "./simulator-registry";
 function buildPrefill(userId: string) {
   return loadSimPrefill(
     {
-      assets: new DrizzleAssetRepository(),
-      allocations: new DrizzleAssetDebtAllocationRepository(),
-      debts: new DrizzleDebtRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      clock: new SystemClock(),
-      rates: new DrizzleExchangeRateRepository(),
-      overrides: new DrizzleUserFxOverrideRepository(),
+      assets: repos.assets,
+      allocations: repos.assetDebtAllocations,
+      debts: repos.debts,
+      incomes: repos.incomes,
+      clock,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
     },
     { userId },
   );

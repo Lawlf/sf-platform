@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-
 import { z } from "zod";
 
 import { buildUpdateMoneyInput } from "./update-debt.money";

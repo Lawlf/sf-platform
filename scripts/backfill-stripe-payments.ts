@@ -10,11 +10,12 @@
  */
 import { eq } from "drizzle-orm";
 
+import { repos } from "@/infrastructure/container";
+
 import { mapStripeInvoice } from "../src/infrastructure/billing/stripe/mappers/stripe-invoice.mapper";
 import { buildStripeBillingAdapter } from "../src/infrastructure/billing/stripe/stripe-billing.adapter";
 import { getStripeClient } from "../src/infrastructure/billing/stripe/stripe-client";
 import { getDb } from "../src/infrastructure/persistence/drizzle/client";
-import { DrizzlePaymentRepository } from "../src/infrastructure/persistence/drizzle/repositories/drizzle-payment.repository";
 import { subscriptions } from "../src/infrastructure/persistence/drizzle/schema/subscriptions.schema";
 import { users } from "../src/infrastructure/persistence/drizzle/schema/users.schema";
 
@@ -24,7 +25,7 @@ async function main() {
   const stripe = getStripeClient();
   // Ensures Stripe env vars are validated.
   buildStripeBillingAdapter();
-  const paymentRepo = new DrizzlePaymentRepository();
+  const paymentRepo = repos.payments;
 
   const baseQuery = db
     .select({

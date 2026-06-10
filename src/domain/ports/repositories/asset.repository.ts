@@ -6,7 +6,7 @@ export interface AssetWithAllocations {
   allocations: AssetDebtAllocation[];
 }
 
-export interface AssetRepository {
+export interface AssetRepositoryPort {
   create(asset: AssetEntity): Promise<void>;
   /**
    * Insere a Carteira padrão de forma idempotente no nível do banco. Se já

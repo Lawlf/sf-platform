@@ -1,18 +1,18 @@
 import type { UserEntity } from "@/domain/entities/user.entity";
 import { AccountDeactivated, OauthAccountLinkRequiresVerification } from "@/domain/errors/auth-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { OauthAccountRepository } from "@/domain/ports/repositories/oauth-account.repository";
-import type { SessionRepository } from "@/domain/ports/repositories/session.repository";
-import type { UserRepository } from "@/domain/ports/repositories/user.repository";
+import type { OauthAccountRepositoryPort } from "@/domain/ports/repositories/oauth-account.repository";
+import type { SessionRepositoryPort } from "@/domain/ports/repositories/session.repository";
+import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { Hasher } from "@/domain/ports/services/hasher.service";
 import type { OauthProfile } from "@/domain/ports/services/oauth-provider.service";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface SignInWithOauthDeps {
-  users: UserRepository;
-  oauthAccounts: OauthAccountRepository;
-  sessions: SessionRepository;
+  users: UserRepositoryPort;
+  oauthAccounts: OauthAccountRepositoryPort;
+  sessions: SessionRepositoryPort;
   hasher: Hasher;
   random: RandomGenerator;
   clock: Clock;

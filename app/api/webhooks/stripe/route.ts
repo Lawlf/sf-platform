@@ -1,13 +1,8 @@
 import { processBillingWebhook } from "@/application/use-cases/billing/process-billing-webhook.use-case";
 import { buildStripeBillingAdapter } from "@/infrastructure/billing/stripe/stripe-billing.adapter";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { loadEnv } from "@/infrastructure/config/env";
+import { clock, repos } from "@/infrastructure/container";
 import { ResendEmailService } from "@/infrastructure/email/resend-email.service";
-import { DrizzlePaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-payment.repository";
-import { DrizzlePlanRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-plan.repository";
-import { DrizzleSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-subscription.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
-import { DrizzleWebhookEventRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-webhook-event.repository";
 import { withTransaction } from "@/infrastructure/persistence/drizzle/with-transaction";
 import { getQStashClient } from "@/infrastructure/queue/qstash-client";
 
@@ -45,14 +40,14 @@ export async function POST(req: Request) {
   // Inline path (dev or QStash unavailable).
   const result = await processBillingWebhook(
     {
-      webhookEvents: new DrizzleWebhookEventRepository(),
-      subscriptions: new DrizzleSubscriptionRepository(),
-      payments: new DrizzlePaymentRepository(),
-      plans: new DrizzlePlanRepository(),
-      users: new DrizzleUserRepository(),
+      webhookEvents: repos.webhookEvents,
+      subscriptions: repos.subscriptions,
+      payments: repos.payments,
+      plans: repos.plans,
+      users: repos.users,
       billing,
       email: new ResendEmailService(),
-      clock: new SystemClock(),
+      clock,
       appUrl: env.NEXT_PUBLIC_APP_URL,
       transaction: withTransaction,
     },

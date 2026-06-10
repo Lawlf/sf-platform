@@ -8,7 +8,7 @@ import {
 } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { loadEnv } from "@/infrastructure/config/env";
-import { DrizzleSessionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-session.repository";
+import { repos } from "@/infrastructure/container";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -38,7 +38,7 @@ async function handle(req: NextRequest) {
   if (raw) {
     await signOut(
       {
-        sessions: new DrizzleSessionRepository(),
+        sessions: repos.sessions,
         hasher: new WebCryptoHasher(),
       },
       raw,

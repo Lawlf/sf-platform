@@ -1,30 +1,26 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { z } from "zod";
 
-import { DrizzlePushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-push-subscription.repository";
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { Forbidden } from "@/domain/errors/auth-errors";
+import { repos } from "@/infrastructure/container";
+import { action } from "@/presentation/actions/action";
 
 const schema = z.object({
   endpoint: z.string().url(),
 });
 
-export async function unsubscribePushAction(input: {
-  endpoint: string;
-}): Promise<{ ok: true; deviceCount: number } | { ok: false; message: string }> {
-  const user = await requireUser();
-  const parsed = schema.safeParse(input);
-  if (!parsed.success) {
-    return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
-  }
-  const repo = new DrizzlePushSubscriptionRepository();
-  const existing = await repo.findByEndpoint(parsed.data.endpoint);
-  if (existing && existing.userId !== user.id) {
-    return { ok: false, message: "Acesso negado." };
-  }
-  await repo.deleteByEndpoint(parsed.data.endpoint);
-  const deviceCount = (await repo.listForUser(user.id)).length;
-  revalidatePath("/app/perfil/notificacoes");
-  return { ok: true, deviceCount };
-}
+export const unsubscribePushAction = action({
+  schema,
+  revalidates: ["notificationPrefs"],
+  handler: async ({ endpoint }, { userId }) => {
+    const repo = repos.pushSubscriptions;
+    const existing = await repo.findByEndpoint(endpoint);
+    if (existing && existing.userId !== userId) {
+      throw new Forbidden("Acesso negado.");
+    }
+    await repo.deleteByEndpoint(endpoint);
+    const deviceCount = (await repo.listForUser(userId)).length;
+    return { deviceCount };
+  },
+});

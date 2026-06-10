@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 
 import {
@@ -11,7 +11,7 @@ import {
   type RegisterLoanCashInflowDeps,
 } from "./register-loan-cash-inflow.action";
 
-function makeAllocationsRepo(): AssetDebtAllocationRepository {
+function makeAllocationsRepo(): AssetDebtAllocationRepositoryPort {
   return {
     upsert: vi.fn(),
     delete: vi.fn(),
@@ -23,7 +23,7 @@ function makeAllocationsRepo(): AssetDebtAllocationRepository {
   };
 }
 
-function makeDebtRepo(): DebtRepository {
+function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(async () => null),
     listForUser: vi.fn(async () => []),
@@ -34,7 +34,7 @@ function makeDebtRepo(): DebtRepository {
   };
 }
 
-function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepository {
+function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepositoryPort {
   const store = new Map<string, AssetEntity>();
   for (const a of seed) store.set(a.id, a);
   return {

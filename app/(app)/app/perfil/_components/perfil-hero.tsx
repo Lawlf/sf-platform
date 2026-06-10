@@ -117,7 +117,7 @@ export function PerfilHero({
 
   function removeAvatar() {
     startAvatarTransition(async () => {
-      await removeAvatarAction();
+      await removeAvatarAction(undefined);
       setAvatarUrl(null);
       setAvatarError(null);
       setMenuOpen(false);

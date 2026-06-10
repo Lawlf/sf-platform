@@ -1,8 +1,8 @@
-import type { NotificationRepository } from "@/domain/ports/repositories/notification.repository";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface CountUndismissedDeps {
-  notifications: NotificationRepository;
+  notifications: NotificationRepositoryPort;
 }
 
 export interface CountUndismissedInput {

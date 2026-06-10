@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 
+
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
@@ -7,10 +8,7 @@ import type { ReactNode } from "react";
 
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { ensureDefaultWallet } from "@/application/use-cases/asset/ensure-default-wallet.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleUserAvatarRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-avatar.repository";
-import { DrizzleUserCredentialsRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user-credentials.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { AppLockProvider } from "./app/_components/app-lock/app-lock-provider.client";
@@ -41,8 +39,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   try {
     await ensureDefaultWallet(
       {
-        assets: new DrizzleAssetRepository(),
-        clock: new SystemClock(),
+        assets: repos.assets,
+        clock,
         newId: () => crypto.randomUUID(),
       },
       user.id,
@@ -54,11 +52,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const displayName = user.displayName ?? user.email.split("@")[0] ?? user.email;
   const notificationCount = await fetchUnreadNotificationsCount();
 
-  const credsRepo = new DrizzleUserCredentialsRepository();
+  const credsRepo = repos.userCredentials;
   const [creds, passkeys, avatarUrl] = await Promise.all([
     credsRepo.find(user.id),
     credsRepo.listWebauthn(user.id),
-    new DrizzleUserAvatarRepository().get(user.id),
+    repos.userAvatars.get(user.id),
   ]);
   const appLockEnabled = creds?.appLockEnabled ?? false;
   const appLockTimeout = creds?.appLockTimeout ?? 60;

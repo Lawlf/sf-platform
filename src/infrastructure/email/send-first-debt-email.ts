@@ -5,16 +5,16 @@ import {
   FIRST_DEBT_SUBJECT,
   FirstDebtEmail,
 } from "@/infrastructure/email/templates/first-debt.email";
-import { DrizzleEmailSendRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-email-send.repository";
-import { DrizzleNotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification-preferences.repository";
-import { DrizzleUserRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-user.repository";
+import { EmailSendRepository } from "@/infrastructure/persistence/drizzle/repositories/email-send.repository";
+import { NotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/notification-preferences.repository";
+import { UserRepository } from "@/infrastructure/persistence/drizzle/repositories/user.repository";
 
 export async function sendFirstDebtEmail(userId: string): Promise<void> {
   try {
-    const user = await new DrizzleUserRepository().findById(userId);
+    const user = await new UserRepository().findById(userId);
     if (!user || user.deactivatedAt) return;
 
-    const prefs = await new DrizzleNotificationPreferencesRepository().findForUser(userId);
+    const prefs = await new NotificationPreferencesRepository().findForUser(userId);
     if (prefs && !prefs.emailEnabled) return;
 
     const appUrl = loadEnv().NEXT_PUBLIC_APP_URL;
@@ -27,7 +27,7 @@ export async function sendFirstDebtEmail(userId: string): Promise<void> {
       html,
       purpose: "transactional",
     });
-    await new DrizzleEmailSendRepository().recordSend({
+    await new EmailSendRepository().recordSend({
       userId,
       kind: "first_debt",
       dedupeKey: "first_debt",

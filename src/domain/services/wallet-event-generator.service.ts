@@ -7,9 +7,8 @@ import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { effectiveIncomeCentsForMonth } from "./income-settlement.service";
-
 import { monthlyDebtService } from "./financial-health.service";
+import { effectiveIncomeCentsForMonth } from "./income-settlement.service";
 import type { WalletEvent } from "./wallet-balance.service";
 
 const WEEKS_PER_MONTH = 4.33;

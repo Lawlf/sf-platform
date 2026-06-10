@@ -4,7 +4,7 @@ import {
   InvalidAmortizationParamsError,
 } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import {
   PayoffStrategyService,
   type PayoffComparison,
@@ -13,7 +13,7 @@ import type { Money } from "@/domain/value-objects/money.vo";
 import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface ComparePayoffStrategiesDeps {
-  debts: DebtRepository;
+  debts: DebtRepositoryPort;
   clock: Clock;
 }
 

@@ -8,13 +8,13 @@ import type { GoalEntity, GoalFundingMode, GoalType } from "@/domain/entities/go
 import type { IncomeFrequency } from "@/domain/entities/income.entity";
 import { findWriteAction } from "@/domain/mcp/write-actions";
 import type { Clock } from "@/domain/ports/clock.port";
-import type { AssetDebtAllocationRepository } from "@/domain/ports/repositories/asset-debt-allocation.repository";
-import type { AssetRepository } from "@/domain/ports/repositories/asset.repository";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
-import type { GoalRepository } from "@/domain/ports/repositories/goal.repository";
-import type { IncomeRepository } from "@/domain/ports/repositories/income.repository";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
+import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
+import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { serialize } from "@/presentation/http/mcp/serialize";
@@ -43,13 +43,13 @@ export interface WriteExecutorResult {
 }
 
 export interface WriteExecutorDeps {
-  incomes: IncomeRepository;
-  debts: DebtRepository;
-  payments: DebtPaymentRepository;
-  allocations: AssetDebtAllocationRepository;
-  assets: AssetRepository;
-  goals: GoalRepository;
-  transactions: TransactionRepository;
+  incomes: IncomeRepositoryPort;
+  debts: DebtRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
+  allocations: AssetDebtAllocationRepositoryPort;
+  assets: AssetRepositoryPort;
+  goals: GoalRepositoryPort;
+  transactions: TransactionRepositoryPort;
   clock: Clock;
 }
 

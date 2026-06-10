@@ -3,13 +3,7 @@ import "server-only";
 import { detectNegativeBalance } from "@/application/use-cases/notification/detect-negative-balance.use-case";
 import { TimelineService } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-amount-adjustment.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleNotificationRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-notification.repository";
+import { clock, repos } from "@/infrastructure/container";
 
 /**
  * Helper para disparar deteccao de notificacoes apos uma mutacao critica
@@ -22,16 +16,15 @@ import { DrizzleNotificationRepository } from "@/infrastructure/persistence/driz
  */
 export async function detectNotificationsForUser(userId: string): Promise<void> {
   try {
-    const clock = new SystemClock();
     const now = clock.now();
     const currentMonth = MonthYear.fromDate(now);
     const monthIso = currentMonth.toIso();
 
-    const debts = new DrizzleDebtRepository();
-    const payments = new DrizzleDebtPaymentRepository();
-    const incomes = new DrizzleIncomeRepository();
-    const assets = new DrizzleAssetRepository();
-    const adjustmentsRepo = new DrizzleDebtAmountAdjustmentRepository();
+    const debts = repos.debts;
+    const payments = repos.debtPayments;
+    const incomes = repos.incomes;
+    const assets = repos.assets;
+    const adjustmentsRepo = repos.debtAmountAdjustments;
 
     const [debtsRaw, incomesRaw, paymentsRaw, assetsRaw, adjustmentsRaw] = await Promise.all([
       debts.listForUser(userId, { status: "all" }),
@@ -58,7 +51,7 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
     const freeBalanceCents = point.freeBalance.toCents();
 
     await detectNegativeBalance(
-      { notifications: new DrizzleNotificationRepository(), clock },
+      { notifications: repos.notifications, clock },
       { userId, monthIso, freeBalanceCents, triggeredAt: now },
     );
   } catch (error) {

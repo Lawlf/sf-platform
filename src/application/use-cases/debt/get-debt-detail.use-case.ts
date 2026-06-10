@@ -2,16 +2,16 @@ import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { DebtNotFound } from "@/domain/errors/financial-errors";
-import type { DebtPaymentRepository } from "@/domain/ports/repositories/debt-payment.repository";
-import type { DebtRepository } from "@/domain/ports/repositories/debt.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { PriceAmortizationService } from "@/domain/services/amortization/price-amortization.service";
 import { SacAmortizationService } from "@/domain/services/amortization/sac-amortization.service";
 import type { AmortizationSchedule } from "@/domain/value-objects/amortization-schedule.vo";
 import { err, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface GetDebtDetailDeps {
-  debts: DebtRepository;
-  payments: DebtPaymentRepository;
+  debts: DebtRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
 }
 
 export interface GetDebtDetailInput {

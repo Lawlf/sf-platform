@@ -1,6 +1,6 @@
-import type { FxClient, FxPair } from "@/domain/ports/external/fx-client.port";
-import type { ExchangeRateRepository } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { Clock } from "@/domain/ports/clock.port";
+import type { FxClient, FxPair } from "@/domain/ports/external/fx-client.port";
+import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
 
 const SOURCE = "awesomeapi";
 
@@ -12,7 +12,7 @@ export const FX_PAIRS: FxPair[] = [
 
 export interface RefreshExchangeRatesDeps {
   client: FxClient;
-  rates: ExchangeRateRepository;
+  rates: ExchangeRateRepositoryPort;
   clock: Clock;
 }
 

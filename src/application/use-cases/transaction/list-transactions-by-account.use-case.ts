@@ -1,8 +1,8 @@
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
-import type { TransactionRepository } from "@/domain/ports/repositories/transaction.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 
 export interface ListTransactionsByAccountDeps {
-  transactions: Pick<TransactionRepository, "listByAccount">;
+  transactions: Pick<TransactionRepositoryPort, "listByAccount">;
 }
 
 export async function listTransactionsByAccount(

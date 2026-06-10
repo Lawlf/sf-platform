@@ -1,14 +1,7 @@
 "use server";
 
 import { getWalletBalance } from "@/application/use-cases/wallet/get-wallet-balance.use-case";
-import { SystemClock } from "@/infrastructure/clock/system-clock";
-import { DrizzleAssetRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-asset.repository";
-import { DrizzleDebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt-payment.repository";
-import { DrizzleDebtRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-debt.repository";
-import { DrizzleIncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income-settlement.repository";
-import { DrizzleIncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-income.repository";
-import { DrizzleRecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-recurring-settlement.repository";
-import { DrizzleTransactionRepository } from "@/infrastructure/persistence/drizzle/repositories/drizzle-transaction.repository";
+import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -27,14 +20,14 @@ export async function fetchWalletBalance(): Promise<WalletBalancePayload | null>
 
   const result = await getWalletBalance(
     {
-      assets: new DrizzleAssetRepository(),
-      incomes: new DrizzleIncomeRepository(),
-      debts: new DrizzleDebtRepository(),
-      settlements: new DrizzleRecurringSettlementRepository(),
-      incomeSettlements: new DrizzleIncomeSettlementRepository(),
-      debtPayments: new DrizzleDebtPaymentRepository(),
-      transactions: new DrizzleTransactionRepository(),
-      clock: new SystemClock(),
+      assets: repos.assets,
+      incomes: repos.incomes,
+      debts: repos.debts,
+      settlements: repos.recurringSettlements,
+      incomeSettlements: repos.incomeSettlements,
+      debtPayments: repos.debtPayments,
+      transactions: repos.transactions,
+      clock,
     },
     { userId: user.id },
   );

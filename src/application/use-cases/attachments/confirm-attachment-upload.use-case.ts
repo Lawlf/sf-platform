@@ -1,12 +1,12 @@
 import type { Clock } from "@/domain/ports/clock.port";
-import type { EntityAttachmentRepository } from "@/domain/ports/repositories/entity-attachment.repository";
+import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 import { isAttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
 import { validateUpload } from "./attachment-limits";
 import { buildStorageKey } from "./attachment-storage-key";
 
 export interface ConfirmUploadDeps {
-  attachments: Pick<EntityAttachmentRepository, "add" | "totalBytesForUser">;
+  attachments: Pick<EntityAttachmentRepositoryPort, "add" | "totalBytesForUser">;
   clock: Clock;
   isPro: boolean;
 }

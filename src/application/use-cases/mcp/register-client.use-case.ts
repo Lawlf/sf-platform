@@ -1,11 +1,11 @@
 import { McpInvalidClient } from "@/domain/errors/mcp-errors";
-import type { McpOauthClientRepository } from "@/domain/ports/repositories/mcp-oauth-client.repository";
+import type { McpOauthClientRepositoryPort } from "@/domain/ports/repositories/mcp-oauth-client.repository";
 import type { RandomGenerator } from "@/domain/ports/services/random-generator.service";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface RegisterClientDeps {
-  clients: Pick<McpOauthClientRepository, "create">;
+  clients: Pick<McpOauthClientRepositoryPort, "create">;
   random: Pick<RandomGenerator, "urlToken">;
 }
 

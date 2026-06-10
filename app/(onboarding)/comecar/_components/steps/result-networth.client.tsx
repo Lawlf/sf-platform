@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from "react";
 
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { fetchNetWorth } from "@/app/(app)/app/_actions/asset-queries";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { Spinner } from "@/app/components/ui/spinner";
 
 type Snapshot = Awaited<ReturnType<typeof fetchNetWorth>>;
