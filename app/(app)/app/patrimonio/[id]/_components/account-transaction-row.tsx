@@ -1,4 +1,5 @@
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+import { formatDateSafe } from "@/shared/format/date-format";
 
 import type { SerializedAccountTxn } from "../_actions/account-transactions-queries";
 
@@ -12,8 +13,8 @@ export function AccountTxnRow({ txn }: { txn: SerializedAccountTxn }) {
     ? "text-[color:var(--semantic-positive)]"
     : "text-[color:var(--text-primary)]";
   const sign = isIn ? "+" : "-";
-  const date = DATE_FMT.format(new Date(txn.occurredAtIso));
-  const meta = txn.categoryLabel ? `${txn.categoryLabel} · ${date}` : date;
+  const date = formatDateSafe(DATE_FMT, new Date(txn.occurredAtIso));
+  const meta = [txn.categoryLabel, date].filter(Boolean).join(" · ");
 
   return (
     <li className="flex items-center gap-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3">

@@ -698,19 +698,21 @@ export function DetailsStep({
             </WizardField>
           )}
 
-          <WizardField
-            label="Data de aquisição (opcional)"
-            htmlFor={acquiredAtId}
-            helper="Sem data, o valor não muda com o tempo."
-            error={errors.acquiredAt?.message}
-          >
-            <input
-              id={acquiredAtId}
-              type="date"
-              {...form.register("acquiredAt")}
-              className={wizardInputClass}
-            />
-          </WizardField>
+          {shouldShowDepreciationSection(category) ? (
+            <WizardField
+              label="Data de aquisição (opcional)"
+              htmlFor={acquiredAtId}
+              helper="Sem data, o valor não muda com o tempo."
+              error={errors.acquiredAt?.message}
+            >
+              <input
+                id={acquiredAtId}
+                type="date"
+                {...form.register("acquiredAt")}
+                className={wizardInputClass}
+              />
+            </WizardField>
+          ) : null}
         </>
       )}
 
