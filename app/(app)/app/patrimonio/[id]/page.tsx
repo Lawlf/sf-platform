@@ -8,6 +8,7 @@ import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projec
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
+import { formatDateSafe } from "@/shared/format/date-format";
 import { formatCents } from "@/shared/format/money-format";
 
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
@@ -172,7 +173,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
       lastQuoteFormatted:
         lastQuoteCents !== null ? formatCents(lastQuoteCents, asset.currentValue.currency) : null,
       lastQuoteCents: lastQuoteCents !== null ? lastQuoteCents.toString() : null,
-      lastQuoteAt: lastQuoteAt ? DATETIME_FMT.format(lastQuoteAt) : null,
+      lastQuoteAt: formatDateSafe(DATETIME_FMT, lastQuoteAt),
       gainLossFormatted,
       gainLossIsNegative,
       gainLossPctFormatted,
@@ -198,7 +199,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
       quantityFormatted: qty.toLocaleString("pt-BR", { maximumFractionDigits: 8 }),
       lastQuoteFormatted:
         lastQuoteCents !== null ? formatCents(lastQuoteCents, asset.currentValue.currency) : null,
-      lastQuoteAt: lastQuoteAt ? DATETIME_FMT.format(lastQuoteAt) : null,
+      lastQuoteAt: formatDateSafe(DATETIME_FMT, lastQuoteAt),
     };
   }
 
@@ -278,7 +279,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
     depreciation = {
       kindLabel: DEPRECIATION_LABEL[asset.depreciationKind] ?? asset.depreciationKind,
       ratePctYear: asset.depreciationRatePctYear,
-      acquiredAtFormatted: asset.acquiredAt ? DATE_FMT.format(asset.acquiredAt) : null,
+      acquiredAtFormatted: formatDateSafe(DATE_FMT, asset.acquiredAt),
     };
   }
 
@@ -295,7 +296,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
         netWorthIsNegative={netWorth.isNegative()}
         netWorthDiffersFromValue={!netWorth.equals(asset.currentValue)}
         fipeCode={asset.fipeCode}
-        fipeLastSyncedAt={asset.fipeLastSyncedAt ? DATE_FMT.format(asset.fipeLastSyncedAt) : null}
+        fipeLastSyncedAt={formatDateSafe(DATE_FMT, asset.fipeLastSyncedAt)}
         linkedDebts={linkedView}
         availableDebts={availableDebts}
         cashYield={cashYield}
