@@ -17,13 +17,19 @@ export function buildFinancingSummary({
   cetValue,
   linkSummary,
 }: SummaryInputs): SummaryItem[] {
+  const hasRate = typeof values.annualRatePct === "number" && values.annualRatePct > 0;
+  const rateRows: SummaryItem[] = hasRate
+    ? [
+        { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+        { label: "CET (custo real)", value: cetValue },
+      ]
+    : [];
+
   if (values.scenario === "new") {
     return [
       { label: "Nome", value: values.label || "Sem nome" },
-      { label: "Tipo", value: "Financiamento" },
-      { label: "Valor", value: formatCentsBRL(values.principalCents) },
-      { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
-      { label: "CET (custo real)", value: cetValue },
+      { label: "Valor financiado", value: formatCentsBRL(values.principalCents) },
+      ...rateRows,
       { label: "Prazo", value: `${values.termMonths} meses` },
       { label: "Total a pagar", value: totalPaidValue },
       { label: "Bem vinculado", value: linkSummary },
@@ -31,14 +37,12 @@ export function buildFinancingSummary({
   }
   return [
     { label: "Nome", value: values.label || "Sem nome" },
-    { label: "Tipo", value: "Financiamento" },
-    { label: "Valor original", value: formatCentsBRL(values.originalPrincipalCents) },
     { label: "Quanto falta pagar", value: formatCentsBRL(values.currentBalanceCents) },
-    { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
-    { label: "CET (custo real)", value: cetValue },
-    { label: "Parcelas pagas", value: `${values.paidInstallments}` },
+    ...(hasRate ? [{ label: "Total a pagar", value: totalPaidValue }] : []),
+    ...rateRows,
     { label: "Parcelas restantes", value: `${values.remainingTerms}` },
-    { label: "Total a pagar", value: totalPaidValue },
+    { label: "Valor financiado", value: formatCentsBRL(values.originalPrincipalCents) },
+    { label: "Parcelas pagas", value: `${values.paidInstallments}` },
     { label: "Bem vinculado", value: linkSummary },
   ];
 }

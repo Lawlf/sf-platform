@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { useId } from "react";
+import { useEffect, useId } from "react";
 import { Controller, type FieldValues, type UseFormReturn } from "react-hook-form";
 
 import { Spinner } from "@/app/components/ui/spinner";
@@ -85,6 +85,14 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
     staleTime: 30_000,
   });
 
+  const currentAllocation = f.watch("linkedAssetAllocationCents") as bigint | null | undefined;
+  useEffect(() => {
+    if (!enabled || choice !== "existing" || !linkedAssetId) return;
+    if (debtPrincipalCents <= 0n) return;
+    if (currentAllocation !== null && currentAllocation !== undefined) return;
+    f.setValue("linkedAssetAllocationCents", debtPrincipalCents, { shouldDirty: true });
+  }, [enabled, choice, linkedAssetId, debtPrincipalCents, currentAllocation, f]);
+
   function handlePickNo() {
     f.setValue("linkAssetChoice", "no" as LinkAssetChoice, { shouldDirty: true });
     f.setValue("linkedAssetId", null, { shouldDirty: true });
@@ -107,6 +115,10 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
     f.setValue("linkAssetChoice", "new" as LinkAssetChoice, { shouldDirty: true });
     f.setValue("linkedAssetId", null, { shouldDirty: true });
     f.setValue("linkedAssetAllocationCents", null, { shouldDirty: true });
+    const currentValue = f.getValues("newAssetCurrentValueCents") as bigint | null | undefined;
+    if (debtPrincipalCents > 0n && (currentValue === null || currentValue === undefined)) {
+      f.setValue("newAssetCurrentValueCents", debtPrincipalCents, { shouldDirty: true });
+    }
   }
 
   function selectAsset(assetId: string) {

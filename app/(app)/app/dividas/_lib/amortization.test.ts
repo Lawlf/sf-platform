@@ -13,12 +13,12 @@ describe("solveAnnualRatePct", () => {
     expect(solved).toBeLessThan(31);
   });
 
-  it("parcela = principal/term => taxa ~0%", () => {
+  it("parcela = principal/term => taxa exatamente 0% (sem resíduo numérico)", () => {
     const principal = 1_200_000n;
     const term = 12;
     const inst = principal / BigInt(term);
     const solved = solveAnnualRatePct(principal, inst, term)!;
-    expect(solved).toBeLessThan(0.5);
+    expect(solved).toBe(0);
   });
 
   it("entradas invalidas retornam null", () => {

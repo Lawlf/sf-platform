@@ -1,5 +1,6 @@
 export const ATTACHABLE_ENTITY_TYPES = [
   "debt",
+  "debt_payment",
   "income",
   "goal",
   "account",

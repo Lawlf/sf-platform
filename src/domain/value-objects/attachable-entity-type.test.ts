@@ -7,7 +7,7 @@ import {
 
 describe("attachable entity type", () => {
   it("aceita os tipos macro válidos", () => {
-    for (const t of ["debt", "income", "goal", "account", "transaction"]) {
+    for (const t of ["debt", "debt_payment", "income", "goal", "account", "transaction"]) {
       expect(isAttachableEntityType(t)).toBe(true);
     }
   });
@@ -18,6 +18,6 @@ describe("attachable entity type", () => {
   });
 
   it("expõe a lista canônica", () => {
-    expect(ATTACHABLE_ENTITY_TYPES).toHaveLength(5);
+    expect(ATTACHABLE_ENTITY_TYPES).toHaveLength(6);
   });
 });

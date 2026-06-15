@@ -38,10 +38,12 @@ export const ongoingScenarioSchema = z
     currency: z.enum(CURRENCIES),
     label: z.string().min(1, "Informe um rótulo.").max(120),
     originalPrincipalCents: z.bigint().positive("Valor original deve ser positivo."),
+    // O usuário informa quanto JÁ PAGOU; o saldo é derivado (original - pago).
+    amountPaidCents: z.bigint().nonnegative("O quanto você já pagou não pode ser negativo."),
     currentBalanceCents: z.bigint().positive("Saldo deve ser positivo."),
     monthlyInstallmentCents: z.bigint().positive("Parcela deve ser positiva."),
     paidInstallments: z.number().int().min(0).max(420),
-    remainingTerms: z.number().int().min(1).max(420),
+    remainingTerms: z.number().int().min(1, "Informe quantas parcelas faltam.").max(420),
     annualRatePct: z.number().min(0).max(200),
     startDate: z.string().min(1, "Informe a data de início."),
     expectedEndDate: z.string().nullable().optional(),
@@ -49,9 +51,9 @@ export const ongoingScenarioSchema = z
     ...linkAssetSlice,
     ...cashInflowSlice,
   })
-  .refine((d) => d.currentBalanceCents <= d.originalPrincipalCents, {
-    message: "Saldo devedor não pode ser maior que o valor original contratado.",
-    path: ["currentBalanceCents"],
+  .refine((d) => d.amountPaidCents < d.originalPrincipalCents, {
+    message: "O que você já pagou não pode ser igual ou maior que o valor contratado.",
+    path: ["amountPaidCents"],
   });
 
 export const personalLoanFormSchema = z.discriminatedUnion("scenario", [
@@ -72,7 +74,7 @@ export const NEW_STEP2_FIELDS = [
 export const ONGOING_STEP2_FIELDS = [
   "label",
   "originalPrincipalCents",
-  "currentBalanceCents",
+  "amountPaidCents",
   "monthlyInstallmentCents",
   "paidInstallments",
   "remainingTerms",

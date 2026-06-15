@@ -38,7 +38,8 @@ import { WizardShell } from "../../_components/wizard-shell";
 import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 import {
   buildLinkSummary,
-  linkAssetDefaults,
+  debtCreatedHref,
+  linkAssetDefaultsFor,
   linkAssetSlice,
 } from "../../_lib/link-asset";
 
@@ -100,11 +101,13 @@ const STEP4_FIELDS = ["installmentPurchases"] as const;
 interface CreditCardFormProps {
   existing?: boolean;
   defaultCurrency?: Currency;
+  initialLinkAssetId?: string | null;
 }
 
 export function CreditCardForm({
   existing = false,
   defaultCurrency = "BRL",
+  initialLinkAssetId = null,
 }: CreditCardFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -143,7 +146,7 @@ export function CreditCardForm({
       expectedEndDate: null,
       notes: null,
       installmentPurchases: [],
-      ...linkAssetDefaults,
+      ...linkAssetDefaultsFor(initialLinkAssetId),
     },
   });
 
@@ -291,7 +294,7 @@ export function CreditCardForm({
       }
 
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
+      router.push(debtCreatedHref(initialLinkAssetId, debtRes.data.debtId) as Route);
     });
   }
 

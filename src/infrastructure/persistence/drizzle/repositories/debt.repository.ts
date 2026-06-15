@@ -137,6 +137,13 @@ function rowToEntity(row: DebtRow): DebtEntity {
   }
 }
 
+function rateToText(decimal: number): string {
+  if (!Number.isFinite(decimal) || decimal === 0) return "0";
+  const s = decimal.toString();
+  if (!/e/i.test(s)) return s;
+  return decimal.toFixed(20).replace(/0+$/, "").replace(/\.$/, "");
+}
+
 function entityToRow(entity: DebtEntity): NewDebtRow {
   const base = {
     id: entity.id,
@@ -163,7 +170,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
       return {
         ...base,
         amortMethod: entity.amortizationMethod,
-        annualRateDecimal: entity.annualInterestRate.toDecimal().toString(),
+        annualRateDecimal: rateToText(entity.annualInterestRate.toDecimal()),
         termMonths: entity.termMonths,
         monthlyInsuranceCents: entity.monthlyInsurance?.toCents() ?? null,
         monthlyAdminFeeCents: entity.monthlyAdminFee?.toCents() ?? null,
@@ -171,7 +178,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
     case "personal_loan":
       return {
         ...base,
-        annualRateDecimal: entity.annualInterestRate.toDecimal().toString(),
+        annualRateDecimal: rateToText(entity.annualInterestRate.toDecimal()),
         termMonths: entity.termMonths,
         monthlyInstallmentCents: entity.monthlyInstallment.toCents(),
       };
@@ -183,14 +190,16 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
         dueDay: entity.dueDay,
         currentStatementCents: entity.currentStatement.toCents(),
         revolvingBalanceCents: entity.revolvingBalance?.toCents() ?? null,
-        revolvingMonthlyRateDecimal: entity.revolvingMonthlyRate?.toDecimal().toString() ?? null,
+        revolvingMonthlyRateDecimal: entity.revolvingMonthlyRate
+          ? rateToText(entity.revolvingMonthlyRate.toDecimal())
+          : null,
         installmentPurchases: serializeInstallments(entity.installmentPurchases),
       };
     case "overdraft":
       return {
         ...base,
         bankName: entity.bankName,
-        overdraftMonthlyRateDecimal: entity.monthlyRate.toDecimal().toString(),
+        overdraftMonthlyRateDecimal: rateToText(entity.monthlyRate.toDecimal()),
         lastChargeDate: entity.lastChargeDate,
       };
     case "recurring":
