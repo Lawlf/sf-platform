@@ -50,7 +50,8 @@ export function solveAnnualRatePct(
     }
     if (hi - lo < 1e-6) break;
   }
-  return (lo + hi) / 2;
+  const solved = (lo + hi) / 2;
+  return solved < 1e-3 ? 0 : solved;
 }
 
 export function computeCetAnnualText(

@@ -2,11 +2,17 @@
 
 import { CreditCard, HandCoins, Home } from "lucide-react";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { KindCard } from "../../_components/kind-card";
 import { WizardShell } from "../../_components/wizard-shell";
+
+function withLinkAsset(href: string, linkAssetId: string | null): Route {
+  if (!linkAssetId) return href as Route;
+  const sep = href.includes("?") ? "&" : "?";
+  return `${href}${sep}linkAssetId=${encodeURIComponent(linkAssetId)}` as Route;
+}
 
 type AntigaTypeId = "cartao" | "emprestimo" | "financiamento";
 
@@ -44,6 +50,7 @@ const TYPES: readonly AntigaTypeOption[] = [
 
 export function TypePicker() {
   const router = useRouter();
+  const linkAssetId = useSearchParams().get("linkAssetId");
 
   return (
     <WizardShell
@@ -65,7 +72,7 @@ export function TypePicker() {
             title={type.title}
             description={type.description}
             selected={false}
-            onSelect={() => router.push(type.href)}
+            onSelect={() => router.push(withLinkAsset(type.href, linkAssetId))}
           />
         ))}
       </div>

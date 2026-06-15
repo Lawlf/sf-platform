@@ -263,6 +263,7 @@ export function AssetDetailView(props: AssetDetailViewProps) {
 
       <LinkNewDebtSection
         assetId={props.assetId}
+        assetLabel={props.label}
         availableDebts={props.availableDebts}
         hasLinkedDebts={props.linkedDebts.length > 0}
       />
@@ -871,70 +872,64 @@ function LinkedDebtRow({ assetId, debt }: { assetId: string; debt: LinkedDebtVie
   );
 }
 
+interface LinkDebtFormValues {
+  allocationCents: bigint;
+}
+
 function LinkNewDebtSection({
   assetId,
+  assetLabel,
   availableDebts,
   hasLinkedDebts,
 }: {
   assetId: string;
+  assetLabel: string;
   availableDebts: AvailableDebtView[];
   hasLinkedDebts: boolean;
 }) {
-  const [open, setOpen] = useState(false);
-  const title = hasLinkedDebts ? "Vincular nova dívida" : "Dívidas vinculadas";
-  return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">{title}</h2>
-        {availableDebts.length > 0 ? (
-          <Button type="button" size="sm" variant="ghost" onClick={() => setOpen((v) => !v)}>
-            {open ? "Fechar" : "Vincular"}
-          </Button>
-        ) : (
-          <Button asChild size="sm" variant="ghost">
-            <Link href={"/app/dividas/nova" as Route}>Nova dívida</Link>
-          </Button>
-        )}
-      </div>
-      {!hasLinkedDebts && !open ? (
-        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
-          {availableDebts.length > 0
-            ? "Vincule uma dívida pra acompanhar quanto ainda deve neste bem."
-            : "Cadastre uma dívida primeiro pra poder vincular a este bem."}
-        </p>
-      ) : null}
-      {open && availableDebts.length > 0 ? (
-        <ul className="mt-3 flex flex-col gap-2">
-          {availableDebts.map((d) => (
-            <LinkRow key={d.debtId} assetId={assetId} debt={d} />
-          ))}
-        </ul>
-      ) : null}
-    </section>
-  );
-}
-
-interface LinkRowFormValues {
-  allocationCents: bigint;
-}
-
-function LinkRow({ assetId, debt }: { assetId: string; debt: AvailableDebtView }) {
+  const router = useRouter();
   const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
-  const form = useForm<LinkRowFormValues>({
+  const form = useForm<LinkDebtFormValues>({
     defaultValues: { allocationCents: 0n as unknown as bigint },
   });
 
-  function onSubmit() {
+  const hasAvailable = availableDebts.length > 0;
+  const title = hasLinkedDebts ? "Vincular nova dívida" : "Dívidas vinculadas";
+  const selected = availableDebts.find((d) => d.debtId === selectedId) ?? null;
+
+  function selectDebt(d: AvailableDebtView) {
+    setSelectedId(d.debtId);
+    setError(null);
+    form.setValue("allocationCents", BigInt(d.originalPrincipalCents));
+  }
+
+  function changeOpen(next: boolean) {
+    setOpen(next);
+    if (!next) {
+      setSelectedId(null);
+      setError(null);
+      form.reset({ allocationCents: 0n as unknown as bigint });
+    }
+  }
+
+  function goCreate() {
+    router.push(`/app/dividas/nova?linkAssetId=${assetId}` as Route);
+  }
+
+  function onLink() {
+    if (!selected) return;
     setError(null);
     const cents = form.getValues("allocationCents");
     if (typeof cents !== "bigint" || cents <= 0n) {
-      setError("Informe um valor de alocação.");
+      setError("Informe um valor.");
       return;
     }
-    const principal = BigInt(debt.originalPrincipalCents);
+    const principal = BigInt(selected.originalPrincipalCents);
     if (cents > principal) {
       setError(`Acima do valor original (${formatCentsToBRL(principal)}).`);
       return;
@@ -942,36 +937,130 @@ function LinkRow({ assetId, debt }: { assetId: string; debt: AvailableDebtView }
     startTransition(async () => {
       const r = await linkDebtAction({
         assetId,
-        debtId: debt.debtId,
+        debtId: selected.debtId,
         allocationOriginalCents: cents.toString(),
       });
       if (!r.ok) {
         setError(r.message);
         return;
       }
-      form.reset({ allocationCents: 0n as unknown as bigint });
       await invalidateAssetCaches(queryClient);
+      changeOpen(false);
     });
   }
 
   return (
-    <li className="flex flex-col gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3">
-      <div>
-        <p className="text-sm font-semibold text-[color:var(--text-primary)]">{debt.label}</p>
-        <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
-          Original: <HideableValue>{debt.originalPrincipalFormatted}</HideableValue>
-        </p>
+    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">{title}</h2>
+        {hasAvailable ? (
+          <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(true)}>
+            Vincular
+          </Button>
+        ) : (
+          <Button type="button" size="sm" variant="ghost" onClick={goCreate}>
+            Nova dívida
+          </Button>
+        )}
       </div>
-      <WizardMoneyField control={form.control} name="allocationCents" placeholder="R$ 0,00" />
-      {error ? (
-        <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
-          {error}
-        </span>
+      {!hasLinkedDebts ? (
+        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
+          {hasAvailable
+            ? "Vincule uma dívida pra acompanhar quanto ainda deve neste bem."
+            : "Cadastre uma dívida primeiro pra poder vincular a este bem."}
+        </p>
       ) : null}
-      <Button type="button" size="sm" onClick={onSubmit} loading={pending}>
-        Vincular
-      </Button>
-    </li>
+
+      <Sheet open={open} onOpenChange={changeOpen}>
+        <SheetContent side="bottom" className="flex flex-col gap-4">
+          <SheetHeader>
+            <SheetTitle>Vincular dívida a {assetLabel}</SheetTitle>
+            <SheetDescription>
+              Escolha uma dívida que você já cadastrou ou crie uma nova.
+            </SheetDescription>
+          </SheetHeader>
+
+          {hasAvailable ? (
+            <div className="flex flex-col gap-2">
+              {availableDebts.map((d) => {
+                const isSel = selectedId === d.debtId;
+                return (
+                  <div
+                    key={d.debtId}
+                    className={`rounded-xl border-[1.5px] p-3 transition-colors ${
+                      isSel
+                        ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.12]"
+                        : "border-[color:var(--border-soft)] bg-[color:var(--surface-2)]"
+                    }`}
+                  >
+                    <button
+                      type="button"
+                      onClick={() => selectDebt(d)}
+                      aria-pressed={isSel}
+                      className="flex w-full items-start justify-between gap-2 text-left focus-visible:outline-none"
+                    >
+                      <div className="min-w-0 flex-1">
+                        <div className="text-sm font-semibold text-[color:var(--text-primary)]">
+                          {d.label}
+                        </div>
+                        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
+                          <HideableValue>{d.originalPrincipalFormatted}</HideableValue>
+                        </div>
+                      </div>
+                      <span
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-[0.6875rem] font-bold ${
+                          isSel
+                            ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
+                            : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
+                        }`}
+                        aria-hidden
+                      >
+                        {isSel ? "✓" : ""}
+                      </span>
+                    </button>
+
+                    {isSel ? (
+                      <div className="mt-3 flex flex-col gap-1.5">
+                        <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+                          Quanto deste valor foi pra este bem?
+                        </label>
+                        <WizardMoneyField
+                          control={form.control}
+                          name="allocationCents"
+                          placeholder="R$ 0,00"
+                        />
+                        <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                          A gente já preencheu com o total. Mexe só se uma parte foi pra outra coisa.
+                        </p>
+                        {error ? (
+                          <span
+                            role="alert"
+                            className="text-[0.6875rem] text-[color:var(--semantic-negative)]"
+                          >
+                            {error}
+                          </span>
+                        ) : null}
+                        <Button type="button" size="sm" onClick={onLink} loading={pending}>
+                          Vincular
+                        </Button>
+                      </div>
+                    ) : null}
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="text-[0.8125rem] text-[color:var(--text-muted)]">
+              Você ainda não tem dívida pra vincular. Crie uma e ela já fica vinculada a este bem.
+            </p>
+          )}
+
+          <Button type="button" variant="ghost" onClick={goCreate}>
+            Criar nova dívida
+          </Button>
+        </SheetContent>
+      </Sheet>
+    </section>
   );
 }
 

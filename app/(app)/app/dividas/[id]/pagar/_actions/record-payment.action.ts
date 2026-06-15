@@ -32,7 +32,7 @@ export const recordPaymentAction = action({
   schema,
   revalidates: ["debts", "timeline", "notifications", "home"],
   handler: async (d, { userId }) => {
-    unwrap(
+    const payment = unwrap(
       await recordPayment(
         {
           debts: repos.debts,
@@ -57,7 +57,7 @@ export const recordPaymentAction = action({
     if (settledDebt?.status === "paid_off") {
       await awardEventAchievement(userId, "quitacao", { debtLabel: settledDebt.label });
     }
-    return { debtId: d.debtId };
+    return { debtId: d.debtId, paymentId: payment.id };
   },
   revalidatePaths: (_data, { debtId }) => [`/app/dividas/${debtId}`],
 });

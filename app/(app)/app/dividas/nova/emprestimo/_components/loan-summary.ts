@@ -21,20 +21,23 @@ export function buildLoanSummary({
   totalPaidValue,
   linkSummary,
 }: SummaryInputs): { label: string; value: string }[] {
+  const hasRate = typeof values.annualRatePct === "number" && values.annualRatePct > 0;
+
   if (values.scenario === "new") {
     const cashSummary = buildCashSummaryNew(values, cashAssets);
     return [
       { label: "Nome", value: values.label || "Sem nome" },
-      { label: "Tipo", value: "Empréstimo ou crediário" },
       { label: "Valor recebido", value: formatCentsBRL(values.netReceivedCents) },
       { label: "Valor contratado", value: formatCentsBRL(values.principalCents) },
-      {
-        label: "IOF + tarifas",
-        value:
-          iofCents && iofPercentText ? `${formatCentsBRL(iofCents)} (${iofPercentText}%)` : "R$ 0,00",
-      },
-      { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
-      { label: "CET (custo real)", value: cetAnnualText ?? `${values.annualRatePct}% a.a.` },
+      ...(iofCents && iofPercentText
+        ? [{ label: "IOF + tarifas", value: `${formatCentsBRL(iofCents)} (${iofPercentText}%)` }]
+        : []),
+      ...(hasRate
+        ? [
+            { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+            { label: "CET (custo real)", value: cetAnnualText ?? `${values.annualRatePct}% a.a.` },
+          ]
+        : []),
       { label: "Prazo", value: `${values.termMonths} meses` },
       { label: "Total a pagar", value: totalPaidValue },
       { label: "Bem vinculado", value: linkSummary },
@@ -43,13 +46,12 @@ export function buildLoanSummary({
   }
   return [
     { label: "Nome", value: values.label || "Sem nome" },
-    { label: "Tipo", value: "Empréstimo ou crediário" },
-    { label: "Valor original contratado", value: formatCentsBRL(values.originalPrincipalCents) },
-    { label: "Quanto ainda falta pagar", value: formatCentsBRL(values.currentBalanceCents) },
+    { label: "Quanto falta pagar", value: formatCentsBRL(values.currentBalanceCents) },
     { label: "Parcela", value: formatCentsBRL(values.monthlyInstallmentCents) },
-    { label: "Parcelas pagas", value: `${values.paidInstallments}` },
     { label: "Parcelas restantes", value: `${values.remainingTerms}` },
-    { label: "Taxa", value: `${values.annualRatePct}% a.a.` },
+    { label: "Valor contratado", value: formatCentsBRL(values.originalPrincipalCents) },
+    { label: "Parcelas pagas", value: `${values.paidInstallments}` },
+    ...(hasRate ? [{ label: "Taxa", value: `${values.annualRatePct}% a.a.` }] : []),
     { label: "Total a pagar restante", value: totalPaidValue },
     { label: "Bem vinculado", value: linkSummary },
   ];

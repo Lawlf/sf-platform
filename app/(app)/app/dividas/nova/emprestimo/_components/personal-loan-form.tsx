@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Calculator } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
 import type { Currency } from "@/domain/value-objects/money.vo";
@@ -39,7 +39,7 @@ import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";
-import { buildLinkSummary, linkAssetDefaults } from "../../_lib/link-asset";
+import { buildLinkSummary, debtCreatedHref, linkAssetDefaultsFor } from "../../_lib/link-asset";
 import {
   NEW_STEP2_FIELDS,
   ONGOING_STEP2_FIELDS,
@@ -70,11 +70,13 @@ const cashInflowDefaults = {
 interface PersonalLoanFormProps {
   initialScenario?: "new" | "ongoing";
   defaultCurrency?: Currency;
+  initialLinkAssetId?: string | null;
 }
 
 export function PersonalLoanForm({
   initialScenario = "new",
   defaultCurrency = "BRL",
+  initialLinkAssetId = null,
 }: PersonalLoanFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -111,15 +113,16 @@ export function PersonalLoanForm({
             currency: defaultCurrency,
             label: "Empréstimo",
             originalPrincipalCents: 0n as unknown as bigint,
+            amountPaidCents: 0n as unknown as bigint,
             currentBalanceCents: 0n as unknown as bigint,
             monthlyInstallmentCents: 0n as unknown as bigint,
             paidInstallments: 0,
-            remainingTerms: 24,
+            remainingTerms: undefined as unknown as number,
             annualRatePct: 0,
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
-            ...linkAssetDefaults,
+            ...linkAssetDefaultsFor(initialLinkAssetId),
             ...cashInflowDefaults,
           } as FormValues)
         : ({
@@ -134,7 +137,7 @@ export function PersonalLoanForm({
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
-            ...linkAssetDefaults,
+            ...linkAssetDefaultsFor(initialLinkAssetId),
             ...cashInflowDefaults,
           } as FormValues),
   });
@@ -143,6 +146,16 @@ export function PersonalLoanForm({
   const errors = form.formState.errors;
   const scenario = values.scenario;
   const currency: Currency = values.currency ?? defaultCurrency;
+
+  useEffect(() => {
+    if (values.scenario !== "ongoing") return;
+    const original = values.originalPrincipalCents ?? 0n;
+    const paid = values.amountPaidCents ?? 0n;
+    const balance = original > paid ? original - paid : 0n;
+    if ((values.currentBalanceCents ?? 0n) !== balance) {
+      form.setValue("currentBalanceCents" as never, balance as never, { shouldValidate: false });
+    }
+  }, [values, form]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formAny = form as UseFormReturn<any>;
 
@@ -242,7 +255,7 @@ export function PersonalLoanForm({
           startDate: values.startDate ?? todayIso(),
           expectedEndDate: null,
           notes: null,
-          ...linkAssetDefaults,
+          ...linkAssetDefaultsFor(initialLinkAssetId),
           ...cashInflowDefaults,
         } as FormValues,
         { keepErrors: false },
@@ -254,15 +267,16 @@ export function PersonalLoanForm({
           currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
           originalPrincipalCents: 0n as unknown as bigint,
+          amountPaidCents: 0n as unknown as bigint,
           currentBalanceCents: 0n as unknown as bigint,
           monthlyInstallmentCents: 0n as unknown as bigint,
           paidInstallments: 0,
-          remainingTerms: 24,
+          remainingTerms: undefined as unknown as number,
           annualRatePct: 0,
           startDate: values.startDate ?? todayIso(),
           expectedEndDate: null,
           notes: null,
-          ...linkAssetDefaults,
+          ...linkAssetDefaultsFor(initialLinkAssetId),
           // Para "ongoing" o dinheiro já caiu há tempos — não pergunta cash inflow.
           cashTarget: "spent" as const,
           existingCashAssetId: null as string | null,
@@ -278,10 +292,31 @@ export function PersonalLoanForm({
     const valid = await form.trigger([
       "label",
       "originalPrincipalCents",
-      "currentBalanceCents",
+      "amountPaidCents",
       "monthlyInstallmentCents",
     ] as Parameters<typeof form.trigger>[0]);
-    if (valid) setOngoingStep(2);
+    if (!valid) return;
+    prefillInstallmentCounts();
+    setOngoingStep(2);
+  }
+
+  function prefillInstallmentCounts() {
+    const v = form.getValues();
+    if (v.scenario !== "ongoing") return;
+    const parcela = v.monthlyInstallmentCents ?? 0n;
+    if (parcela <= 0n) return;
+    const original = v.originalPrincipalCents ?? 0n;
+    const paid = v.amountPaidCents ?? 0n;
+    const saldo = original > paid ? original - paid : 0n;
+    const parcelaNum = Number(parcela);
+    if (!v.paidInstallments) {
+      const paidCount = Math.round(Number(paid) / parcelaNum);
+      if (paidCount > 0) form.setValue("paidInstallments" as never, paidCount as never);
+    }
+    if (!v.remainingTerms || Number.isNaN(v.remainingTerms)) {
+      const remainingCount = saldo > 0n ? Math.max(1, Math.ceil(Number(saldo) / parcelaNum)) : 0;
+      if (remainingCount > 0) form.setValue("remainingTerms" as never, remainingCount as never);
+    }
   }
 
   async function goToStep3() {
@@ -479,7 +514,7 @@ export function PersonalLoanForm({
       }
 
       await invalidateDebtCaches(queryClient);
-      router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
+      router.push(debtCreatedHref(initialLinkAssetId, debtRes.data.debtId) as Route);
     });
   }
 
@@ -488,7 +523,7 @@ export function PersonalLoanForm({
   if (step === 2 && scenario === "ongoing" && ongoingStep === 2) {
     return (
       <WizardShell
-        currentStep={1}
+        currentStep={2}
         totalSteps={5}
         title="Quase lá"
         description="Quantas parcelas e a taxa do contrato."
@@ -533,6 +568,7 @@ export function PersonalLoanForm({
               inputMode="numeric"
               min={1}
               max={420}
+              placeholder="Ex: 18"
               {...form.register("remainingTerms" as never, { valueAsNumber: true })}
               className={wizardInputClass}
             />
@@ -707,17 +743,16 @@ export function PersonalLoanForm({
             </WizardField>
 
             <WizardField
-              label="Quanto ainda falta pagar"
+              label="Quanto você já pagou"
               htmlFor={balanceId}
               error={
-                (errors as { currentBalanceCents?: { message?: string } }).currentBalanceCents
-                  ?.message
+                (errors as { amountPaidCents?: { message?: string } }).amountPaidCents?.message
               }
-              helper="Quanto ainda falta pagar hoje. Está no extrato."
+              helper="Some o que já saiu até aqui. A gente calcula quanto falta."
             >
               <WizardMoneyField
                 control={form.control}
-                name={"currentBalanceCents" as never}
+                name={"amountPaidCents" as never}
                 id={balanceId}
                 placeholder="R$ 0,00"
                 currency={currency}
@@ -752,7 +787,7 @@ export function PersonalLoanForm({
 
     return (
       <WizardShell
-        currentStep={2}
+        currentStep={scenario === "ongoing" ? 3 : 2}
         totalSteps={5}
         title="Detalhes"
         description="Parcela e data de início do contrato."

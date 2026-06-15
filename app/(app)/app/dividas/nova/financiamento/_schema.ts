@@ -27,10 +27,14 @@ export const ongoingScenarioSchema = z
     currency: z.enum(CURRENCIES),
     label: z.string().min(1, "Informe um rótulo.").max(120),
     originalPrincipalCents: z.bigint().positive("Valor original deve ser positivo."),
+    // O usuário informa quanto JÁ PAGOU; o saldo devedor é derivado
+    // (original - pago) no form. Guardamos os dois: o pago valida a entrada,
+    // o saldo é o que o servidor consome.
+    amountPaidCents: z.bigint().nonnegative("O quanto você já pagou não pode ser negativo."),
     currentBalanceCents: z.bigint().positive("Saldo devedor deve ser positivo."),
     annualRatePct: z.number().min(0).max(200),
     paidInstallments: z.number().int().min(0).max(600),
-    remainingTerms: z.number().int().min(1).max(600),
+    remainingTerms: z.number().int().min(1, "Informe quantas parcelas faltam.").max(600),
     monthlyInstallmentCents: z.bigint().nullable(),
     amortizationMethod: z.enum(["PRICE", "SAC"]),
     monthlyInsuranceCents: z.bigint().nullable(),
@@ -40,9 +44,9 @@ export const ongoingScenarioSchema = z
     notes: z.string().optional().nullable(),
     ...linkAssetSlice,
   })
-  .refine((d) => d.currentBalanceCents <= d.originalPrincipalCents, {
-    message: "Saldo devedor não pode ser maior que o valor original.",
-    path: ["currentBalanceCents"],
+  .refine((d) => d.amountPaidCents < d.originalPrincipalCents, {
+    message: "O que você já pagou não pode ser igual ou maior que o valor original.",
+    path: ["amountPaidCents"],
   });
 
 export const financingFormSchema = z.discriminatedUnion("scenario", [
@@ -62,7 +66,7 @@ export const NEW_STEP2_FIELDS = [
 export const ONGOING_STEP2_FIELDS = [
   "label",
   "originalPrincipalCents",
-  "currentBalanceCents",
+  "amountPaidCents",
   "annualRatePct",
   "paidInstallments",
   "remainingTerms",

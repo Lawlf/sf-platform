@@ -2,11 +2,19 @@
 
 import { AlertTriangle, Clock, CreditCard, HandCoins, Repeat, ShoppingBag } from "lucide-react";
 import type { Route } from "next";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { KindCard } from "./kind-card";
 import { WizardShell } from "./wizard-shell";
+
+// Preserva `linkAssetId` (wizard aberto a partir do detalhe de um bem) ao
+// navegar entre os passos do seletor de tipo.
+function withLinkAsset(href: string, linkAssetId: string | null): Route {
+  if (!linkAssetId) return href as Route;
+  const sep = href.includes("?") ? "&" : "?";
+  return `${href}${sep}linkAssetId=${encodeURIComponent(linkAssetId)}` as Route;
+}
 
 type ActionId = "comprei" | "cartao" | "recorrente" | "emprestimo" | "antiga" | "cheque-especial";
 
@@ -68,6 +76,7 @@ const ACTIONS: readonly ActionOption[] = [
 
 export function KindPicker() {
   const router = useRouter();
+  const linkAssetId = useSearchParams().get("linkAssetId");
 
   return (
     <WizardShell
@@ -85,7 +94,7 @@ export function KindPicker() {
             title={action.title}
             description={action.description}
             selected={false}
-            onSelect={() => router.push(action.href)}
+            onSelect={() => router.push(withLinkAsset(action.href, linkAssetId))}
           />
         ))}
       </div>

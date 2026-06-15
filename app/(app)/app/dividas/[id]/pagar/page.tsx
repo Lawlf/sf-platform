@@ -52,6 +52,7 @@ export default async function PagarPage({ params }: PageProps) {
             : null
         }
         currentBalanceFormatted={debt.currentBalance.format()}
+        isPro={user.isPro}
       />
     </PageShell>
   );

@@ -100,7 +100,9 @@ export default async function DebtDetailPage({ params }: PageProps) {
         <NoScheduleSection kind={debt.kind} />
       )}
 
-      {debt.kind === "recurring" ? null : <PaymentsSection payments={payments} />}
+      {debt.kind === "recurring" ? null : (
+        <PaymentsSection debt={debt} payments={payments} userId={user.id} isPro={user.isPro} />
+      )}
 
       <EntityNotesAndFiles
         entityType="debt"
