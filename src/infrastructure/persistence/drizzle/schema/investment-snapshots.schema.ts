@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   date,
+  index,
   pgTable,
   primaryKey,
   text,
@@ -9,6 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const investmentSnapshots = pgTable(
@@ -17,6 +19,7 @@ export const investmentSnapshots = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     month: date("month", { mode: "date" }).notNull(),
     investmentType: text("investment_type").notNull(),
     totalValueCents: bigint("total_value_cents", { mode: "bigint" }).notNull(),
@@ -26,6 +29,7 @@ export const investmentSnapshots = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.month, t.investmentType] }),
+    profileIdx: index("investment_snapshots_profile_id_idx").on(t.profileId),
   }),
 );
 

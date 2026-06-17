@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { bigint, date, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, date, index, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { incomes } from "./incomes.schema";
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const incomeSettlements = pgTable(
@@ -10,6 +11,7 @@ export const incomeSettlements = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     incomeId: uuid("income_id")
       .notNull()
       .references(() => incomes.id, { onDelete: "cascade" }),
@@ -22,6 +24,7 @@ export const incomeSettlements = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.incomeId, t.month] }),
+    profileIdx: index("income_settlements_profile_id_idx").on(t.profileId),
   }),
 );
 

@@ -12,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const assetCategory = pgEnum("asset_category", [
@@ -36,6 +37,7 @@ export const assets = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     category: assetCategory("category").notNull(),
     label: text("label").notNull(),
     currentValueCents: bigint("current_value_cents", { mode: "bigint" }).notNull(),
@@ -77,6 +79,7 @@ export const assets = pgTable(
     userCategoryIdx: index("assets_user_id_category_idx").on(table.userId, table.category),
     userActiveIdx: index("assets_user_id_active_idx").on(table.userId, table.deactivatedAt),
     userDeletedIdx: index("assets_user_deleted_idx").on(table.userId, table.deletedAt),
+    profileIdx: index("assets_profile_id_idx").on(table.profileId),
     // No máximo uma Carteira padrão ativa por usuário. Backstop de banco contra
     // a corrida de check-then-insert que duplicava a Carteira em entradas
     // concorrentes no app (ensureDefaultWallet / resolveAccount).

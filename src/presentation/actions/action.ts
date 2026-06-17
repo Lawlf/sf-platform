@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import type { z, ZodTypeAny } from "zod";
 
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { DomainError } from "@/shared/errors/domain-error";
 import { isErr, type Result } from "@/shared/errors/result";
@@ -36,17 +37,18 @@ export function action<S extends ZodTypeAny, T>(cfg: {
   schema: S;
   revalidates?: readonly RevalidateGroup[];
   revalidatePaths?: (data: NoInfer<T>, input: NoInfer<z.output<S>>) => readonly string[];
-  handler: (input: z.output<S>, ctx: { userId: string }) => Promise<T>;
+  handler: (input: z.output<S>, ctx: { userId: string; profileId: string }) => Promise<T>;
 }): (raw?: FormData | unknown) => Promise<ActionResult<T>> {
   return async (raw?) => {
     const user = await requireUser();
+    const profileId = await getActiveProfileId();
     const input = raw instanceof FormData ? Object.fromEntries(raw.entries()) : raw;
     const parsed = cfg.schema.safeParse(input);
     if (!parsed.success) {
       return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
     }
     try {
-      const data = await cfg.handler(parsed.data, { userId: user.id });
+      const data = await cfg.handler(parsed.data, { userId: user.id, profileId });
       if (cfg.revalidates?.length) revalidateGroups(cfg.revalidates);
       if (cfg.revalidatePaths) {
         for (const p of cfg.revalidatePaths(data, parsed.data)) revalidatePath(p);

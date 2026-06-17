@@ -14,6 +14,7 @@ import {
 
 import { assets } from "./assets.schema";
 import { debts } from "./debts.schema";
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const goalType = pgEnum("goal_type", [
@@ -33,6 +34,7 @@ export const goals = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     type: goalType("type").notNull(),
     title: text("title").notNull(),
     status: goalStatus("status").notNull().default("active"),
@@ -60,6 +62,7 @@ export const goals = pgTable(
   (t) => ({
     byUser: index("goals_user_idx").on(t.userId),
     byUserStatus: index("goals_user_status_idx").on(t.userId, t.status),
+    profileIdx: index("goals_profile_id_idx").on(t.profileId),
   }),
 );
 

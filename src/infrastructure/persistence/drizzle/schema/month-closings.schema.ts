@@ -2,6 +2,7 @@ import { sql } from "drizzle-orm";
 import {
   bigint,
   date,
+  index,
   integer,
   pgTable,
   primaryKey,
@@ -9,6 +10,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const monthClosings = pgTable(
@@ -17,6 +19,7 @@ export const monthClosings = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
     month: date("month", { mode: "date" }).notNull(),
     baselineNetWorthCents: bigint("baseline_net_worth_cents", {
       mode: "bigint",
@@ -35,6 +38,7 @@ export const monthClosings = pgTable(
   },
   (t) => ({
     pk: primaryKey({ columns: [t.userId, t.month] }),
+    profileIdx: index("month_closings_profile_id_idx").on(t.profileId),
   }),
 );
 
