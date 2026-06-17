@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import {
   Sheet,
   SheetContent,
+  SheetDescription,
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
@@ -57,13 +58,12 @@ export function PaymentDetailSheet({
     setLoadError(false);
     void (async () => {
       try {
-        const note = await getEntityNoteAction({
-          entityType: "debt_payment",
-          entityId: paymentId,
-        });
-        const files = isPro
-          ? await listAttachmentsAction({ entityType: "debt_payment", entityId: paymentId })
-          : { items: [], totalBytes: 0 };
+        const [note, files] = await Promise.all([
+          getEntityNoteAction({ entityType: "debt_payment", entityId: paymentId }),
+          isPro
+            ? listAttachmentsAction({ entityType: "debt_payment", entityId: paymentId })
+            : Promise.resolve({ items: [], totalBytes: 0 }),
+        ]);
         if (!active) return;
         setDetail({ noteBody: note.body, items: files.items, totalBytes: files.totalBytes });
       } catch {
@@ -77,13 +77,14 @@ export function PaymentDetailSheet({
 
   return (
     <Sheet open={payment !== null} onOpenChange={(o) => (!o ? onClose() : undefined)}>
-      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto p-5">
+      <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
         {payment ? (
           <>
             <SheetHeader className="text-left">
               <SheetTitle className="text-[1.0625rem] font-bold text-[color:var(--text-primary)]">
                 Pagamento de {payment.dateLabel}
               </SheetTitle>
+              <SheetDescription className="sr-only">Detalhe do pagamento</SheetDescription>
             </SheetHeader>
 
             <div className="mt-2 text-[1.5rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
