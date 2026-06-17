@@ -125,7 +125,7 @@ describe("FinancialHealthService", () => {
     }
   });
 
-  it("weekly income converts to monthly via 52/12", () => {
+  it("weekly income converts to monthly via WEEKS_PER_MONTH (4.33)", () => {
     const r = FinancialHealthService.snapshot({
       userId: "u1",
       incomes: [income({ id: "w", amount: moneyOf(1000), frequency: "weekly" })],
@@ -133,8 +133,8 @@ describe("FinancialHealthService", () => {
       asOfDate: ASOF,
     });
     if (isOk(r)) {
-      // 1000 * 52/12 = 4333.33
-      expect(Math.abs(r.value.totalIncome.toNumber() - 4333.33)).toBeLessThanOrEqual(0.01);
+      // 1000 * 4.33 = 4330; coeficiente único do produto (ver monthly-frequency).
+      expect(Math.abs(r.value.totalIncome.toNumber() - 4330)).toBeLessThanOrEqual(0.01);
     }
   });
 

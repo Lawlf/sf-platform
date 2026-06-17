@@ -1,4 +1,5 @@
 import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
@@ -9,6 +10,7 @@ import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
 import { WalletBalanceService } from "@/domain/services/wallet-balance.service";
 import { type EventWindow, WalletEventGenerator } from "@/domain/services/wallet-event-generator.service";
 import type { Money } from "@/domain/value-objects/money.vo";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { DomainError } from "@/shared/errors/domain-error";
 import { ok, type Result } from "@/shared/errors/result";
 
@@ -25,6 +27,7 @@ export interface GetWalletBalanceDeps {
     listForUserInRange(userId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
   };
   transactions: { listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
+  debtAmountAdjustments: { listForUser(userId: string): Promise<DebtAmountAdjustmentEntity[]> };
   clock: { now(): Date };
 }
 
@@ -88,11 +91,12 @@ export async function getWalletBalance(
   const anchorAt = walletAsset.anchorAt ?? walletAsset.createdAt;
   const window: EventWindow = { from: anchorAt, to: endOfMonthUtc(asOf) };
 
-  const [incomes, debts, transactions, payments] = await Promise.all([
+  const [incomes, debts, transactions, payments, adjustments] = await Promise.all([
     deps.incomes.listForUser(input.userId, { onlyActive: true }),
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
     deps.debtPayments.listForUserInRange(input.userId, { from: anchorAt, to: endOfMonthUtc(asOf) }),
+    deps.debtAmountAdjustments.listForUser(input.userId),
   ]);
 
   const months = monthsInWindow(window);
@@ -112,6 +116,8 @@ export async function getWalletBalance(
     transactions,
     walletId: walletAsset.id,
     window,
+    adjustments,
+    currentMonth: MonthYear.fromDate(asOf),
   });
 
   const base = { anchorValue: walletAsset.currentValue, anchorAt, asOf, events };

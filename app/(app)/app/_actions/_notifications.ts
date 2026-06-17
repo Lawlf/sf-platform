@@ -45,6 +45,7 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
       from: currentMonth,
       to: currentMonth,
       adjustments: adjustmentsRaw,
+      currentMonth,
     });
     const point = timeline.points[0];
     if (!point) return;

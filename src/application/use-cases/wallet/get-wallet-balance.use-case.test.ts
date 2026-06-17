@@ -73,6 +73,8 @@ function recurringDebt(over: Partial<DebtEntity>): DebtEntity {
     recurringAmountCents: 120000n,
     expenseCategory: "housing",
     dueDay: 10,
+    startDate: utc(2026, 1, 1),
+    expectedEndDate: null,
     createdAt: utc(2026, 1, 1),
     deletedAt: null,
     ...over,
@@ -91,6 +93,7 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
     incomeSettlements: { listForUserMonth: async () => [] },
     debtPayments: { listForUserInRange: async () => [] },
     transactions: { listForUserInRange: async () => [] },
+    debtAmountAdjustments: { listForUser: async () => [] },
     clock: { now: () => utc(2026, 6, 4) },
     ...over,
   } as GetWalletBalanceDeps;
@@ -150,5 +153,33 @@ describe("getWalletBalance", () => {
     const r = await getWalletBalance(d, { userId: "u1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.monthEndProjection.toNumber()).toBe(4300);
+  });
+
+  it("counts a payment toward a debt no longer in the active list (quitação this month)", async () => {
+    // Regressão: a quitação some da lista de dívidas ativas, mas o pagamento
+    // do mês ainda saiu da carteira. Antes da unificação a carteira ignorava
+    // esse pagamento e projetava sobra falsa.
+    const d = deps({
+      debts: { listForUser: async () => [] },
+      debtPayments: {
+        listForUserInRange: async () => [
+          {
+            id: "p-quit",
+            debtId: "gone",
+            paidAt: utc(2026, 6, 3),
+            amount: moneyOf(2000),
+            principalPortion: moneyOf(2000),
+            interestPortion: moneyOf(0),
+            isExtra: false,
+            isClosingPayment: true,
+          },
+        ],
+      },
+      clock: { now: () => utc(2026, 6, 4) },
+    });
+    const r = await getWalletBalance(d, { userId: "u1" });
+    if (!isOk(r)) throw new Error("expected ok");
+    // anchor 500 - pagamento 2000 (realizado em 3/jun) = -1500.
+    expect(r.value.reactiveBalance.toNumber()).toBe(-1500);
   });
 });

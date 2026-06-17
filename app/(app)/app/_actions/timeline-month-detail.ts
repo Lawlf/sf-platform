@@ -4,6 +4,8 @@ import { normalizeLegacyExpenseCategory } from "@/domain/categories/default-cate
 import type { AssetCategory, AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
+import { monthlyDebtService } from "@/domain/services/financial-health.service";
+import { IncomeCommittedService } from "@/domain/services/income-committed.service";
 import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
 import {
   StoryDetectionService,
@@ -11,7 +13,7 @@ import {
   type StoryIconName,
 } from "@/domain/services/story-detection.service";
 import {
-  nonRecurringMonthlyObligation,
+  monthlyDebtOutflow,
   TimelineService,
   type TimelineSettlement,
 } from "@/domain/services/timeline.service";
@@ -19,6 +21,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { isOk } from "@/shared/errors/result";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -99,6 +102,24 @@ export interface SerializedPatrimony {
   previousMonthLabel: string | null;
 }
 
+/**
+ * Agregados do mês computados no servidor, ponto único consumido por toda a UI
+ * (home, comprometido, detalhe do mês). Os clients NÃO refazem `reduce` sobre
+ * as linhas: leem daqui. `committedPct` é o comprometido canônico
+ * (serviço de dívida / renda, via `IncomeCommittedService`), estável e igual ao
+ * snapshot/MCP — não cai conforme a pessoa paga as parcelas do mês.
+ */
+export interface SerializedMonthTotals {
+  income: SerializedMoney;
+  outflow: SerializedMoney;
+  free: SerializedMoney;
+  realizedIncome: SerializedMoney;
+  realizedOutflow: SerializedMoney;
+  realizedFree: SerializedMoney;
+  monthlyDebtService: SerializedMoney;
+  committedPct: number;
+}
+
 export interface SerializedMonthDetail {
   monthIso: string;
   monthLabel: string;
@@ -108,6 +129,7 @@ export interface SerializedMonthDetail {
   stories: SerializedStoryRow[];
   events: SerializedTimelineEvent[];
   patrimony: SerializedPatrimony;
+  totals: SerializedMonthTotals;
 }
 
 const ASSET_CATEGORY_LABEL: Record<AssetCategory, string> = {
@@ -127,33 +149,6 @@ const DEBT_KIND_LABEL: Record<DebtKind, string> = {
 };
 
 const DATE_FMT = dateOnlyFormat({ day: "2-digit", month: "short" });
-
-const WEEKS_PER_MONTH = 4.33;
-
-function isRecurringActiveInMonth(debt: DebtEntity, month: MonthYear): boolean {
-  if (debt.kind !== "recurring") return false;
-  const startMonth = MonthYear.fromDate(debt.startDate);
-  if (month.isBefore(startMonth)) return false;
-  if (debt.expectedEndDate) {
-    const endMonth = MonthYear.fromDate(debt.expectedEndDate);
-    if (month.isAfter(endMonth)) return false;
-  } else if (debt.status !== "active") {
-    return false;
-  }
-  return true;
-}
-
-function recurringAmountForMonth(debt: DebtEntity): Money {
-  if (debt.kind !== "recurring") return Money.fromCents(0n);
-  const cents = debt.recurringAmountCents ?? 0n;
-  if (debt.recurringFrequency === "weekly") {
-    return Money.fromCents(BigInt(Math.round(Number(cents) * WEEKS_PER_MONTH)));
-  }
-  if (debt.recurringFrequency === "annual") {
-    return Money.fromCents(BigInt(Math.round(Number(cents) / 12)));
-  }
-  return Money.fromCents(cents);
-}
 
 function frequencyFor(debt: DebtEntity): "monthly" | "weekly" | "annual" {
   if (debt.kind === "recurring") return debt.recurringFrequency ?? "monthly";
@@ -322,46 +317,39 @@ export async function fetchMonthDetail(input: {
     };
   });
 
-  const recurringRows = debtsRaw.filter((d) => isRecurringActiveInMonth(d, month));
-  const serializedExpenses: SerializedExpenseRow[] = recurringRows.map((d) => {
-    const recurrenceDay = d.kind === "recurring" ? d.dueDay : null;
-    const date = dateInMonthFromDay(recurrenceDay ?? d.startDate.getUTCDate());
-    return {
-      id: d.id,
-      debtId: d.id,
-      label: d.label,
-      amount: serializeMoney(recurringAmountForMonth(d)),
-      frequency: frequencyFor(d),
-      category: normalizeLegacyExpenseCategory(d.expenseCategory ?? "outros"),
-      dateIso: date.toISOString(),
-      isNew: MonthYear.fromDate(d.createdAt).equals(month),
-    };
-  });
-
-  // Obrigação mensal projetada das dívidas não-recorrentes: sem ela, um cartão
-  // recém cadastrado projetava R$ 0 no "vai sair / comprometido". Guarda
-  // anti-double-count: se já há pagamento registrado da dívida neste mês, o
-  // pagamento real é a verdade, não a projeção.
+  // Saída de dívida do mês via PONTO DE VERDADE compartilhado com a carteira:
+  // recorrentes (equivalente mensal, com adjustments/settlements) + obrigação
+  // projetada de não-recorrentes sem pagamento no mês. As linhas de `payment`
+  // saem em `serializedPayments`; aqui só as obrigações.
   const currentMonth = MonthYear.fromDate(new Date());
-  const paidDebtIdsThisMonth = new Set(paymentsRaw.map((p) => p.debtId));
-  for (const d of debtsRaw) {
-    if (d.kind === "recurring") continue;
-    if (paidDebtIdsThisMonth.has(d.id)) continue;
-    const obligation = nonRecurringMonthlyObligation(d, month, currentMonth);
-    if (obligation.toCents() <= 0n) continue;
-    const obligationDay = d.kind === "credit_card" ? d.dueDay : d.startDate.getUTCDate();
-    const date = dateInMonthFromDay(obligationDay);
-    serializedExpenses.push({
-      id: `obligation-${d.id}`,
-      debtId: d.id,
-      label: d.label,
-      amount: serializeMoney(obligation),
-      frequency: "monthly",
-      category: "outros",
-      dateIso: date.toISOString(),
-      isNew: false,
+  const outflowItems = monthlyDebtOutflow({
+    debts: debtsRaw,
+    paymentsThisMonth: paymentsRaw,
+    month,
+    currentMonth,
+    adjustments: adjustmentsRaw,
+    settlements,
+  });
+  const serializedExpenses: SerializedExpenseRow[] = outflowItems
+    .filter((it) => it.source !== "payment")
+    .map((it) => {
+      const debt = debtById.get(it.debtId);
+      const isRecurring = it.source === "recurring";
+      const date = dateInMonthFromDay(it.day);
+      return {
+        id: isRecurring ? it.debtId : `obligation-${it.debtId}`,
+        debtId: it.debtId,
+        label: debt?.label ?? "Dívida removida",
+        amount: serializeMoney(it.amount),
+        frequency: isRecurring && debt ? frequencyFor(debt) : "monthly",
+        category:
+          isRecurring && debt
+            ? normalizeLegacyExpenseCategory(debt.expenseCategory ?? "outros")
+            : "outros",
+        dateIso: date.toISOString(),
+        isNew: isRecurring && debt ? MonthYear.fromDate(debt.createdAt).equals(month) : false,
+      };
     });
-  }
 
   const timeline = TimelineService.buildTimeline({
     incomes: incomesRaw,
@@ -373,6 +361,7 @@ export async function fetchMonthDetail(input: {
     adjustments: adjustmentsRaw,
     settlements,
     incomeSettlements: incomeSettlementsRaw,
+    currentMonth,
   });
 
   const allStories = StoryDetectionService.detect(timeline.points);
@@ -451,6 +440,13 @@ export async function fetchMonthDetail(input: {
     previousMonthLabel: previousPoint ? previousPoint.month.format() : null,
   };
 
+  const totals = computeMonthTotals({
+    incomes: serializedIncomes,
+    expenses: serializedExpenses,
+    payments: serializedPayments,
+    activeDebts: debtsRaw.filter((d) => d.status === "active"),
+  });
+
   return {
     monthIso: month.toIso(),
     monthLabel: month.format(),
@@ -460,5 +456,58 @@ export async function fetchMonthDetail(input: {
     stories: serializedStories,
     events,
     patrimony,
+    totals,
+  };
+}
+
+function sumCents(rows: ReadonlyArray<{ amount: SerializedMoney }>): bigint {
+  return rows.reduce((acc, r) => acc + BigInt(r.amount.cents), 0n);
+}
+
+function sumRealizedCents(
+  rows: ReadonlyArray<{ amount: SerializedMoney; dateIso: string }>,
+  today: string,
+): bigint {
+  return rows
+    .filter((r) => r.dateIso.slice(0, 10) <= today)
+    .reduce((acc, r) => acc + BigInt(r.amount.cents), 0n);
+}
+
+function computeMonthTotals(args: {
+  incomes: SerializedIncomeRow[];
+  expenses: SerializedExpenseRow[];
+  payments: SerializedPaymentRow[];
+  activeDebts: DebtEntity[];
+}): SerializedMonthTotals {
+  const today = new Date().toISOString().slice(0, 10);
+
+  const incomeCents = sumCents(args.incomes);
+  const outflowCents = sumCents(args.expenses) + sumCents(args.payments);
+  const realizedIncomeCents = sumRealizedCents(args.incomes, today);
+  const realizedOutflowCents =
+    sumRealizedCents(args.expenses, today) + sumRealizedCents(args.payments, today);
+
+  const serviceReais = args.activeDebts.reduce((acc, d) => {
+    const svc = monthlyDebtService(d);
+    return isOk(svc) ? acc + svc.value : acc;
+  }, 0);
+  const serviceMoney = Money.from(serviceReais);
+  const incomeMoney = Money.fromCents(incomeCents);
+  const committedPct = isOk(serviceMoney)
+    ? IncomeCommittedService.compute({
+        totalMonthlyIncome: incomeMoney,
+        totalMonthlyDebtService: serviceMoney.value,
+      })
+    : 0;
+
+  return {
+    income: serializeMoney(incomeMoney),
+    outflow: serializeMoney(Money.fromCents(outflowCents)),
+    free: serializeMoney(Money.fromCents(incomeCents - outflowCents)),
+    realizedIncome: serializeMoney(Money.fromCents(realizedIncomeCents)),
+    realizedOutflow: serializeMoney(Money.fromCents(realizedOutflowCents)),
+    realizedFree: serializeMoney(Money.fromCents(realizedIncomeCents - realizedOutflowCents)),
+    monthlyDebtService: serializeMoney(isOk(serviceMoney) ? serviceMoney.value : Money.fromCents(0n)),
+    committedPct,
   };
 }

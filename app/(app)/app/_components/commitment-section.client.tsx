@@ -79,16 +79,9 @@ export function CommitmentSectionClient({ monthIso, initialData, hasDebt, outOfM
 
   if (!monthDetail) return null;
 
-  const incomeCents = monthDetail.incomes.reduce((a, i) => a + BigInt(i.amount.cents), 0n);
-  const outflowCents =
-    monthDetail.expenses.reduce((a, e) => a + BigInt(e.amount.cents), 0n) +
-    monthDetail.payments.reduce((a, p) => a + BigInt(p.amount.cents), 0n);
-
-  const pct = incomeCents > 0n ? Number(outflowCents) / Number(incomeCents) : 0;
-
   return (
     <div>
-      <CommitmentCard pct={pct} />
+      <CommitmentCard pct={monthDetail.totals.committedPct} />
       {hasOutOfMonth ? <OutOfMonthAnchor summary={outOfMonth} /> : null}
     </div>
   );

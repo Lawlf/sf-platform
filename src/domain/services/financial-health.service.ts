@@ -11,6 +11,7 @@ import { err, isOk, ok, type Result } from "@/shared/errors/result";
 import { PriceAmortizationService } from "./amortization/price-amortization.service";
 import { SacAmortizationService } from "./amortization/sac-amortization.service";
 import { IncomeCommittedService } from "./income-committed.service";
+import { WEEKS_PER_MONTH } from "./monthly-frequency";
 
 export interface FinancialSnapshotInput {
   userId: string;
@@ -20,8 +21,6 @@ export interface FinancialSnapshotInput {
 }
 
 const CREDIT_CARD_MIN_PCT = 0.15;
-// 52 semanas / 12 meses = 4.333... (mesmo coeficiente do TimelineService).
-const WEEKS_PER_MONTH = 4.33;
 const SAME_MONTH = (a: Date, b: Date): boolean =>
   a.getUTCFullYear() === b.getUTCFullYear() && a.getUTCMonth() === b.getUTCMonth();
 
@@ -124,7 +123,7 @@ function monthlyEquivalent(income: IncomeEntity, asOf: Date): number {
     case "monthly":
       return amount;
     case "weekly":
-      return amount * (52 / 12);
+      return amount * WEEKS_PER_MONTH;
     case "one_off":
       return SAME_MONTH(income.startDate, asOf) ? amount : 0;
   }
