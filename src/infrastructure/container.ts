@@ -36,6 +36,7 @@ import { NotificationRepository } from "@/infrastructure/persistence/drizzle/rep
 import { OauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/oauth-account.repository";
 import { PaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/payment.repository";
 import { PlanRepository } from "@/infrastructure/persistence/drizzle/repositories/plan.repository";
+import { ProfileRepository } from "@/infrastructure/persistence/drizzle/repositories/profile.repository";
 import { PushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/push-subscription.repository";
 import { RecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/recurring-settlement.repository";
 import { SessionRepository } from "@/infrastructure/persistence/drizzle/repositories/session.repository";
@@ -90,6 +91,7 @@ export const repos = {
   oauthAccounts: new OauthAccountRepository(),
   payments: new PaymentRepository(),
   plans: new PlanRepository(),
+  profiles: new ProfileRepository(),
   pushSubscriptions: new PushSubscriptionRepository(),
   recurringSettlements: new RecurringSettlementRepository(),
   sessions: new SessionRepository(),
