@@ -14,7 +14,7 @@ export const ENTITY_COPY: Record<AttachableEntityType, EntityCopy> = {
   },
   debt_payment: {
     cardTitle: "Comprovante e nota",
-    subtitle: "Pra guardar o comprovante deste pagamento ou um lembrete. Fica salvo aqui, ligado a esta parcela.",
+    subtitle: "Pra guardar o comprovante deste pagamento ou um lembrete. Fica salvo aqui, ligado a este pagamento.",
     notePlaceholder: "Ex: paguei via PIX, comprovante no app do banco.",
   },
   transaction: {
