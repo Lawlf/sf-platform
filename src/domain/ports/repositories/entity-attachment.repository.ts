@@ -13,4 +13,9 @@ export interface EntityAttachmentRepositoryPort {
   rename(id: string, userId: string, fileName: string): Promise<void>;
   totalBytesForUser(userId: string): Promise<number>;
   listAllForUser(userId: string): Promise<EntityAttachmentEntity[]>;
+  existingEntityIds(
+    userId: string,
+    entityType: AttachableEntityType,
+    entityIds: string[],
+  ): Promise<Set<string>>;
 }

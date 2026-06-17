@@ -77,4 +77,27 @@ describe("EntityAttachmentRepository (integration)", () => {
     const all = await repo.listAllForUser(userId);
     expect(all.length).toBe(2);
   });
+
+  it("existingEntityIds retorna só os ids que têm anexo", async () => {
+    const withFile = randomUUID();
+    const without = randomUUID();
+    await repo.add({
+      id: randomUUID(),
+      userId,
+      entityType: "debt_payment",
+      entityId: withFile,
+      storageKey: `k/${randomUUID()}`,
+      fileName: "comprovante.pdf",
+      contentType: "application/pdf",
+      sizeBytes: 1234,
+      createdAt: new Date(),
+    });
+    const found = await repo.existingEntityIds(userId, "debt_payment", [withFile, without]);
+    expect(found).toEqual(new Set([withFile]));
+  });
+
+  it("existingEntityIds com lista vazia retorna set vazio", async () => {
+    const found = await repo.existingEntityIds(userId, "debt_payment", []);
+    expect(found).toEqual(new Set());
+  });
 });

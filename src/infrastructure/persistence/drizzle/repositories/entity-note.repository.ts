@@ -1,4 +1,4 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import type { EntityNoteEntity } from "@/domain/entities/entity-note.entity";
 import type { EntityNoteRepositoryPort } from "@/domain/ports/repositories/entity-note.repository";
@@ -69,5 +69,24 @@ export class EntityNoteRepository implements EntityNoteRepositoryPort {
           eq(entityNotes.entityId, entityId),
         ),
       );
+  }
+
+  async existingEntityIds(
+    userId: string,
+    entityType: AttachableEntityType,
+    entityIds: string[],
+  ): Promise<Set<string>> {
+    if (entityIds.length === 0) return new Set();
+    const rows = await getDb()
+      .selectDistinct({ entityId: entityNotes.entityId })
+      .from(entityNotes)
+      .where(
+        and(
+          eq(entityNotes.userId, userId),
+          eq(entityNotes.entityType, entityType),
+          inArray(entityNotes.entityId, entityIds),
+        ),
+      );
+    return new Set(rows.map((r) => r.entityId));
   }
 }

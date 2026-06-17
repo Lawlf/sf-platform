@@ -1,4 +1,4 @@
-import { and, desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, inArray, sql } from "drizzle-orm";
 
 import type { EntityAttachmentEntity } from "@/domain/entities/entity-attachment.entity";
 import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
@@ -95,5 +95,24 @@ export class EntityAttachmentRepository implements EntityAttachmentRepositoryPor
       .where(eq(entityAttachments.userId, userId))
       .orderBy(desc(entityAttachments.createdAt));
     return rows.map(rowToEntity);
+  }
+
+  async existingEntityIds(
+    userId: string,
+    entityType: AttachableEntityType,
+    entityIds: string[],
+  ): Promise<Set<string>> {
+    if (entityIds.length === 0) return new Set();
+    const rows = await getDb()
+      .selectDistinct({ entityId: entityAttachments.entityId })
+      .from(entityAttachments)
+      .where(
+        and(
+          eq(entityAttachments.userId, userId),
+          eq(entityAttachments.entityType, entityType),
+          inArray(entityAttachments.entityId, entityIds),
+        ),
+      );
+    return new Set(rows.map((r) => r.entityId));
   }
 }

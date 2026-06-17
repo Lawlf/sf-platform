@@ -13,4 +13,9 @@ export interface EntityNoteRepositoryPort {
     entityType: AttachableEntityType,
     entityId: string,
   ): Promise<void>;
+  existingEntityIds(
+    userId: string,
+    entityType: AttachableEntityType,
+    entityIds: string[],
+  ): Promise<Set<string>>;
 }
