@@ -73,6 +73,7 @@ function makeDebt(userId = "user-1"): PersonalLoanDebt {
     updatedAt: new Date("2026-01-01"),
     deletedAt: null,
     kind: "personal_loan",
+    dueDay: null,
     annualInterestRate: rateR.value,
     termMonths: 6,
     monthlyInstallment: originalR.value,

@@ -106,6 +106,7 @@ export const createDebtAction = action({
         monthlyInstallment: Money.fromCents(d.monthlyInstallmentCents, d.currency),
         currentBalance:
           d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents, d.currency) : null,
+        dueDay: d.dueDay,
       });
       if (!isOk(r)) throw new ActionError("Falha ao salvar dívida.");
       await awardEventAchievement(userId, "primeiro-passo");

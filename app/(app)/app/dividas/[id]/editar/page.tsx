@@ -85,7 +85,9 @@ export default async function EditarDividaPage({ params }: PageProps) {
               ? debt.dueDay
               : debt.kind === "recurring"
                 ? debt.dueDay
-                : null,
+                : debt.kind === "personal_loan"
+                  ? debt.dueDay
+                  : null,
           revolvingBalanceCents:
             debt.kind === "credit_card" && debt.revolvingBalance
               ? debt.revolvingBalance.toCents().toString()

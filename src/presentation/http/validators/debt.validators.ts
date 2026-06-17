@@ -64,6 +64,11 @@ export const personalLoanFormSchema = z.object({
     .default(null),
   termMonths: z.coerce.number().int().min(1).max(600),
   monthlyInstallmentCents: positiveBigint,
+  // Dia do vencimento da parcela (opcional). Vazio cai pro dia de startDate.
+  dueDay: z
+    .union([z.coerce.number().int().min(1).max(31), z.literal("").transform(() => null)])
+    .nullable()
+    .default(null),
   // Ongoing scenario: saldo devedor atual difere do principal original.
   currentBalanceCents: z
     .union([positiveBigint, z.literal("").transform(() => null)])

@@ -85,6 +85,7 @@ export async function updateDebt(
         ...(input.monthlyInstallment !== undefined && {
           monthlyInstallment: input.monthlyInstallment,
         }),
+        ...(input.dueDay !== undefined && { dueDay: input.dueDay }),
       };
       break;
     case "credit_card":

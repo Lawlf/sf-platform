@@ -70,6 +70,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
         monthlyInstallment: row.monthlyInstallmentCents
           ? Money.fromCents(row.monthlyInstallmentCents, row.currency as Currency)
           : Money.zero(row.currency as Currency),
+        dueDay: row.dueDay ?? null,
       } as DebtEntity;
     }
     case "credit_card": {
@@ -181,6 +182,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
         annualRateDecimal: rateToText(entity.annualInterestRate.toDecimal()),
         termMonths: entity.termMonths,
         monthlyInstallmentCents: entity.monthlyInstallment.toCents(),
+        dueDay: entity.dueDay,
       };
     case "credit_card":
       return {

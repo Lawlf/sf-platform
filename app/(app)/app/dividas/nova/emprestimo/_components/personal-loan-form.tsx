@@ -5,7 +5,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowRight, Calculator } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useId, useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
 import type { Currency } from "@/domain/value-objects/money.vo";
@@ -81,10 +81,6 @@ export function PersonalLoanForm({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
-  // O cenário "ongoing" pedia 6 campos numa tela só (pânico de formulário de
-  // banco). Quebrado em 2 sub-páginas dentro do step 2: A = os 3 valores
-  // (refine currentBalance<=original exige os dois juntos), B = contagens + taxa.
-  const [ongoingStep, setOngoingStep] = useState<1 | 2>(1);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
@@ -94,12 +90,13 @@ export function PersonalLoanForm({
   const bankId = useId();
   const netReceivedId = useId();
   const principalId = useId();
-  const balanceId = useId();
   const rateId = useId();
   const termId = useId();
-  const remainingTermsId = useId();
+  const totalInstallmentsId = useId();
+  const paidInstallmentsId = useId();
   const installmentId = useId();
   const startDateId = useId();
+  const dueDayId = useId();
   const cashInflowId = useId();
   const newCashNameId = useId();
   const newCashBalanceId = useId();
@@ -112,13 +109,11 @@ export function PersonalLoanForm({
             scenario: "ongoing",
             currency: defaultCurrency,
             label: "Empréstimo",
-            originalPrincipalCents: 0n as unknown as bigint,
-            amountPaidCents: 0n as unknown as bigint,
-            currentBalanceCents: 0n as unknown as bigint,
             monthlyInstallmentCents: 0n as unknown as bigint,
+            totalInstallments: undefined as unknown as number,
             paidInstallments: 0,
-            remainingTerms: undefined as unknown as number,
             annualRatePct: 0,
+            dueDay: null,
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
@@ -134,6 +129,7 @@ export function PersonalLoanForm({
             annualRatePct: 0,
             termMonths: 24,
             monthlyInstallmentCents: 0n as unknown as bigint,
+            dueDay: null,
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
@@ -147,17 +143,34 @@ export function PersonalLoanForm({
   const scenario = values.scenario;
   const currency: Currency = values.currency ?? defaultCurrency;
 
-  useEffect(() => {
-    if (values.scenario !== "ongoing") return;
-    const original = values.originalPrincipalCents ?? 0n;
-    const paid = values.amountPaidCents ?? 0n;
-    const balance = original > paid ? original - paid : 0n;
-    if ((values.currentBalanceCents ?? 0n) !== balance) {
-      form.setValue("currentBalanceCents" as never, balance as never, { shouldValidate: false });
-    }
-  }, [values, form]);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const formAny = form as UseFormReturn<any>;
+
+  // Empréstimo de parcela fixa: tudo deriva de parcela x contagem.
+  // Saldo "quanto falta" = parcela x restantes; nunca exibido como saldo exato.
+  const ongoingDerived = useMemo(() => {
+    if (scenario !== "ongoing") return null;
+    const v = values as Extract<FormValues, { scenario: "ongoing" }>;
+    const parcela = typeof v.monthlyInstallmentCents === "bigint" ? v.monthlyInstallmentCents : 0n;
+    const total =
+      typeof v.totalInstallments === "number" && Number.isFinite(v.totalInstallments)
+        ? Math.max(0, Math.floor(v.totalInstallments))
+        : 0;
+    const paid =
+      typeof v.paidInstallments === "number" && Number.isFinite(v.paidInstallments)
+        ? Math.max(0, Math.floor(v.paidInstallments))
+        : 0;
+    const remaining = Math.max(0, total - paid);
+    return {
+      parcela,
+      total,
+      paid,
+      remaining,
+      currentBalanceCents: parcela * BigInt(remaining),
+      originalPrincipalCents: parcela * BigInt(total),
+      amountPaidCents: parcela * BigInt(paid),
+    };
+  }, [scenario, values]);
 
   // IOF / fees computed only in the "new" scenario when both money fields exist.
   const iofCents = useMemo<bigint | null>(() => {
@@ -210,17 +223,9 @@ export function PersonalLoanForm({
         return null;
       return estimatedInstallmentCents * BigInt(Math.floor(v.termMonths));
     }
-    const v = values as Extract<FormValues, { scenario: "ongoing" }>;
-    if (typeof v.monthlyInstallmentCents !== "bigint" || v.monthlyInstallmentCents <= 0n)
-      return null;
-    if (
-      typeof v.remainingTerms !== "number" ||
-      !Number.isFinite(v.remainingTerms) ||
-      v.remainingTerms < 1
-    )
-      return null;
-    return v.monthlyInstallmentCents * BigInt(Math.floor(v.remainingTerms));
-  }, [scenario, values, estimatedInstallmentCents]);
+    if (!ongoingDerived || ongoingDerived.remaining < 1) return null;
+    return ongoingDerived.currentBalanceCents;
+  }, [scenario, ongoingDerived, estimatedInstallmentCents]);
 
   // Cash inflow query: carregado ao entrar no step 4
   const { data: cashAssets, isLoading: loadingCashAssets } = useQuery<CashAssetForLoanPayload[]>({
@@ -239,7 +244,6 @@ export function PersonalLoanForm({
 
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
-    setOngoingStep(1);
     // Reset shared/relevant fields when toggling scenarios to avoid leaking values.
     if (next === "new") {
       form.reset(
@@ -252,6 +256,7 @@ export function PersonalLoanForm({
           annualRatePct: 0,
           termMonths: 24,
           monthlyInstallmentCents: 0n as unknown as bigint,
+          dueDay: null,
           startDate: values.startDate ?? todayIso(),
           expectedEndDate: null,
           notes: null,
@@ -266,13 +271,11 @@ export function PersonalLoanForm({
           scenario: "ongoing",
           currency: values.currency ?? defaultCurrency,
           label: values.label ?? "",
-          originalPrincipalCents: 0n as unknown as bigint,
-          amountPaidCents: 0n as unknown as bigint,
-          currentBalanceCents: 0n as unknown as bigint,
           monthlyInstallmentCents: 0n as unknown as bigint,
+          totalInstallments: undefined as unknown as number,
           paidInstallments: 0,
-          remainingTerms: undefined as unknown as number,
           annualRatePct: 0,
+          dueDay: null,
           startDate: values.startDate ?? todayIso(),
           expectedEndDate: null,
           notes: null,
@@ -285,37 +288,6 @@ export function PersonalLoanForm({
         } as FormValues,
         { keepErrors: false },
       );
-    }
-  }
-
-  async function goToOngoingStep2() {
-    const valid = await form.trigger([
-      "label",
-      "originalPrincipalCents",
-      "amountPaidCents",
-      "monthlyInstallmentCents",
-    ] as Parameters<typeof form.trigger>[0]);
-    if (!valid) return;
-    prefillInstallmentCounts();
-    setOngoingStep(2);
-  }
-
-  function prefillInstallmentCounts() {
-    const v = form.getValues();
-    if (v.scenario !== "ongoing") return;
-    const parcela = v.monthlyInstallmentCents ?? 0n;
-    if (parcela <= 0n) return;
-    const original = v.originalPrincipalCents ?? 0n;
-    const paid = v.amountPaidCents ?? 0n;
-    const saldo = original > paid ? original - paid : 0n;
-    const parcelaNum = Number(parcela);
-    if (!v.paidInstallments) {
-      const paidCount = Math.round(Number(paid) / parcelaNum);
-      if (paidCount > 0) form.setValue("paidInstallments" as never, paidCount as never);
-    }
-    if (!v.remainingTerms || Number.isNaN(v.remainingTerms)) {
-      const remainingCount = saldo > 0n ? Math.max(1, Math.ceil(Number(saldo) / parcelaNum)) : 0;
-      if (remainingCount > 0) form.setValue("remainingTerms" as never, remainingCount as never);
     }
   }
 
@@ -402,12 +374,13 @@ export function PersonalLoanForm({
         v.monthlyInstallmentCents ??
         0n;
     } else {
-      // "ongoing": principal = valor original do contrato (cronograma completo).
-      // Saldo devedor atual e parcelas pagas vão em campos separados.
-      principalForServer = v.originalPrincipalCents;
-      termMonthsForServer = v.paidInstallments + v.remainingTerms;
+      // "ongoing": parcela fixa. Derivamos o cronograma de parcela x contagem.
+      // principal = parcela x total; saldo "quanto falta" = parcela x restantes.
+      const remaining = Math.max(1, v.totalInstallments - v.paidInstallments);
+      principalForServer = v.monthlyInstallmentCents * BigInt(v.totalInstallments);
+      termMonthsForServer = v.totalInstallments;
       monthlyInstallmentForServer = v.monthlyInstallmentCents;
-      currentBalanceForServer = v.currentBalanceCents;
+      currentBalanceForServer = v.monthlyInstallmentCents * BigInt(remaining);
       paidInstallmentsForServer = v.paidInstallments;
     }
 
@@ -416,6 +389,10 @@ export function PersonalLoanForm({
     fd.set("termMonths", String(termMonthsForServer));
     fd.set("monthlyInstallmentCents", monthlyInstallmentForServer.toString());
     fd.set("startDate", v.startDate);
+    fd.set(
+      "dueDay",
+      typeof v.dueDay === "number" && !Number.isNaN(v.dueDay) ? String(v.dueDay) : "",
+    );
     fd.set("expectedEndDate", v.expectedEndDate ?? "");
     fd.set("notes", v.notes ?? "");
     if (currentBalanceForServer !== null) {
@@ -462,7 +439,7 @@ export function PersonalLoanForm({
         const cashPrincipalCents =
           v.scenario === "new"
             ? v.principalCents
-            : (v as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents;
+            : v.monthlyInstallmentCents * BigInt(v.totalInstallments);
 
         const cashActionInput: RegisterLoanCashInflowActionInput = {
           debtId: debtRes.data.debtId,
@@ -519,94 +496,22 @@ export function PersonalLoanForm({
   }
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
-
-  if (step === 2 && scenario === "ongoing" && ongoingStep === 2) {
-    return (
-      <WizardShell
-        currentStep={2}
-        totalSteps={5}
-        title="Quase lá"
-        description="Quantas parcelas e a taxa do contrato."
-        onBack={() => setOngoingStep(1)}
-        primary={{
-          label: "Continuar",
-          onClick: () => {
-            void goToStep3();
-          },
-          icon: arrowRight,
-        }}
-      >
-        <div className="grid grid-cols-2 gap-3">
-          <WizardField
-            label="Parcelas já pagas"
-            error={
-              (errors as { paidInstallments?: { message?: string } }).paidInstallments?.message
-            }
-          >
-            <input
-              type="number"
-              inputMode="numeric"
-              min={0}
-              max={420}
-              placeholder="Ex: 6"
-              {...form.register("paidInstallments" as never, { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-
-          <WizardField
-            label="Parcelas restantes"
-            htmlFor={remainingTermsId}
-            error={
-              (errors as { remainingTerms?: { message?: string } }).remainingTerms?.message ??
-              undefined
-            }
-          >
-            <input
-              id={remainingTermsId}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={420}
-              placeholder="Ex: 18"
-              {...form.register("remainingTerms" as never, { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-        </div>
-
-        <WizardField
-          label="Taxa por ano (opcional)"
-          htmlFor={rateId}
-          error={errors.annualRatePct?.message}
-          helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
-          helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
-        >
-          <WizardPercentField
-            control={form.control}
-            name="annualRatePct"
-            id={rateId}
-            step="0.01"
-            min={0}
-            max={1000}
-          />
-        </WizardField>
-      </WizardShell>
-    );
-  }
+  const ongoingTotalSteps = scenario === "ongoing" ? 4 : 5;
 
   if (step === 2) {
     return (
       <WizardShell
         currentStep={1}
-        totalSteps={5}
+        totalSteps={ongoingTotalSteps}
         title="Valores"
-        description="Use os dados do contrato."
+        description={
+          scenario === "ongoing" ? "A parcela e quantas faltam." : "Use os dados do contrato."
+        }
         onBack={() => router.push("/app/dividas/nova" as Route)}
         primary={{
           label: "Continuar",
           onClick: () => {
-            void (scenario === "ongoing" ? goToOngoingStep2() : goToStep3());
+            void goToStep3();
           },
           icon: arrowRight,
         }}
@@ -724,43 +629,7 @@ export function PersonalLoanForm({
         ) : (
           <>
             <WizardField
-              label="Quanto você pegou emprestado (com taxas)"
-              htmlFor={principalId}
-              error={
-                (errors as { originalPrincipalCents?: { message?: string } }).originalPrincipalCents
-                  ?.message
-              }
-              helper="Olha o contrato ou o app do banco. É o total financiado, não o que sobrou."
-            >
-              <WizardMoneyField
-                control={form.control}
-                name={"originalPrincipalCents" as never}
-                id={principalId}
-                placeholder="R$ 0,00"
-                currency={currency}
-                onCurrencyChange={(c) => formAny.setValue("currency", c)}
-              />
-            </WizardField>
-
-            <WizardField
-              label="Quanto você já pagou"
-              htmlFor={balanceId}
-              error={
-                (errors as { amountPaidCents?: { message?: string } }).amountPaidCents?.message
-              }
-              helper="Some o que já saiu até aqui. A gente calcula quanto falta."
-            >
-              <WizardMoneyField
-                control={form.control}
-                name={"amountPaidCents" as never}
-                id={balanceId}
-                placeholder="R$ 0,00"
-                currency={currency}
-              />
-            </WizardField>
-
-            <WizardField
-              label="Parcela mensal"
+              label="Quanto você paga por mês"
               htmlFor={installmentId}
               error={errors.monthlyInstallmentCents?.message}
             >
@@ -770,9 +639,59 @@ export function PersonalLoanForm({
                 id={installmentId}
                 placeholder="R$ 0,00"
                 currency={currency}
+                onCurrencyChange={(c) => formAny.setValue("currency", c)}
               />
             </WizardField>
 
+            <div className="grid grid-cols-2 gap-3">
+              <WizardField
+                label="Em quantas vezes"
+                htmlFor={totalInstallmentsId}
+                error={
+                  (errors as { totalInstallments?: { message?: string } }).totalInstallments?.message
+                }
+                helper="O total. Tipo 48, 60, 12."
+              >
+                <input
+                  id={totalInstallmentsId}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={420}
+                  placeholder="Ex: 48"
+                  {...form.register("totalInstallments" as never, { valueAsNumber: true })}
+                  className={wizardInputClass}
+                />
+              </WizardField>
+
+              <WizardField
+                label="Quantas você já pagou"
+                htmlFor={paidInstallmentsId}
+                error={
+                  (errors as { paidInstallments?: { message?: string } }).paidInstallments?.message
+                }
+                helper="Pode ser por baixo, dá pra ajustar depois."
+              >
+                <input
+                  id={paidInstallmentsId}
+                  type="number"
+                  inputMode="numeric"
+                  min={0}
+                  max={420}
+                  placeholder="Ex: 6"
+                  {...form.register("paidInstallments" as never, { valueAsNumber: true })}
+                  className={wizardInputClass}
+                />
+              </WizardField>
+            </div>
+
+            {ongoingDerived && ongoingDerived.parcela > 0n && ongoingDerived.remaining > 0 ? (
+              <ComputedCard
+                label="Falta pagar"
+                value={formatCentsBRL(ongoingDerived.currentBalanceCents)}
+                sub={`Sai ${formatCentsBRL(ongoingDerived.parcela)} por mês até quitar`}
+              />
+            ) : null}
           </>
         )}
       </WizardShell>
@@ -787,14 +706,11 @@ export function PersonalLoanForm({
 
     return (
       <WizardShell
-        currentStep={scenario === "ongoing" ? 3 : 2}
-        totalSteps={5}
+        currentStep={2}
+        totalSteps={ongoingTotalSteps}
         title="Detalhes"
         description="Parcela e data de início do contrato."
-        onBack={() => {
-          setStep(2);
-          if (scenario === "ongoing") setOngoingStep(2);
-        }}
+        onBack={() => setStep(2)}
         primary={{
           label: "Continuar",
           onClick: () => {
@@ -816,6 +732,26 @@ export function PersonalLoanForm({
           />
         </WizardField>
 
+        <WizardField
+          label="Dia do vencimento (opcional)"
+          htmlFor={dueDayId}
+          error={(errors as { dueDay?: { message?: string } }).dueDay?.message}
+          helper="O dia que sai da conta. A gente te lembra antes."
+        >
+          <input
+            id={dueDayId}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            placeholder="Ex: 10"
+            {...form.register("dueDay" as never, {
+              setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
+            })}
+            className={wizardInputClass}
+          />
+        </WizardField>
+
         {scenario === "new" ? (
           <WizardField
             label="Parcela mensal"
@@ -831,7 +767,24 @@ export function PersonalLoanForm({
               currency={currency}
             />
           </WizardField>
-        ) : null}
+        ) : (
+          <WizardField
+            label="Taxa por ano (opcional)"
+            htmlFor={rateId}
+            error={errors.annualRatePct?.message}
+            helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
+            helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
+          >
+            <WizardPercentField
+              control={form.control}
+              name="annualRatePct"
+              id={rateId}
+              step="0.01"
+              min={0}
+              max={1000}
+            />
+          </WizardField>
+        )}
       </WizardShell>
     );
   }
@@ -890,11 +843,11 @@ export function PersonalLoanForm({
     const debtPrincipal =
       scenario === "new"
         ? ((values as Extract<FormValues, { scenario: "new" }>).principalCents ?? 0n)
-        : ((values as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents ?? 0n);
+        : (ongoingDerived?.originalPrincipalCents ?? 0n);
     return (
       <WizardShell
-        currentStep={4}
-        totalSteps={5}
+        currentStep={scenario === "ongoing" ? 3 : 4}
+        totalSteps={ongoingTotalSteps}
         title="Esse compromisso é por causa de um bem?"
         description="Carro, imóvel ou outro patrimônio. Você pode pular e vincular depois."
         onBack={() => setStep(scenario === "ongoing" ? 3 : 4)}
@@ -924,7 +877,7 @@ export function PersonalLoanForm({
   const termsForCard =
     scenario === "new"
       ? (values as Extract<FormValues, { scenario: "new" }>).termMonths
-      : (values as Extract<FormValues, { scenario: "ongoing" }>).remainingTerms;
+      : (ongoingDerived?.remaining ?? 0);
 
   const totalPaidValue = totalPaidCents ? formatCentsBRL(totalPaidCents) : "...";
   const linkSummary = buildLinkSummary(values);
@@ -936,12 +889,13 @@ export function PersonalLoanForm({
     cashAssets,
     totalPaidValue,
     linkSummary,
+    ongoingDerived,
   });
 
   return (
     <WizardShell
-      currentStep={5}
-      totalSteps={5}
+      currentStep={scenario === "ongoing" ? 4 : 5}
+      totalSteps={ongoingTotalSteps}
       title="Confirme os dados"
       description="Confere os números e salva."
       onBack={() => setStep(5)}
