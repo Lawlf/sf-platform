@@ -9,6 +9,7 @@ function makeRepo(): EntityNoteRepositoryPort {
     find: vi.fn().mockResolvedValue(null),
     upsert: vi.fn().mockResolvedValue(undefined),
     deleteForEntity: vi.fn().mockResolvedValue(undefined),
+    existingEntityIds: vi.fn().mockResolvedValue(new Set()),
   };
 }
 

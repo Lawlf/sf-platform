@@ -70,4 +70,39 @@ describe("EntityNoteRepository (integration)", () => {
     await repo.deleteForEntity(userId, "income", entityId);
     expect(await repo.find(userId, "income", entityId)).toBeNull();
   });
+
+  it("existingEntityIds retorna só os ids que têm nota", async () => {
+    const a = randomUUID();
+    const b = randomUUID();
+    const c = randomUUID();
+    await repo.upsert({
+      id: randomUUID(),
+      userId,
+      entityType: "debt_payment",
+      entityId: a,
+      body: "tem nota",
+      updatedAt: new Date(),
+    });
+    const found = await repo.existingEntityIds(userId, "debt_payment", [a, b, c]);
+    expect(found).toEqual(new Set([a]));
+  });
+
+  it("existingEntityIds com lista vazia retorna set vazio", async () => {
+    const found = await repo.existingEntityIds(userId, "debt_payment", []);
+    expect(found).toEqual(new Set());
+  });
+
+  it("existingEntityIds isola por userId", async () => {
+    const id = randomUUID();
+    await repo.upsert({
+      id: randomUUID(),
+      userId: "outro-user",
+      entityType: "debt_payment",
+      entityId: id,
+      body: "de outro",
+      updatedAt: new Date(),
+    });
+    const found = await repo.existingEntityIds(userId, "debt_payment", [id]);
+    expect(found).toEqual(new Set());
+  });
 });
