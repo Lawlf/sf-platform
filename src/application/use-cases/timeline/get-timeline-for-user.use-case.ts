@@ -188,6 +188,7 @@ export async function getTimelineForUser(
     from: fetchFrom,
     to,
     adjustments: convertedAdjustments,
+    currentMonth: input.now ?? MonthYear.fromDate(new Date()),
   });
   const pagePoints = timeline.points.filter((p) => !p.month.isBefore(from));
 

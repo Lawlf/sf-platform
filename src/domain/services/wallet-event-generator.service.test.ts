@@ -7,6 +7,7 @@ import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { isOk } from "@/shared/errors/result";
 
 import { WalletEventGenerator } from "./wallet-event-generator.service";
@@ -231,9 +232,32 @@ function recurringDebt(over: Partial<DebtEntity>): DebtEntity {
     recurringAmountCents: 120000n,
     expenseCategory: "housing",
     dueDay: 20,
+    startDate: utc(2026, 1, 1),
+    expectedEndDate: null,
     createdAt: utc(2026, 1, 1),
     deletedAt: null,
     ...over,
+  } as unknown as DebtEntity;
+}
+
+function loanDebt(over: Partial<DebtEntity>): DebtEntity {
+  return {
+    id: "loan1",
+    userId: "u1",
+    kind: "personal_loan",
+    label: "Empréstimo",
+    status: "active",
+    originalPrincipal: moneyOf(10000),
+    currentBalance: moneyOf(8000),
+    monthlyInstallment: moneyOf(500),
+    termMonths: 24,
+    startDate: utc(2026, 1, 10),
+    expectedEndDate: null,
+    createdAt: utc(2026, 1, 1),
+    deletedAt: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
   } as unknown as DebtEntity;
 }
 
@@ -298,20 +322,9 @@ describe("WalletEventGenerator.debtEvents", () => {
     expect(events[0]!.amount.toNumber()).toBe(1200);
   });
 
-  it("debits on the day a payment was actually made, not the due day", () => {
-    const events = WalletEventGenerator.debtEvents(
-      [recurringDebt({ dueDay: 10 })],
-      [],
-      [debtPayment({ paidAt: utc(2026, 5, 6), amount: moneyOf(1200) })],
-      { from: utc(2026, 5, 1), to: utc(2026, 5, 31) },
-    );
-    expect(events).toHaveLength(1);
-    expect(events[0]!.date).toEqual(utc(2026, 5, 6));
-    expect(events[0]!.direction).toBe("out");
-    expect(events[0]!.amount.toNumber()).toBe(1200);
-  });
-
-  it("uses the payment amount, not monthlyDebtService, when a payment exists", () => {
+  it("recurring debt ignores a recorded payment and keeps the fixed equivalent at dueDay", () => {
+    // Compromisso recorrente vale sempre o equivalente mensal; um pagamento
+    // parcial não "quita" o mês (a baixa é via settlement, não DebtPayment).
     const events = WalletEventGenerator.debtEvents(
       [recurringDebt({ dueDay: 10 })],
       [],
@@ -319,7 +332,32 @@ describe("WalletEventGenerator.debtEvents", () => {
       { from: utc(2026, 5, 1), to: utc(2026, 5, 31) },
     );
     expect(events).toHaveLength(1);
+    expect(events[0]!.date).toEqual(utc(2026, 5, 10));
+    expect(events[0]!.amount.toNumber()).toBe(1200);
+  });
+
+  it("non-recurring debt debits on the payment day with the payment amount, suppressing projection", () => {
+    const events = WalletEventGenerator.debtEvents(
+      [loanDebt({})],
+      [],
+      [debtPayment({ debtId: "loan1", paidAt: utc(2026, 5, 6), amount: moneyOf(500) })],
+      { from: utc(2026, 5, 1), to: utc(2026, 5, 31) },
+      [],
+      MonthYear.from(2026, 5),
+    );
+    expect(events).toHaveLength(1);
     expect(events[0]!.date).toEqual(utc(2026, 5, 6));
-    expect(events[0]!.amount.toNumber()).toBe(900);
+    expect(events[0]!.direction).toBe("out");
+    expect(events[0]!.amount.toNumber()).toBe(500);
+  });
+
+  it("non-recurring debt with no payment projects its monthly obligation", () => {
+    const events = WalletEventGenerator.debtEvents([loanDebt({})], [], [], {
+      from: utc(2026, 5, 1),
+      to: utc(2026, 5, 31),
+    }, [], MonthYear.from(2026, 5));
+    expect(events).toHaveLength(1);
+    expect(events[0]!.direction).toBe("out");
+    expect(events[0]!.amount.toNumber()).toBe(500);
   });
 });

@@ -319,6 +319,37 @@ describe("TimelineService.buildTimeline", () => {
     }
   });
 
+  it("projeta a obrigação de dívida não-recorrente nos meses a partir de currentMonth", () => {
+    const from = MonthYear.from(2026, 6);
+    const to = MonthYear.from(2026, 8);
+    const fin = makeFinancing({ currentBalanceCents: 5_000_000n });
+    const base = { incomes: [], debts: [fin], payments: [], assets: [], from, to };
+
+    // Sem currentMonth (default to.next()): nenhum mês projeta -> outflow zero.
+    const legacy = TimelineService.buildTimeline(base);
+    for (const p of legacy.points) expect(p.totalDebtPayments.toCents()).toBe(0n);
+
+    // Com currentMonth = junho: todo mês >= junho projeta a parcela.
+    const projected = TimelineService.buildTimeline({ ...base, currentMonth: from });
+    for (const p of projected.points) expect(p.totalDebtPayments.toCents()).toBeGreaterThan(0n);
+  });
+
+  it("não projeta dívida não-recorrente em meses ANTES de currentMonth", () => {
+    const fin = makeFinancing({ currentBalanceCents: 5_000_000n });
+    const tl = TimelineService.buildTimeline({
+      incomes: [],
+      debts: [fin],
+      payments: [],
+      assets: [],
+      from: MonthYear.from(2026, 4),
+      to: MonthYear.from(2026, 6),
+      currentMonth: MonthYear.from(2026, 6),
+    });
+    expect(tl.points[0]!.totalDebtPayments.toCents()).toBe(0n); // abr
+    expect(tl.points[1]!.totalDebtPayments.toCents()).toBe(0n); // mai
+    expect(tl.points[2]!.totalDebtPayments.toCents()).toBeGreaterThan(0n); // jun
+  });
+
   it("renda mensal de R$5000: todo ponto no intervalo tem totalIncome = 5000", () => {
     const from = MonthYear.from(2026, 1);
     const to = MonthYear.from(2026, 6);

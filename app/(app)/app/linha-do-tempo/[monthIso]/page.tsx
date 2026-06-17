@@ -46,19 +46,6 @@ function isValidMonthIso(iso: string): boolean {
   return /^\d{4}-\d{2}$/.test(iso);
 }
 
-function sumCents(items: ReadonlyArray<{ amount: { cents: string } }>): bigint {
-  return items.reduce((acc, it) => acc + BigInt(it.amount.cents), 0n);
-}
-
-function sumRealized(
-  items: ReadonlyArray<{ amount: { cents: string }; dateIso: string }>,
-  today: string,
-): bigint {
-  return items
-    .filter((it) => it.dateIso.slice(0, 10) <= today)
-    .reduce((acc, it) => acc + BigInt(it.amount.cents), 0n);
-}
-
 function formatBrl(cents: bigint): string {
   const negative = cents < 0n;
   const abs = negative ? -cents : cents;
@@ -104,17 +91,15 @@ export default async function MonthDetailPage({ params }: PageProps) {
   const isFuture = cur.isBefore(target);
   const isCurrent = !isPast && !isFuture;
 
-  const fullIncomeCents = sumCents(data.incomes);
-  const fullOutflowCents = sumCents(data.expenses) + sumCents(data.payments);
-  const fullFreeCents = fullIncomeCents - fullOutflowCents;
+  const fullIncomeCents = BigInt(data.totals.income.cents);
+  const fullOutflowCents = BigInt(data.totals.outflow.cents);
+  const fullFreeCents = BigInt(data.totals.free.cents);
 
-  const realizedIncomeCents = sumRealized(data.incomes, todayKey);
-  const realizedOutflowCents =
-    sumRealized(data.expenses, todayKey) + sumRealized(data.payments, todayKey);
-  const realizedFreeCents = realizedIncomeCents - realizedOutflowCents;
+  const realizedIncomeCents = BigInt(data.totals.realizedIncome.cents);
+  const realizedOutflowCents = BigInt(data.totals.realizedOutflow.cents);
+  const realizedFreeCents = BigInt(data.totals.realizedFree.cents);
 
-  const remainingOutflowCents =
-    fullOutflowCents - (sumRealized(data.expenses, todayKey) + sumRealized(data.payments, todayKey));
+  const remainingOutflowCents = fullOutflowCents - realizedOutflowCents;
 
   const patrimonyDeltaCents = data.patrimony.previous
     ? BigInt(data.patrimony.current.netWorth.cents) - BigInt(data.patrimony.previous.netWorth.cents)

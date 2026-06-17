@@ -1,3 +1,4 @@
+import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
@@ -5,13 +6,12 @@ import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { RecurringSettlementEntity } from "@/domain/entities/recurring-settlement.entity";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { Money } from "@/domain/value-objects/money.vo";
-import { isOk } from "@/shared/errors/result";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
-import { monthlyDebtService } from "./financial-health.service";
+import { WEEKS_PER_MONTH } from "./monthly-frequency";
 import { effectiveIncomeCentsForMonth } from "./income-settlement.service";
+import { monthlyDebtOutflow, type TimelineSettlement } from "./timeline.service";
 import type { WalletEvent } from "./wallet-balance.service";
-
-const WEEKS_PER_MONTH = 4.33;
 
 export interface EventWindow {
   from: Date;
@@ -65,24 +65,12 @@ function incomeMonthlyAmount(income: IncomeEntity): Money {
   }
 }
 
-function debtDueDay(debt: DebtEntity): number {
-  if (debt.kind === "recurring") return debt.dueDay ?? 1;
-  if (debt.kind === "credit_card") return debt.dueDay;
-  return 1;
-}
-
-function isSettledAway(
-  settlements: RecurringSettlementEntity[],
-  debtId: string,
-  m: { year: number; month: number },
-): boolean {
-  return settlements.some(
-    (s) =>
-      s.debtId === debtId &&
-      s.month.getUTCFullYear() === m.year &&
-      s.month.getUTCMonth() === m.month &&
-      (s.status === "converted_to_debt" || s.status === "cancelled"),
-  );
+function toTimelineSettlements(settlements: RecurringSettlementEntity[]): TimelineSettlement[] {
+  return settlements.map((s) => ({
+    debtId: s.debtId,
+    monthIso: MonthYear.fromDate(s.month).toIso(),
+    status: s.status,
+  }));
 }
 
 export class WalletEventGenerator {
@@ -119,32 +107,37 @@ export class WalletEventGenerator {
       .map((t) => ({ date: t.occurredAt, amount: t.amount, direction: t.direction }));
   }
 
+  /**
+   * Saídas de dívida da janela como eventos datados. Delega a regra de "quanto
+   * sai por mês" ao ponto de verdade `monthlyDebtOutflow` (mesmo cálculo do
+   * detalhe do mês), garantindo que a projeção da carteira e a tela do mês nunca
+   * divirjam de sinal. `currentMonth` decide o que é projeção vs realizado para
+   * dívidas não-recorrentes; o caller passa o mês de "agora".
+   */
   static debtEvents(
     debts: DebtEntity[],
     settlements: RecurringSettlementEntity[],
     payments: DebtPaymentEntity[],
     window: EventWindow,
+    adjustments: DebtAmountAdjustmentEntity[] = [],
+    currentMonth: MonthYear = MonthYear.fromDate(window.from),
   ): WalletEvent[] {
+    const timelineSettlements = toTimelineSettlements(settlements);
     const events: WalletEvent[] = [];
-    for (const debt of debts) {
-      if (debt.deletedAt !== null || debt.status !== "active") continue;
-      const svc = monthlyDebtService(debt);
-      if (!isOk(svc)) continue;
-      const amountR = Money.from(svc.value);
-      if (!isOk(amountR)) continue;
-      const amount = amountR.value;
-      if (amount.isZero()) continue;
-      const day = debtDueDay(debt);
-      for (const m of monthStarts(window)) {
-        if (isSettledAway(settlements, debt.id, m)) continue;
-        const paymentsThisMonth = payments.filter((p) => p.debtId === debt.id && sameMonth(m, p.paidAt));
-        if (paymentsThisMonth.length > 0) {
-          for (const p of paymentsThisMonth) {
-            events.push({ date: p.paidAt, amount: p.amount, direction: "out" });
-          }
-          continue;
-        }
-        events.push({ date: dateInMonth(m.year, m.month, day), amount, direction: "out" });
+    for (const m of monthStarts(window)) {
+      const month = MonthYear.from(m.year, m.month + 1);
+      const paymentsThisMonth = payments.filter((p) => sameMonth(m, p.paidAt));
+      const items = monthlyDebtOutflow({
+        debts,
+        paymentsThisMonth,
+        month,
+        currentMonth,
+        adjustments,
+        settlements: timelineSettlements,
+      });
+      for (const item of items) {
+        const date = item.paidAt ?? dateInMonth(m.year, m.month, item.day);
+        events.push({ date, amount: item.amount, direction: "out" });
       }
     }
     return events;
@@ -159,10 +152,19 @@ export class WalletEventGenerator {
     transactions: TransactionEntity[];
     walletId: string;
     window: EventWindow;
+    adjustments?: DebtAmountAdjustmentEntity[];
+    currentMonth?: MonthYear;
   }): WalletEvent[] {
     return [
       ...WalletEventGenerator.incomeEvents(input.incomes, input.window, input.incomeSettlements ?? []),
-      ...WalletEventGenerator.debtEvents(input.debts, input.settlements, input.payments, input.window),
+      ...WalletEventGenerator.debtEvents(
+        input.debts,
+        input.settlements,
+        input.payments,
+        input.window,
+        input.adjustments ?? [],
+        input.currentMonth ?? MonthYear.fromDate(input.window.from),
+      ),
       ...WalletEventGenerator.transactionEvents(input.transactions, input.walletId),
     ];
   }

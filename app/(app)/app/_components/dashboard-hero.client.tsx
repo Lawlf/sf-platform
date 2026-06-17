@@ -69,11 +69,8 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     );
   }
 
-  const incomeCents = monthDetail.incomes.reduce((a, i) => a + BigInt(i.amount.cents), 0n);
-  const outflowCents =
-    monthDetail.expenses.reduce((a, e) => a + BigInt(e.amount.cents), 0n) +
-    monthDetail.payments.reduce((a, p) => a + BigInt(p.amount.cents), 0n);
-  const freeBalanceCents = incomeCents - outflowCents;
+  const incomeCents = BigInt(monthDetail.totals.income.cents);
+  const freeBalanceCents = BigInt(monthDetail.totals.free.cents);
 
   const useWallet = !walletError && walletBal != null && !walletBal.needsAnchor;
 
@@ -100,17 +97,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     monthDetail.expenses.every((e) => e.dateIso) &&
     monthDetail.payments.every((p) => p.dateIso);
 
-  const todayKey = new Date().toISOString().slice(0, 10);
-  const realizedTodayCents =
-    monthDetail.incomes
-      .filter((i) => i.dateIso.slice(0, 10) <= todayKey)
-      .reduce((a, i) => a + BigInt(i.amount.cents), 0n) -
-    (monthDetail.expenses
-      .filter((e) => e.dateIso.slice(0, 10) <= todayKey)
-      .reduce((a, e) => a + BigInt(e.amount.cents), 0n) +
-      monthDetail.payments
-        .filter((p) => p.dateIso.slice(0, 10) <= todayKey)
-        .reduce((a, p) => a + BigInt(p.amount.cents), 0n));
+  const realizedTodayCents = BigInt(monthDetail.totals.realizedFree.cents);
 
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
