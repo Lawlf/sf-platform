@@ -95,6 +95,7 @@ function makeDebt(overrides: Partial<PersonalLoanDebt> = {}): PersonalLoanDebt {
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
+    dueDay: null,
     annualInterestRate: makeRate(0.2),
     termMonths: 12,
     monthlyInstallment: makeMoney(900),

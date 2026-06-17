@@ -209,6 +209,7 @@ export async function commitOfxImport(
       annualInterestRate,
       termMonths,
       monthlyInstallment: installmentMoney,
+      dueDay: null,
       startDate: now,
       expectedEndDate: null,
       notes: null,

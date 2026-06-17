@@ -85,6 +85,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
     createdAt: new Date("2026-01-01"),
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
+    dueDay: null,
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),
@@ -192,6 +193,43 @@ describe("getUpcomingDueDates", () => {
       expect(due.dueDate.getMonth()).toBe(5); // rolls to June
       expect(due.dueDate.getDate()).toBe(10);
     }
+  });
+
+  it("uses dueDay for the personal loan reminder when set", async () => {
+    const debts = makeDebtRepo();
+    const now = new Date(2026, 4, 1); // 2026-05-01 local
+    const loan = makePersonalLoan({ startDate: new Date(2026, 0, 10), dueDay: 20 });
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+
+    const result = await getUpcomingDueDates(
+      { debts, clock: makeClock(now) },
+      { userId: "user-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    expect(result.value).toHaveLength(1);
+    const due = result.value[0]!;
+    expect(due.dueDate.getMonth()).toBe(4); // May
+    expect(due.dueDate.getDate()).toBe(20);
+    expect(due.amount).not.toBeNull();
+  });
+
+  it("falls back to the startDate day when the personal loan has no dueDay", async () => {
+    const debts = makeDebtRepo();
+    const now = new Date(2026, 4, 1); // 2026-05-01 local
+    const loan = makePersonalLoan({ startDate: new Date(2026, 0, 18), dueDay: null });
+    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+
+    const result = await getUpcomingDueDates(
+      { debts, clock: makeClock(now) },
+      { userId: "user-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    expect(result.value).toHaveLength(1);
+    expect(result.value[0]!.dueDate.getDate()).toBe(18);
   });
 
   it("excludes overdraft debts from upcoming dues", async () => {

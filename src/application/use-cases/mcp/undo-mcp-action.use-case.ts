@@ -217,6 +217,7 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
         annualInterestRate: annualRate(s.annualInterestRate),
         termMonths: num(s.termMonths),
         monthlyInstallment: money(s.monthlyInstallment),
+        dueDay: optNum(s.dueDay),
       };
     case "credit_card":
       return {

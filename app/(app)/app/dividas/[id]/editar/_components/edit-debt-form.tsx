@@ -162,8 +162,11 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
         fd.set("annualRatePct", String(v.annualRatePct));
       }
     }
-    if (kind === "personal_loan" && v.monthlyInstallmentCents != null) {
-      fd.set("monthlyInstallmentCents", v.monthlyInstallmentCents.toString());
+    if (kind === "personal_loan") {
+      if (v.monthlyInstallmentCents != null) {
+        fd.set("monthlyInstallmentCents", v.monthlyInstallmentCents.toString());
+      }
+      if (v.dueDay != null) fd.set("dueDay", String(v.dueDay));
     }
     if (kind === "financing") {
       fd.set("monthlyInsuranceCents", v.monthlyInsuranceCents?.toString() ?? "");
@@ -271,12 +274,28 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
             />
           </WizardField>
           {kind === "personal_loan" ? (
-            <MoneyInput
-              control={form.control}
-              name="monthlyInstallmentCents"
-              label="Parcela mensal"
-              currency={currency}
-            />
+            <>
+              <MoneyInput
+                control={form.control}
+                name="monthlyInstallmentCents"
+                label="Parcela mensal"
+                currency={currency}
+              />
+              <WizardField label="Dia do vencimento (opcional)" htmlFor={dueDayId}>
+                <input
+                  id={dueDayId}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={31}
+                  placeholder="Ex: 10"
+                  {...form.register("dueDay", {
+                    setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
+                  })}
+                  className={wizardInputClass}
+                />
+              </WizardField>
+            </>
           ) : null}
           {kind === "financing" ? (
             <>

@@ -4,6 +4,10 @@ import { CURRENCIES } from "@/domain/value-objects/money.vo";
 
 import { linkAssetSlice } from "../_lib/link-asset";
 
+// Dia do vencimento (1-31). Opcional; o input usa setValueAs pra mandar null
+// quando vazio (em vez de NaN), então aqui basta nullable.
+const dueDayField = z.number().int().min(1).max(31).nullable();
+
 export const cashInflowSlice = {
   cashTarget: z.enum(["existing", "new", "spent"]).nullable().optional(),
   existingCashAssetId: z.string().nullable().optional(),
@@ -21,6 +25,7 @@ export const newScenarioSchema = z
     annualRatePct: z.number().min(0).max(200),
     termMonths: z.number().int().min(1).max(420),
     monthlyInstallmentCents: z.bigint().nonnegative(),
+    dueDay: dueDayField,
     startDate: z.string().min(1, "Informe a data de início."),
     expectedEndDate: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
@@ -37,23 +42,22 @@ export const ongoingScenarioSchema = z
     scenario: z.literal("ongoing"),
     currency: z.enum(CURRENCIES),
     label: z.string().min(1, "Informe um rótulo.").max(120),
-    originalPrincipalCents: z.bigint().positive("Valor original deve ser positivo."),
-    // O usuário informa quanto JÁ PAGOU; o saldo é derivado (original - pago).
-    amountPaidCents: z.bigint().nonnegative("O quanto você já pagou não pode ser negativo."),
-    currentBalanceCents: z.bigint().positive("Saldo deve ser positivo."),
+    // Empréstimo de parcela fixa: o usuário informa parcela + total de vezes +
+    // quantas já pagou. Saldo, valor contratado e total pago são derivados.
     monthlyInstallmentCents: z.bigint().positive("Parcela deve ser positiva."),
+    totalInstallments: z.number().int().min(1, "Informe em quantas vezes.").max(420),
     paidInstallments: z.number().int().min(0).max(420),
-    remainingTerms: z.number().int().min(1, "Informe quantas parcelas faltam.").max(420),
     annualRatePct: z.number().min(0).max(200),
+    dueDay: dueDayField,
     startDate: z.string().min(1, "Informe a data de início."),
     expectedEndDate: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
     ...linkAssetSlice,
     ...cashInflowSlice,
   })
-  .refine((d) => d.amountPaidCents < d.originalPrincipalCents, {
-    message: "O que você já pagou não pode ser igual ou maior que o valor contratado.",
-    path: ["amountPaidCents"],
+  .refine((d) => d.paidInstallments < d.totalInstallments, {
+    message: "As parcelas pagas não podem ser iguais ou mais que o total.",
+    path: ["paidInstallments"],
   });
 
 export const personalLoanFormSchema = z.discriminatedUnion("scenario", [
@@ -73,12 +77,9 @@ export const NEW_STEP2_FIELDS = [
 
 export const ONGOING_STEP2_FIELDS = [
   "label",
-  "originalPrincipalCents",
-  "amountPaidCents",
   "monthlyInstallmentCents",
+  "totalInstallments",
   "paidInstallments",
-  "remainingTerms",
-  "annualRatePct",
 ] as const;
 
 export const STEP3_FIELDS = ["startDate", "monthlyInstallmentCents"] as const;

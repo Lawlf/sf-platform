@@ -38,6 +38,7 @@ function makePersonalLoan({
     id,
     userId: "user-1",
     kind: "personal_loan",
+    dueDay: null,
     label: "Emprestimo",
     status: "active",
     originalPrincipal: Money.fromCents(originalPrincipalCents, currency),

@@ -36,8 +36,7 @@ export async function getUpcomingDueDates(
 
 function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
   switch (debt.kind) {
-    case "financing":
-    case "personal_loan": {
+    case "financing": {
       const elapsed = monthDiff(debt.startDate, now);
       const next = new Date(debt.startDate);
       next.setMonth(debt.startDate.getMonth() + elapsed + 1);
@@ -45,7 +44,20 @@ function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
         debtId: debt.id,
         label: debt.label,
         dueDate: next,
-        amount: debt.kind === "personal_loan" ? debt.monthlyInstallment : null,
+        amount: null,
+      };
+    }
+    case "personal_loan": {
+      // Vencimento no dia escolhido (`dueDay`); sem dia definido, cai pro dia
+      // de `startDate`. Mesma regra do cartão pra o lembrete bater no dia certo.
+      const day = debt.dueDay ?? debt.startDate.getDate();
+      const due = new Date(now.getFullYear(), now.getMonth(), day);
+      if (due < now) due.setMonth(due.getMonth() + 1);
+      return {
+        debtId: debt.id,
+        label: debt.label,
+        dueDate: due,
+        amount: debt.monthlyInstallment,
       };
     }
     case "credit_card": {

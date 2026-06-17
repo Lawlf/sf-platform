@@ -49,6 +49,9 @@ export interface PersonalLoanDebt extends BaseDebt {
   annualInterestRate: InterestRate;
   termMonths: number;
   monthlyInstallment: Money;
+  // Dia do mês (1-31) em que a parcela sai da conta. `null` cai pro dia de
+  // `startDate` na geração do lembrete de vencimento.
+  dueDay: number | null;
 }
 
 export interface InstallmentPurchase {

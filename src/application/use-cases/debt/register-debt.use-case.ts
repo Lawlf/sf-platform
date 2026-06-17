@@ -51,6 +51,7 @@ export type RegisterDebtInput =
           // Ongoing: saldo devedor atual já diferente do principal original.
           // Se omitido, assume contrato novo (currentBalance = originalPrincipal).
           currentBalance?: Money | null;
+          dueDay?: number | null;
         }
       | {
           kind: "credit_card";
@@ -116,6 +117,7 @@ export async function registerDebt(
         annualInterestRate: input.annualInterestRate,
         termMonths: input.termMonths,
         monthlyInstallment: input.monthlyInstallment,
+        dueDay: input.dueDay ?? null,
       };
       break;
     }

@@ -58,6 +58,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
     userId: "u1",
     label: "Emprestimo",
     kind: "personal_loan",
+    dueDay: null,
     status: "active",
     originalPrincipal: moneyOf(10_000),
     currentBalance: moneyOf(10_000),
