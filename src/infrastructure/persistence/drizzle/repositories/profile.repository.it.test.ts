@@ -1,9 +1,9 @@
-import { afterEach, describe, expect, it } from "vitest";
 import { eq } from "drizzle-orm";
+import { afterEach, describe, expect, it } from "vitest";
 
 import { getDb } from "../client";
-import { profiles } from "../schema/profiles.schema";
 import { users } from "../schema/users.schema";
+
 import { ProfileRepository } from "./profile.repository";
 
 const repo = new ProfileRepository();
