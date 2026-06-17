@@ -1,11 +1,13 @@
-import { Paperclip } from "lucide-react";
-
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import { repos } from "@/infrastructure/container";
 import { formatCents } from "@/shared/format/money-format";
 
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
-import { EntityNotesAndFiles } from "../../../_components/notes-files/entity-notes-and-files";
+import { buildPaymentsView } from "../_lib/payments-view";
+
+import type { PaymentRowData } from "./payment-detail-sheet.client";
+import { PaymentsList } from "./payments-list.client";
 
 const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short" });
 
@@ -24,12 +26,33 @@ interface Props {
   isPro: boolean;
 }
 
-export function PaymentsSection({ debt, payments, userId, isPro }: Props) {
-  const original = debt.originalPrincipal.toCents();
-  const current = debt.currentBalance.toCents();
-  const abated = original - current;
-  const word = KIND_WORD[debt.kind];
+export async function PaymentsSection({ debt, payments, userId, isPro }: Props) {
   const currency = debt.originalPrincipal.currency;
+  const word = KIND_WORD[debt.kind];
+
+  const view = buildPaymentsView({
+    originalCents: debt.originalPrincipal.toCents(),
+    currentCents: debt.currentBalance.toCents(),
+    interestPortionsCents: payments.map((p) => p.interestPortion.toCents()),
+  });
+
+  const ids = payments.map((p) => p.id);
+  const [withNote, withFile] = await Promise.all([
+    repos.entityNotes.existingEntityIds(userId, "debt_payment", ids),
+    isPro
+      ? repos.entityAttachments.existingEntityIds(userId, "debt_payment", ids)
+      : Promise.resolve(new Set<string>()),
+  ]);
+
+  const rows: PaymentRowData[] = payments.map((p) => ({
+    id: p.id,
+    dateLabel: DATE_FMT.format(p.paidAt),
+    amountFormatted: p.amount.format(),
+    principalFormatted: p.principalPortion.format(),
+    interestFormatted: p.interestPortion.format(),
+    isExtra: p.isExtra,
+    hasNoteOrAttachment: withNote.has(p.id) || withFile.has(p.id),
+  }));
 
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
@@ -42,16 +65,21 @@ export function PaymentsSection({ debt, payments, userId, isPro }: Props) {
         </span>
       </div>
 
-      {original > 0n && abated > 0n ? (
-        <p className="mt-2 text-[0.8125rem] leading-relaxed text-[color:var(--text-primary)]">
+      {view.hero.kind === "paidOff" ? (
+        <p className="mt-2 text-[1.0625rem] font-bold leading-snug text-[color:var(--text-primary)]">
+          Quitada. Você pagou os{" "}
+          <HideableValue>{formatCents(view.hero.abatedCents, currency)}</HideableValue> deste {word}.
+        </p>
+      ) : view.hero.kind === "partial" ? (
+        <p className="mt-2 text-[0.9375rem] leading-relaxed text-[color:var(--text-primary)]">
           Você já pagou{" "}
-          <span className="font-semibold">
-            <HideableValue>{formatCents(abated, currency)}</HideableValue>
+          <span className="font-bold">
+            <HideableValue>{formatCents(view.hero.abatedCents, currency)}</HideableValue>
           </span>{" "}
           deste {word}. Começou em{" "}
-          <HideableValue>{formatCents(original, currency)}</HideableValue>, faltam{" "}
-          <span className="font-semibold">
-            <HideableValue>{formatCents(current, currency)}</HideableValue>
+          <HideableValue>{formatCents(view.hero.originalCents, currency)}</HideableValue>, faltam{" "}
+          <span className="font-bold">
+            <HideableValue>{formatCents(view.hero.currentCents, currency)}</HideableValue>
           </span>
           .
         </p>
@@ -61,53 +89,15 @@ export function PaymentsSection({ debt, payments, userId, isPro }: Props) {
         </p>
       )}
 
-      {payments.length > 0 ? (
-        <ul className="mt-3 flex flex-col gap-2">
-          {payments.map((p) => (
-            <li
-              key={p.id}
-              className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-3"
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex-1 min-w-0">
-                  <p className="truncate text-sm font-semibold text-[color:var(--text-primary)]">
-                    {DATE_FMT.format(p.paidAt)}
-                  </p>
-                  <p className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-                    <HideableValue>{p.principalPortion.format()}</HideableValue> principal +{" "}
-                    <HideableValue>{p.interestPortion.format()}</HideableValue> juros
-                  </p>
-                </div>
-                <div className="flex shrink-0 flex-col items-end gap-1">
-                  <span className="text-sm font-semibold text-[color:var(--text-primary)]">
-                    <HideableValue>{p.amount.format()}</HideableValue>
-                  </span>
-                  {p.isExtra ? (
-                    <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
-                      Extra
-                    </span>
-                  ) : null}
-                </div>
-              </div>
-
-              <details className="mt-2">
-                <summary className="flex w-fit cursor-pointer items-center gap-1.5 text-[0.6875rem] font-semibold text-[color:var(--text-muted)] [&::-webkit-details-marker]:hidden">
-                  <Paperclip size={12} strokeWidth={2} aria-hidden />
-                  Comprovante e nota
-                </summary>
-                <div className="mt-3">
-                  <EntityNotesAndFiles
-                    entityType="debt_payment"
-                    entityId={p.id}
-                    userId={userId}
-                    isPro={isPro}
-                  />
-                </div>
-              </details>
-            </li>
-          ))}
-        </ul>
+      {view.totalInterestCents > 0n ? (
+        <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
+          Desse total,{" "}
+          <HideableValue>{formatCents(view.totalInterestCents, currency)}</HideableValue> foram
+          juros.
+        </p>
       ) : null}
+
+      <PaymentsList payments={rows} isPro={isPro} collapsedByDefault={view.collapsedByDefault} />
     </section>
   );
 }
