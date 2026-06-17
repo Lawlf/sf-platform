@@ -103,14 +103,14 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
 describe("getWalletBalance", () => {
   it("reactive balance excludes income that has not landed yet", async () => {
     // asOf June 4, salary lands June 5 -> still just the anchor 500.
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.reactiveBalance.toNumber()).toBe(500);
   });
 
   it("month-end projection includes income that will land this month", async () => {
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.monthEndProjection.toNumber()).toBe(5500);
   });
@@ -118,20 +118,20 @@ describe("getWalletBalance", () => {
   it("creates a dedicated Carteira (needsAnchor) when the user has none", async () => {
     const r = await getWalletBalance(
       deps({ assets: { findActiveByUserAndCategory: async () => [], createDefaultWallet: async () => {} } }),
-      { userId: "u1" },
+      { userId: "u1", profileId: "profile-1" },
     );
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });
 
   it("flags needsAnchor when the wallet has never been anchored", async () => {
-    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1" });
+    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });
 
   it("needsAnchor is false once anchored", async () => {
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(false);
   });
@@ -141,7 +141,7 @@ describe("getWalletBalance", () => {
       debts: { listForUser: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.reactiveBalance.toNumber()).toBe(5500);
   });
@@ -151,7 +151,7 @@ describe("getWalletBalance", () => {
       debts: { listForUser: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.monthEndProjection.toNumber()).toBe(4300);
   });
@@ -178,7 +178,7 @@ describe("getWalletBalance", () => {
       },
       clock: { now: () => utc(2026, 6, 4) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     // anchor 500 - pagamento 2000 (realizado em 3/jun) = -1500.
     expect(r.value.reactiveBalance.toNumber()).toBe(-1500);

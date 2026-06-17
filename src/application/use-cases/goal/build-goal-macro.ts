@@ -30,6 +30,7 @@ export interface BuildGoalMacroDeps {
 
 export interface BuildGoalMacroInput {
   userId: string;
+  profileId: string;
 }
 
 /**
@@ -41,7 +42,7 @@ export async function buildGoalMacro(
   deps: BuildGoalMacroDeps,
   input: BuildGoalMacroInput,
 ): Promise<GoalMacro> {
-  const { userId } = input;
+  const { userId, profileId } = input;
 
   const [netWorthResult, snapshotResult, activeDebts] = await Promise.all([
     getNetWorth(
@@ -63,7 +64,7 @@ export async function buildGoalMacro(
         rates: deps.rates,
         overrides: deps.overrides,
       },
-      { userId },
+      { userId, profileId },
     ),
     deps.debts.listForUser(userId, { status: "active" }),
   ]);

@@ -31,3 +31,10 @@ export const getActiveProfileId = cache(async (): Promise<string> => {
     now: clock.now(),
   });
 });
+
+export async function resolvePfProfileId(userId: string): Promise<string> {
+  return resolveActiveProfileId(
+    { profiles: repos.profiles },
+    { userId, cookieProfileId: null, now: clock.now() },
+  );
+}

@@ -98,7 +98,7 @@ const deps = {
 
 describe("buildPrescription", () => {
   it("assembles a bleeding prescription for an expensive card with cushion present", async () => {
-    const r = await buildPrescription(deps as never, { userId: "u1" });
+    const r = await buildPrescription(deps as never, { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.state).toBe("bleeding");
@@ -114,7 +114,7 @@ describe("buildPrescription", () => {
       now: () => NOW,
       ...fxDeps("5.00"),
     };
-    const r = await buildPrescription(fxConverted as never, { userId: "u1" });
+    const r = await buildPrescription(fxConverted as never, { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.dominant?.type).toBe("invest");
@@ -130,7 +130,7 @@ describe("buildPrescription", () => {
       now: () => NOW,
       ...fxDeps(null),
     };
-    const r = await buildPrescription(noRate as never, { userId: "u1" });
+    const r = await buildPrescription(noRate as never, { userId: "u1", profileId: "profile-1" });
     expect(isErr(r)).toBe(true);
     if (!isErr(r)) return;
     expect(r.error).toBeInstanceOf(FxRateUnavailableError);

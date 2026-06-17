@@ -10,11 +10,13 @@ import {
 import { markWizardSeen } from "@/application/use-cases/onboarding/mark-wizard-seen.use-case";
 import { setOnboardingFocus } from "@/application/use-cases/onboarding/set-onboarding-focus.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export async function fetchOnboardingState(): Promise<OnboardingState> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
   const users = repos.users;
   const incomes = repos.incomes;
   const debts = repos.debts;
@@ -22,8 +24,8 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
   const goals = repos.goals;
 
   const counts = {
-    async hasIncome(userId: string): Promise<boolean> {
-      const list = await incomes.listForProfile(userId, { onlyActive: true });
+    async hasIncome(_userId: string): Promise<boolean> {
+      const list = await incomes.listForProfile(profileId, { onlyActive: true });
       return list.length > 0;
     },
     async hasDebt(userId: string): Promise<boolean> {

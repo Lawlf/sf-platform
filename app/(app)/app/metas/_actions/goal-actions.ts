@@ -10,6 +10,7 @@ import { recordContribution } from "@/application/use-cases/goal/record-contribu
 import { updateGoal } from "@/application/use-cases/goal/update-goal.use-case";
 import { GoalProgressService } from "@/domain/services/goal-progress.service";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId, resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -86,6 +87,7 @@ export const createGoalAction = action({
     try {
       const now = new Date();
       const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const profileId = await getActiveProfileId();
       const macro = await buildGoalMacro(
         {
           assets: repos.assets,
@@ -96,7 +98,7 @@ export const createGoalAction = action({
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,
         },
-        { userId },
+        { userId, profileId },
       );
       const progress = GoalProgressService.compute(result.goal, macro);
       await repos.goalSnapshots.upsert({
@@ -170,8 +172,9 @@ export const recordContributionAction = action({
         assets: repos.assets,
         contributions: repos.goalContributions,
         snapshots: repos.goalSnapshots,
-        buildMacro: (macroUserId) =>
-          buildGoalMacro(
+        buildMacro: async (macroUserId) => {
+          const macroProfileId = await resolvePfProfileId(macroUserId);
+          return buildGoalMacro(
             {
               assets: repos.assets,
               allocations: repos.assetDebtAllocations,
@@ -181,8 +184,9 @@ export const recordContributionAction = action({
               rates: repos.exchangeRates,
               overrides: repos.userFxOverrides,
             },
-            { userId: macroUserId },
-          ),
+            { userId: macroUserId, profileId: macroProfileId },
+          );
+        },
         clock,
         newId: () => crypto.randomUUID(),
       },

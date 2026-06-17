@@ -9,6 +9,7 @@ import type { StoryIconName, StoryCardKind } from "@/domain/services/story-detec
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -62,6 +63,7 @@ export async function fetchTimelinePage(
   }
 
   const limit = Math.max(1, Math.min(24, input.limit ?? DEFAULT_LIMIT));
+  const profileId = await getActiveProfileId();
 
   const result = await getTimelineForUser(
     {
@@ -76,6 +78,7 @@ export async function fetchTimelinePage(
     },
     {
       userId: user.id,
+      profileId,
       before,
       limit,
       ...(input.range !== undefined ? { range: input.range } : {}),

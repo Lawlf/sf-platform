@@ -10,6 +10,7 @@ import { setLiquidBucket } from "@/application/use-cases/planning/set-liquid-buc
 import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -32,6 +33,7 @@ export const closeMonthAction = action({
   schema: z.void(),
   revalidates: ["home"],
   handler: async (_input, { userId }) => {
+    const profileId = await getActiveProfileId();
     const result = await closeMonth(
       {
         closings: repos.monthClosings,
@@ -44,7 +46,7 @@ export const closeMonthAction = action({
         rates: repos.exchangeRates,
         overrides: repos.userFxOverrides,
       },
-      { userId },
+      { userId, profileId },
     );
     if (!result.ok) throw new ActionError(result.message);
     const leakAbsCents = result.leakCents < 0n ? -result.leakCents : result.leakCents;

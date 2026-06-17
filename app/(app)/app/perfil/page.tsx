@@ -10,6 +10,7 @@ import { ensureUsername } from "@/application/use-cases/profile/ensure-username.
 import { getProfileIdentity } from "@/application/use-cases/profile/get-profile-identity.use-case";
 import { tierFor } from "@/domain/services/consistency.service";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -76,6 +77,7 @@ export default async function PerfilPage({
 }
 
 async function PerfilStatsSection({ userId }: { userId: string }) {
+  const profileId = await getActiveProfileId();
   const debts = repos.debts;
   const snapshotR = await getDashboardSnapshot(
     {
@@ -85,7 +87,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId },
+    { userId, profileId },
   );
   const snapshot = isOk(snapshotR) ? snapshotR.value : null;
 
@@ -99,7 +101,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       clock,
       now: () => clock.now(),
     },
-    { userId },
+    { userId, profileId },
   );
   const prescriptionState = isOk(prescR) ? prescR.value.state : "incomplete";
 

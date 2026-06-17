@@ -33,6 +33,7 @@ export interface GetWalletBalanceDeps {
 
 export interface GetWalletBalanceInput {
   userId: string;
+  profileId: string;
 }
 
 export interface WalletBalanceResult {
@@ -92,7 +93,7 @@ export async function getWalletBalance(
   const window: EventWindow = { from: anchorAt, to: endOfMonthUtc(asOf) };
 
   const [incomes, debts, transactions, payments, adjustments] = await Promise.all([
-    deps.incomes.listForProfile(input.userId, { onlyActive: true }),
+    deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
     deps.debtPayments.listForUserInRange(input.userId, { from: anchorAt, to: endOfMonthUtc(asOf) }),

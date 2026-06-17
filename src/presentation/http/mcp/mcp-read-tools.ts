@@ -7,6 +7,7 @@ import { listGoalsWithProgress } from "@/application/use-cases/goal/list-goals-w
 import { buildPrescription } from "@/application/use-cases/prescription/build-prescription.use-case";
 import { getWalletBalance } from "@/application/use-cases/wallet/get-wallet-balance.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { isErr } from "@/shared/errors/result";
 
 import { text } from "./mcp-response";
@@ -37,6 +38,7 @@ export function registerMcpReadTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "goals:read");
       await enforceUsageOrThrow(ctx);
+      const goalProfileId = await resolvePfProfileId(ctx.userId);
       const goals = await listGoalsWithProgress(
         {
           goals: repos.goals,
@@ -48,7 +50,7 @@ export function registerMcpReadTools(server: McpServer): void {
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,
         },
-        { userId: ctx.userId, isPro: ctx.isPro },
+        { userId: ctx.userId, profileId: goalProfileId, isPro: ctx.isPro },
       );
       return text(serialize(goals));
     },
@@ -61,6 +63,7 @@ export function registerMcpReadTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "reports:read");
       await enforceUsageOrThrow(ctx);
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await getDashboardSnapshot(
         {
           debts: repos.debts,
@@ -69,7 +72,7 @@ export function registerMcpReadTools(server: McpServer): void {
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,
         },
-        { userId: ctx.userId },
+        { userId: ctx.userId, profileId },
       );
       if (isErr(result)) throw result.error;
 
@@ -85,7 +88,7 @@ export function registerMcpReadTools(server: McpServer): void {
           debtAmountAdjustments: repos.debtAmountAdjustments,
           clock,
         },
-        { userId: ctx.userId },
+        { userId: ctx.userId, profileId },
       );
 
       return text(
@@ -104,6 +107,7 @@ export function registerMcpReadTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "insights:read");
       await enforceUsageOrThrow(ctx);
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await buildPrescription(
         {
           debts: repos.debts,
@@ -114,7 +118,7 @@ export function registerMcpReadTools(server: McpServer): void {
           overrides: repos.userFxOverrides,
           clock,
         },
-        { userId: ctx.userId },
+        { userId: ctx.userId, profileId },
       );
       if (isErr(result)) throw result.error;
       return text(serialize(result.value));

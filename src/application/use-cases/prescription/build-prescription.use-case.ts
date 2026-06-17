@@ -26,6 +26,7 @@ export interface BuildPrescriptionDeps extends ConvertEntityDeps {
 
 export interface BuildPrescriptionInput {
   userId: string;
+  profileId: string;
 }
 
 export async function buildPrescription(
@@ -36,7 +37,7 @@ export async function buildPrescription(
 
   const [rawDebts, rawIncomes, rawAssets] = await Promise.all([
     deps.debts.listForUser(input.userId, { status: "active" }),
-    deps.incomes.listForProfile(input.userId, { onlyActive: true }),
+    deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
     deps.assets.findActiveByUser(input.userId),
   ]);
 

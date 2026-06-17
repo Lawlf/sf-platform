@@ -66,7 +66,7 @@ export type PreviewMonthClosingResult =
  */
 export async function computeMonthClosing(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<ComputedMonthClosing | null> {
   const open = await getOpenMonth(
     { closings: deps.closings, clock: deps.clock },
@@ -82,7 +82,7 @@ export async function computeMonthClosing(
       rates: deps.rates,
       overrides: deps.overrides,
     },
-    { userId: input.userId },
+    { userId: input.userId, profileId: input.profileId },
   );
   const theoreticalFreeCashFlowCents = isOk(snapshotResult)
     ? snapshotResult.value.monthlyFreeCashFlow.toCents()
@@ -115,7 +115,7 @@ export async function computeMonthClosing(
     .filter((a) => a.category === "cash")
     .reduce((sum, a) => sum + a.currentValue.toCents(), 0n);
 
-  const baselineNetWorthCents = await resolveBaseline(deps, input.userId, open.openMonthIso);
+  const baselineNetWorthCents = await resolveBaseline(deps, input.userId, input.profileId, open.openMonthIso);
 
   const { leakCents, status } = ReconciliationService.compute({
     theoreticalFreeCashFlowCents,
@@ -152,6 +152,7 @@ function clampCommittedBps(fraction: number): number {
 async function resolveBaseline(
   deps: MonthClosingDeps,
   userId: string,
+  profileId: string,
   openMonthIso: string,
 ): Promise<bigint> {
   const latest = await deps.closings.latest(userId);
@@ -161,7 +162,7 @@ async function resolveBaseline(
 
   const prevMonth = MonthYear.fromIso(openMonthIso).previous();
   const [incomes, debts, payments, assets] = await Promise.all([
-    deps.incomes.listForProfile(userId),
+    deps.incomes.listForProfile(profileId),
     deps.debts.listForUser(userId, { status: "all" }),
     deps.payments.listForUserInRange(userId, {
       from: prevMonth.firstDay(),
@@ -212,7 +213,7 @@ async function resolveBaseline(
 
 export async function previewMonthClosing(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<PreviewMonthClosingResult> {
   const computed = await computeMonthClosing(deps, input);
   if (!computed) return { open: false };

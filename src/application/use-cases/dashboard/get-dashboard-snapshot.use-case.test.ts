@@ -156,7 +156,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -167,7 +167,7 @@ describe("getDashboardSnapshot", () => {
       expect(result.value.incomeCommittedPct).toBeGreaterThan(0);
     }
     expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "all" });
-    expect(incomes.listForProfile).toHaveBeenCalledWith("user-1", { onlyActive: true });
+    expect(incomes.listForProfile).toHaveBeenCalledWith("profile-1", { onlyActive: true });
   });
 
   it("written_off debt entra no totalDebtBalance mas nao no serviço mensal; paid_off fica fora", async () => {
@@ -193,7 +193,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -217,7 +217,7 @@ describe("getDashboardSnapshot", () => {
           rates: makeRates(),
           overrides: makeOverrides(),
         },
-        { userId: "user-1" },
+        { userId: "user-1", profileId: "profile-1" },
       );
       if (isOk(activeOnly)) {
         expect(result.value.totalMonthlyService.toCents()).toBe(
@@ -234,7 +234,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-empty" },
+      { userId: "user-empty", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -257,7 +257,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -281,7 +281,7 @@ describe("getDashboardSnapshot", () => {
     try {
       const result = await getDashboardSnapshot(
         { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-        { userId: "user-1" },
+        { userId: "user-1", profileId: "profile-1" },
       );
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
@@ -302,7 +302,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates("5.00"), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -322,7 +322,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(null), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isErr(result)).toBe(true);

@@ -230,6 +230,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const result = await getTimelineForUser(deps, {
       userId: "user-empty",
+      profileId: "profile-1",
       before,
       limit: 6,
     });
@@ -248,6 +249,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const result = await getTimelineForUser(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       before,
       limit: 6,
     });
@@ -269,6 +271,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     const result = await getTimelineForUser(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       before,
       limit: 3,
     });
@@ -298,7 +301,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
-      { userId: "user-1", before, limit: 3 },
+      { userId: "user-1", profileId: "profile-1", before, limit: 3 },
     );
 
     expect(isOk(result)).toBe(true);
@@ -322,7 +325,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
-      { userId: "user-1", before, limit: 3 },
+      { userId: "user-1", profileId: "profile-1", before, limit: 3 },
     );
 
     expect(isOk(result)).toBe(true);
@@ -349,6 +352,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 5),
         limit: 12,
         range: "12",
@@ -379,6 +383,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 5),
         limit: 6,
         range: "12",
@@ -414,6 +419,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 3),
         limit: 3,
         show: "with-payments",
@@ -448,6 +454,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 3),
         limit: 3,
       },
@@ -466,6 +473,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     const deps = emptyRepos();
     const result = await getTimelineForUser(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       before: MonthYear.from(2026, 3),
       limit: 3,
       show: "all",
@@ -495,6 +503,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 6),
         limit: 6,
       },
@@ -530,6 +539,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 6),
         limit: 3,
       },
@@ -544,11 +554,12 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     const deps = emptyRepos();
     await getTimelineForUser(deps, {
       userId: "user-42",
+      profileId: "profile-42",
       before: MonthYear.from(2026, 3),
       limit: 3,
     });
 
-    expect(deps.incomes.listForProfile).toHaveBeenCalledWith("user-42");
+    expect(deps.incomes.listForProfile).toHaveBeenCalledWith("profile-42");
     expect(deps.debts.listForUser).toHaveBeenCalledWith("user-42", { status: "all" });
     expect(deps.debtPayments.listForUserInRange).toHaveBeenCalledWith(
       "user-42",
@@ -595,7 +606,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
 
     await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
-      { userId: "user-1", before: MonthYear.from(2026, 3), limit: 3 },
+      { userId: "user-1", profileId: "profile-1", before: MonthYear.from(2026, 3), limit: 3 },
     );
 
     const firstEndIdx = order.findIndex((e) => e.endsWith(":end"));
@@ -623,6 +634,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 5),
         limit: 6,
         range: "all",
@@ -667,6 +679,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx("5.00") },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 3),
         limit: 3,
       },
@@ -706,6 +719,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       { incomes, debts, debtPayments, assets, ...makeFx(null) },
       {
         userId: "user-1",
+        profileId: "profile-1",
         before: MonthYear.from(2026, 3),
         limit: 3,
       },

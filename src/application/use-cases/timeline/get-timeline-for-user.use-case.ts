@@ -28,6 +28,7 @@ export type TimelineShow = "all" | "highlights" | "with-payments";
 
 export interface GetTimelineForUserInput {
   userId: string;
+  profileId: string;
   /**
    * Mês mais recente INCLUÍDO nessa página (cursor descendente). A página
    * cobre `limit` meses terminando em `before` (inclusivo).
@@ -132,7 +133,7 @@ export async function getTimelineForUser(
   // Busca um mês a mais (antes de `from`) para contexto de stories (diff vs prev).
   const fetchFrom = from.previous();
   const [incomes, debts, payments, assets, adjustments] = await Promise.all([
-    deps.incomes.listForProfile(input.userId),
+    deps.incomes.listForProfile(input.profileId),
     deps.debts.listForUser(input.userId, { status: "all" }),
     deps.debtPayments.listForUserInRange(input.userId, {
       from: fetchFrom.firstDay(),

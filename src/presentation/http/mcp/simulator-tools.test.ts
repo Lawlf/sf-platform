@@ -14,6 +14,10 @@ vi.mock("@/application/use-cases/simulation/load-sim-prefill.use-case", () => ({
   })),
 }));
 
+vi.mock("@/presentation/http/middleware/active-profile", () => ({
+  resolvePfProfileId: vi.fn(async () => "profile-1"),
+}));
+
 type Handler = (a: Record<string, unknown>, e: unknown) => Promise<unknown>;
 
 function fakeServer() {

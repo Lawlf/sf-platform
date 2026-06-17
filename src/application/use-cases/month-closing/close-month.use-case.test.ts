@@ -128,7 +128,7 @@ describe("closeMonth", () => {
       incomes: [makeIncome(1000)],
     });
 
-    const r = await closeMonth(deps, { userId: "u1" });
+    const r = await closeMonth(deps, { userId: "u1", profileId: "profile-1" });
 
     expect(r).toEqual({ ok: true, leakCents: 100_000n, status: "leaked" });
     expect(upsert).toHaveBeenCalledTimes(1);
@@ -149,7 +149,7 @@ describe("closeMonth", () => {
   it("rejects when there is no open month", async () => {
     const { deps, upsert } = makeDeps({ closings: [makeClosing("2026-05")] });
 
-    const r = await closeMonth(deps, { userId: "u1" });
+    const r = await closeMonth(deps, { userId: "u1", profileId: "profile-1" });
 
     expect(r.ok).toBe(false);
     expect(upsert).not.toHaveBeenCalled();

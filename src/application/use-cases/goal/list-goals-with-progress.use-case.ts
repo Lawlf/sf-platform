@@ -32,11 +32,11 @@ export interface GoalWithProgress {
  */
 export async function listGoalsWithProgress(
   deps: ListGoalsWithProgressDeps,
-  { userId, isPro }: { userId: string; isPro: boolean },
+  { userId, profileId, isPro }: { userId: string; profileId: string; isPro: boolean },
 ): Promise<GoalWithProgress[]> {
   const [activeGoals, macro] = await Promise.all([
     deps.goals.listForUser(userId, { status: "active" }),
-    buildGoalMacro(deps, { userId }),
+    buildGoalMacro(deps, { userId, profileId }),
   ]);
 
   return Promise.all(

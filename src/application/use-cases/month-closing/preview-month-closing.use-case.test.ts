@@ -131,7 +131,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
 describe("previewMonthClosing", () => {
   it("returns { open: false } when there is no month to close", async () => {
     const deps = makeDeps({ closings: [makeClosing("2026-05", 0n)] });
-    const r = await previewMonthClosing(deps, { userId: "u1" });
+    const r = await previewMonthClosing(deps, { userId: "u1", profileId: "profile-1" });
     expect(r).toEqual({ open: false });
   });
 
@@ -140,7 +140,7 @@ describe("previewMonthClosing", () => {
       assets: [makeAsset(80_000n)],
       incomes: [makeIncome(1000)],
     });
-    const r = await previewMonthClosing(deps, { userId: "u1" });
+    const r = await previewMonthClosing(deps, { userId: "u1", profileId: "profile-1" });
     expect(r.open).toBe(true);
     if (!r.open) return;
     expect(r.monthIso).toBe("2026-05");
@@ -157,7 +157,7 @@ describe("previewMonthClosing", () => {
       assets: [makeAsset(300_000n)],
       incomes: [makeIncome(1000)],
     });
-    const r = await previewMonthClosing(deps, { userId: "u1" });
+    const r = await previewMonthClosing(deps, { userId: "u1", profileId: "profile-1" });
     expect(r.open).toBe(true);
     if (!r.open) return;
     expect(r.monthIso).toBe("2026-05");
@@ -174,7 +174,7 @@ describe("previewMonthClosing", () => {
       incomes: [makeIncome(0)],
       rate: "5.00",
     });
-    const r = await previewMonthClosing(deps, { userId: "u1" });
+    const r = await previewMonthClosing(deps, { userId: "u1", profileId: "profile-1" });
     expect(r.open).toBe(true);
     if (!r.open) return;
     expect(r.baselineNetWorthCents).toBe(100_000n);

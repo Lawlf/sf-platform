@@ -145,7 +145,7 @@ describe("buildGoalMacro", () => {
     });
     const deps = buildDeps({ debts: [debt], rate: "5.00" });
 
-    const macro = await buildGoalMacro(deps, { userId: "user-1" });
+    const macro = await buildGoalMacro(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(macro.debts).toHaveLength(1);
     expect(macro.debts[0]?.originalPrincipalCents).toBe(500_000n);
@@ -162,7 +162,7 @@ describe("buildGoalMacro", () => {
     });
     const deps = buildDeps({ debts: [debt] });
 
-    const macro = await buildGoalMacro(deps, { userId: "user-1" });
+    const macro = await buildGoalMacro(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(macro.debts[0]?.originalPrincipalCents).toBe(100_000n);
     expect(macro.debts[0]?.currentBalanceCents).toBe(80_000n);

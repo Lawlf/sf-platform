@@ -4,6 +4,7 @@ import { buildPrescription } from "@/application/use-cases/prescription/build-pr
 import type { MoveType, Prescription } from "@/domain/services/prescription/prescription.types";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 export interface PrescriptionViewPayload {
@@ -25,6 +26,7 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const profileId = await getActiveProfileId();
   const r = await buildPrescription(
     {
       debts: repos.debts,
@@ -35,7 +37,7 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
       overrides: repos.userFxOverrides,
       clock,
     },
-    { userId: user.id },
+    { userId: user.id, profileId },
   );
   if (!isOk(r)) return null;
 

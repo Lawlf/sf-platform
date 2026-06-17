@@ -20,6 +20,7 @@ import {
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 import { dateOnlyFormat } from "@/shared/format/date-only";
@@ -223,6 +224,7 @@ export async function fetchMonthDetail(input: {
   const incomeSettlementsRepo = repos.incomeSettlements;
 
   const windowFrom = storyDetectionWindowStart(month);
+  const profileId = await getActiveProfileId();
 
   const [
     paymentsRaw,
@@ -236,7 +238,7 @@ export async function fetchMonthDetail(input: {
   ] = await Promise.all([
     debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForUser(user.id, { status: "all" }),
-    incomes.listForProfile(user.id),
+    incomes.listForProfile(profileId),
     assets.findActiveByUser(user.id),
     debtPayments.listForUserInRange(user.id, {
       from: windowFrom.firstDay(),

@@ -12,7 +12,7 @@ export type CloseMonthResult =
 
 export async function closeMonth(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<CloseMonthResult> {
   const computed = await computeMonthClosing(deps, input);
   if (!computed) {

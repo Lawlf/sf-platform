@@ -15,6 +15,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 const HORIZON_MONTHS = 120;
@@ -62,6 +63,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const goalsRepo = repos.goals;
   const settingsRepo = repos.financialPlanningSettings;
 
+  const profileId = await getActiveProfileId();
   const [goals, assets, debts, settings, macro] = await Promise.all([
     goalsRepo.listForUser(user.id, { status: "active" }),
     assetsRepo.findActiveByUser(user.id),
@@ -77,7 +79,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
         rates: repos.exchangeRates,
         overrides: repos.userFxOverrides,
       },
-      { userId: user.id },
+      { userId: user.id, profileId },
     ),
   ]);
 
@@ -273,6 +275,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const user = await getCurrentUser();
   if (!user) return { open: false };
 
+  const profileId = await getActiveProfileId();
   const debtsRepo = repos.debts;
   const preview = await previewMonthClosing(
     {
@@ -286,7 +289,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId: user.id },
+    { userId: user.id, profileId },
   );
 
   if (!preview.open) return { open: false };
@@ -298,7 +301,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
     debtsRepo.listForUser(user.id, { status: "all" }),
     settlementsRepo.listForUserMonth(user.id, month.firstDay()),
-    incomesRepo.listForProfile(user.id),
+    incomesRepo.listForProfile(profileId),
     incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),
   ]);
 

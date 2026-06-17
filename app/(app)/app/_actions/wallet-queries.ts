@@ -3,6 +3,7 @@
 import { getWalletBalance } from "@/application/use-cases/wallet/get-wallet-balance.use-case";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -18,6 +19,7 @@ export async function fetchWalletBalance(): Promise<WalletBalancePayload | null>
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const profileId = await getActiveProfileId();
   const result = await getWalletBalance(
     {
       assets: repos.assets,
@@ -30,7 +32,7 @@ export async function fetchWalletBalance(): Promise<WalletBalancePayload | null>
       debtAmountAdjustments: repos.debtAmountAdjustments,
       clock,
     },
-    { userId: user.id },
+    { userId: user.id, profileId },
   );
   if (!isOk(result)) return null;
 

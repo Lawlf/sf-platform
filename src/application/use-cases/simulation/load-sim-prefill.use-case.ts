@@ -39,9 +39,9 @@ export interface LoadSimPrefillDeps {
 
 export async function loadSimPrefill(
   deps: LoadSimPrefillDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<SimPrefill> {
-  const { userId } = input;
+  const { userId, profileId } = input;
   const [netWorth, snapshot] = await Promise.all([
     getNetWorth(
       {
@@ -62,7 +62,7 @@ export async function loadSimPrefill(
         rates: deps.rates,
         overrides: deps.overrides,
       },
-      { userId },
+      { userId, profileId },
     ),
   ]);
 
