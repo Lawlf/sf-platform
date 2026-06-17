@@ -12,7 +12,7 @@ import { reactivateIncome } from "./reactivate-income.use-case";
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -31,6 +31,7 @@ function makeExisting(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: "income-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Salario",
     amount: amt.value,
     frequency: "monthly",

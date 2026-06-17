@@ -3,6 +3,7 @@
 import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
 import type { IncomeFrequency } from "@/domain/entities/income.entity";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -20,7 +21,8 @@ export interface IncomeListItemPayload {
 export async function fetchIncomes(): Promise<IncomeListItemPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
-  const r = await listIncomes({ incomes: repos.incomes }, { userId: user.id });
+  const profileId = await getActiveProfileId();
+  const r = await listIncomes({ incomes: repos.incomes }, { profileId });
   const list = isOk(r) ? r.value : [];
   return list.map((i) => ({
     id: i.id,

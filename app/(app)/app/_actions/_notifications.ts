@@ -28,7 +28,7 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
 
     const [debtsRaw, incomesRaw, paymentsRaw, assetsRaw, adjustmentsRaw] = await Promise.all([
       debts.listForUser(userId, { status: "all" }),
-      incomes.listForUser(userId),
+      incomes.listForProfile(userId),
       payments.listForUserInRange(userId, {
         from: currentMonth.firstDay(),
         to: currentMonth.lastDay(),

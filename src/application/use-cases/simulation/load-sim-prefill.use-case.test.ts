@@ -7,7 +7,7 @@ function emptyDeps(): LoadSimPrefillDeps {
     assets: { findActiveByUser: vi.fn(async () => []) },
     allocations: { findByAsset: vi.fn(async () => []) },
     debts: { listForUser: vi.fn(async () => []) },
-    incomes: { listForUser: vi.fn(async () => []) },
+    incomes: { listForProfile: vi.fn(async () => []) },
     clock: { now: vi.fn(() => new Date("2026-06-03T12:00:00Z")) },
   } as unknown as LoadSimPrefillDeps;
 }
@@ -26,6 +26,6 @@ describe("loadSimPrefill", () => {
     const deps = emptyDeps();
     await loadSimPrefill(deps, { userId: "u1" });
     expect(deps.assets.findActiveByUser).toHaveBeenCalledWith("u1");
-    expect(deps.incomes.listForUser).toHaveBeenCalledWith("u1", { onlyActive: true });
+    expect(deps.incomes.listForProfile).toHaveBeenCalledWith("u1", { onlyActive: true });
   });
 });

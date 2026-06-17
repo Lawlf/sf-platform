@@ -19,7 +19,7 @@ export interface GetWalletBalanceDeps {
     findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]>;
     createDefaultWallet(asset: AssetEntity): Promise<void>;
   };
-  incomes: { listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
+  incomes: { listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
   debts: { listForUser(userId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
   settlements: { listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> };
   incomeSettlements: { listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]> };
@@ -92,7 +92,7 @@ export async function getWalletBalance(
   const window: EventWindow = { from: anchorAt, to: endOfMonthUtc(asOf) };
 
   const [incomes, debts, transactions, payments, adjustments] = await Promise.all([
-    deps.incomes.listForUser(input.userId, { onlyActive: true }),
+    deps.incomes.listForProfile(input.userId, { onlyActive: true }),
     deps.debts.listForUser(input.userId, { status: "active" }),
     deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
     deps.debtPayments.listForUserInRange(input.userId, { from: anchorAt, to: endOfMonthUtc(asOf) }),

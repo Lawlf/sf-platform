@@ -23,7 +23,7 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
 
   const counts = {
     async hasIncome(userId: string): Promise<boolean> {
-      const list = await incomes.listForUser(userId, { onlyActive: true });
+      const list = await incomes.listForProfile(userId, { onlyActive: true });
       return list.length > 0;
     },
     async hasDebt(userId: string): Promise<boolean> {

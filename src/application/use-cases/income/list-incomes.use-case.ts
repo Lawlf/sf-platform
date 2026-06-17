@@ -8,9 +8,9 @@ export interface ListIncomesDeps {
 
 export async function listIncomes(
   deps: ListIncomesDeps,
-  input: { userId: string; onlyActive?: boolean },
+  input: { profileId: string; onlyActive?: boolean },
 ): Promise<Result<IncomeEntity[], never>> {
   const opts = input.onlyActive !== undefined ? { onlyActive: input.onlyActive } : undefined;
-  const list = await deps.incomes.listForUser(input.userId, opts);
+  const list = await deps.incomes.listForProfile(input.profileId, opts);
   return ok(list);
 }

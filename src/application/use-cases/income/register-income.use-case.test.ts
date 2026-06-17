@@ -10,7 +10,7 @@ import { registerIncome } from "./register-income.use-case";
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -41,6 +41,7 @@ describe("registerIncome", () => {
       { incomes, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         label: "Salario",
         amount,
         frequency: "monthly",
@@ -74,6 +75,7 @@ describe("registerIncome", () => {
       { incomes, clock },
       {
         userId: "user-2",
+        profileId: "profile-1",
         label: "Freelance",
         amount,
         frequency: "one_off",
@@ -94,6 +96,7 @@ describe("registerIncome", () => {
     const persisted: IncomeEntity = {
       id: "persisted-id",
       userId: "user-3",
+      profileId: "profile-1",
       label: "Aluguel",
       amount,
       frequency: "weekly",
@@ -111,6 +114,7 @@ describe("registerIncome", () => {
       { incomes, clock },
       {
         userId: "user-3",
+        profileId: "profile-1",
         label: "Aluguel",
         amount,
         frequency: "weekly",

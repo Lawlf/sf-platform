@@ -44,6 +44,7 @@ function makeIncome(overrides: {
   return {
     id: overrides.id ?? "inc-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Renda",
     amount: Money.fromCents(overrides.amountCents),
     frequency: overrides.frequency ?? "monthly",

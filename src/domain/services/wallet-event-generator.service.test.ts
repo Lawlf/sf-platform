@@ -23,6 +23,7 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
   return {
     id: "i1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Salário",
     amount: moneyOf(5000),
     frequency: "monthly",

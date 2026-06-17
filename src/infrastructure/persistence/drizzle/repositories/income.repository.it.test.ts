@@ -37,6 +37,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}salario`,
     amount: Money.fromCents(500_000n),
     frequency: "monthly",
@@ -66,14 +67,14 @@ describe("IncomeRepository (integration)", () => {
     expect(found?.isActive).toBe(true);
   });
 
-  it("listForUser onlyActive returns only active incomes", async () => {
+  it("listForProfile onlyActive returns only active incomes", async () => {
     await repo.create(makeIncome({ label: `${LABEL_PREFIX}active`, isActive: true }));
     await repo.create(makeIncome({ label: `${LABEL_PREFIX}inactive`, isActive: false }));
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(2);
 
-    const onlyActive = await repo.listForUser(userId, { onlyActive: true });
+    const onlyActive = await repo.listForProfile(userId, { onlyActive: true });
     expect(onlyActive).toHaveLength(1);
     expect(onlyActive[0]?.label).toBe(`${LABEL_PREFIX}active`);
     expect(onlyActive[0]?.isActive).toBe(true);

@@ -150,6 +150,7 @@ function deserializeIncome(s: Record<string, unknown>): IncomeEntity {
   return {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: typeof s.profileId === "string" ? s.profileId : str(s.userId),
     label: str(s.label),
     amount: money(s.amount),
     frequency: str(s.frequency) as IncomeEntity["frequency"],

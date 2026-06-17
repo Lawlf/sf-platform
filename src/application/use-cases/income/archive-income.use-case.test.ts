@@ -12,7 +12,7 @@ import { archiveIncome } from "./archive-income.use-case";
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -27,6 +27,7 @@ function makeExisting(userId = "user-1"): IncomeEntity {
   return {
     id: "income-1",
     userId,
+    profileId: "profile-1",
     label: "Salario",
     amount: amt.value,
     frequency: "monthly",

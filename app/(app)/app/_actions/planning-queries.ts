@@ -298,7 +298,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
     debtsRepo.listForUser(user.id, { status: "all" }),
     settlementsRepo.listForUserMonth(user.id, month.firstDay()),
-    incomesRepo.listForUser(user.id),
+    incomesRepo.listForProfile(user.id),
     incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),
   ]);
 

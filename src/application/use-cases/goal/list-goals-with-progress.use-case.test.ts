@@ -116,7 +116,7 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     setActive: vi.fn(),
     softDelete: vi.fn(),
     restore: vi.fn(),

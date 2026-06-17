@@ -131,7 +131,7 @@ export async function GET(request: Request) {
     const userDebts = await repos.debts.listForUser(userId, { status: "all" });
     const [userAssets, userIncomes, userGoals] = await Promise.all([
       repos.assets.findActiveByUser(userId),
-      repos.incomes.listForUser(userId),
+      repos.incomes.listForProfile(userId),
       repos.goals.listForUser(userId),
     ]);
     await reconcileEventAchievements(

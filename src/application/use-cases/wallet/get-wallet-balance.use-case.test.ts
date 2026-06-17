@@ -47,6 +47,7 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
   return {
     id: "i1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Salário",
     amount: moneyOf(5000),
     frequency: "monthly",
@@ -87,7 +88,7 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
       findActiveByUserAndCategory: async () => [wallet({})],
       createDefaultWallet: async () => {},
     },
-    incomes: { listForUser: async () => [income({})] },
+    incomes: { listForProfile: async () => [income({})] },
     debts: { listForUser: async () => [] },
     settlements: { listForUserMonth: async () => [] },
     incomeSettlements: { listForUserMonth: async () => [] },

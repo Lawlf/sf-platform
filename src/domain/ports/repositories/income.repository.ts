@@ -8,11 +8,11 @@ export interface IncomeRepositoryPort {
    */
   findById(id: string): Promise<IncomeEntity | null>;
   /**
-   * Lista rendas do usuário. Sempre filtra `deleted_at IS NULL`. O parâmetro
+   * Lista rendas do perfil. Sempre filtra `deleted_at IS NULL`. O parâmetro
    * `onlyActive` filtra adicionalmente por `is_active = true` (sem incluir
    * arquivadas).
    */
-  listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]>;
+  listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]>;
   create(entity: IncomeEntity): Promise<IncomeEntity>;
   update(entity: IncomeEntity): Promise<IncomeEntity>;
   setActive(id: string, isActive: boolean): Promise<void>;

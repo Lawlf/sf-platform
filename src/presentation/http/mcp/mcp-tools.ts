@@ -29,7 +29,7 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "incomes:read");
       await enforceUsageOrThrow(ctx);
-      const incomes = await repos.incomes.listForUser(ctx.userId);
+      const incomes = await repos.incomes.listForProfile(ctx.userId);
       return text(serialize(incomes));
     },
   );

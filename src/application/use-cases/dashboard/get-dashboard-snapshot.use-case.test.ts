@@ -50,7 +50,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn().mockResolvedValue([]),
+    listForProfile: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -129,6 +129,7 @@ function makeIncome(userId = "user-1"): IncomeEntity {
   return {
     id: "income-1",
     userId,
+    profileId: "profile-1",
     label: "Salario",
     amount: makeMoney(8000),
     frequency: "monthly",
@@ -151,7 +152,7 @@ describe("getDashboardSnapshot", () => {
     const debt = makeFinancing();
     const income = makeIncome();
     (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
@@ -166,7 +167,7 @@ describe("getDashboardSnapshot", () => {
       expect(result.value.incomeCommittedPct).toBeGreaterThan(0);
     }
     expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "all" });
-    expect(incomes.listForUser).toHaveBeenCalledWith("user-1", { onlyActive: true });
+    expect(incomes.listForProfile).toHaveBeenCalledWith("user-1", { onlyActive: true });
   });
 
   it("written_off debt entra no totalDebtBalance mas nao no serviço mensal; paid_off fica fora", async () => {
@@ -188,7 +189,7 @@ describe("getDashboardSnapshot", () => {
       currentBalance: makeMoney(0),
     };
     (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([active, outOfMonth, paid]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
@@ -209,7 +210,7 @@ describe("getDashboardSnapshot", () => {
           })(),
           incomes: (() => {
             const r = makeIncomeRepo();
-            (r.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+            (r.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
             return r;
           })(),
           clock,
@@ -252,7 +253,7 @@ describe("getDashboardSnapshot", () => {
     const income = makeIncome();
     const housing = makeRecurring({ id: "rec-1", recurringAmountCents: 150_000n });
     (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([housing]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
@@ -297,7 +298,7 @@ describe("getDashboardSnapshot", () => {
     const clock = makeClock();
 
     const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates("5.00"), overrides: makeOverrides() },
@@ -317,7 +318,7 @@ describe("getDashboardSnapshot", () => {
     const clock = makeClock();
 
     const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(null), overrides: makeOverrides() },

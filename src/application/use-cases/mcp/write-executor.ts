@@ -84,6 +84,7 @@ export async function executeWrite(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
+          profileId: userId,
           label: str(args.label),
           amount: money(args.amountCents, currency),
           frequency: str(args.frequency) as IncomeFrequency,

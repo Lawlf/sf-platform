@@ -40,6 +40,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: ["A1"],
       acceptedDebtFitIds: ["B2"],
@@ -56,6 +57,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -71,6 +73,7 @@ describe("commitOfxImport", () => {
     deps.transactions.existingExternalIds = vi.fn(async () => ["A1"]);
     await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -84,6 +87,7 @@ describe("commitOfxImport", () => {
     deps.assets.listExternalAccountKeys = vi.fn(async () => []);
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -98,6 +102,7 @@ describe("commitOfxImport", () => {
     deps.assets.listExternalAccountKeys = vi.fn(async () => ["341:1"]);
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -111,6 +116,7 @@ describe("commitOfxImport", () => {
     deps.assets.listExternalAccountKeys = vi.fn(async () => ["999:9"]);
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -128,6 +134,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: ["A1"],
       acceptedDebtFitIds: ["B2"],
@@ -147,6 +154,7 @@ describe("commitOfxImport", () => {
     deps.assets.listExternalAccountKeys = vi.fn(async () => ["999:9"]);
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -159,6 +167,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML_RDB],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -179,6 +188,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML_RDB],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -196,6 +206,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: ["B2"],
@@ -216,6 +227,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [INTERNAL],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -231,6 +243,7 @@ describe("commitOfxImport", () => {
     deps.assets.listExternalAccountKeys = vi.fn(async () => ["341:1:reserve"]);
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],
@@ -248,6 +261,7 @@ describe("commitOfxImport", () => {
     const deps = makeDeps();
     const r = await commitOfxImport(deps as never, {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML, other],
       acceptedIncomeFitIds: [],
       acceptedDebtFitIds: [],

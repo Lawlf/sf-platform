@@ -48,6 +48,7 @@ function makeIncome(amountReais: number): IncomeEntity {
   return {
     id: "income-1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Salario",
     amount: Money.fromCents(BigInt(Math.round(amountReais * 100))),
     frequency: "monthly",
@@ -108,7 +109,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
   } as unknown as DebtRepositoryPort;
 
   const incomes = {
-    listForUser: async () => incomesStore,
+    listForProfile: async () => incomesStore,
   } as unknown as IncomeRepositoryPort;
 
   const payments = {

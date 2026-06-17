@@ -18,7 +18,7 @@ function rate(annual: number): InterestRate {
 function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> = {}): WriteExecutorDeps {
   const incomes = {
     findById: vi.fn(async () => null),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(async (e: IncomeEntity) => e),
     update: vi.fn(async (e: IncomeEntity) => e),
     setActive: vi.fn(),
@@ -178,6 +178,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
+      profileId: "profile-1",
       label: "Salary",
       amount: Money.fromCents(500000n, "USD"),
       frequency: "monthly",
@@ -243,6 +244,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
+      profileId: "profile-1",
       label: "Salário",
       amount: Money.fromCents(500000n),
       frequency: "monthly",

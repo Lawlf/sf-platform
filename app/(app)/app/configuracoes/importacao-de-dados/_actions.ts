@@ -7,6 +7,7 @@ import { buildOfxPreview } from "@/application/use-cases/import/build-ofx-previe
 import { commitOfxImport } from "@/application/use-cases/import/commit-ofx-import.use-case";
 import { bankNameFromId } from "@/domain/services/ofx/bank-names";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -130,6 +131,7 @@ export async function commitOfxAction(input: {
   reserveTotalCents?: number | null;
 }): Promise<CommitResult> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const totalLen = input.contents.reduce((acc, c) => acc + c.length, 0);
   if (totalLen > MAX_OFX_BYTES) {
@@ -146,6 +148,7 @@ export async function commitOfxAction(input: {
     },
     {
       userId: user.id,
+      profileId,
       contents: input.contents,
       acceptedIncomeFitIds: input.acceptedIncomeFitIds,
       acceptedDebtFitIds: input.acceptedDebtFitIds,

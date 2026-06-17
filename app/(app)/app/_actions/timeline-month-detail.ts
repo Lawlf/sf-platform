@@ -236,7 +236,7 @@ export async function fetchMonthDetail(input: {
   ] = await Promise.all([
     debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForUser(user.id, { status: "all" }),
-    incomes.listForUser(user.id),
+    incomes.listForProfile(user.id),
     assets.findActiveByUser(user.id),
     debtPayments.listForUserInRange(user.id, {
       from: windowFrom.firstDay(),

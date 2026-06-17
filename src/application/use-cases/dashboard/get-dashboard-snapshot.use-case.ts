@@ -43,7 +43,7 @@ export async function getDashboardSnapshot(
 > {
   const [allDebts, incomes] = await Promise.all([
     deps.debts.listForUser(input.userId, { status: "all" }),
-    deps.incomes.listForUser(input.userId, { onlyActive: true }),
+    deps.incomes.listForProfile(input.userId, { onlyActive: true }),
   ]);
   // Ativas + "fora do mês" (written_off). As quitadas (paid_off) ficam de fora.
   // O snapshot separa por dentro: total inclui written_off, mensal só ativas.

@@ -161,7 +161,7 @@ async function resolveBaseline(
 
   const prevMonth = MonthYear.fromIso(openMonthIso).previous();
   const [incomes, debts, payments, assets] = await Promise.all([
-    deps.incomes.listForUser(userId),
+    deps.incomes.listForProfile(userId),
     deps.debts.listForUser(userId, { status: "all" }),
     deps.payments.listForUserInRange(userId, {
       from: prevMonth.firstDay(),

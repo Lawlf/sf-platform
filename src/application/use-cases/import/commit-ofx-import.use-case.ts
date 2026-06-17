@@ -26,6 +26,7 @@ export interface CommitOfxImportDeps {
 
 export interface CommitOfxImportInput {
   userId: string;
+  profileId: string;
   contents: string[];
   acceptedIncomeFitIds: string[];
   acceptedDebtFitIds: string[];
@@ -167,6 +168,7 @@ export async function commitOfxImport(
     const entity: IncomeEntity = {
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       label,
       amount: Money.fromCents(amountCents),
       frequency: "monthly",

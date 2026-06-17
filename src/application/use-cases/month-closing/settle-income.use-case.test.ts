@@ -18,6 +18,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: INCOME_ID,
     userId: OWNER,
+    profileId: "profile-1",
     label: "Salário",
     amount: Money.fromCents(500_000n),
     frequency: "monthly",
@@ -35,7 +36,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
 function makeIncomeRepo(income: IncomeEntity | null): IncomeRepositoryPort {
   return {
     findById: vi.fn(async () => income),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(async (e) => e),
     update: vi.fn(async (e) => e),
     softDelete: vi.fn(),

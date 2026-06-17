@@ -45,6 +45,7 @@ const rate = (d: number) => {
 const income: IncomeEntity = {
   id: "i1",
   userId: "u1",
+  profileId: "profile-1",
   label: "Salário",
   amount: m(5000),
   frequency: "monthly",
@@ -89,7 +90,7 @@ const cashAsset = {
 
 const deps = {
   debts: { listForUser: async () => [dearCard] },
-  incomes: { listForUser: async () => [income] },
+  incomes: { listForProfile: async () => [income] },
   assets: { findActiveByUser: async () => [cashAsset] },
   now: () => NOW,
   ...fxDeps(null),
@@ -108,7 +109,7 @@ describe("buildPrescription", () => {
     const usdIncome = { ...income, id: "iUsd", amount: mUsd(1000) } as IncomeEntity;
     const fxConverted = {
       debts: { listForUser: async () => [] },
-      incomes: { listForUser: async () => [usdIncome] },
+      incomes: { listForProfile: async () => [usdIncome] },
       assets: { findActiveByUser: async () => [] },
       now: () => NOW,
       ...fxDeps("5.00"),
@@ -124,7 +125,7 @@ describe("buildPrescription", () => {
     const usdAsset = { ...cashAsset, id: "aUsd", currentValue: mUsd(1000) } as AssetEntity;
     const noRate = {
       debts: { listForUser: async () => [] },
-      incomes: { listForUser: async () => [income] },
+      incomes: { listForProfile: async () => [income] },
       assets: { findActiveByUser: async () => [usdAsset] },
       now: () => NOW,
       ...fxDeps(null),

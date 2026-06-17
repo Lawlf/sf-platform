@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { listIncomes } from "@/application/use-cases/income/list-incomes.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -16,8 +17,9 @@ export const metadata: Metadata = { title: "Editar renda" };
 export default async function EditIncomePage({ params }: { params: Promise<{ id: string }> }) {
   const user = await requireUser();
   const { id } = await params;
+  const profileId = await getActiveProfileId();
 
-  const r = await listIncomes({ incomes: repos.incomes }, { userId: user.id });
+  const r = await listIncomes({ incomes: repos.incomes }, { profileId });
   if (!isOk(r)) return notFound();
   const income = r.value.find((i) => i.id === id);
   if (!income) return notFound();
