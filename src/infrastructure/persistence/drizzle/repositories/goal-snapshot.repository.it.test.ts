@@ -27,6 +27,7 @@ beforeAll(async () => {
   const goal = await goalRepo.create({
     id: randomUUID(),
     userId,
+    profileId: userId,
     type: "savings",
     title: "Meta snapshot test",
     status: "active",
@@ -112,6 +113,7 @@ describe("GoalSnapshotRepository (integration)", () => {
     const other = await goalRepo.create({
       id: randomUUID(),
       userId,
+      profileId: userId,
       type: "emergency_fund",
       title: "Fundo emergencia",
       status: "active",

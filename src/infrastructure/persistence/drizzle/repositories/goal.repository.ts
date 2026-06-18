@@ -5,13 +5,14 @@ import type { GoalEntity, GoalStatus } from "@/domain/entities/goal.entity";
 import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import { goals, type GoalRow, type NewGoalRow } from "../schema/goals.schema";
 
 function rowToEntity(row: GoalRow): GoalEntity {
   return {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId ?? row.userId,
     type: row.type,
     title: row.title,
     status: row.status,
@@ -36,6 +37,7 @@ function entityToRow(entity: Omit<GoalEntity, "createdAt" | "updatedAt">): NewGo
   return {
     id: entity.id,
     userId: entity.userId,
+    profileId: entity.profileId,
     type: entity.type,
     title: entity.title,
     status: entity.status,
@@ -119,8 +121,8 @@ export class GoalRepository implements GoalRepositoryPort {
     return rowToEntity(row);
   }
 
-  async listForUser(userId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]> {
-    const conditions = [ownedBy(goals, userId)];
+  async listForProfile(profileId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]> {
+    const conditions = [scopedToProfile(goals, profileId)];
     if (opts?.status !== undefined) {
       conditions.push(eq(goals.status, opts.status));
     }
@@ -132,11 +134,11 @@ export class GoalRepository implements GoalRepositoryPort {
     return rows.map(rowToEntity);
   }
 
-  async countActive(userId: string): Promise<number> {
+  async countActive(profileId: string): Promise<number> {
     const result = await getDb()
       .select({ value: count() })
       .from(goals)
-      .where(and(eq(goals.userId, userId), eq(goals.status, "active"), isNull(goals.deletedAt)));
+      .where(and(eq(goals.profileId, profileId), eq(goals.status, "active"), isNull(goals.deletedAt)));
     return result[0]?.value ?? 0;
   }
 

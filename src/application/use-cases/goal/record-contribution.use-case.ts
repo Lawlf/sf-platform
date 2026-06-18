@@ -61,6 +61,7 @@ export async function recordContribution(
     id: deps.newId(),
     goalId,
     userId,
+    profileId: goal.profileId,
     amountCents,
     createdAt: deps.clock.now(),
   });
@@ -76,7 +77,7 @@ async function applyToReserve(
   amountCents: bigint,
 ): Promise<void> {
   const linked = goal.linkedAssetId
-    ? await deps.assets.findById(goal.linkedAssetId, goal.userId)
+    ? await deps.assets.findById(goal.linkedAssetId, goal.profileId)
     : null;
 
   if (linked && linked.category === "cash") {
@@ -92,7 +93,7 @@ async function applyToReserve(
   const created: AssetEntity = {
     id: deps.newId(),
     userId: goal.userId,
-    profileId: goal.userId,
+    profileId: goal.profileId,
     category: "cash",
     label: "Reserva de emergência",
     currentValue: Money.fromCents(amountCents),

@@ -38,6 +38,7 @@ function makeGoal(overrides: Partial<Omit<GoalEntity, "createdAt" | "updatedAt">
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     type: "savings",
     title: "Reserva de emergencia",
     status: "active",
@@ -93,7 +94,7 @@ describe("GoalRepository (integration)", () => {
     await repo.create(g3);
     await repo.softDelete(g3.id);
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(2);
     const ids = all.map((g) => g.id);
     expect(ids).toContain(g1.id);
@@ -107,11 +108,11 @@ describe("GoalRepository (integration)", () => {
     await repo.create(makeGoal({ id: randomUUID(), status: "reached" }));
     await repo.create(makeGoal({ id: randomUUID(), status: "archived" }));
 
-    const active = await repo.listForUser(userId, { status: "active" });
+    const active = await repo.listForProfile(userId, { status: "active" });
     expect(active).toHaveLength(2);
     expect(active.every((g) => g.status === "active")).toBe(true);
 
-    const reached = await repo.listForUser(userId, { status: "reached" });
+    const reached = await repo.listForProfile(userId, { status: "reached" });
     expect(reached).toHaveLength(1);
     expect(reached[0]?.status).toBe("reached");
   });

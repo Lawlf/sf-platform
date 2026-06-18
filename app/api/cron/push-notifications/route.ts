@@ -138,7 +138,7 @@ export async function GET(request: Request) {
     const [userAssets, userIncomes, userGoals] = await Promise.all([
       repos.assets.findActiveByProfile(profileId),
       repos.incomes.listForProfile(profileId),
-      repos.goals.listForUser(userId),
+      repos.goals.listForProfile(profileId),
     ]);
     await reconcileEventAchievements(
       (uid, slug) => awardEventAchievement(uid, slug),

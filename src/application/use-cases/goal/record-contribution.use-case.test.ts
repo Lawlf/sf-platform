@@ -13,6 +13,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: "g1",
     userId: "u1",
+    profileId: "profile-1",
     type: "emergency_fund",
     title: "Reserva",
     status: "active",
@@ -105,9 +106,9 @@ function makeHarness(
       },
     },
     assets: {
-      findById: async (id: string, userId: string) => {
+      findById: async (id: string, profileId: string) => {
         const a = assetStore.get(id);
-        if (!a || a.userId !== userId) return null;
+        if (!a || (a.profileId ?? a.userId) !== profileId) return null;
         return a;
       },
       create: async (a: AssetEntity) => {

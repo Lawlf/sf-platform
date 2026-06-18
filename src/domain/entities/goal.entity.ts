@@ -11,6 +11,7 @@ export type GoalCascadeMode = "queue" | "parallel";
 export interface GoalEntity {
   id: string;
   userId: string;
+  profileId: string;
   type: GoalType;
   title: string;
   status: GoalStatus;

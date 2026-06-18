@@ -76,11 +76,11 @@ function toCreateInput(raw: CreateGoalActionInput): CreateGoalInput {
 export const createGoalAction = action({
   schema: createGoalSchema,
   revalidates: ["goals"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const user = await requireUser();
     const result = await createGoal(
       { goals: repos.goals },
-      { userId, isPro: user.isPro, input: toCreateInput(input) },
+      { userId, profileId, isPro: user.isPro, input: toCreateInput(input) },
     );
     if (!result.ok) throw new ActionError(result.message);
 

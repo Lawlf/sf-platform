@@ -302,6 +302,7 @@ export async function executeWrite(
         { goals: deps.goals },
         {
           userId,
+          profileId,
           isPro: input.isPro,
           input: {
             type: str(args.type) as GoalType,

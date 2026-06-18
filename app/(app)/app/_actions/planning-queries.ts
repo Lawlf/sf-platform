@@ -65,7 +65,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
 
   const profileId = await getActiveProfileId();
   const [goals, assets, debts, settings, macro] = await Promise.all([
-    goalsRepo.listForUser(user.id, { status: "active" }),
+    goalsRepo.listForProfile(profileId, { status: "active" }),
     assetsRepo.findActiveByProfile(profileId),
     debtsRepo.listForProfile(profileId, { status: "active" }),
     settingsRepo.findByUser(user.id),
@@ -164,7 +164,7 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
 
   const [cashAssets, goals, settings] = await Promise.all([
     assetsRepo.findActiveByProfileAndCategory(profileId, "cash"),
-    goalsRepo.listForUser(user.id, { status: "active" }),
+    goalsRepo.listForProfile(profileId, { status: "active" }),
     settingsRepo.findByUser(user.id),
   ]);
 

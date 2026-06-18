@@ -9,6 +9,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: "g1",
     userId: "u1",
+    profileId: "profile-1",
     type: "savings",
     title: "Meta",
     status: "active",
@@ -42,7 +43,7 @@ function makeGoalsRepo(initial: GoalEntity[]): GoalRepositoryPort {
       return updated;
     },
     create: async () => { throw new Error("not used"); },
-    listForUser: async () => { throw new Error("not used"); },
+    listForProfile: async () => { throw new Error("not used"); },
     countActive: async () => { throw new Error("not used"); },
     softDelete: async () => { throw new Error("not used"); },
     restore: async () => { throw new Error("not used"); },

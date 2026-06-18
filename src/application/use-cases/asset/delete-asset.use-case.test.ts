@@ -123,7 +123,7 @@ describe("deleteAsset", () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const clock = makeClock();
-    // findById takes userId; repo scoping returns null when not owned.
+    // findById takes profileId; repo scoping returns null when not owned.
     (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
     const result = await deleteAsset(

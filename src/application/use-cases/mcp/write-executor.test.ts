@@ -64,7 +64,7 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(async () => null),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     countActive: vi.fn(async () => 0),
     softDelete: vi.fn(),
     listAllActive: vi.fn(),
@@ -411,6 +411,7 @@ describe("executeWrite", () => {
     const created: GoalEntity = {
       id: "g1",
       userId: "u1",
+      profileId: "p1",
       type: "savings",
       title: "Reserva",
       status: "active",

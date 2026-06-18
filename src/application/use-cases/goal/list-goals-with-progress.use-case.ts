@@ -35,7 +35,7 @@ export async function listGoalsWithProgress(
   { userId, profileId, isPro }: { userId: string; profileId: string; isPro: boolean },
 ): Promise<GoalWithProgress[]> {
   const [activeGoals, macro] = await Promise.all([
-    deps.goals.listForUser(userId, { status: "active" }),
+    deps.goals.listForProfile(profileId, { status: "active" }),
     buildGoalMacro(deps, { userId, profileId }),
   ]);
 

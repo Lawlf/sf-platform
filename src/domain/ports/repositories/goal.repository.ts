@@ -4,8 +4,8 @@ export interface GoalRepositoryPort {
   create(goal: Omit<GoalEntity, "createdAt" | "updatedAt">): Promise<GoalEntity>;
   update(id: string, patch: Partial<GoalEntity>): Promise<GoalEntity | null>;
   findById(id: string): Promise<GoalEntity | null>;
-  listForUser(userId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]>;
-  countActive(userId: string): Promise<number>;
+  listForProfile(profileId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]>;
+  countActive(profileId: string): Promise<number>;
   softDelete(id: string): Promise<void>;
   /**
    * Reverte um soft delete (`deleted_at = null`). Usado pelo undo de uma ação

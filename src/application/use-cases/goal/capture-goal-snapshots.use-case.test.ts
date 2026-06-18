@@ -14,6 +14,7 @@ function makeSavingsGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: GOAL_ID,
     userId: USER_ID,
+    profileId: "profile-1",
     type: "savings",
     title: "Reserva viagem",
     status: "active",

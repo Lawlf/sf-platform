@@ -47,6 +47,7 @@ function makeSavingsGoal(linkedAssetId: string, targetCents: bigint): GoalEntity
   return {
     id: "g1",
     userId: "user-1",
+    profileId: "profile-1",
     type: "savings",
     title: "Reserva",
     status: "active",
@@ -127,8 +128,8 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: GoalStatus }) => {
-      if (goal.userId !== userId) return [];
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: GoalStatus }) => {
+      if ((goal.profileId ?? goal.userId) !== profileId) return [];
       if (opts?.status && goal.status !== opts.status) return [];
       return [goal];
     }),

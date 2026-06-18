@@ -10,6 +10,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: crypto.randomUUID(),
     userId: "u1",
+    profileId: "profile-1",
     type: "savings",
     title: "Meta",
     status: "active",
@@ -34,18 +35,18 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
 function repoWith(activeCount: number, activeGoals: GoalEntity[] = []) {
   return {
     countActive: async () => activeCount,
-    listForUser: async () => activeGoals,
+    listForProfile: async () => activeGoals,
     create: async (g: Omit<GoalEntity, "createdAt" | "updatedAt">) => ({ ...g, createdAt: new Date(), updatedAt: new Date() }),
   } as unknown as GoalRepositoryPort;
 }
 
 describe("createGoal", () => {
   it("bloqueia 2a meta ativa para usuario Free", async () => {
-    const r = await createGoal({ goals: repoWith(1) }, { userId: "u1", isPro: false, input: { type: "savings", title: "x", targetCents: 100n, fundingMode: "manual", manualSavedCents: 0n } as CreateGoalInput });
+    const r = await createGoal({ goals: repoWith(1) }, { userId: "u1", profileId: "profile-1", isPro: false, input: { type: "savings", title: "x", targetCents: 100n, fundingMode: "manual", manualSavedCents: 0n } as CreateGoalInput });
     expect(r.ok).toBe(false);
   });
   it("permite multiplas metas para Pro", async () => {
-    const r = await createGoal({ goals: repoWith(3) }, { userId: "u1", isPro: true, input: { type: "savings", title: "x", targetCents: 100n, fundingMode: "manual", manualSavedCents: 0n } as CreateGoalInput });
+    const r = await createGoal({ goals: repoWith(3) }, { userId: "u1", profileId: "profile-1", isPro: true, input: { type: "savings", title: "x", targetCents: 100n, fundingMode: "manual", manualSavedCents: 0n } as CreateGoalInput });
     expect(r.ok).toBe(true);
   });
   it("emergency_fund persiste monthlyCostCents quando informado (vindo do simulador)", async () => {
@@ -53,6 +54,7 @@ describe("createGoal", () => {
       { goals: repoWith(0) },
       {
         userId: "u1",
+        profileId: "profile-1",
         isPro: true,
         input: {
           type: "emergency_fund",
@@ -75,6 +77,7 @@ describe("createGoal", () => {
       { goals: repoWith(1, [existing]) },
       {
         userId: "u1",
+        profileId: "profile-1",
         isPro: true,
         input: { type: "debt_payoff", title: "Quitar", linkedDebtId: "d1" } as CreateGoalInput,
       },
@@ -88,6 +91,7 @@ describe("createGoal", () => {
       { goals: repoWith(1, [existing]) },
       {
         userId: "u1",
+        profileId: "profile-1",
         isPro: true,
         input: { type: "debt_payoff", title: "Quitar", linkedDebtId: "d2" } as CreateGoalInput,
       },
