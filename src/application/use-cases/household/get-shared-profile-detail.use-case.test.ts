@@ -79,16 +79,24 @@ function makeDebt(profileId: string): DebtEntity {
 }
 
 function makeHouseholdsRepo(opts: {
-  membership: HouseholdMemberEntity | null;
+  callerMembership: HouseholdMemberEntity | null;
+  ownerMembership?: HouseholdMemberEntity | null;
   sharedProfile: HouseholdMemberProfileEntity | null;
 }): HouseholdRepositoryPort {
   return {
     createHousehold: vi.fn(),
     addMember: vi.fn(),
     removeMember: vi.fn(),
+    removeSharedProfilesForUser: vi.fn(),
     setRole: vi.fn(),
     listMembers: vi.fn(),
-    findMembership: vi.fn(async () => opts.membership),
+    findMembership: vi.fn(async (_hid: string, userId: string) => {
+      if (userId === opts.callerMembership?.userId) return opts.callerMembership;
+      if (opts.ownerMembership !== undefined && userId === opts.sharedProfile?.userId) {
+        return opts.ownerMembership;
+      }
+      return null;
+    }),
     listHouseholdsForUser: vi.fn(),
     findHousehold: vi.fn(),
     deleteHousehold: vi.fn(),
@@ -133,7 +141,7 @@ function makeDebtsRepo(debts: DebtEntity[]): DebtRepositoryPort {
 describe("getSharedProfileDetail", () => {
   it("non-member returns Forbidden", async () => {
     const deps = {
-      households: makeHouseholdsRepo({ membership: null, sharedProfile: null }),
+      households: makeHouseholdsRepo({ callerMembership: null, sharedProfile: null }),
       incomes: makeIncomesRepo([]),
       debts: makeDebtsRepo([]),
     };
@@ -156,7 +164,7 @@ describe("getSharedProfileDetail", () => {
     const aggregateShare = makeSharedProfile("p1", "aggregate");
     const deps = {
       households: makeHouseholdsRepo({
-        membership: makeMembership("u1"),
+        callerMembership: makeMembership("u1"),
         sharedProfile: aggregateShare,
       }),
       incomes: makeIncomesRepo([makeIncome("p1")]),
@@ -181,7 +189,7 @@ describe("getSharedProfileDetail", () => {
   it("profile not shared at all returns Forbidden — not found treated as unauthorized", async () => {
     const deps = {
       households: makeHouseholdsRepo({
-        membership: makeMembership("u1"),
+        callerMembership: makeMembership("u1"),
         sharedProfile: null,
       }),
       incomes: makeIncomesRepo([]),
@@ -208,7 +216,8 @@ describe("getSharedProfileDetail", () => {
 
     const deps = {
       households: makeHouseholdsRepo({
-        membership: makeMembership("u1"),
+        callerMembership: makeMembership("u1"),
+        ownerMembership: makeMembership("u2"),
         sharedProfile: detailShare,
       }),
       incomes: makeIncomesRepo([income]),
@@ -236,7 +245,7 @@ describe("getSharedProfileDetail", () => {
   it("listForProfile is never called before all gates pass", async () => {
     const deps = {
       households: makeHouseholdsRepo({
-        membership: null,
+        callerMembership: null,
         sharedProfile: makeSharedProfile("p1", "detail"),
       }),
       incomes: makeIncomesRepo([]),
@@ -249,6 +258,33 @@ describe("getSharedProfileDetail", () => {
       profileId: "p1",
     });
 
+    expect(deps.incomes.listForProfile).not.toHaveBeenCalled();
+    expect(deps.debts.listForProfile).not.toHaveBeenCalled();
+  });
+
+  it("share owner is no longer a member — returns Forbidden without leaking data", async () => {
+    const detailShare = makeSharedProfile("p1", "detail");
+    const deps = {
+      households: makeHouseholdsRepo({
+        callerMembership: makeMembership("u1"),
+        ownerMembership: null,
+        sharedProfile: detailShare,
+      }),
+      incomes: makeIncomesRepo([makeIncome("p1")]),
+      debts: makeDebtsRepo([makeDebt("p1")]),
+    };
+
+    const result = await getSharedProfileDetail(deps, {
+      householdId: "h1",
+      userId: "u1",
+      profileId: "p1",
+    });
+
+    expect(isErr(result)).toBe(true);
+    if (isErr(result)) {
+      expect(result.error).toBeInstanceOf(Forbidden);
+      expect(result.error.message).toContain("não está disponível");
+    }
     expect(deps.incomes.listForProfile).not.toHaveBeenCalled();
     expect(deps.debts.listForProfile).not.toHaveBeenCalled();
   });

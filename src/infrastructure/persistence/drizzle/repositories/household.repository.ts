@@ -301,4 +301,15 @@ export class HouseholdRepository implements HouseholdRepositoryPort {
       .orderBy(asc(householdMemberProfiles.createdAt));
     return rows.map(rowToMemberProfile);
   }
+
+  async removeSharedProfilesForUser(householdId: string, userId: string): Promise<void> {
+    await getDb()
+      .delete(householdMemberProfiles)
+      .where(
+        and(
+          eq(householdMemberProfiles.householdId, householdId),
+          eq(householdMemberProfiles.userId, userId),
+        ),
+      );
+  }
 }

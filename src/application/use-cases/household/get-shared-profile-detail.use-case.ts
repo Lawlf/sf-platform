@@ -37,6 +37,11 @@ export async function getSharedProfileDetail(
     return err(new Forbidden("Esse perfil não está disponível para detalhe."));
   }
 
+  const ownerMembership = await deps.households.findMembership(input.householdId, shared.userId);
+  if (!ownerMembership) {
+    return err(new Forbidden("Esse perfil não está disponível para detalhe."));
+  }
+
   const [incomes, debts] = await Promise.all([
     deps.incomes.listForProfile(input.profileId),
     deps.debts.listForProfile(input.profileId, { status: "all" }),

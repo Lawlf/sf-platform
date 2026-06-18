@@ -38,11 +38,17 @@ export async function buildHouseholdSnapshot(
     return err(new Forbidden("Você não faz parte deste lar."));
   }
 
-  const shares = await deps.households.listSharedProfiles(input.householdId);
+  const [shares, members] = await Promise.all([
+    deps.households.listSharedProfiles(input.householdId),
+    deps.households.listMembers(input.householdId),
+  ]);
+
+  const memberIds = new Set(members.map((m) => m.userId));
+  const activeShares = shares.filter((s) => memberIds.has(s.userId));
 
   const parts: HouseholdSnapshotPart[] = [];
 
-  for (const share of shares) {
+  for (const share of activeShares) {
     const snapshotResult = await deps.getDashboardSnapshot(null, {
       userId: share.userId,
       profileId: share.profileId,

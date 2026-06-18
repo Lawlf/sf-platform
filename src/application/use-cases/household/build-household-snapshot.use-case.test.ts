@@ -75,13 +75,16 @@ function makeNetWorthSnapshot(netWorthCents: bigint): NetWorthSnapshot {
 function makeHouseholdsRepo(opts: {
   membership: HouseholdMemberEntity | null;
   sharedProfiles?: HouseholdMemberProfileEntity[];
+  members?: HouseholdMemberEntity[];
 }): HouseholdRepositoryPort {
+  const defaultMembers = opts.membership ? [opts.membership] : [];
   return {
     createHousehold: vi.fn(),
     addMember: vi.fn(),
     removeMember: vi.fn(),
+    removeSharedProfilesForUser: vi.fn(),
     setRole: vi.fn(),
-    listMembers: vi.fn(),
+    listMembers: vi.fn(async () => opts.members ?? defaultMembers),
     findMembership: vi.fn(async () => opts.membership),
     listHouseholdsForUser: vi.fn(),
     findHousehold: vi.fn(),
@@ -113,6 +116,7 @@ function makeProfilesRepo(profiles: ProfileEntity[]): ProfileRepositoryPort {
 function makeDeps(opts: {
   membership: HouseholdMemberEntity | null;
   sharedProfiles?: HouseholdMemberProfileEntity[];
+  members?: HouseholdMemberEntity[];
   profiles?: ProfileEntity[];
   getDashboardSnapshot?: BuildHouseholdSnapshotDeps["getDashboardSnapshot"];
   getNetWorth?: BuildHouseholdSnapshotDeps["getNetWorth"];
@@ -121,6 +125,7 @@ function makeDeps(opts: {
     households: makeHouseholdsRepo({
       membership: opts.membership,
       sharedProfiles: opts.sharedProfiles ?? [],
+      ...(opts.members !== undefined ? { members: opts.members } : {}),
     }),
     profiles: makeProfilesRepo(opts.profiles ?? []),
     getDashboardSnapshot:
@@ -171,6 +176,7 @@ describe("buildHouseholdSnapshot", () => {
     const deps = makeDeps({
       membership: makeMembership("u1"),
       sharedProfiles: [share1, share2],
+      members: [makeMembership("u1"), makeMembership("u2")],
       profiles: [profile1, profile2],
       getDashboardSnapshot,
       getNetWorth,
@@ -227,6 +233,7 @@ describe("buildHouseholdSnapshot", () => {
     const deps = makeDeps({
       membership: makeMembership("caller-user"),
       sharedProfiles: [share],
+      members: [makeMembership("caller-user"), makeMembership("owner-user")],
       profiles: [profile],
       getDashboardSnapshot,
       getNetWorth,
@@ -242,5 +249,37 @@ describe("buildHouseholdSnapshot", () => {
       null,
       expect.objectContaining({ userId: "owner-user", profileId: "pX" }),
     );
+  });
+
+  it("orphan share from ex-member is excluded from snapshot totals and contributions", async () => {
+    const activeShare = makeSharedProfile({ profileId: "p1", userId: "current-user", shareLevel: "aggregate" });
+    const orphanShare = makeSharedProfile({ profileId: "p2", userId: "ex-user", shareLevel: "detail" });
+
+    const profile1 = makeProfile("p1", "current-user", "Atual");
+
+    const getDashboardSnapshot = vi.fn(async (_d: unknown, input: { userId: string; profileId: string }) => {
+      if (input.profileId === "p1") return ok(makeSnapshotEntity(400_000n, 100_000n));
+      return ok(makeSnapshotEntity(999_999n, 999_999n));
+    });
+    const getNetWorth = vi.fn(async () => ok(makeNetWorthSnapshot(0n)));
+
+    const deps = makeDeps({
+      membership: makeMembership("caller-user"),
+      sharedProfiles: [activeShare, orphanShare],
+      members: [makeMembership("caller-user"), makeMembership("current-user")],
+      profiles: [profile1],
+      getDashboardSnapshot,
+      getNetWorth,
+    });
+
+    const result = await buildHouseholdSnapshot(deps, { householdId: "h1", userId: "caller-user" });
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.contributions).toHaveLength(1);
+      expect(result.value.contributions[0]?.profileId).toBe("p1");
+      expect(result.value.totalIncomeCents).toBe(400_000n);
+    }
+    expect(getDashboardSnapshot).toHaveBeenCalledTimes(1);
   });
 });

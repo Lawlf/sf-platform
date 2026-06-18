@@ -23,6 +23,7 @@ function makeRepo(opts: {
     createHousehold: vi.fn(),
     addMember: vi.fn(),
     removeMember: vi.fn(async () => undefined),
+    removeSharedProfilesForUser: vi.fn(async () => undefined),
     setRole: vi.fn(async () => undefined),
     listMembers: vi.fn(async () => opts.members),
     findMembership: vi.fn(async () => opts.membership),
@@ -119,5 +120,30 @@ describe("leaveHousehold", () => {
     expect(isErr(result)).toBe(true);
     if (isErr(result)) expect(result.error).toBeInstanceOf(HouseholdNotMember);
     expect(repo.removeMember).not.toHaveBeenCalled();
+  });
+
+  it("leaving member's shared profiles are removed before removeMember", async () => {
+    const members = [
+      makeMember("admin1", "admin", new Date("2026-01-01")),
+      makeMember("member1", "member", new Date("2026-01-02")),
+    ];
+    const repo = makeRepo({ membership: members[1]!, members });
+
+    const callOrder: string[] = [];
+    (repo.removeSharedProfilesForUser as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => { callOrder.push("removeSharedProfiles"); },
+    );
+    (repo.removeMember as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => { callOrder.push("removeMember"); },
+    );
+
+    const result = await leaveHousehold(
+      { households: repo },
+      { householdId: "h1", userId: "member1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    expect(repo.removeSharedProfilesForUser).toHaveBeenCalledWith("h1", "member1");
+    expect(callOrder).toEqual(["removeSharedProfiles", "removeMember"]);
   });
 });

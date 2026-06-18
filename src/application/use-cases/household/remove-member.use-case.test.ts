@@ -25,6 +25,7 @@ function makeRepo(opts: {
     createHousehold: vi.fn(),
     addMember: vi.fn(),
     removeMember: vi.fn(async () => undefined),
+    removeSharedProfilesForUser: vi.fn(async () => undefined),
     setRole: vi.fn(async () => undefined),
     listMembers: vi.fn(async () => opts.members),
     findMembership: vi.fn(async (householdId: string, userId: string) => {
@@ -211,5 +212,32 @@ describe("removeMember", () => {
     expect(repo.removeMember).toHaveBeenCalledWith("h1", "member1");
     expect(repo.setRole).not.toHaveBeenCalled();
     expect(repo.deleteHousehold).not.toHaveBeenCalled();
+  });
+
+  it("removed member's shared profiles are deleted before removeMember", async () => {
+    const admin = makeMember("admin1", "admin", new Date("2026-01-01"));
+    const target = makeMember("member1", "member", new Date("2026-01-02"));
+    const repo = makeRepo({
+      adminMembership: admin,
+      targetMembership: target,
+      members: [admin, target],
+    });
+
+    const callOrder: string[] = [];
+    (repo.removeSharedProfilesForUser as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => { callOrder.push("removeSharedProfiles"); },
+    );
+    (repo.removeMember as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => { callOrder.push("removeMember"); },
+    );
+
+    const result = await removeMember(
+      { households: repo },
+      { householdId: "h1", adminUserId: "admin1", targetUserId: "member1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    expect(repo.removeSharedProfilesForUser).toHaveBeenCalledWith("h1", "member1");
+    expect(callOrder).toEqual(["removeSharedProfiles", "removeMember"]);
   });
 });

@@ -25,6 +25,7 @@ export async function leaveHousehold(
   const members = await deps.households.listMembers(input.householdId);
   const { dissolve, promoteUserId } = nextAdminAfterLeave(members, input.userId);
 
+  await deps.households.removeSharedProfilesForUser(input.householdId, input.userId);
   await deps.households.removeMember(input.householdId, input.userId);
 
   if (dissolve) {

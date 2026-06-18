@@ -74,4 +74,6 @@ export interface HouseholdRepositoryPort {
     householdId: string,
     userId: string,
   ): Promise<HouseholdMemberProfileEntity[]>;
+
+  removeSharedProfilesForUser(householdId: string, userId: string): Promise<void>;
 }
