@@ -3,17 +3,14 @@ import type { ProfileEntity, ProfileType } from "@/domain/entities/profile.entit
 export interface ProfileRepositoryPort {
   listForUser(userId: string): Promise<ProfileEntity[]>;
   findById(id: string): Promise<ProfileEntity | null>;
-  /**
-   * Garante o perfil PF do usuário. Idempotente e seguro em corrida: usa
-   * upsert com `onConflictDoNothing` sobre o índice único (user_id, type),
-   * então retorna o perfil PF (recém-criado ou pré-existente).
-   */
+  findPrimaryPf(userId: string): Promise<ProfileEntity | null>;
   ensurePfProfile(userId: string, now: Date): Promise<ProfileEntity>;
   create(input: {
     userId: string;
     type: ProfileType;
     linkedProfileId: string | null;
     displayName: string | null;
+    isPrimary: boolean;
     now: Date;
   }): Promise<ProfileEntity>;
   setLinkedProfile(profileId: string, linkedProfileId: string): Promise<void>;

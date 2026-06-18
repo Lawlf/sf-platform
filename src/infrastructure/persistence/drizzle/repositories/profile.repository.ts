@@ -13,6 +13,7 @@ function rowToEntity(row: ProfileRow): ProfileEntity {
     type: row.type,
     linkedProfileId: row.linkedProfileId ?? null,
     displayName: row.displayName ?? null,
+    isPrimary: row.isPrimary,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -33,18 +34,27 @@ export class ProfileRepository implements ProfileRepositoryPort {
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
-  async ensurePfProfile(userId: string, now: Date): Promise<ProfileEntity> {
-    await getDb()
-      .insert(profiles)
-      .values({ userId, type: "PF", createdAt: now, updatedAt: now })
-      .onConflictDoNothing({ target: [profiles.userId, profiles.type] });
+  async findPrimaryPf(userId: string): Promise<ProfileEntity | null> {
     const rows = await getDb()
       .select()
       .from(profiles)
-      .where(and(eq(profiles.userId, userId), eq(profiles.type, "PF")))
+      .where(and(eq(profiles.userId, userId), eq(profiles.isPrimary, true)))
+      .limit(1);
+    return rows[0] ? rowToEntity(rows[0]) : null;
+  }
+
+  async ensurePfProfile(userId: string, now: Date): Promise<ProfileEntity> {
+    await getDb()
+      .insert(profiles)
+      .values({ userId, type: "PF", isPrimary: true, createdAt: now, updatedAt: now })
+      .onConflictDoNothing({ target: profiles.userId, where: sql`${profiles.isPrimary}` });
+    const rows = await getDb()
+      .select()
+      .from(profiles)
+      .where(and(eq(profiles.userId, userId), eq(profiles.isPrimary, true)))
       .limit(1);
     const row = rows[0];
-    if (!row) throw new Error("ensurePfProfile: PF não encontrado após upsert");
+    if (!row) throw new Error("ensurePfProfile: primary PF não encontrado após upsert");
     return rowToEntity(row);
   }
 
@@ -53,6 +63,7 @@ export class ProfileRepository implements ProfileRepositoryPort {
     type: ProfileEntity["type"];
     linkedProfileId: string | null;
     displayName: string | null;
+    isPrimary: boolean;
     now: Date;
   }): Promise<ProfileEntity> {
     const rows = await getDb()
@@ -62,6 +73,7 @@ export class ProfileRepository implements ProfileRepositoryPort {
         type: input.type,
         linkedProfileId: input.linkedProfileId,
         displayName: input.displayName,
+        isPrimary: input.isPrimary,
         createdAt: input.now,
         updatedAt: input.now,
       })

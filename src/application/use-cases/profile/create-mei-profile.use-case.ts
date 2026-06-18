@@ -39,6 +39,7 @@ export async function createMeiProfile(
     type: "PJ_MEI",
     linkedProfileId: pf.id,
     displayName: null,
+    isPrimary: false,
     now,
   });
 

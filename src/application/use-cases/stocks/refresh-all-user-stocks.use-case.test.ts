@@ -60,6 +60,7 @@ function makeProfiles() {
       type: "PF" as const,
       linkedProfileId: null,
       displayName: null,
+      isPrimary: true,
       createdAt: new Date("2026-01-01"),
       updatedAt: new Date("2026-01-01"),
     })),

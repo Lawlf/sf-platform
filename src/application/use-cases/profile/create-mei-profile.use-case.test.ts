@@ -21,6 +21,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     type: "PF",
     linkedProfileId: null,
     displayName: null,
+    isPrimary: false,
     createdAt: NOW,
     updatedAt: NOW,
     ...over,
@@ -39,10 +40,11 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
     _linkedUpdates: linkedUpdates,
     listForUser: vi.fn(async (_userId: string) => [...store]),
     findById: vi.fn(async (id: string) => store.find((p) => p.id === id) ?? null),
+    findPrimaryPf: vi.fn(async (userId: string) => store.find((p) => p.userId === userId && p.isPrimary) ?? null),
     ensurePfProfile: vi.fn(async (_userId: string, _now: Date) => {
       const existing = store.find((p) => p.type === "PF");
       if (existing) return existing;
-      const pf = makeProfile({ id: "pf-id", type: "PF" });
+      const pf = makeProfile({ id: "pf-id", type: "PF", isPrimary: true });
       store.push(pf);
       return pf;
     }),
@@ -52,6 +54,7 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
         type: input.type,
         linkedProfileId: input.linkedProfileId,
         displayName: input.displayName,
+        isPrimary: input.isPrimary,
         userId: input.userId,
       });
       store.push(entity);

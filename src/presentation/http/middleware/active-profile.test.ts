@@ -8,16 +8,17 @@ import { resolveActiveProfileId } from "./active-profile";
 const NOW = new Date("2026-06-17T00:00:00Z");
 
 function pf(userId: string, id = "pf-1"): ProfileEntity {
-  return { id, userId, type: "PF", linkedProfileId: null, displayName: null, createdAt: NOW, updatedAt: NOW };
+  return { id, userId, type: "PF", linkedProfileId: null, displayName: null, isPrimary: true, createdAt: NOW, updatedAt: NOW };
 }
 function pj(userId: string, id = "pj-1"): ProfileEntity {
-  return { id, userId, type: "PJ_MEI", linkedProfileId: "pf-1", displayName: null, createdAt: NOW, updatedAt: NOW };
+  return { id, userId, type: "PJ_MEI", linkedProfileId: "pf-1", displayName: null, isPrimary: false, createdAt: NOW, updatedAt: NOW };
 }
 
 function fakeRepo(profilesList: ProfileEntity[], ensured?: ProfileEntity): ProfileRepositoryPort {
   return {
     listForUser: vi.fn(async () => profilesList),
     findById: vi.fn(async () => null),
+    findPrimaryPf: vi.fn(async (userId: string) => profilesList.find((p) => p.userId === userId && p.isPrimary) ?? null),
     ensurePfProfile: vi.fn(async () => ensured ?? pf("u1")),
     create: vi.fn(),
     setLinkedProfile: vi.fn(),

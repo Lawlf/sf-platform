@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
 
 import { users } from "./users.schema";
 
@@ -15,6 +15,7 @@ export const profiles = pgTable(
     type: profileType("type").notNull(),
     linkedProfileId: uuid("linked_profile_id"),
     displayName: text("display_name"),
+    isPrimary: boolean("is_primary").notNull().default(false),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
@@ -24,7 +25,9 @@ export const profiles = pgTable(
   },
   (table) => ({
     userIdx: index("profiles_user_id_idx").on(table.userId),
-    userTypeUnique: uniqueIndex("profiles_user_type_unique").on(table.userId, table.type),
+    userPrimaryUnique: uniqueIndex("profiles_user_primary_unique")
+      .on(table.userId)
+      .where(sql`${table.isPrimary}`),
   }),
 );
 
