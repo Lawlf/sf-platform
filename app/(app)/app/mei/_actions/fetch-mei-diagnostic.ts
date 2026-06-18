@@ -44,8 +44,7 @@ export interface MeiDiagnosticData {
 
 export type MeiDiagnosticResult = MeiDiagnosticPayload | MeiDiagnosticData;
 
-function firstDayOfCurrentMonth(): Date {
-  const now = new Date();
+function firstDayOfMonth(now: Date): Date {
   return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
 }
 
@@ -62,7 +61,7 @@ export async function fetchMeiDiagnostic(): Promise<MeiDiagnosticResult> {
     return { hasPj: false };
   }
 
-  const competencia = firstDayOfCurrentMonth();
+  const competencia = firstDayOfMonth(clock.now());
   const competenciaStr = competencia.toISOString().slice(0, 10);
 
   const [diagnosticResult, meiEntry] = await Promise.all([

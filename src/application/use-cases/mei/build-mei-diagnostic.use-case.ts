@@ -50,6 +50,9 @@ function monthlyRecurringDebtCents(debt: DebtEntity): bigint {
   if (debt.recurringFrequency === "weekly") {
     return BigInt(Math.round(Number(amountCents) * WEEKS_PER_MONTH));
   }
+  if (debt.recurringFrequency === "annual") {
+    return BigInt(Math.round(Number(amountCents) / 12));
+  }
   return amountCents;
 }
 
