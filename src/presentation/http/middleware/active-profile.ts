@@ -13,7 +13,7 @@ export async function resolveActiveProfileId(
   args: { userId: string; cookieProfileId: string | null; now: Date },
 ): Promise<string> {
   const owned = await deps.profiles.listForUser(args.userId);
-  let pf = owned.find((p) => p.type === "PF") ?? null;
+  let pf = owned.find((p) => p.isPrimary) ?? owned.find((p) => p.type === "PF") ?? null;
   if (!pf) pf = await deps.profiles.ensurePfProfile(args.userId, args.now);
 
   if (args.cookieProfileId && owned.some((p) => p.id === args.cookieProfileId)) {
