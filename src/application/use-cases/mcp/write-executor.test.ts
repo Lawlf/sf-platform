@@ -65,8 +65,11 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     update: vi.fn(),
     findById: vi.fn(async () => null),
     listForProfile: vi.fn(),
+    listForHousehold: vi.fn(async () => []),
+    findByIdInHousehold: vi.fn(async () => null),
     countActive: vi.fn(async () => 0),
     softDelete: vi.fn(),
+    restore: vi.fn(),
     listAllActive: vi.fn(),
   };
   const clock = { now: vi.fn(() => new Date("2026-06-03T12:00:00Z")) };
@@ -414,6 +417,7 @@ describe("executeWrite", () => {
       id: "g1",
       userId: "u1",
       profileId: "p1",
+      householdId: null,
       type: "savings",
       title: "Reserva",
       status: "active",

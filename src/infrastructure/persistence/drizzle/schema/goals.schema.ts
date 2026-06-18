@@ -14,6 +14,7 @@ import {
 
 import { assets } from "./assets.schema";
 import { debts } from "./debts.schema";
+import { households } from "./households.schema";
 import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
@@ -41,6 +42,7 @@ export const goals = pgTable(
     targetCents: bigint("target_cents", { mode: "bigint" }),
     currency: text("currency").notNull().default("BRL"),
     deadline: date("deadline", { mode: "date" }),
+    householdId: uuid("household_id").references(() => households.id, { onDelete: "cascade" }),
     linkedDebtId: uuid("linked_debt_id").references(() => debts.id, { onDelete: "set null" }),
     linkedAssetId: uuid("linked_asset_id").references(() => assets.id, { onDelete: "set null" }),
     targetMonths: integer("target_months"),
@@ -63,6 +65,7 @@ export const goals = pgTable(
     byUser: index("goals_user_idx").on(t.userId),
     byUserStatus: index("goals_user_status_idx").on(t.userId, t.status),
     profileIdx: index("goals_profile_id_idx").on(t.profileId),
+    householdIdx: index("goals_household_id_idx").on(t.householdId),
   }),
 );
 

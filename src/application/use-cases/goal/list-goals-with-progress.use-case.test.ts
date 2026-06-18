@@ -48,6 +48,7 @@ function makeSavingsGoal(linkedAssetId: string, targetCents: bigint): GoalEntity
     id: "g1",
     userId: "user-1",
     profileId: "profile-1",
+    householdId: null,
     type: "savings",
     title: "Reserva",
     status: "active",

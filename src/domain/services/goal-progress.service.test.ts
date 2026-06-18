@@ -5,7 +5,7 @@ import type { GoalEntity } from "@/domain/entities/goal.entity";
 import { GoalProgressService, type GoalMacro } from "./goal-progress.service";
 
 const baseGoal = {
-  id: "g1", userId: "u1", profileId: "profile-1", title: "t", status: "active" as const,
+  id: "g1", userId: "u1", profileId: "profile-1", householdId: null, title: "t", status: "active" as const,
   targetCents: null, deadline: null, linkedDebtId: null, linkedAssetId: null,
   targetMonths: null, fundingMode: null, manualSavedCents: null,
   monthlyCostCents: null, realReturnPct: null,

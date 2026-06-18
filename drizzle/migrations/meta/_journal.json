@@ -498,6 +498,13 @@
       "when": 1781811200232,
       "tag": "0070_mean_expediter",
       "breakpoints": true
+    },
+    {
+      "idx": 71,
+      "version": "7",
+      "when": 1781825451767,
+      "tag": "0071_solid_smiling_tiger",
+      "breakpoints": true
     }
   ]
 }

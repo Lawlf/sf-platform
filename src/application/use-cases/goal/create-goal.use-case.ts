@@ -65,6 +65,7 @@ export async function createGoal(
     id: crypto.randomUUID(),
     userId,
     profileId,
+    householdId: null,
     status: "active",
     type: input.type,
     title: input.title,
@@ -80,7 +81,7 @@ export async function createGoal(
  */
 function normalizeFields(input: CreateGoalInput): Omit<
   GoalEntity,
-  "id" | "userId" | "profileId" | "status" | "type" | "title" | "createdAt" | "updatedAt"
+  "id" | "userId" | "profileId" | "householdId" | "status" | "type" | "title" | "createdAt" | "updatedAt"
 > {
   const base = {
     targetCents: null,

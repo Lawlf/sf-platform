@@ -12,6 +12,7 @@ export interface GoalEntity {
   id: string;
   userId: string;
   profileId: string;
+  householdId: string | null;
   type: GoalType;
   title: string;
   status: GoalStatus;

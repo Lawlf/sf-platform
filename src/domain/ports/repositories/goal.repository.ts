@@ -5,13 +5,10 @@ export interface GoalRepositoryPort {
   update(id: string, patch: Partial<GoalEntity>): Promise<GoalEntity | null>;
   findById(id: string): Promise<GoalEntity | null>;
   listForProfile(profileId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]>;
+  listForHousehold(householdId: string): Promise<GoalEntity[]>;
+  findByIdInHousehold(goalId: string, householdId: string): Promise<GoalEntity | null>;
   countActive(profileId: string): Promise<number>;
   softDelete(id: string): Promise<void>;
-  /**
-   * Reverte um soft delete (`deleted_at = null`). Usado pelo undo de uma ação
-   * MCP que apagou a meta. Simples UPDATE, sem sub-records.
-   */
   restore(id: string): Promise<void>;
-  /** Todas as metas ativas de todos os usuarios (cron). */
   listAllActive(): Promise<GoalEntity[]>;
 }

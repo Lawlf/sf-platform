@@ -14,6 +14,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
     id: "g1",
     userId: "u1",
     profileId: "profile-1",
+    householdId: null,
     type: "emergency_fund",
     title: "Reserva",
     status: "active",

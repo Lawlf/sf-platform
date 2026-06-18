@@ -11,6 +11,7 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
     id: crypto.randomUUID(),
     userId: "u1",
     profileId: "profile-1",
+    householdId: null,
     type: "savings",
     title: "Meta",
     status: "active",
