@@ -47,7 +47,7 @@ function computePriceInstallmentCents(
 export const createDebtForAssetAction = action({
   schema: inputSchema,
   revalidates: ["debts", "home", "timeline"],
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     const principalCents = BigInt(v.principalCents);
     const startDate = new Date(v.startDate);
     const monthlyRateDecimal = v.monthlyRatePct / 100;
@@ -63,6 +63,7 @@ export const createDebtForAssetAction = action({
       const debt = unwrap(
         await registerDebt(deps, {
           userId,
+          profileId,
           label: v.label.trim(),
           notes: null,
           startDate,
@@ -90,6 +91,7 @@ export const createDebtForAssetAction = action({
       const debt = unwrap(
         await registerDebt(deps, {
           userId,
+          profileId,
           label: v.label.trim(),
           notes: null,
           startDate,
@@ -110,6 +112,7 @@ export const createDebtForAssetAction = action({
     const debt = unwrap(
       await registerDebt(deps, {
         userId,
+        profileId,
         label: v.label.trim(),
         notes: null,
         startDate,

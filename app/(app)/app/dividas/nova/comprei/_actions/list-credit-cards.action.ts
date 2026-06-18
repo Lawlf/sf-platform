@@ -1,6 +1,7 @@
 "use server";
 
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 export interface CreditCardDebtPayload {
@@ -14,7 +15,8 @@ export interface CreditCardDebtPayload {
 export async function listCreditCardsForPurchase(): Promise<CreditCardDebtPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
+  const profileId = await getActiveProfileId();
   const repo = repos.debts;
-  const debts = await repo.listForUser(user.id, { status: "active" });
+  const debts = await repo.listForProfile(profileId, { status: "active" });
   return debts.filter((d) => d.kind === "credit_card").map((d) => ({ id: d.id, label: d.label }));
 }

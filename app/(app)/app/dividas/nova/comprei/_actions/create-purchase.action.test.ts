@@ -33,7 +33,7 @@ function makeDebtRepo(): DebtRepositoryPort {
   const store = new Map<string, DebtEntity>();
   const repo: DebtRepositoryPort = {
     findById: vi.fn(async (id: string) => store.get(id) ?? null),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     create: vi.fn(async (e: DebtEntity) => {
       store.set(e.id, e);
       return e;
@@ -124,6 +124,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
 
 const BASE: ExecutePurchaseInput = {
   userId: "user-1",
+  profileId: "profile-1",
   name: "iPhone 13",
   valueCents: 500_000n,
   category: "electronics",
@@ -226,6 +227,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 500_000n,
       category: "electronics",
@@ -252,6 +254,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 500_000n,
       category: "electronics",
@@ -267,6 +270,7 @@ describe("executePurchase", () => {
     const existingCard: DebtEntity = {
       id: "card-1",
       userId: "user-1",
+      profileId: "profile-1",
       label: "Nubank",
       status: "active",
       originalPrincipal: Money.fromCents(100_000n),
@@ -304,6 +308,7 @@ describe("executePurchase", () => {
 
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 500_000n,
       category: "electronics",
@@ -327,6 +332,7 @@ describe("executePurchase", () => {
     const otherUserCard: DebtEntity = {
       id: "card-1",
       userId: "user-2",
+      profileId: "profile-2",
       label: "Outro",
       status: "active",
       originalPrincipal: Money.fromCents(100_000n),
@@ -360,6 +366,7 @@ describe("executePurchase", () => {
 
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 500_000n,
       category: "electronics",
@@ -375,6 +382,7 @@ describe("executePurchase", () => {
     // Make allocation succeed: upsert is async no-op; sum returns zero by default.
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Honda Civic 2020",
       valueCents: 8_000_000n,
       category: "vehicle",
@@ -397,6 +405,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Curso",
       valueCents: 100_000n,
       category: "education",
@@ -411,6 +420,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Curso de inglês",
       valueCents: 200_000n,
       category: "education",
@@ -434,6 +444,7 @@ describe("executePurchase", () => {
     );
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Honda Civic 2020",
       valueCents: 8_000_000n,
       category: "vehicle",
@@ -463,6 +474,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 200_000n,
       category: "electronics",
@@ -489,6 +501,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Cancun",
       valueCents: 300_000n,
       category: "travel",
@@ -515,6 +528,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 200_000n,
       category: "electronics",
@@ -531,6 +545,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 200_000n,
       category: "electronics",
@@ -548,6 +563,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 200_000n,
       category: "electronics",
@@ -564,6 +580,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone 13",
       valueCents: 800_000n,
       category: "electronics",
@@ -691,6 +708,7 @@ describe("executePurchase", () => {
     );
     await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "iPhone",
       valueCents: 750_000n,
       category: "electronics",
@@ -711,6 +729,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Apartamento",
       valueCents: 500_000_00n,
       category: "other",
@@ -735,6 +754,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Carro",
       valueCents: 80_000_00n,
       category: "vehicle",
@@ -753,6 +773,7 @@ describe("executePurchase", () => {
     const deps = makeDeps();
     const result = await executePurchase(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       name: "Casa",
       valueCents: 300_000_00n,
       category: "other",

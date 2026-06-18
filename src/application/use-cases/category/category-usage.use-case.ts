@@ -12,10 +12,10 @@ export async function categoryUsage(
     transactions: Pick<TransactionRepositoryPort, "countByCategory">;
     debts: Pick<DebtRepositoryPort, "countByExpenseCategory">;
   },
-  { userId, domain, key }: { userId: string; domain: CategoryDomain; key: string },
+  { userId, profileId, domain, key }: { userId: string; profileId: string; domain: CategoryDomain; key: string },
 ): Promise<CategoryUsage> {
   const transactions = await deps.transactions.countByCategory(userId, key);
   const debts =
-    domain === "expense" ? await deps.debts.countByExpenseCategory(userId, key) : 0;
+    domain === "expense" ? await deps.debts.countByExpenseCategory(profileId, key) : 0;
   return { transactions, debts };
 }

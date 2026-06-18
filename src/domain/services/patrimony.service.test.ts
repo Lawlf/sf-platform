@@ -62,6 +62,7 @@ function makeFinancing({
   return {
     id,
     userId: "user-1",
+    profileId: "profile-1",
     kind: "financing",
     label: "Financiamento",
     status,

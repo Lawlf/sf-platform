@@ -30,7 +30,7 @@ const schema = z.object({
 export const createRecurringDebtAction = action({
   schema,
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async (d, { userId }) => {
+  handler: async (d, { userId, profileId }) => {
     const expenseCategory = normalizeLegacyExpenseCategory(d.expenseCategory);
     const rows = await repos.userCategories.listForUser(userId);
     const valid = activeCategories(resolveCategories("expense", rows)).some(
@@ -42,6 +42,7 @@ export const createRecurringDebtAction = action({
       {
         kind: "recurring",
         userId,
+        profileId,
         label: d.label,
         recurringFrequency: d.recurringFrequency,
         recurringAmountCents: d.recurringAmountCents,

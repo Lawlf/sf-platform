@@ -185,6 +185,7 @@ describe("PayoffStrategyService", () => {
     const card: CreditCardDebt = {
       id: "cc-1",
       userId: "u1",
+      profileId: "profile-1",
       label: "Cartao",
       kind: "credit_card",
       status: "active",

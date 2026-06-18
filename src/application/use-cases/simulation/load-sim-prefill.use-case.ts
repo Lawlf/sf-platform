@@ -52,7 +52,7 @@ export async function loadSimPrefill(
         overrides: deps.overrides,
         clock: deps.clock,
       },
-      { userId },
+      { userId, profileId },
     ),
     getDashboardSnapshot(
       {

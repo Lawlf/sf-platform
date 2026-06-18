@@ -18,6 +18,7 @@ function makeRecurring(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
   return {
     id: DEBT_ID,
     userId: OWNER,
+    profileId: "profile-1",
     kind: "recurring",
     label: "Aluguel",
     status: "active",
@@ -40,7 +41,7 @@ function makeRecurring(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
 function makeDebtRepo(debt: DebtEntity | null): DebtRepositoryPort {
   return {
     findById: vi.fn(async () => debt),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(async (e: DebtEntity) => e),
     update: vi.fn(async (e: DebtEntity) => e),
     setStatus: vi.fn(),

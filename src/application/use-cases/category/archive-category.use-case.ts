@@ -20,12 +20,14 @@ export async function archiveCategory(
   deps: ArchiveCategoryDeps,
   {
     userId,
+    profileId,
     isPro,
     domain,
     key,
     destinationKey,
   }: {
     userId: string;
+    profileId: string;
     isPro: boolean;
     domain: CategoryDomain;
     key: string;
@@ -44,7 +46,7 @@ export async function archiveCategory(
 
   const txnCount = await deps.transactions.countByCategory(userId, key);
   const debtCount =
-    domain === "expense" ? await deps.debts.countByExpenseCategory(userId, key) : 0;
+    domain === "expense" ? await deps.debts.countByExpenseCategory(profileId, key) : 0;
 
   if (txnCount + debtCount > 0) {
     if (!destinationKey) throw new CategoryError("Escolha pra onde os itens vão.");
@@ -57,7 +59,7 @@ export async function archiveCategory(
     }
     await deps.transactions.reassignCategory(userId, key, destinationKey);
     if (domain === "expense") {
-      await deps.debts.reassignExpenseCategory(userId, key, destinationKey);
+      await deps.debts.reassignExpenseCategory(profileId, key, destinationKey);
     }
   }
 

@@ -105,7 +105,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
   } as unknown as AssetDebtAllocationRepositoryPort;
 
   const debts = {
-    listForUser: async () => [],
+    listForProfile: async () => [],
   } as unknown as DebtRepositoryPort;
 
   const incomes = {
@@ -113,7 +113,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
   } as unknown as IncomeRepositoryPort;
 
   const payments = {
-    listForUserInRange: async () => [],
+    listForProfileInRange: async () => [],
   } as unknown as DebtPaymentRepositoryPort;
 
   const rates = {

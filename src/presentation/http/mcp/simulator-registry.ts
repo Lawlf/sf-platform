@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 import { comparePayoffStrategies } from "@/application/use-cases/simulation/compare-payoff-strategies.use-case";
 import type { SimPrefill } from "@/application/use-cases/simulation/load-sim-prefill.use-case";
 import { projectDebtPayoff } from "@/application/use-cases/simulation/project-debt-payoff.use-case";
@@ -27,6 +26,7 @@ import { ThirteenthSalaryService } from "@/domain/services/thirteenth-salary.ser
 import { VacationPayService } from "@/domain/services/vacation-pay.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { isErr } from "@/shared/errors/result";
 
 export interface SimulatorToolDef {
@@ -451,10 +451,12 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
       monthlyBudgetCents: cents(),
     },
     execute: async (args, ctx) => {
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await comparePayoffStrategies(
         { debts: repos.debts, clock },
         {
           userId: ctx.userId,
+          profileId,
           debtIds: (args.debtIds as string[]).map(String),
           monthlyBudget: Money.fromCents(big(args.monthlyBudgetCents)),
         },

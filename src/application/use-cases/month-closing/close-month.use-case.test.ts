@@ -99,13 +99,13 @@ function makeDeps(args: {
     findByAsset: async () => [],
   } as unknown as AssetDebtAllocationRepositoryPort;
   const debts = {
-    listForUser: async () => [],
+    listForProfile: async () => [],
   } as unknown as DebtRepositoryPort;
   const incomes = {
     listForProfile: async () => args.incomes ?? [],
   } as unknown as IncomeRepositoryPort;
   const payments = {
-    listForUserInRange: async () => [],
+    listForProfileInRange: async () => [],
   } as unknown as DebtPaymentRepositoryPort;
   const rates = {
     findLatest: async () => null,

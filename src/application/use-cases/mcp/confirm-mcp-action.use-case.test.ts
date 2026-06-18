@@ -50,6 +50,7 @@ function makeDeps(p: McpPendingAction | null, claimResult = true) {
     } as unknown as ConfirmMcpActionDeps["pending"],
     hasher: { sha256Hex: vi.fn(async () => "hash-token") },
     clock: { now: () => new Date("2026-06-03T12:00:00Z") },
+    resolveProfileId: vi.fn(async () => "profile-1"),
   } as unknown as ConfirmMcpActionDeps;
   return { deps, setStatus, claim, auditRecord };
 }

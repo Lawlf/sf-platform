@@ -18,7 +18,7 @@ import { isErr, isOk, ok, type Result } from "@/shared/errors/result";
 
 
 export interface BuildPrescriptionDeps extends ConvertEntityDeps {
-  debts: Pick<DebtRepositoryPort, "listForUser">;
+  debts: Pick<DebtRepositoryPort, "listForProfile">;
   incomes: Pick<IncomeRepositoryPort, "listForProfile">;
   assets: Pick<AssetRepositoryPort, "findActiveByUser">;
   now: () => Date;
@@ -36,7 +36,7 @@ export async function buildPrescription(
   const now = deps.now();
 
   const [rawDebts, rawIncomes, rawAssets] = await Promise.all([
-    deps.debts.listForUser(input.userId, { status: "active" }),
+    deps.debts.listForProfile(input.profileId, { status: "active" }),
     deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
     deps.assets.findActiveByUser(input.userId),
   ]);

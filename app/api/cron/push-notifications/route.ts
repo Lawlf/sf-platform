@@ -59,6 +59,7 @@ export async function GET(request: Request) {
     preferences: repos.notificationPreferences,
     pushService: getWebPushService(),
     clock,
+    resolveProfileId: resolvePfProfileId,
   };
 
   const debtResult = await dispatchDebtDueNotifications(deps);
@@ -120,7 +121,7 @@ export async function GET(request: Request) {
         overrides: repos.userFxOverrides,
         clock,
       },
-      { userId },
+      { userId, profileId },
     );
     const committedPct = isOk(snapshotR) ? snapshotR.value.incomeCommittedPct : null;
     const netWorthCents = isOk(netWorthR) ? netWorthR.value.netWorth.toCents() : 0n;
@@ -133,7 +134,7 @@ export async function GET(request: Request) {
 
   const reconcileEvents = async (userId: string): Promise<void> => {
     const profileId = await resolvePfProfileId(userId);
-    const userDebts = await repos.debts.listForUser(userId, { status: "all" });
+    const userDebts = await repos.debts.listForProfile(profileId, { status: "all" });
     const [userAssets, userIncomes, userGoals] = await Promise.all([
       repos.assets.findActiveByUser(userId),
       repos.incomes.listForProfile(profileId),

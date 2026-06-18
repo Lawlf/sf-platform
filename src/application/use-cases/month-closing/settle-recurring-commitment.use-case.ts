@@ -68,6 +68,7 @@ export async function settleRecurringCommitment(
       {
         kind: "personal_loan",
         userId: input.userId,
+        profileId: debt.profileId,
         label: `${debt.label} (${month.format()})`,
         notes: null,
         startDate: month.firstDay(),

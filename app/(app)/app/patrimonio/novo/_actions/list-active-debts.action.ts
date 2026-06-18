@@ -2,6 +2,7 @@
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -17,9 +18,10 @@ export interface ActiveDebtPayload {
 export async function listActiveDebtsForLinking(): Promise<ActiveDebtPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
+  const profileId = await getActiveProfileId();
   const r = await listDebts(
     { debts: repos.debts },
-    { userId: user.id, status: "active" },
+    { profileId, status: "active" },
   );
   if (!isOk(r)) return [];
   return r.value.map((d) => ({

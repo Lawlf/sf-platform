@@ -42,7 +42,7 @@ export async function getDashboardSnapshot(
   Result<DashboardSnapshotResult, InvalidAmortizationParamsError | FxRateUnavailableError>
 > {
   const [allDebts, incomes] = await Promise.all([
-    deps.debts.listForUser(input.userId, { status: "all" }),
+    deps.debts.listForProfile(input.profileId, { status: "all" }),
     deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
   ]);
   // Ativas + "fora do mês" (written_off). As quitadas (paid_off) ficam de fora.

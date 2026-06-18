@@ -236,15 +236,15 @@ export async function fetchMonthDetail(input: {
     settlementsRaw,
     incomeSettlementsRaw,
   ] = await Promise.all([
-    debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
-    debts.listForUser(user.id, { status: "all" }),
+    debtPayments.listForProfileInRange(profileId, { from: month.firstDay(), to: month.lastDay() }),
+    debts.listForProfile(profileId, { status: "all" }),
     incomes.listForProfile(profileId),
     assets.findActiveByUser(user.id),
-    debtPayments.listForUserInRange(user.id, {
+    debtPayments.listForProfileInRange(profileId, {
       from: windowFrom.firstDay(),
       to: month.lastDay(),
     }),
-    debtAmountAdjustmentsRepo.listForUser(user.id),
+    debtAmountAdjustmentsRepo.listForProfile(profileId),
     settlementsRepo.listForUser(user.id),
     incomeSettlementsRepo.listForUser(user.id),
   ]);

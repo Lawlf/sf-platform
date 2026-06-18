@@ -14,6 +14,7 @@ interface BaseAdjustment {
   id: string;
   debtId: string;
   userId: string;
+  profileId: string;
   amount: Money;
   note: string | null;
   createdAt: Date;

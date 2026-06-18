@@ -15,6 +15,7 @@ export interface ConfirmMcpActionDeps {
   pending: McpPendingActionRepositoryPort;
   hasher: Hasher;
   clock: Clock;
+  resolveProfileId: (userId: string) => Promise<string>;
 }
 
 export interface ConfirmMcpActionInput {
@@ -50,9 +51,11 @@ export async function confirmMcpAction(
   const claimed = await deps.pending.claim(pending.id, now);
   if (!claimed) return err(new McpConfirmationInvalid());
 
+  const profileId = await deps.resolveProfileId(pending.userId);
   const result = await executeWrite(deps.executor, {
     toolName: pending.toolName,
     userId: pending.userId,
+    profileId,
     isPro: input.ctx.isPro,
     args: pending.args,
   });

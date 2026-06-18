@@ -15,7 +15,7 @@ import { recordPayment } from "./record-payment.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -28,7 +28,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makePaymentsRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
-    listForUserInRange: vi.fn(),
+    listForProfileInRange: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -64,6 +64,7 @@ function makeDebt(opts: { userId?: string; currentBalance?: number } = {}): Pers
   return {
     id: "debt-1",
     userId: opts.userId ?? "user-1",
+    profileId: "profile-1",
     label: "Emprestimo",
     status: "active",
     originalPrincipal: principal,

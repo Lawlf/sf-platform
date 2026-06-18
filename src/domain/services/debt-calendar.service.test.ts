@@ -29,6 +29,7 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
   return {
     id: "d1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Apto",
     kind: "financing",
     status: "active",
@@ -56,6 +57,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
   return {
     id: "d2",
     userId: "u1",
+    profileId: "profile-1",
     label: "Emprestimo",
     kind: "personal_loan",
     dueDay: null,
@@ -82,6 +84,7 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
   return {
     id: "d3",
     userId: "u1",
+    profileId: "profile-1",
     label: "Cartao",
     kind: "credit_card",
     status: "active",
@@ -111,6 +114,7 @@ function makeOverdraft(): OverdraftDebt {
   return {
     id: "d4",
     userId: "u1",
+    profileId: "profile-1",
     label: "Cheque",
     kind: "overdraft",
     status: "active",

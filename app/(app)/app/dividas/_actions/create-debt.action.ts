@@ -23,7 +23,7 @@ export type CreateDebtResult = ActionResult<{ debtId: string }>;
 export const createDebtAction = action({
   schema: z.object({ kind: z.string() }).passthrough(),
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async (raw, { userId }) => {
+  handler: async (raw, { userId, profileId }) => {
     const { kind } = raw;
 
     const deps = {
@@ -52,6 +52,7 @@ export const createDebtAction = action({
       if (!isOk(annualRate)) throw new ActionError("Taxa anual inválida.");
       const r = await registerDebt(deps, {
         userId,
+        profileId,
         label: d.label,
         notes: d.notes,
         startDate: d.startDate,
@@ -95,6 +96,7 @@ export const createDebtAction = action({
       if (!isOk(annualRate)) throw new ActionError("Taxa anual inválida.");
       const r = await registerDebt(deps, {
         userId,
+        profileId,
         label: d.label,
         notes: d.notes,
         startDate: d.startDate,
@@ -138,6 +140,7 @@ export const createDebtAction = action({
 
       const r = await registerDebt(deps, {
         userId,
+        profileId,
         label: d.label,
         notes: d.notes,
         startDate: d.startDate,
@@ -170,6 +173,7 @@ export const createDebtAction = action({
       if (!isOk(monthly)) throw new ActionError("Taxa mensal inválida.");
       const r = await registerDebt(deps, {
         userId,
+        profileId,
         label: d.label,
         notes: d.notes,
         startDate: d.startDate,

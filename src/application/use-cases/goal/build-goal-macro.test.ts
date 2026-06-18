@@ -37,6 +37,7 @@ function makePersonalLoan({
   return {
     id,
     userId: "user-1",
+    profileId: "profile-1",
     kind: "personal_loan",
     dueDay: null,
     label: "Emprestimo",
@@ -93,11 +94,11 @@ function buildDeps({
 
   const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: DebtStatus | "all" }) => {
-      const ofUser = debts.filter((d) => d.userId === userId);
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: DebtStatus | "all" }) => {
+      const ofProfile = debts.filter((d) => (d.profileId ?? d.userId) === profileId);
       const status = opts?.status;
-      if (!status || status === "all") return ofUser;
-      return ofUser.filter((d) => d.status === status);
+      if (!status || status === "all") return ofProfile;
+      return ofProfile.filter((d) => d.status === status);
     }),
     create: vi.fn(),
     update: vi.fn(),

@@ -27,6 +27,7 @@ function makeRecurringDebt(id: string, label: string): RecurringDebt {
   return {
     id,
     userId,
+    profileId: userId,
     label,
     kind: "recurring",
     status: "active",

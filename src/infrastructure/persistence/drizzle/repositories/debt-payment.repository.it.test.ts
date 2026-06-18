@@ -35,6 +35,7 @@ beforeAll(async () => {
   const debt: FinancingDebt = {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}financing`,
     kind: "financing",
     status: "active",

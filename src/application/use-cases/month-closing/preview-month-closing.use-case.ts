@@ -97,7 +97,7 @@ export async function computeMonthClosing(
       overrides: deps.overrides,
       clock: deps.clock,
     },
-    { userId: input.userId },
+    { userId: input.userId, profileId: input.profileId },
   );
   const endNetWorthCents = isOk(netWorthResult)
     ? netWorthResult.value.netWorth.toCents()
@@ -163,8 +163,8 @@ async function resolveBaseline(
   const prevMonth = MonthYear.fromIso(openMonthIso).previous();
   const [incomes, debts, payments, assets] = await Promise.all([
     deps.incomes.listForProfile(profileId),
-    deps.debts.listForUser(userId, { status: "all" }),
-    deps.payments.listForUserInRange(userId, {
+    deps.debts.listForProfile(profileId, { status: "all" }),
+    deps.payments.listForProfileInRange(profileId, {
       from: prevMonth.firstDay(),
       to: prevMonth.lastDay(),
     }),

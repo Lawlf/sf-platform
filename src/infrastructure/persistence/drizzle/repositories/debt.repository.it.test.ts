@@ -56,6 +56,7 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}financing`,
     kind: "financing",
     status: "active",
@@ -83,6 +84,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}loan`,
     kind: "personal_loan",
     status: "active",
@@ -108,6 +110,7 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}card`,
     kind: "credit_card",
     status: "active",
@@ -137,6 +140,7 @@ function makeOverdraft(overrides: Partial<OverdraftDebt> = {}): OverdraftDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}overdraft`,
     kind: "overdraft",
     status: "active",
@@ -182,12 +186,12 @@ describe("DebtRepository (integration)", () => {
     await repo.create(makeCreditCard());
     await repo.create(makeOverdraft({ status: "paid_off" }));
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(4);
     const kinds = new Set(all.map((d) => d.kind));
     expect(kinds).toEqual(new Set(["financing", "personal_loan", "credit_card", "overdraft"]));
 
-    const onlyActive = await repo.listForUser(userId, { status: "active" });
+    const onlyActive = await repo.listForProfile(userId, { status: "active" });
     expect(onlyActive).toHaveLength(3);
     expect(onlyActive.every((d) => d.status === "active")).toBe(true);
   });

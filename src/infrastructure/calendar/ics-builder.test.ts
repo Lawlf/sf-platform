@@ -31,6 +31,7 @@ function makeFinancing(): FinancingDebt {
   return {
     id: "abc-123",
     userId: "u1",
+    profileId: "profile-1",
     label: "Financiamento apto",
     kind: "financing",
     status: "active",

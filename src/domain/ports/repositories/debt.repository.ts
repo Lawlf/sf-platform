@@ -8,11 +8,11 @@ export interface DebtRepositoryPort {
    */
   findById(id: string): Promise<DebtEntity | null>;
   /**
-   * Lista dívidas do usuário. Sempre filtra `deleted_at IS NULL`. O
+   * Lista dívidas do perfil. Sempre filtra `deleted_at IS NULL`. O
    * parâmetro `status` filtra adicionalmente pelo status legítimo
    * (active/paid_off/written_off) ou `"all"` para não filtrar status.
    */
-  listForUser(userId: string, opts?: { status?: DebtStatus | "all" }): Promise<DebtEntity[]>;
+  listForProfile(profileId: string, opts?: { status?: DebtStatus | "all" }): Promise<DebtEntity[]>;
   create(entity: DebtEntity): Promise<DebtEntity>;
   update(entity: DebtEntity): Promise<DebtEntity>;
   setStatus(id: string, status: DebtStatus): Promise<void>;
@@ -22,6 +22,6 @@ export interface DebtRepositoryPort {
    * próprio use case via repositórios dedicados antes do soft delete aqui.
    */
   softDelete(id: string, deletedAt: Date): Promise<void>;
-  countByExpenseCategory(userId: string, categoryKey: string): Promise<number>;
-  reassignExpenseCategory(userId: string, fromKey: string, toKey: string): Promise<void>;
+  countByExpenseCategory(profileId: string, categoryKey: string): Promise<number>;
+  reassignExpenseCategory(profileId: string, fromKey: string, toKey: string): Promise<void>;
 }

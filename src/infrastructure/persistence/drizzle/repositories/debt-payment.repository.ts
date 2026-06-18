@@ -52,8 +52,8 @@ export class DebtPaymentRepository implements DebtPaymentRepositoryPort {
     return rows.map(rowToEntity);
   }
 
-  async listForUserInRange(
-    userId: string,
+  async listForProfileInRange(
+    profileId: string,
     range: { from: Date; to: Date },
   ): Promise<DebtPaymentEntity[]> {
     const rows = await getDb()
@@ -62,7 +62,7 @@ export class DebtPaymentRepository implements DebtPaymentRepositoryPort {
       .innerJoin(debts, eq(debtPayments.debtId, debts.id))
       .where(
         and(
-          eq(debts.userId, userId),
+          eq(debts.profileId, profileId),
           isNull(debts.deletedAt),
           gte(debtPayments.paidAt, range.from),
           lte(debtPayments.paidAt, range.to),

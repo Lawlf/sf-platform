@@ -12,7 +12,7 @@ import { simulateExtraPayment } from "./simulate-extra-payment.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -43,6 +43,7 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
   return {
     id: "debt-1",
     userId,
+    profileId: "profile-1",
     label: "Casa",
     status: "active",
     originalPrincipal: principal,

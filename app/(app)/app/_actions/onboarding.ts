@@ -28,8 +28,8 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
       const list = await incomes.listForProfile(profileId, { onlyActive: true });
       return list.length > 0;
     },
-    async hasDebt(userId: string): Promise<boolean> {
-      const list = await debts.listForUser(userId, { status: "active" });
+    async hasDebt(_userId: string): Promise<boolean> {
+      const list = await debts.listForProfile(profileId, { status: "active" });
       return list.length > 0;
     },
     async hasAsset(userId: string): Promise<boolean> {

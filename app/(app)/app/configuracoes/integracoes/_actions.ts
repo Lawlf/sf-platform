@@ -13,6 +13,7 @@ import { undoMcpAction } from "@/application/use-cases/mcp/undo-mcp-action.use-c
 import { isMcpScope } from "@/domain/mcp/scopes";
 import { clock, repos } from "@/infrastructure/container";
 import { action } from "@/presentation/actions/action";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 const ROUTE = "/app/configuracoes/integracoes";
@@ -76,6 +77,7 @@ function pendingExecutorDeps() {
     audit: repos.mcpAuditLogs,
     pending: repos.mcpPendingActions,
     clock,
+    resolveProfileId: resolvePfProfileId,
   };
 }
 

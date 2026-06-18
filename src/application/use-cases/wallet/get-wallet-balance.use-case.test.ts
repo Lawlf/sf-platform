@@ -89,12 +89,12 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
       createDefaultWallet: async () => {},
     },
     incomes: { listForProfile: async () => [income({})] },
-    debts: { listForUser: async () => [] },
+    debts: { listForProfile: async () => [] },
     settlements: { listForUserMonth: async () => [] },
     incomeSettlements: { listForUserMonth: async () => [] },
-    debtPayments: { listForUserInRange: async () => [] },
+    debtPayments: { listForProfileInRange: async () => [] },
     transactions: { listForUserInRange: async () => [] },
-    debtAmountAdjustments: { listForUser: async () => [] },
+    debtAmountAdjustments: { listForProfile: async () => [] },
     clock: { now: () => utc(2026, 6, 4) },
     ...over,
   } as GetWalletBalanceDeps;
@@ -138,7 +138,7 @@ describe("getWalletBalance", () => {
 
   it("does not subtract a debt before its due day", async () => {
     const d = deps({
-      debts: { listForUser: async () => [recurringDebt({})] },
+      debts: { listForProfile: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
     const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
@@ -148,7 +148,7 @@ describe("getWalletBalance", () => {
 
   it("includes a due-this-month debt in the projection", async () => {
     const d = deps({
-      debts: { listForUser: async () => [recurringDebt({})] },
+      debts: { listForProfile: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
     const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
@@ -161,9 +161,9 @@ describe("getWalletBalance", () => {
     // do mês ainda saiu da carteira. Antes da unificação a carteira ignorava
     // esse pagamento e projetava sobra falsa.
     const d = deps({
-      debts: { listForUser: async () => [] },
+      debts: { listForProfile: async () => [] },
       debtPayments: {
-        listForUserInRange: async () => [
+        listForProfileInRange: async () => [
           {
             id: "p-quit",
             debtId: "gone",

@@ -203,6 +203,7 @@ export async function commitOfxImport(
     const entity: DebtEntity = {
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       label,
       status: "active",
       kind: "personal_loan",

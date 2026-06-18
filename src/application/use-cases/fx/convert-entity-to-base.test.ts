@@ -82,6 +82,7 @@ describe("convertDebtToBase", () => {
     const debt: CreditCardDebt = {
       id: "d1",
       userId: "u1",
+      profileId: "profile-1",
       label: "Cartão",
       status: "active",
       kind: "credit_card",
@@ -149,6 +150,7 @@ describe("convertDebtToBase", () => {
     const debt: RecurringDebt = {
       id: "d2",
       userId: "u1",
+      profileId: "profile-1",
       label: "Netflix",
       status: "active",
       kind: "recurring",
@@ -221,6 +223,7 @@ describe("convertAdjustmentToBase", () => {
       id: "adj1",
       debtId: "d1",
       userId: "u1",
+      profileId: "profile-1",
       amount: Money.fromCents(2000n, "USD"),
       note: null,
       createdAt: NOW,

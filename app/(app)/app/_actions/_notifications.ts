@@ -29,14 +29,14 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
 
     const profileId = await resolvePfProfileId(userId);
     const [debtsRaw, incomesRaw, paymentsRaw, assetsRaw, adjustmentsRaw] = await Promise.all([
-      debts.listForUser(userId, { status: "all" }),
+      debts.listForProfile(profileId, { status: "all" }),
       incomes.listForProfile(profileId),
-      payments.listForUserInRange(userId, {
+      payments.listForProfileInRange(profileId, {
         from: currentMonth.firstDay(),
         to: currentMonth.lastDay(),
       }),
       assets.findActiveByUser(userId),
-      adjustmentsRepo.listForUser(userId),
+      adjustmentsRepo.listForProfile(profileId),
     ]);
 
     const timeline = TimelineService.buildTimeline({

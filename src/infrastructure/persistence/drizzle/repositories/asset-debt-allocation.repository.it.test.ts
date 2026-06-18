@@ -36,6 +36,7 @@ function makeDebt(label: string): PersonalLoanDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     label: `${LABEL_PREFIX}${label}`,
     kind: "personal_loan",
     dueDay: null,

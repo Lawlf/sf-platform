@@ -8,9 +8,9 @@ export interface ListDebtsDeps {
 
 export async function listDebts(
   deps: ListDebtsDeps,
-  input: { userId: string; status?: DebtStatus | "all" },
+  input: { profileId: string; status?: DebtStatus | "all" },
 ): Promise<Result<DebtEntity[], never>> {
   const opts = input.status !== undefined ? { status: input.status } : undefined;
-  const list = await deps.debts.listForUser(input.userId, opts);
+  const list = await deps.debts.listForProfile(input.profileId, opts);
   return ok(list);
 }

@@ -46,6 +46,7 @@ function makeCreditCard(over: Partial<CreditCardDebt> = {}): CreditCardDebt {
   return {
     id: over.id ?? "debt-cc",
     userId: "user-1",
+    profileId: "profile-1",
     label: over.label ?? "Cartão Nubank",
     status: "active",
     originalPrincipal: stmt,
@@ -117,7 +118,7 @@ function makeDeps(opts: {
     update: vi.fn(),
   } as unknown as UserRepositoryPort;
   const debts = {
-    listForUser: vi.fn(async () => opts.debts ?? []),
+    listForProfile: vi.fn(async () => opts.debts ?? []),
     findById: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
@@ -125,7 +126,8 @@ function makeDeps(opts: {
     softDelete: vi.fn(),
   } as unknown as DebtRepositoryPort;
   const clock = { now: vi.fn(() => opts.now) };
-  return { pushService, pushSubscriptions, preferences, users, debts, clock, send };
+  const resolveProfileId = vi.fn(async () => "profile-1");
+  return { pushService, pushSubscriptions, preferences, users, debts, clock, send, resolveProfileId };
 }
 
 function lastPayload(send: ReturnType<typeof vi.fn>): PushPayload {

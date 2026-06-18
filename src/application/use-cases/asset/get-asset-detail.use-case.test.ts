@@ -65,6 +65,7 @@ function makeFinancing({
   return {
     id,
     userId: "user-1",
+    profileId: "profile-1",
     kind: "financing",
     label: "Financiamento",
     status,
@@ -132,7 +133,7 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
 
   const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(async (id: string) => debtsById.get(id) ?? null),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),

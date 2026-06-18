@@ -67,7 +67,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const [goals, assets, debts, settings, macro] = await Promise.all([
     goalsRepo.listForUser(user.id, { status: "active" }),
     assetsRepo.findActiveByUser(user.id),
-    debtsRepo.listForUser(user.id, { status: "active" }),
+    debtsRepo.listForProfile(profileId, { status: "active" }),
     settingsRepo.findByUser(user.id),
     buildGoalMacro(
       {
@@ -299,7 +299,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const incomeSettlementsRepo = repos.incomeSettlements;
   const incomesRepo = repos.incomes;
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
-    debtsRepo.listForUser(user.id, { status: "all" }),
+    debtsRepo.listForProfile(profileId, { status: "all" }),
     settlementsRepo.listForUserMonth(user.id, month.firstDay()),
     incomesRepo.listForProfile(profileId),
     incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),

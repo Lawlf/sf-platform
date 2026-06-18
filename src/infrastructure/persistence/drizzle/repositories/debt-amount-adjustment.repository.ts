@@ -20,6 +20,7 @@ function rowToEntity(row: DebtAmountAdjustmentRow): DebtAmountAdjustmentEntity {
     id: row.id,
     debtId: row.debtId,
     userId: row.userId,
+    profileId: row.profileId ?? row.userId,
     amount: Money.fromCents(row.amountCents, row.currency as Currency),
     note: row.note,
     createdAt: row.createdAt,
@@ -51,6 +52,7 @@ function entityToRow(entity: DebtAmountAdjustmentEntity): NewDebtAmountAdjustmen
     id: entity.id,
     debtId: entity.debtId,
     userId: entity.userId,
+    profileId: entity.profileId,
     amountCents: entity.amount.toCents(),
     currency: entity.amount.currency,
     note: entity.note,
@@ -76,11 +78,11 @@ function entityToRow(entity: DebtAmountAdjustmentEntity): NewDebtAmountAdjustmen
 }
 
 export class DebtAmountAdjustmentRepository implements DebtAmountAdjustmentRepositoryPort {
-  async listForDebt(debtId: string, userId: string): Promise<DebtAmountAdjustmentEntity[]> {
+  async listForDebt(debtId: string, profileId: string): Promise<DebtAmountAdjustmentEntity[]> {
     const rows = await getDb()
       .select()
       .from(debtAmountAdjustments)
-      .where(and(eq(debtAmountAdjustments.debtId, debtId), eq(debtAmountAdjustments.userId, userId)))
+      .where(and(eq(debtAmountAdjustments.debtId, debtId), eq(debtAmountAdjustments.profileId, profileId)))
       .orderBy(
         asc(debtAmountAdjustments.kind),
         asc(debtAmountAdjustments.startMonth),
@@ -89,11 +91,11 @@ export class DebtAmountAdjustmentRepository implements DebtAmountAdjustmentRepos
     return rows.map(rowToEntity);
   }
 
-  async listForUser(userId: string): Promise<DebtAmountAdjustmentEntity[]> {
+  async listForProfile(profileId: string): Promise<DebtAmountAdjustmentEntity[]> {
     const rows = await getDb()
       .select()
       .from(debtAmountAdjustments)
-      .where(eq(debtAmountAdjustments.userId, userId))
+      .where(eq(debtAmountAdjustments.profileId, profileId))
       .orderBy(
         asc(debtAmountAdjustments.debtId),
         asc(debtAmountAdjustments.kind),
@@ -127,10 +129,10 @@ export class DebtAmountAdjustmentRepository implements DebtAmountAdjustmentRepos
     return rowToEntity(row);
   }
 
-  async delete(id: string, userId: string): Promise<void> {
+  async delete(id: string, profileId: string): Promise<void> {
     await getDb()
       .delete(debtAmountAdjustments)
-      .where(and(eq(debtAmountAdjustments.id, id), eq(debtAmountAdjustments.userId, userId)));
+      .where(and(eq(debtAmountAdjustments.id, id), eq(debtAmountAdjustments.profileId, profileId)));
   }
 
   async deleteByDebtId(debtId: string): Promise<void> {

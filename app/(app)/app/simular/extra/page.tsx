@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -15,9 +16,10 @@ export const metadata: Metadata = { title: "Pagar extra" };
 
 export default async function ExtraPage() {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
   const listed = await listDebts(
     { debts: repos.debts },
-    { userId: user.id, status: "active" },
+    { profileId, status: "active" },
   );
   const debts = isOk(listed)
     ? listed.value.map((d) => ({

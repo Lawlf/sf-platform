@@ -103,7 +103,7 @@ function buildDeps({
 
   const debts: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),

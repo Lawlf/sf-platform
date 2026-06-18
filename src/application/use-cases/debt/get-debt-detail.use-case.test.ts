@@ -18,7 +18,7 @@ import { getDebtDetail } from "./get-debt-detail.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -31,7 +31,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makePaymentsRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
-    listForUserInRange: vi.fn(),
+    listForProfileInRange: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -55,6 +55,7 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
   return {
     id: "debt-1",
     userId,
+    profileId: "profile-1",
     label: "Casa",
     status: "active",
     originalPrincipal: p,
@@ -82,6 +83,7 @@ function makeCreditCard(userId = "user-1"): CreditCardDebt {
   return {
     id: "debt-2",
     userId,
+    profileId: "profile-1",
     label: "Nubank",
     status: "active",
     originalPrincipal: statement,
@@ -111,6 +113,7 @@ function makePersonalLoan(userId = "user-1"): PersonalLoanDebt {
   return {
     id: "debt-3",
     userId,
+    profileId: "profile-1",
     label: "Emprestimo",
     status: "active",
     originalPrincipal: p,

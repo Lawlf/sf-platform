@@ -57,7 +57,7 @@ export default async function DocumentosPage() {
   const profileId = await getActiveProfileId();
 
   const [debts, incomes, goals, assets] = await Promise.all([
-    repos.debts.listForUser(user.id),
+    repos.debts.listForProfile(profileId),
     repos.incomes.listForProfile(profileId),
     repos.goals.listForUser(user.id),
     repos.assets.findActiveByUser(user.id),

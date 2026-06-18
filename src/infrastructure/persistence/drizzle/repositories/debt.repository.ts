@@ -14,7 +14,7 @@ import { type Currency, Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import { debts, type DebtRow, type NewDebtRow } from "../schema/debts.schema";
 
 function parseRecurringFrequency(raw: string | null): RecurringFrequency | null {
@@ -26,6 +26,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
   const base = {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId ?? row.userId,
     label: row.label,
     status: row.status,
     originalPrincipal: Money.fromCents(row.originalPrincipalCents, row.currency as Currency),
@@ -149,6 +150,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
   const base = {
     id: entity.id,
     userId: entity.userId,
+    profileId: entity.profileId,
     label: entity.label,
     kind: entity.kind,
     status: entity.status,
@@ -254,12 +256,12 @@ export class DebtRepository implements DebtRepositoryPort {
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
-  async listForUser(userId: string, opts?: { status?: DebtStatus | "all" }): Promise<DebtEntity[]> {
+  async listForProfile(profileId: string, opts?: { status?: DebtStatus | "all" }): Promise<DebtEntity[]> {
     const status = opts?.status;
     const conditions =
       !status || status === "all"
-        ? and(ownedBy(debts, userId))
-        : and(eq(debts.userId, userId), eq(debts.status, status), isNull(debts.deletedAt));
+        ? and(scopedToProfile(debts, profileId))
+        : and(eq(debts.profileId, profileId), eq(debts.status, status), isNull(debts.deletedAt));
     const rows = await getDb()
       .select()
       .from(debts)
@@ -294,18 +296,18 @@ export class DebtRepository implements DebtRepositoryPort {
     await getDb().update(debts).set({ deletedAt, updatedAt: deletedAt }).where(eq(debts.id, id));
   }
 
-  async countByExpenseCategory(userId: string, categoryKey: string): Promise<number> {
+  async countByExpenseCategory(profileId: string, categoryKey: string): Promise<number> {
     const rows = await getDb()
       .select({ value: count() })
       .from(debts)
-      .where(and(eq(debts.expenseCategory, categoryKey), ownedBy(debts, userId)));
+      .where(and(eq(debts.expenseCategory, categoryKey), scopedToProfile(debts, profileId)));
     return rows[0]?.value ?? 0;
   }
 
-  async reassignExpenseCategory(userId: string, fromKey: string, toKey: string): Promise<void> {
+  async reassignExpenseCategory(profileId: string, fromKey: string, toKey: string): Promise<void> {
     await getDb()
       .update(debts)
       .set({ expenseCategory: toKey, updatedAt: new Date() })
-      .where(and(eq(debts.expenseCategory, fromKey), ownedBy(debts, userId)));
+      .where(and(eq(debts.expenseCategory, fromKey), scopedToProfile(debts, profileId)));
   }
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -25,6 +26,7 @@ export default async function NovaMetaPage({
   const sp = await searchParams;
   const seed = parseGoalSeed(sp);
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   // Free plan: block if already has >= 1 active goal
   if (!user.isPro) {
@@ -82,7 +84,7 @@ export default async function NovaMetaPage({
     (async () => {
       const r = await listDebts(
         { debts: repos.debts },
-        { userId: user.id, status: "active" },
+        { profileId, status: "active" },
       );
       if (!isOk(r)) return [];
       return r.value.map((d) => ({

@@ -16,7 +16,7 @@ import { deleteDebt } from "./delete-debt.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -29,7 +29,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makePaymentRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
-    listForUserInRange: vi.fn(),
+    listForProfileInRange: vi.fn(),
     create: vi.fn(async (entity) => entity),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -62,6 +62,7 @@ function makeDebt(userId = "user-1"): PersonalLoanDebt {
   return {
     id: "debt-1",
     userId,
+    profileId: "profile-1",
     label: "Test",
     status: "active",
     originalPrincipal: originalR.value,

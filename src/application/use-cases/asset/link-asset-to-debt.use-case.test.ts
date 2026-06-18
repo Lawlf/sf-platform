@@ -53,7 +53,7 @@ function makeAllocRepo(sumExcludingCents = 0n): AssetDebtAllocationRepositoryPor
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -112,6 +112,7 @@ function makeDebt(overrides: Partial<PersonalLoanDebt> = {}): PersonalLoanDebt {
   return {
     id: "debt-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Emprestimo",
     status: "active",
     originalPrincipal: principal,

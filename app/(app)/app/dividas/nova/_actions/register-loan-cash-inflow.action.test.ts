@@ -26,7 +26,7 @@ function makeAllocationsRepo(): AssetDebtAllocationRepositoryPort {
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(async () => null),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     create: vi.fn(async (e) => e),
     update: vi.fn(async (e) => e),
     setStatus: vi.fn(),

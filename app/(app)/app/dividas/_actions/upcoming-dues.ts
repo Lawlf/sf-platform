@@ -2,6 +2,7 @@ import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcom
 import type { Clock } from "@/domain/ports/clock.port";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 export interface UpcomingDuePayload {
@@ -17,12 +18,13 @@ export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
+  const profileId = await getActiveProfileId();
   const today = startOfLocalDay(clock.now());
   const dayClock: Clock = { now: () => today };
 
   const result = await getUpcomingDueDates(
     { debts: repos.debts, clock: dayClock },
-    { userId: user.id, horizonDays: BANNER_HORIZON_DAYS },
+    { userId: user.id, profileId, horizonDays: BANNER_HORIZON_DAYS },
   );
   const dues = isOk(result) ? result.value : [];
 

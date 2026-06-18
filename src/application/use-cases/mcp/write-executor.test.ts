@@ -91,6 +91,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { label: "Salário", amountCents: 500000, frequency: "monthly", startDate: "2026-06-01" },
     });
@@ -109,6 +110,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         label: "Salary",
@@ -130,6 +132,7 @@ describe("executeWrite", () => {
     await executeWrite(deps, {
       toolName: "asset_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         category: "real_estate",
@@ -151,6 +154,7 @@ describe("executeWrite", () => {
     await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "financing",
@@ -197,6 +201,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { incomeId: "i1", amountCents: 600000 },
     });
@@ -233,6 +238,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { debtId: "d1", currentBalanceCents: 700000 },
     });
@@ -263,6 +269,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { incomeId: "i1", amountCents: 600000 },
     });
@@ -304,6 +311,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_delete",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { debtId: "d1" },
     });
@@ -326,6 +334,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "financing",
@@ -364,6 +373,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "credit_card",
@@ -425,6 +435,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "goal_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { type: "savings", title: "Reserva", targetCents: 1000000, fundingMode: "manual" },
     });
@@ -444,6 +455,7 @@ describe("executeWrite", () => {
       executeWrite(deps, {
         toolName: "goal_create",
         userId: "u1",
+        profileId: "p1",
         isPro: false,
         args: { type: "savings", title: "Segunda meta" },
       }),

@@ -22,9 +22,10 @@ export function registerMcpReadTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "debts:read");
       await enforceUsageOrThrow(ctx);
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await listDebts(
         { debts: repos.debts },
-        { userId: ctx.userId },
+        { profileId },
       );
       if (isErr(result)) throw result.error;
       return text(serialize(result.value));

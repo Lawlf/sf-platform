@@ -185,6 +185,7 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
   const base = {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: typeof s.profileId === "string" ? s.profileId : str(s.userId),
     label: str(s.label),
     status: str(s.status) as DebtEntity["status"],
     originalPrincipal: money(s.originalPrincipal),

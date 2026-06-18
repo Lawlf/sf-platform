@@ -61,6 +61,7 @@ function makeFinancing({
   currentBalanceCents,
   status = "active",
   userId = "user-1",
+  profileId = "profile-1",
   currency = "BRL",
 }: {
   id: string;
@@ -68,11 +69,13 @@ function makeFinancing({
   currentBalanceCents: bigint;
   status?: DebtStatus;
   userId?: string;
+  profileId?: string;
   currency?: Currency;
 }): FinancingDebt {
   return {
     id,
     userId,
+    profileId,
     kind: "financing",
     label: "Financiamento",
     status,
@@ -149,11 +152,11 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
 
   const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: DebtStatus | "all" }) => {
-      const ofUser = debts.filter((d) => d.userId === userId);
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: DebtStatus | "all" }) => {
+      const ofProfile = debts.filter((d) => (d.profileId ?? d.userId) === profileId);
       const status = opts?.status;
-      if (!status || status === "all") return ofUser;
-      return ofUser.filter((d) => d.status === status);
+      if (!status || status === "all") return ofProfile;
+      return ofProfile.filter((d) => d.status === status);
     }),
     create: vi.fn(),
     update: vi.fn(),
@@ -195,7 +198,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -220,7 +223,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -243,7 +246,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -269,7 +272,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -300,7 +303,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", allocs]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -331,7 +334,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -359,7 +362,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -384,7 +387,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -417,7 +420,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -455,7 +458,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -483,6 +486,7 @@ describe("getNetWorth", () => {
       originalPrincipalCents: 2_000_000n,
       currentBalanceCents: 1_500_000n,
       userId: "other",
+      profileId: "other-profile",
     });
     const deps = buildDeps({
       assets: [mine, theirs],
@@ -490,7 +494,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -508,7 +512,7 @@ describe("getNetWorth", () => {
       rate: "5.00",
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -533,7 +537,7 @@ describe("getNetWorth", () => {
       rate: "5.00",
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -553,7 +557,7 @@ describe("getNetWorth", () => {
       rate: null,
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isErr(result)).toBe(true);
   });

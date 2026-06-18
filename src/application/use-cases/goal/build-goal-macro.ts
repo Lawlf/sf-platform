@@ -54,7 +54,7 @@ export async function buildGoalMacro(
         overrides: deps.overrides,
         clock: deps.clock,
       },
-      { userId },
+      { userId, profileId },
     ),
     getDashboardSnapshot(
       {
@@ -66,7 +66,7 @@ export async function buildGoalMacro(
       },
       { userId, profileId },
     ),
-    deps.debts.listForUser(userId, { status: "active" }),
+    deps.debts.listForProfile(profileId, { status: "active" }),
   ]);
 
   // Patrimonio: caixa + investimentos (somente categorias positivas).

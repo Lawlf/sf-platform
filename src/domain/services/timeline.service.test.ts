@@ -99,6 +99,7 @@ function makeFinancing(overrides: {
   return {
     id: overrides.id ?? "debt-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "financing",
     label: "Financiamento",
     status: "active",
@@ -133,6 +134,7 @@ function makeRecurring(overrides: {
   return {
     id: overrides.id ?? "rec-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "recurring",
     label: "Aluguel",
     status: overrides.status ?? "active",
@@ -182,6 +184,7 @@ function makeCreditCard(overrides: {
   return {
     id: overrides.id ?? "cc-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "credit_card",
     label: "Cartão Nubank",
     status: overrides.status ?? "active",

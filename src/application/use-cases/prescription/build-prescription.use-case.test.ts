@@ -89,7 +89,7 @@ const cashAsset = {
 } as unknown as AssetEntity;
 
 const deps = {
-  debts: { listForUser: async () => [dearCard] },
+  debts: { listForProfile: async () => [dearCard] },
   incomes: { listForProfile: async () => [income] },
   assets: { findActiveByUser: async () => [cashAsset] },
   now: () => NOW,
@@ -108,7 +108,7 @@ describe("buildPrescription", () => {
   it("converts foreign income to base before the figures", async () => {
     const usdIncome = { ...income, id: "iUsd", amount: mUsd(1000) } as IncomeEntity;
     const fxConverted = {
-      debts: { listForUser: async () => [] },
+      debts: { listForProfile: async () => [] },
       incomes: { listForProfile: async () => [usdIncome] },
       assets: { findActiveByUser: async () => [] },
       now: () => NOW,
@@ -124,7 +124,7 @@ describe("buildPrescription", () => {
   it("returns the FX error when a foreign entity has no rate", async () => {
     const usdAsset = { ...cashAsset, id: "aUsd", currentValue: mUsd(1000) } as AssetEntity;
     const noRate = {
-      debts: { listForUser: async () => [] },
+      debts: { listForProfile: async () => [] },
       incomes: { listForProfile: async () => [income] },
       assets: { findActiveByUser: async () => [usdAsset] },
       now: () => NOW,

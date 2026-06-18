@@ -6,7 +6,7 @@ function emptyDeps(): LoadSimPrefillDeps {
   return {
     assets: { findActiveByUser: vi.fn(async () => []) },
     allocations: { findByAsset: vi.fn(async () => []) },
-    debts: { listForUser: vi.fn(async () => []) },
+    debts: { listForProfile: vi.fn(async () => []) },
     incomes: { listForProfile: vi.fn(async () => []) },
     clock: { now: vi.fn(() => new Date("2026-06-03T12:00:00Z")) },
   } as unknown as LoadSimPrefillDeps;

@@ -49,6 +49,7 @@ export interface NewCreditCardInput {
 
 export interface ExecutePurchaseInput {
   userId: string;
+  profileId: string;
   name: string;
   valueCents: bigint;
   category: PurchaseCategory;
@@ -294,6 +295,7 @@ async function applyCreditCardPurchase(
     }
     const debtResult = await registerDebt(deps, {
       userId: input.userId,
+      profileId: input.profileId,
       label: cardLabel,
       notes: null,
       startDate: now,
@@ -342,6 +344,7 @@ async function createLoanDebt(
   }
   const debtResult = await registerDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     label: name,
     notes: null,
     startDate: now,
@@ -386,6 +389,7 @@ async function createFinancingDebt(
   }
   const debtResult = await registerDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     label: name,
     notes: null,
     startDate: now,
@@ -563,7 +567,7 @@ export type CreatePurchaseActionInput = z.input<typeof inputSchema>;
 export const createPurchaseAction = action({
   schema: inputSchema,
   revalidates: ["home", "assets", "debts"],
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     const valueCents = BigInt(v.valueCents);
 
     const monthlyPaymentCents =
@@ -593,6 +597,7 @@ export const createPurchaseAction = action({
 
     const result = await executePurchase(deps, {
       userId,
+      profileId,
       name: v.name,
       valueCents,
       category: v.category,
