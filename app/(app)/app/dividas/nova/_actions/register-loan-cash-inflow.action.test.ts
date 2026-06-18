@@ -46,18 +46,18 @@ function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepositoryPort {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      if (!a || a.userId !== userId) return null;
+      if (!a || a.profileId !== profileId) return null;
       return a;
     }),
-    findActiveByUser: vi.fn(async () => []),
+    findActiveByProfile: vi.fn(async () => []),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(async () => []),
+    findActiveByProfileAndCategory: vi.fn(async () => []),
     findByIdWithAllocations: vi.fn(async () => null),
     findActiveWithAllocations: vi.fn(async () => []),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -102,6 +102,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     deletedAt: null,
     externalAccountKey: null,
     ...overrides,
+    profileId: overrides.profileId ?? "profile-1",
   };
 }
 
@@ -111,6 +112,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "spent",
       principalCents: 1_250_000n,
     });
@@ -125,6 +127,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps([cash]);
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "existing",
       existingCashAssetId: "cash-1",
       principalCents: 1_250_000n,
@@ -141,6 +144,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps(); // store vazio
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "existing",
       existingCashAssetId: "cash-1",
       principalCents: 1_250_000n,
@@ -149,10 +153,11 @@ describe("registerLoanCashInflow", () => {
   });
 
   it("cashTarget=existing with asset belonging to another user returns error", async () => {
-    const cash = makeCashAsset({ userId: "user-2" });
+    const cash = makeCashAsset({ userId: "user-2", profileId: "profile-2" });
     const deps = makeDeps([cash]);
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "existing",
       existingCashAssetId: "cash-1",
       principalCents: 1_250_000n,
@@ -165,6 +170,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "existing",
       // existingCashAssetId omitido
       principalCents: 1_250_000n,
@@ -177,6 +183,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "new",
       newCashAssetName: "Conta corrente",
       newCashAssetCurrentBalanceCents: 200_000n, // R$ 2.000 antes do emprestimo
@@ -197,6 +204,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "new",
       newCashAssetName: "Nubank",
       newCashAssetCurrentBalanceCents: 0n,
@@ -213,6 +221,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "new",
       newCashAssetName: "   ",
       newCashAssetCurrentBalanceCents: 0n,
@@ -226,6 +235,7 @@ describe("registerLoanCashInflow", () => {
     const deps = makeDeps();
     const result = await registerLoanCashInflow(deps, {
       userId: "user-1",
+      profileId: "profile-1",
       cashTarget: "new",
       newCashAssetName: "Conta",
       // newCashAssetCurrentBalanceCents omitido -> defaults to 0n

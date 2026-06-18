@@ -81,7 +81,7 @@ export async function fetchAssetsWithAllocations(): Promise<AssetWithNetWorthPay
   const assetsRepo = repos.assets;
   const debtsRepo = repos.debts;
 
-  const assetsWithAllocs = await assetsRepo.findActiveWithAllocations(userId);
+  const assetsWithAllocs = await assetsRepo.findActiveWithAllocations(profileId);
   const activeDebts = await debtsRepo.listForProfile(profileId, { status: "active" });
   const debtsById = new Map<string, DebtEntity>(activeDebts.map((d) => [d.id, d]));
 

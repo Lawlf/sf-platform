@@ -10,7 +10,7 @@ import { type DomainError } from "@/shared/errors/domain-error";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface GetAssetDetailInput {
-  userId: string;
+  profileId: string;
   assetId: string;
 }
 
@@ -41,7 +41,7 @@ export async function getAssetDetail(
   deps: GetAssetDetailDeps,
   input: GetAssetDetailInput,
 ): Promise<Result<GetAssetDetailOutput, DomainError>> {
-  const withAllocs = await deps.assets.findByIdWithAllocations(input.assetId, input.userId);
+  const withAllocs = await deps.assets.findByIdWithAllocations(input.assetId, input.profileId);
   if (!withAllocs) return err(new AssetNotFound("Ativo não encontrado."));
 
   const { asset, allocations } = withAllocs;

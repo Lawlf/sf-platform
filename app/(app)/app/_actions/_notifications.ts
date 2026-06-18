@@ -35,7 +35,7 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
         from: currentMonth.firstDay(),
         to: currentMonth.lastDay(),
       }),
-      assets.findActiveByUser(userId),
+      assets.findActiveByProfile(profileId),
       adjustmentsRepo.listForProfile(profileId),
     ]);
 

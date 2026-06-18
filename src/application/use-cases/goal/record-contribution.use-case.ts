@@ -92,6 +92,7 @@ async function applyToReserve(
   const created: AssetEntity = {
     id: deps.newId(),
     userId: goal.userId,
+    profileId: goal.userId,
     category: "cash",
     label: "Reserva de emergência",
     currentValue: Money.fromCents(amountCents),

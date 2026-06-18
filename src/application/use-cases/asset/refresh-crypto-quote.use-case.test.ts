@@ -13,6 +13,7 @@ function cryptoAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "a1",
     userId: "u1",
+    profileId: "profile-1",
     category: "investment",
     label: "Bitcoin",
     currentValue: Money.fromCents(0n),
@@ -74,7 +75,7 @@ describe("refreshCryptoQuote", () => {
     const asset = cryptoAsset();
     const { deps: d, update } = deps(asset);
 
-    const res = await refreshCryptoQuote(d, { userId: "u1", assetId: "a1" });
+    const res = await refreshCryptoQuote(d, { profileId: "profile-1", assetId: "a1" });
 
     expect(isOk(res)).toBe(true);
     const updated = (update.mock.calls[0] as unknown[])[0] as AssetEntity;
@@ -85,14 +86,14 @@ describe("refreshCryptoQuote", () => {
   it("erro quando o ativo não é cripto", async () => {
     const asset = cryptoAsset({ metadata: { kind: "investment", investmentType: "stocks", ticker: "PETR4", shares: 100 } });
     const { deps: d } = deps(asset);
-    const res = await refreshCryptoQuote(d, { userId: "u1", assetId: "a1" });
+    const res = await refreshCryptoQuote(d, { profileId: "profile-1", assetId: "a1" });
     expect(isOk(res)).toBe(false);
   });
 
   it("erro quando a cotação está indisponível", async () => {
     const asset = cryptoAsset();
     const { deps: d } = deps(asset, null as never);
-    const res = await refreshCryptoQuote(d, { userId: "u1", assetId: "a1" });
+    const res = await refreshCryptoQuote(d, { profileId: "profile-1", assetId: "a1" });
     expect(isOk(res)).toBe(false);
   });
 });

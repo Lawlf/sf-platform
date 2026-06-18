@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { ensureDefaultWallet } from "@/application/use-cases/asset/ensure-default-wallet.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { AppLockProvider } from "./app/_components/app-lock/app-lock-provider.client";
@@ -36,6 +37,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     redirect("/comecar");
   }
 
+  const profileId = await getActiveProfileId();
+
   try {
     await ensureDefaultWallet(
       {
@@ -44,6 +47,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         newId: () => crypto.randomUUID(),
       },
       user.id,
+      profileId,
     );
   } catch {
     // Best-effort: a criação da Carteira padrão não pode derrubar o app.

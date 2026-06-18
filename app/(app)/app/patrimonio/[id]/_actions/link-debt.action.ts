@@ -15,7 +15,7 @@ const inputSchema = z.object({
 export const linkDebtAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     unwrap(
       await linkAssetToDebt(
         {
@@ -26,6 +26,7 @@ export const linkDebtAction = action({
         },
         {
           userId,
+          profileId,
           assetId: input.assetId,
           debtId: input.debtId,
           allocationOriginalCents: BigInt(input.allocationOriginalCents),

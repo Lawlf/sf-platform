@@ -7,7 +7,7 @@ import type { NoWalletError } from "./get-wallet-balance.use-case";
 
 export interface SetWalletAnchorDeps {
   assets: {
-    findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]>;
+    findActiveByProfileAndCategory(profileId: string, category: "cash"): Promise<AssetEntity[]>;
     update(asset: AssetEntity): Promise<void>;
     createDefaultWallet(asset: AssetEntity): Promise<void>;
   };
@@ -23,14 +23,13 @@ export async function setWalletAnchor(
   deps: SetWalletAnchorDeps,
   input: SetWalletAnchorInput,
 ): Promise<Result<{ walletId: string }, NoWalletError>> {
-  const cash = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
-  // Ancora SEMPRE a Carteira dedicada (label "Carteira"), nunca o primeiro cash
-  // (ex.: Reserva). Cria se faltar pra não escrever a âncora na conta errada.
+  const profileId = input.userId;
+  const cash = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
   let wallet = cash.find((a) => a.label === "Carteira");
   if (!wallet) {
-    const fresh = buildDefaultWallet(input.userId, crypto.randomUUID(), deps.clock.now());
+    const fresh = buildDefaultWallet(input.userId, profileId, crypto.randomUUID(), deps.clock.now());
     await deps.assets.createDefaultWallet(fresh);
-    const after = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+    const after = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
     wallet = after.find((a) => a.label === "Carteira") ?? fresh;
   }
 

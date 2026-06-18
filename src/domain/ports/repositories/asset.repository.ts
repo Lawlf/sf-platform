@@ -22,34 +22,34 @@ export interface AssetRepositoryPort {
    * (`deleted_at IS NOT NULL`) por padrão; a UI nunca deve enxergar um ativo
    * apagado via esse método.
    */
-  findById(id: string, userId: string): Promise<AssetEntity | null>;
+  findById(id: string, profileId: string): Promise<AssetEntity | null>;
   /**
-   * Retorna ativos ativos (não desativados e não apagados) do usuário.
+   * Retorna ativos ativos (não desativados e não apagados) do perfil.
    * Filtra `deactivated_at IS NULL` E `deleted_at IS NULL`.
    */
-  findActiveByUser(userId: string): Promise<AssetEntity[]>;
+  findActiveByProfile(profileId: string): Promise<AssetEntity[]>;
   /**
-   * Mesma semântica de `findActiveByUser`, restringindo por categoria.
+   * Mesma semântica de `findActiveByProfile`, restringindo por categoria.
    */
-  findActiveByUserAndCategory(userId: string, category: AssetCategory): Promise<AssetEntity[]>;
-  findByIdWithAllocations(id: string, userId: string): Promise<AssetWithAllocations | null>;
-  findActiveWithAllocations(userId: string): Promise<AssetWithAllocations[]>;
+  findActiveByProfileAndCategory(profileId: string, category: AssetCategory): Promise<AssetEntity[]>;
+  findByIdWithAllocations(id: string, profileId: string): Promise<AssetWithAllocations | null>;
+  findActiveWithAllocations(profileId: string): Promise<AssetWithAllocations[]>;
   /**
    * Retorna todos os tickers (uppercase, deduplicados) presentes em ativos
-   * ativos de investimento do tipo `stocks` pertencentes ao usuário.
+   * ativos de investimento do tipo `stocks` pertencentes ao perfil.
    */
-  listStockTickersForUser(userId: string): Promise<string[]>;
+  listStockTickersForProfile(profileId: string): Promise<string[]>;
   /**
    * Retorna todos os símbolos (uppercase, deduplicados) presentes em ativos
-   * ativos de investimento do tipo `crypto` pertencentes ao usuário.
+   * ativos de investimento do tipo `crypto` pertencentes ao perfil.
    */
-  listCryptoTickersForUser(userId: string): Promise<string[]>;
+  listCryptoTickersForProfile(profileId: string): Promise<string[]>;
   /**
    * Marca o ativo como apagado (soft delete). Usado pelo use case
    * `deleteAsset`. Sub-records (asset_debt_allocations) são removidos pelo
    * próprio use case via repositório dedicado antes do soft delete aqui.
    */
   softDelete(id: string, deletedAt: Date): Promise<void>;
-  findByExternalAccountKey(userId: string, key: string): Promise<AssetEntity | null>;
-  listExternalAccountKeys(userId: string): Promise<string[]>;
+  findByExternalAccountKey(profileId: string, key: string): Promise<AssetEntity | null>;
+  listExternalAccountKeys(profileId: string): Promise<string[]>;
 }

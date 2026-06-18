@@ -16,7 +16,7 @@ const inputSchema = z
 
 export const createCashAccount = action({
   schema: inputSchema,
-  handler: async (label, { userId }) => {
+  handler: async (label, { userId, profileId }) => {
     const asset = unwrap(
       await createAsset(
         {
@@ -27,6 +27,7 @@ export const createCashAccount = action({
         },
         {
           userId,
+          profileId,
           category: "cash",
           label,
           currentValueCents: 0n,

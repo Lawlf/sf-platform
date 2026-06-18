@@ -23,6 +23,7 @@ function makeStockAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "investment",
     label: "PETR4 - 100 cotas",
     currentValue: Money.fromCents(380_000n), // 100 * R$38
@@ -62,17 +63,17 @@ function makeRepoBackedByMap() {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      return a && a.userId === userId ? a : null;
+      return a && (a.profileId ?? a.userId) === profileId ? a : null;
     }),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -132,7 +133,7 @@ describe("refreshStockQuote", () => {
 
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(r)).toBe(true);
@@ -175,7 +176,7 @@ describe("refreshStockQuote", () => {
 
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(r)).toBe(true);
@@ -213,7 +214,7 @@ describe("refreshStockQuote", () => {
 
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(r)).toBe(true);
@@ -228,7 +229,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "missing" },
+      { profileId: "profile-1", assetId: "missing" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetNotFound);
@@ -237,12 +238,12 @@ describe("refreshStockQuote", () => {
 
   it("returns AssetNotFound when asset belongs to another user", async () => {
     const { repo, store } = makeRepoBackedByMap();
-    store.set("asset-1", makeStockAsset({ userId: "owner" }));
+    store.set("asset-1", makeStockAsset({ userId: "owner", profileId: "other-profile" }));
     const quotes = makeQuoteAdapter(null);
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "intruder", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetNotFound);
@@ -258,7 +259,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetDeactivated);
@@ -278,7 +279,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetNotStock);
@@ -301,7 +302,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetNotStock);
@@ -325,7 +326,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(AssetNotStock);
@@ -338,7 +339,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isErr(r)).toBe(true);
     if (isErr(r)) expect(r.error).toBeInstanceOf(QuoteUnavailable);
@@ -366,7 +367,7 @@ describe("refreshStockQuote", () => {
     const { repo: catalog } = makeCatalog(null);
     const r = await refreshStockQuote(
       { assets: repo, catalog, quotes, clock: makeClock() },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
     expect(isOk(r)).toBe(true);
     if (isOk(r)) {

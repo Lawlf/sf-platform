@@ -30,7 +30,7 @@ describe("setWalletAnchor", () => {
     let saved: AssetEntity | null = null;
     const deps: SetWalletAnchorDeps = {
       assets: {
-        findActiveByUserAndCategory: async () => [wallet({})],
+        findActiveByProfileAndCategory: async () => [wallet({})],
         update: async (a) => { saved = a; },
         createDefaultWallet: async () => {},
       },
@@ -47,7 +47,7 @@ describe("setWalletAnchor", () => {
     let created = false;
     const deps: SetWalletAnchorDeps = {
       assets: {
-        findActiveByUserAndCategory: async () => [],
+        findActiveByProfileAndCategory: async () => [],
         update: async (a) => { saved = a; },
         createDefaultWallet: async () => { created = true; },
       },

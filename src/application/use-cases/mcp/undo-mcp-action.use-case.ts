@@ -276,6 +276,7 @@ function deserializeAsset(s: Record<string, unknown>): AssetEntity {
   return {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: optStr(s.profileId) ?? str(s.userId),
     category: str(s.category) as AssetEntity["category"],
     label: str(s.label),
     currentValue: money(s.currentValue),

@@ -18,7 +18,7 @@ const inputSchema = z.object({
 export const updateAssetAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     const currentValueCents =
       input.currentValueCents !== undefined ? BigInt(input.currentValueCents) : undefined;
 
@@ -26,7 +26,7 @@ export const updateAssetAction = action({
       await updateAsset(
         { assets: repos.assets, clock },
         {
-          userId,
+          profileId,
           assetId: input.assetId,
           ...(input.label !== undefined ? { label: input.label } : {}),
           ...(currentValueCents !== undefined ? { currentValueCents } : {}),

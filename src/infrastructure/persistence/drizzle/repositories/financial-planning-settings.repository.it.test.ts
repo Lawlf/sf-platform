@@ -27,6 +27,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     category: "cash",
     label: `${ASSET_LABEL_PREFIX}conta`,
     currentValue: Money.fromCents(1_000_000n),

@@ -26,13 +26,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -119,6 +119,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "vehicle",
         label: "Civic 2020",
         currentValueCents: 8_000_000n,
@@ -154,6 +155,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "   ",
         currentValueCents: 1_000n,
@@ -182,6 +184,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: -1n,
@@ -209,6 +212,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "vehicle",
         label: "Casa",
         currentValueCents: 100_000n,
@@ -237,6 +241,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
@@ -265,6 +270,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
@@ -296,6 +302,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
@@ -326,6 +333,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100n,
@@ -355,6 +363,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 200_000_000n,
@@ -389,6 +398,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100_000n,
@@ -420,6 +430,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Coisa",
         currentValueCents: 100_000n,
@@ -461,6 +472,7 @@ describe("createAsset", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         category: "other",
         label: "Conta nos EUA",
         currentValueCents: 500_000n,

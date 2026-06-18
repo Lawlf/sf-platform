@@ -10,6 +10,7 @@ function cashAsset(over: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "acc1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Carteira",
     currentValue: Money.fromCents(100000n),
@@ -43,7 +44,7 @@ function makeDeps(over: Partial<CreateTransactionDeps> = {}): CreateTransactionD
     },
     assets: {
       findById: vi.fn(async () => cashAsset()),
-      findActiveByUserAndCategory: vi.fn(async () => [cashAsset()]),
+      findActiveByProfileAndCategory: vi.fn(async () => [cashAsset()]),
       createDefaultWallet: vi.fn(async () => undefined),
       update: vi.fn(async () => undefined),
     },
@@ -106,7 +107,7 @@ describe("createTransaction", () => {
     const deps = makeDeps({
       assets: {
         findById: vi.fn(async () => null),
-        findActiveByUserAndCategory: vi.fn(async () => []),
+        findActiveByProfileAndCategory: vi.fn(async () => []),
         createDefaultWallet: vi.fn(async (a: AssetEntity) => {
           created.push(a);
         }),

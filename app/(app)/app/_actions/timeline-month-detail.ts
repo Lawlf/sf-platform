@@ -239,7 +239,7 @@ export async function fetchMonthDetail(input: {
     debtPayments.listForProfileInRange(profileId, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForProfile(profileId, { status: "all" }),
     incomes.listForProfile(profileId),
-    assets.findActiveByUser(user.id),
+    assets.findActiveByProfile(profileId),
     debtPayments.listForProfileInRange(profileId, {
       from: windowFrom.firstDay(),
       to: month.lastDay(),

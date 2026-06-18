@@ -9,6 +9,7 @@ import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositor
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError } from "@/presentation/actions/action";
 import { isOk } from "@/shared/errors/result";
 
@@ -25,6 +26,7 @@ export type LoanCashTarget = "existing" | "new" | "spent";
 
 export interface RegisterLoanCashInflowInput {
   userId: string;
+  profileId: string;
   cashTarget: LoanCashTarget;
   principalCents: bigint;
   existingCashAssetId?: string | undefined;
@@ -50,7 +52,7 @@ export async function registerLoanCashInflow(
     if (!input.existingCashAssetId) {
       return { ok: false, message: "Escolha a conta onde o dinheiro caiu." };
     }
-    const asset = await deps.assets.findById(input.existingCashAssetId, input.userId);
+    const asset = await deps.assets.findById(input.existingCashAssetId, input.profileId);
     if (!asset) {
       return { ok: false, message: "Conta não encontrada." };
     }
@@ -58,7 +60,7 @@ export async function registerLoanCashInflow(
     const updateResult = await updateAsset(
       { assets: deps.assets, clock: deps.clock },
       {
-        userId: input.userId,
+        profileId: input.profileId,
         assetId: asset.id,
         currentValueCents: nextValueCents,
       },
@@ -86,6 +88,7 @@ export async function registerLoanCashInflow(
     },
     {
       userId: input.userId,
+      profileId: input.profileId,
       category: "cash",
       label: rawName,
       currentValueCents: totalCents,
@@ -139,7 +142,7 @@ export type RegisterLoanCashInflowActionInput = z.input<typeof actionSchema>;
 export const registerLoanCashInflowAction = action({
   schema: actionSchema,
   revalidates: ["home", "debts", "assets", "timeline", "notifications"],
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     const principalCents = BigInt(v.principalCents);
     const newCashAssetCurrentBalanceCents =
       v.newCashAssetCurrentBalanceCents !== undefined
@@ -155,6 +158,7 @@ export const registerLoanCashInflowAction = action({
 
     const result = await registerLoanCashInflow(deps, {
       userId,
+      profileId,
       cashTarget: v.cashTarget,
       principalCents,
       ...(v.existingCashAssetId !== undefined

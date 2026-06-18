@@ -16,13 +16,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -49,6 +49,7 @@ function makeAsset(userId = "user-1"): AssetEntity {
   return {
     id: "asset-1",
     userId,
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -82,7 +83,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { userId: "user-1", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -107,7 +108,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "missing" },
+      { userId: "user-1", profileId: "profile-1", assetId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -127,7 +128,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { userId: "intruder", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -149,7 +150,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { userId: "intruder", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -168,7 +169,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { userId: "user-1", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);

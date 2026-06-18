@@ -8,7 +8,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 
 import { setLiquidBucket } from "./set-liquid-bucket.use-case";
 
-function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" | "category">): AssetEntity {
+function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" | "profileId" | "category">): AssetEntity {
   return {
     label: "x",
     currentValue: Money.fromCents(100000n),
@@ -35,18 +35,18 @@ function makeAsset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "userId" |
 
 function makeAssetsRepo(initial: AssetEntity[]): AssetRepositoryPort {
   return {
-    findById: async (id: string, userId: string) => {
-      const found = initial.find((a) => a.id === id && a.userId === userId);
+    findById: async (id: string, profileId: string) => {
+      const found = initial.find((a) => a.id === id && a.profileId === profileId);
       return found ?? null;
     },
     create: async () => { throw new Error("not used"); },
     update: async () => { throw new Error("not used"); },
-    findActiveByUser: async () => { throw new Error("not used"); },
-    findActiveByUserAndCategory: async () => { throw new Error("not used"); },
+    findActiveByProfile: async () => { throw new Error("not used"); },
+    findActiveByProfileAndCategory: async () => { throw new Error("not used"); },
     findByIdWithAllocations: async () => { throw new Error("not used"); },
     findActiveWithAllocations: async () => { throw new Error("not used"); },
-    listStockTickersForUser: async () => { throw new Error("not used"); },
-    listCryptoTickersForUser: async () => { throw new Error("not used"); },
+    listStockTickersForProfile: async () => { throw new Error("not used"); },
+    listCryptoTickersForProfile: async () => { throw new Error("not used"); },
     softDelete: async () => { throw new Error("not used"); },
   } as unknown as AssetRepositoryPort;
 }
@@ -69,10 +69,11 @@ function makeSettingsRepo(): FinancialPlanningSettingsRepositoryPort {
   };
 }
 
-const cashAsset = makeAsset({ id: "buck", userId: "u1", category: "cash" });
+const cashAsset = makeAsset({ id: "buck", userId: "u1", profileId: "profile-1", category: "cash" });
 const vehicleAsset = makeAsset({
   id: "car",
   userId: "u1",
+  profileId: "profile-1",
   category: "vehicle",
   metadata: { kind: "vehicle", brand: "Toyota", model: "Corolla", year: 2020 },
 });
@@ -82,27 +83,27 @@ const settings = makeSettingsRepo();
 
 describe("setLiquidBucket", () => {
   it("sets the bucket to a cash asset owned by the user", async () => {
-    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: "buck" });
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", profileId: "profile-1", assetId: "buck" });
     expect(res.ok).toBe(true);
     const stored = await settings.findByUser("u1");
     expect(stored?.liquidBucketAssetId).toBe("buck");
   });
 
   it("clears the bucket when assetId is null", async () => {
-    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: null });
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", profileId: "profile-1", assetId: null });
     expect(res.ok).toBe(true);
     const stored = await settings.findByUser("u1");
     expect(stored?.liquidBucketAssetId).toBeNull();
   });
 
   it("rejects an asset that does not belong to the user", async () => {
-    const res = await setLiquidBucket({ assets, settings }, { userId: "intruder", assetId: "buck" });
+    const res = await setLiquidBucket({ assets, settings }, { userId: "intruder", profileId: "profile-intruder", assetId: "buck" });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.message).toBe("Ativo não encontrado.");
   });
 
   it("rejects a non-cash asset", async () => {
-    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", assetId: "car" });
+    const res = await setLiquidBucket({ assets, settings }, { userId: "u1", profileId: "profile-1", assetId: "car" });
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.message).toMatch(/reserva/);
   });

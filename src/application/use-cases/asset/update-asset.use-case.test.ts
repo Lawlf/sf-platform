@@ -19,13 +19,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -40,6 +40,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic 2020",
     currentValue: Money.fromCents(8_000_000n),
@@ -73,7 +74,7 @@ describe("updateAsset", () => {
     const result = await updateAsset(
       { assets, clock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         label: "Civic 2020 atualizado",
         currentValueCents: 7_500_000n,
@@ -98,7 +99,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "missing", label: "x" },
+      { profileId: "profile-1", assetId: "missing", label: "x" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -120,7 +121,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1", label: "novo" },
+      { profileId: "profile-1", assetId: "asset-1", label: "novo" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -136,7 +137,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1", label: "   " },
+      { profileId: "profile-1", assetId: "asset-1", label: "   " },
     );
 
     expect(isErr(result)).toBe(true);
@@ -152,7 +153,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1", currentValueCents: -100n },
+      { profileId: "profile-1", assetId: "asset-1", currentValueCents: -100n },
     );
 
     expect(isErr(result)).toBe(true);
@@ -169,7 +170,7 @@ describe("updateAsset", () => {
     const result = await updateAsset(
       { assets, clock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         metadata: { kind: "real_estate", addressCity: "Rio" },
       },
@@ -190,7 +191,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1", currentValueCents: 7_500_000n },
+      { profileId: "profile-1", assetId: "asset-1", currentValueCents: 7_500_000n },
     );
 
     expect(isOk(result)).toBe(true);
@@ -207,7 +208,7 @@ describe("updateAsset", () => {
 
     const result = await updateAsset(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1", metadata: null },
+      { profileId: "profile-1", assetId: "asset-1", metadata: null },
     );
 
     expect(isOk(result)).toBe(true);

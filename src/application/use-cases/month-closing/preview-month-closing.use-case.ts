@@ -110,7 +110,7 @@ export async function computeMonthClosing(
     ? clampCommittedBps(snapshotResult.value.incomeCommittedPct)
     : 0;
 
-  const assetsForReserve = await deps.assets.findActiveByUser(input.userId);
+  const assetsForReserve = await deps.assets.findActiveByProfile(input.profileId);
   const endReserveCents = assetsForReserve
     .filter((a) => a.category === "cash")
     .reduce((sum, a) => sum + a.currentValue.toCents(), 0n);
@@ -168,7 +168,7 @@ async function resolveBaseline(
       from: prevMonth.firstDay(),
       to: prevMonth.lastDay(),
     }),
-    deps.assets.findActiveByUser(userId),
+    deps.assets.findActiveByProfile(profileId),
   ]);
 
   const convertedIncomes: IncomeEntity[] = [];

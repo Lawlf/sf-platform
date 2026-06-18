@@ -63,18 +63,18 @@ function makeAssetRepoWithStore(seed: AssetEntity[] = []): AssetRepositoryPort {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      if (!a || a.userId !== userId) return null;
+      if (!a || a.profileId !== profileId) return null;
       return a;
     }),
-    findActiveByUser: vi.fn(async () => []),
+    findActiveByProfile: vi.fn(async () => []),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(async () => []),
+    findActiveByProfileAndCategory: vi.fn(async () => []),
     findByIdWithAllocations: vi.fn(async () => null),
     findActiveWithAllocations: vi.fn(async () => []),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -119,6 +119,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     deletedAt: null,
     externalAccountKey: null,
     ...overrides,
+    profileId: overrides.profileId ?? "profile-1",
   };
 }
 

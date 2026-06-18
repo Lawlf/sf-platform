@@ -18,7 +18,7 @@ export type CreateAssetForDebtInput = z.input<typeof inputSchema>;
 
 export const createAssetForDebtAction = action({
   schema: inputSchema,
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     const currentValueCents = BigInt(v.currentValueCents);
 
     const acquiredAt = v.acquiredAt && v.acquiredAt.length > 0 ? new Date(v.acquiredAt) : null;
@@ -59,6 +59,7 @@ export const createAssetForDebtAction = action({
         },
         {
           userId,
+          profileId,
           category: v.category,
           label: v.label.trim(),
           currentValueCents,

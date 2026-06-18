@@ -28,6 +28,7 @@ function makeAsset(
   return {
     id: overrides.id,
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     category: overrides.category ?? "vehicle",
     label: overrides.label ?? "Test asset",
     currentValue: Money.fromCents(overrides.currentValueCents),
@@ -109,13 +110,13 @@ function buildDeps({ withAllocations, debtsById }: BuildDepsOptions) {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(async () => withAllocations),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -150,7 +151,7 @@ describe("getAssetDetail", () => {
     const deps = buildDeps({ withAllocations: null, debtsById: new Map() });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "missing",
     });
 
@@ -158,16 +159,16 @@ describe("getAssetDetail", () => {
     if (isErr(result)) {
       expect(result.error).toBeInstanceOf(AssetNotFound);
     }
-    expect(deps.assets.findByIdWithAllocations).toHaveBeenCalledWith("missing", "user-1");
+    expect(deps.assets.findByIdWithAllocations).toHaveBeenCalledWith("missing", "profile-1");
   });
 
   it("retorna AssetNotFound quando o ativo pertence a outro usuario", async () => {
-    // findByIdWithAllocations ja escopeia por userId. Repos devolvem null
-    // se o ativo nao pertencer ao usuario; o use case deve refletir isso.
+    // findByIdWithAllocations escopeia por profileId. Repos devolvem null
+    // se o ativo nao pertencer ao perfil; o use case deve refletir isso.
     const deps = buildDeps({ withAllocations: null, debtsById: new Map() });
 
     const result = await getAssetDetail(deps, {
-      userId: "intruder",
+      profileId: "intruder",
       assetId: "asset-1",
     });
 
@@ -185,7 +186,7 @@ describe("getAssetDetail", () => {
     });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "a1",
     });
 
@@ -215,7 +216,7 @@ describe("getAssetDetail", () => {
     });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "a1",
     });
 
@@ -253,7 +254,7 @@ describe("getAssetDetail", () => {
     });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "a1",
     });
 
@@ -279,7 +280,7 @@ describe("getAssetDetail", () => {
     });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "a1",
     });
 
@@ -306,7 +307,7 @@ describe("getAssetDetail", () => {
     });
 
     const result = await getAssetDetail(deps, {
-      userId: "user-1",
+      profileId: "profile-1",
       assetId: "a1",
     });
 

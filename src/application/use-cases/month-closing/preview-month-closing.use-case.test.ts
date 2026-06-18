@@ -21,6 +21,7 @@ function makeAsset(currentValueCents: bigint, currency: Currency = "BRL"): Asset
   return {
     id: "asset-1",
     userId: "u1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: Money.fromCents(currentValueCents, currency),
@@ -97,7 +98,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
   };
 
   const assets = {
-    findActiveByUser: async () => assetsStore,
+    findActiveByProfile: async () => assetsStore,
   } as unknown as AssetRepositoryPort;
 
   const allocations = {

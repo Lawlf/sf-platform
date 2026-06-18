@@ -32,6 +32,7 @@ function makeAsset(
   return {
     id: overrides.id,
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     category: overrides.category ?? "vehicle",
     label: overrides.label ?? "Test asset",
     currentValue: Money.fromCents(overrides.currentValueCents, overrides.currency ?? "BRL"),
@@ -126,15 +127,15 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(async (userId: string) =>
-      assets.filter((a) => a.userId === userId && a.deactivatedAt === null && a.deletedAt === null),
+    findActiveByProfile: vi.fn(async (profileId: string) =>
+      assets.filter((a) => a.profileId === profileId && a.deactivatedAt === null && a.deletedAt === null),
     ),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -373,7 +374,7 @@ describe("getNetWorth", () => {
     }
   });
 
-  it("ativo desativado nao entra no snapshot (findActiveByUser filtra)", async () => {
+  it("ativo desativado nao entra no snapshot (findActiveByProfile filtra)", async () => {
     const active = makeAsset({ id: "a1", currentValueCents: 5_000_000n });
     const dead = makeAsset({
       id: "a2",
@@ -475,6 +476,7 @@ describe("getNetWorth", () => {
       id: "a2",
       currentValueCents: 9_000_000n,
       userId: "other",
+      profileId: "other-profile",
     });
     const myDebt = makeFinancing({
       id: "d1",

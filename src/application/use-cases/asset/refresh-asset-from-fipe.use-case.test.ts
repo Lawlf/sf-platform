@@ -18,6 +18,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -56,17 +57,17 @@ function makeRepoBackedByMap() {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      return a && a.userId === userId ? a : null;
+      return a && (a.profileId ?? a.userId) === profileId ? a : null;
     }),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -113,7 +114,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -133,7 +134,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "missing" },
+      { profileId: "profile-1", assetId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -145,13 +146,13 @@ describe("refreshAssetFromFipe", () => {
 
   it("returns AssetNotFound when asset belongs to another user", async () => {
     const { repo, store } = makeRepoBackedByMap();
-    store.set("asset-1", makeAsset({ userId: "owner" }));
+    store.set("asset-1", makeAsset({ userId: "owner", profileId: "other-profile" }));
     const fipe = makeFipe();
     const clock = makeClock();
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -174,7 +175,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -199,7 +200,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -217,7 +218,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -239,7 +240,7 @@ describe("refreshAssetFromFipe", () => {
 
     const result = await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -262,7 +263,7 @@ describe("refreshAssetFromFipe", () => {
 
     await refreshAssetFromFipe(
       { assets: repo, fipe, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(repo.update).not.toHaveBeenCalled();

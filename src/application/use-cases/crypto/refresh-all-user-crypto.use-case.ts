@@ -3,12 +3,14 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { CryptoQuoteAdapter } from "@/domain/ports/external/crypto-quote-adapter.port";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { CryptoPriceCatalogRepositoryPort } from "@/domain/ports/repositories/crypto-price-catalog.repository";
+import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
 import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { Money } from "@/domain/value-objects/money.vo";
 
 export interface RefreshAllUserCryptoDeps {
   users: UserRepositoryPort;
+  profiles: Pick<ProfileRepositoryPort, "ensurePfProfile">;
   assets: AssetRepositoryPort;
   quotes: CryptoQuoteAdapter;
   catalog: CryptoPriceCatalogRepositoryPort;
@@ -38,7 +40,8 @@ export async function refreshAllUserCrypto(
   const assetsByUser: AssetEntity[][] = [];
   const coinIdSet = new Set<string>();
   for (const user of proUsers) {
-    const userAssets = await deps.assets.findActiveByUserAndCategory(user.id, "investment");
+    const profile = await deps.profiles.ensurePfProfile(user.id, deps.clock.now());
+    const userAssets = await deps.assets.findActiveByProfileAndCategory(profile.id, "investment");
     assetsByUser.push(userAssets);
     for (const asset of userAssets) {
       const id = cryptoCoinId(asset.metadata);

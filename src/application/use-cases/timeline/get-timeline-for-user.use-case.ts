@@ -139,7 +139,7 @@ export async function getTimelineForUser(
       from: fetchFrom.firstDay(),
       to: to.lastDay(),
     }),
-    deps.assets.findActiveByUser(input.userId),
+    deps.assets.findActiveByProfile(input.profileId),
     deps.debtAmountAdjustments ? deps.debtAmountAdjustments.listForProfile(input.profileId) : Promise.resolve([]),
   ]);
 

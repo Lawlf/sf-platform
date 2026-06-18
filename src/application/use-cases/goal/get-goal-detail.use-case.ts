@@ -48,7 +48,7 @@ export async function getGoalDetail(
     deps.contributions.listForGoal(goalId, CONTRIBUTIONS_LIMIT),
   ]);
 
-  const resolved = await resolveLinkedAsset(deps, goal);
+  const resolved = await resolveLinkedAsset(deps, goal, profileId);
   const rawProgress = GoalProgressService.compute(resolved, macro);
 
   const { progress, etaLocked } = isPro
@@ -65,6 +65,7 @@ export async function getGoalDetail(
 async function resolveLinkedAsset(
   deps: GetGoalDetailDeps,
   goal: GoalEntity,
+  profileId: string,
 ): Promise<GoalEntity> {
   if (
     goal.type !== "savings" ||
@@ -74,7 +75,7 @@ async function resolveLinkedAsset(
     return goal;
   }
 
-  const asset = await deps.assets.findById(goal.linkedAssetId, goal.userId);
+  const asset = await deps.assets.findById(goal.linkedAssetId, profileId);
   if (!asset) return goal;
 
   return { ...goal, manualSavedCents: asset.currentValue.toCents() };

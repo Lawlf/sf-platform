@@ -22,6 +22,7 @@ function makeAsset(currentValueCents: bigint): AssetEntity {
   return {
     id: "asset-1",
     userId: "u1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: Money.fromCents(currentValueCents),
@@ -93,7 +94,7 @@ function makeDeps(args: {
   };
 
   const assets = {
-    findActiveByUser: async () => args.assets ?? [],
+    findActiveByProfile: async () => args.assets ?? [],
   } as unknown as AssetRepositoryPort;
   const allocations = {
     findByAsset: async () => [],

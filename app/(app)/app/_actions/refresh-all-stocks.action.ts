@@ -24,6 +24,7 @@ export async function refreshAllStocksAction(secret: string): Promise<RefreshAll
   try {
     const result = await refreshAllUserStocks({
       users: repos.users,
+      profiles: repos.profiles,
       assets: repos.assets,
       catalog: repos.stockCatalog,
       quotes: new BrapiQuoteAdapter(),

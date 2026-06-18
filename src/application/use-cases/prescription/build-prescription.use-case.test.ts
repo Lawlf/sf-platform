@@ -91,7 +91,7 @@ const cashAsset = {
 const deps = {
   debts: { listForProfile: async () => [dearCard] },
   incomes: { listForProfile: async () => [income] },
-  assets: { findActiveByUser: async () => [cashAsset] },
+  assets: { findActiveByProfile: async () => [cashAsset] },
   now: () => NOW,
   ...fxDeps(null),
 };
@@ -110,7 +110,7 @@ describe("buildPrescription", () => {
     const fxConverted = {
       debts: { listForProfile: async () => [] },
       incomes: { listForProfile: async () => [usdIncome] },
-      assets: { findActiveByUser: async () => [] },
+      assets: { findActiveByProfile: async () => [] },
       now: () => NOW,
       ...fxDeps("5.00"),
     };
@@ -126,7 +126,7 @@ describe("buildPrescription", () => {
     const noRate = {
       debts: { listForProfile: async () => [] },
       incomes: { listForProfile: async () => [income] },
-      assets: { findActiveByUser: async () => [usdAsset] },
+      assets: { findActiveByProfile: async () => [usdAsset] },
       now: () => NOW,
       ...fxDeps(null),
     };

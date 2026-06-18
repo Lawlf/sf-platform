@@ -45,6 +45,7 @@ const MAX_OFX_BYTES = 5 * 1024 * 1024;
 
 export async function previewOfxAction(formData: FormData): Promise<PreviewResult> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const files = formData.getAll("file").filter((f): f is File => f instanceof File);
   if (files.length === 0) {
@@ -63,7 +64,7 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
       assets: repos.assets,
       transactions: repos.transactions,
     },
-    { userId: user.id, contents },
+    { userId: user.id, profileId, contents },
   );
 
   if (isErr(result)) {

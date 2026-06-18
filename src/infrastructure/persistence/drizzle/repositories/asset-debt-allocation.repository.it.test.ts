@@ -62,6 +62,7 @@ function makeAsset(label: string): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     category: "vehicle",
     label: `${LABEL_PREFIX}${label}`,
     currentValue: Money.fromCents(5_000_000n),

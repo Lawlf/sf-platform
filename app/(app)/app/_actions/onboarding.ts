@@ -32,8 +32,8 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
       const list = await debts.listForProfile(profileId, { status: "active" });
       return list.length > 0;
     },
-    async hasAsset(userId: string): Promise<boolean> {
-      const list = await assets.findActiveByUser(userId);
+    async hasAsset(_userId: string): Promise<boolean> {
+      const list = await assets.findActiveByProfile(profileId);
       return list.length > 0;
     },
     async hasGoal(userId: string): Promise<boolean> {

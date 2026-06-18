@@ -14,7 +14,7 @@ const inputSchema = z.object({
 export const refreshStockQuoteAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     const quote = unwrap(
       await refreshStockQuote(
         {
@@ -23,7 +23,7 @@ export const refreshStockQuoteAction = action({
           quotes: new BrapiQuoteAdapter(),
           clock,
         },
-        { userId, assetId: input.assetId },
+        { profileId, assetId: input.assetId },
       ),
     );
 

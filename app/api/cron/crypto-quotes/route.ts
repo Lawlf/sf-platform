@@ -21,6 +21,7 @@ export async function GET(req: Request): Promise<Response> {
 
   const result = await refreshAllUserCrypto({
     users: repos.users,
+    profiles: repos.profiles,
     assets: repos.assets,
     quotes: new CoinGeckoQuoteAdapter(),
     catalog: repos.cryptoPriceCatalog,

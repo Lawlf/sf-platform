@@ -136,7 +136,7 @@ export async function GET(request: Request) {
     const profileId = await resolvePfProfileId(userId);
     const userDebts = await repos.debts.listForProfile(profileId, { status: "all" });
     const [userAssets, userIncomes, userGoals] = await Promise.all([
-      repos.assets.findActiveByUser(userId),
+      repos.assets.findActiveByProfile(profileId),
       repos.incomes.listForProfile(profileId),
       repos.goals.listForUser(userId),
     ]);

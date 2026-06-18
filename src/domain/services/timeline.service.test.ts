@@ -67,6 +67,7 @@ function makeAsset(overrides: {
   return {
     id: overrides.id ?? "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: Money.fromCents(overrides.currentValueCents),

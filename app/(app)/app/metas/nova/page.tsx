@@ -95,7 +95,7 @@ export default async function NovaMetaPage({
     })(),
     (async () => {
       const repo = repos.assets;
-      const assets = await repo.findActiveByUser(user.id);
+      const assets = await repo.findActiveByProfile(profileId);
       return assets
         .filter((a) => a.category === "cash" || a.category === "investment")
         .map((a) => ({

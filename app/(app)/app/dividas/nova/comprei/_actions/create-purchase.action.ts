@@ -161,6 +161,7 @@ async function onboardCashAsset(
   }
   const cashCreateResult = await createAsset(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     category: "cash",
     label: cashName,
     currentValueCents: input.currentBalanceCents,
@@ -227,6 +228,7 @@ async function createPurchaseAsset(
 
   const assetResult = await createAsset(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     category: cfg.assetCategory,
     label: name,
     currentValueCents: input.valueCents,
@@ -416,6 +418,7 @@ async function linkPurchaseToDebt(
 ): Promise<string | undefined> {
   const linkResult = await linkAssetToDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     assetId,
     debtId,
     allocationOriginalCents: input.valueCents,
@@ -436,14 +439,14 @@ async function reduceCashAssetBalance(
   if (!cashAssetSourceId) return undefined;
   const cashAsset: AssetEntity | null = await deps.assets.findById(
     cashAssetSourceId,
-    input.userId,
+    input.profileId,
   );
   if (!cashAsset || cashAsset.category !== "cash") return undefined;
   const currentCents = cashAsset.currentValue.toCents();
   const nextCents = currentCents - input.valueCents;
   const clampedCents = nextCents < 0n ? 0n : nextCents;
   const updateResult = await updateAsset(deps, {
-    userId: input.userId,
+    profileId: input.profileId,
     assetId: cashAsset.id,
     currentValueCents: clampedCents,
   });

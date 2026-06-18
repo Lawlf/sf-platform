@@ -25,13 +25,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -83,6 +83,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -148,6 +149,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 500_000n,
@@ -174,6 +176,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 0n,
@@ -198,6 +201,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "missing",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -223,6 +227,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -247,6 +252,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "missing",
         allocationOriginalCents: 100n,
@@ -271,6 +277,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -297,6 +304,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -323,6 +331,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 250_000n,

@@ -245,6 +245,7 @@ export async function executeWrite(
         },
         {
           userId,
+          profileId,
           category: str(args.category) as AssetCategory,
           label: str(args.label),
           currentValueCents: cents(args.currentValueCents),
@@ -265,12 +266,12 @@ export async function executeWrite(
 
     case "asset_update": {
       const id = str(args.assetId);
-      const existing = await deps.assets.findById(id, userId);
+      const existing = await deps.assets.findById(id, profileId);
       const before = existing ? serialize(existing) : null;
       const result = await updateAsset(
         { assets: deps.assets, clock: deps.clock },
         {
-          userId,
+          profileId,
           assetId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.currentValueCents !== undefined && { currentValueCents: cents(args.currentValueCents) }),
@@ -286,11 +287,11 @@ export async function executeWrite(
 
     case "asset_delete": {
       const id = str(args.assetId);
-      const existing = await deps.assets.findById(id, userId);
+      const existing = await deps.assets.findById(id, profileId);
       const before = existing ? serialize(existing) : null;
       const result = await deleteAsset(
         { assets: deps.assets, allocations: deps.allocations, clock: deps.clock },
-        { userId, assetId: id },
+        { userId, profileId, assetId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "asset", entityId: id, before, after: null, reversible: false };

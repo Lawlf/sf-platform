@@ -14,6 +14,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -47,17 +48,17 @@ function makeRepoBackedByMap() {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      return a && a.userId === userId ? a : null;
+      return a && (a.profileId ?? a.userId) === profileId ? a : null;
     }),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -83,7 +84,7 @@ describe("reactivateAsset", () => {
 
     const result = await reactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -101,6 +102,7 @@ describe("reactivateAsset", () => {
       "asset-1",
       makeAsset({
         userId: "owner",
+        profileId: "other-profile",
         deactivatedAt: new Date("2026-01-15"),
         deactivationReason: "x",
       }),
@@ -109,7 +111,7 @@ describe("reactivateAsset", () => {
 
     const result = await reactivateAsset(
       { assets: repo, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -125,7 +127,7 @@ describe("reactivateAsset", () => {
 
     const result = await reactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -142,7 +144,7 @@ describe("reactivateAsset", () => {
     const deact = await deactivateAsset(
       { assets: repo, clock: deactClock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         kind: "not_specified",
         reason: "Em manutencao",
@@ -153,7 +155,7 @@ describe("reactivateAsset", () => {
     const reactClock = makeClock(new Date("2026-03-01T00:00:00Z"));
     const react = await reactivateAsset(
       { assets: repo, clock: reactClock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(react)).toBe(true);

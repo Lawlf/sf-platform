@@ -17,13 +17,13 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 export const setLiquidBucketAction = action({
   schema: z.string().nullable(),
   revalidates: ["timeline", "home"],
-  handler: async (assetId, { userId }) => {
+  handler: async (assetId, { userId, profileId }) => {
     const result = await setLiquidBucket(
       {
         assets: repos.assets,
         settings: repos.financialPlanningSettings,
       },
-      { userId, assetId },
+      { userId, profileId, assetId },
     );
     if (!result.ok) throw new ActionError(result.message);
   },

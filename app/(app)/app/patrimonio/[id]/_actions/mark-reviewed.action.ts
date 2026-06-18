@@ -9,8 +9,8 @@ import { action, unwrap } from "@/presentation/actions/action";
 export const markReviewedAction = action({
   schema: z.string().uuid(),
   revalidates: ["home", "assets"],
-  handler: async (assetId, { userId }) => {
-    unwrap(await markAssetReviewed({ assets: repos.assets, clock }, { userId, assetId }));
+  handler: async (assetId, { profileId }) => {
+    unwrap(await markAssetReviewed({ assets: repos.assets, clock }, { profileId, assetId }));
   },
   revalidatePaths: (_data, assetId) => [`/app/patrimonio/${assetId}`],
 });

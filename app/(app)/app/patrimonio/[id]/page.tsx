@@ -58,7 +58,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
       allocations: repos.assetDebtAllocations,
       debts: repos.debts,
     },
-    { userId: user.id, assetId: id },
+    { profileId, assetId: id },
   );
   if (!isOk(detail)) notFound();
 

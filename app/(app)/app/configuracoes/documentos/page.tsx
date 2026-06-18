@@ -60,7 +60,7 @@ export default async function DocumentosPage() {
     repos.debts.listForProfile(profileId),
     repos.incomes.listForProfile(profileId),
     repos.goals.listForUser(user.id),
-    repos.assets.findActiveByUser(user.id),
+    repos.assets.findActiveByProfile(profileId),
   ]);
 
   const map = new Map<string, string>();

@@ -20,7 +20,7 @@ export interface RefreshCryptoQuoteDeps {
 }
 
 export interface RefreshCryptoQuoteInput {
-  userId: string;
+  profileId: string;
   assetId: string;
 }
 
@@ -40,7 +40,7 @@ export async function refreshCryptoQuote(
   deps: RefreshCryptoQuoteDeps,
   input: RefreshCryptoQuoteInput,
 ): Promise<Result<RefreshCryptoQuoteOutput, RefreshCryptoQuoteError>> {
-  const asset = await deps.assets.findById(input.assetId, input.userId);
+  const asset = await deps.assets.findById(input.assetId, input.profileId);
   if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
     return err(new AssetDeactivated("Ativo desativado não pode atualizar cotação."));

@@ -57,13 +57,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -172,6 +172,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: makeMoney(30000),
@@ -221,7 +222,7 @@ function emptyRepos() {
   (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-  (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+  (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
   return { incomes, debts, debtPayments, assets, ...makeFx() };
 }
 
@@ -298,7 +299,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
@@ -322,7 +323,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const before = MonthYear.from(2026, 6);
     const result = await getTimelineForUser(
@@ -347,7 +348,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const now = MonthYear.from(2026, 5);
     const result = await getTimelineForUser(
@@ -378,7 +379,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const now = MonthYear.from(2026, 5);
     const result = await getTimelineForUser(
@@ -415,7 +416,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([payment]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
@@ -450,7 +451,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([rec]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
@@ -499,7 +500,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
@@ -535,7 +536,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([asset]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([asset]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
@@ -570,7 +571,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
         to: MonthYear.from(2026, 3).lastDay(),
       }),
     );
-    expect(deps.assets.findActiveByUser).toHaveBeenCalledWith("user-42");
+    expect(deps.assets.findActiveByProfile).toHaveBeenCalledWith("profile-42");
   });
 
   it("fetches all repositories in parallel", async () => {
@@ -599,7 +600,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       order.push("payments:end");
       return [];
     });
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockImplementation(async () => {
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockImplementation(async () => {
       order.push("assets:start");
       await delay(20);
       order.push("assets:end");
@@ -630,7 +631,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx() },
@@ -675,7 +676,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([rec]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([payment]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx("5.00") },
@@ -715,7 +716,7 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
     (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
     (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
-    (assets.findActiveByUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await getTimelineForUser(
       { incomes, debts, debtPayments, assets, ...makeFx(null) },

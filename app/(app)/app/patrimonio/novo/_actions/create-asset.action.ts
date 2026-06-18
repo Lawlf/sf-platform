@@ -53,7 +53,7 @@ const inputSchema = z.object({
 export const createAssetAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "notifications", "home"],
-  handler: async (data, { userId }) => {
+  handler: async (data, { userId, profileId }) => {
     const metadata =
       data.metadataJson !== null && data.metadataJson.length > 0
         ? (JSON.parse(data.metadataJson) as AssetMetadata)
@@ -87,6 +87,7 @@ export const createAssetAction = action({
         },
         {
           userId,
+          profileId,
           category: data.category,
           label: data.label,
           currentValueCents,

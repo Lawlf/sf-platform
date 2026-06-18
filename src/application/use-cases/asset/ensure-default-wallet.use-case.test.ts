@@ -9,6 +9,7 @@ function cashAsset(): AssetEntity {
   return {
     id: "acc1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Nubank",
     currentValue: Money.fromCents(5000n),
@@ -34,7 +35,7 @@ function cashAsset(): AssetEntity {
 function makeDeps(existing: AssetEntity[]): EnsureDefaultWalletDeps {
   return {
     assets: {
-      findActiveByUserAndCategory: vi.fn(async () => existing),
+      findActiveByProfileAndCategory: vi.fn(async () => existing),
       createDefaultWallet: vi.fn(async () => undefined),
     },
     clock: { now: () => new Date("2026-06-05T00:00:00Z") },
@@ -45,7 +46,7 @@ function makeDeps(existing: AssetEntity[]): EnsureDefaultWalletDeps {
 describe("ensureDefaultWallet", () => {
   it("cria a Carteira quando não há ativo cash", async () => {
     const deps = makeDeps([]);
-    await ensureDefaultWallet(deps, "u1");
+    await ensureDefaultWallet(deps, "u1", "profile-1");
     expect(deps.assets.createDefaultWallet).toHaveBeenCalledTimes(1);
     const created = (deps.assets.createDefaultWallet as ReturnType<typeof vi.fn>).mock
       .calls[0]?.[0] as AssetEntity;
@@ -56,7 +57,7 @@ describe("ensureDefaultWallet", () => {
 
   it("não cria nada quando já existe ativo cash", async () => {
     const deps = makeDeps([cashAsset()]);
-    await ensureDefaultWallet(deps, "u1");
+    await ensureDefaultWallet(deps, "u1", "profile-1");
     expect(deps.assets.createDefaultWallet).not.toHaveBeenCalled();
   });
 });

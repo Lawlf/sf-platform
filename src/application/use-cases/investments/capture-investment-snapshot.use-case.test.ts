@@ -11,6 +11,7 @@ function inv(id: string, type: string, cents: bigint): AssetEntity {
   return {
     id,
     userId: "u1",
+    profileId: "profile-1",
     category: "investment",
     label: id,
     currentValue: Money.fromCents(cents),

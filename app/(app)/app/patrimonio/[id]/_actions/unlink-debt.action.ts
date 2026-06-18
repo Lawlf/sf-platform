@@ -14,7 +14,7 @@ const inputSchema = z.object({
 export const unlinkDebtAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     unwrap(
       await unlinkAssetFromDebt(
         {
@@ -22,7 +22,7 @@ export const unlinkDebtAction = action({
           allocations: repos.assetDebtAllocations,
         },
         {
-          userId,
+          profileId,
           assetId: input.assetId,
           debtId: input.debtId,
         },

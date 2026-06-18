@@ -60,7 +60,7 @@ export async function commitOfxImport(
   const st = mergedR.value;
 
   if (!input.isPro) {
-    const connectedKeys = (await deps.assets.listExternalAccountKeys(input.userId)).filter(
+    const connectedKeys = (await deps.assets.listExternalAccountKeys(input.profileId)).filter(
       (k) => !k.endsWith(":reserve"),
     );
     const alreadyConnected = connectedKeys.includes(st.accountKey);
@@ -73,7 +73,7 @@ export async function commitOfxImport(
 
   const bankId = st.accountKey.split(":")[0] ?? st.accountKey;
   const bankName = bankNameFromId(bankId);
-  const existing = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+  const existing = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
   let assetId: string;
 
   if (existing) {
@@ -89,6 +89,7 @@ export async function commitOfxImport(
     const asset: AssetEntity = {
       id: newId,
       userId: input.userId,
+      profileId: input.profileId,
       category: "cash",
       label: bankName ?? `Conta ${bankId}`,
       currentValue: Money.fromCents(st.ledgerBalanceCents),
@@ -114,7 +115,7 @@ export async function commitOfxImport(
     // Sob corrida de double-commit o create pode ter virado no-op (índice único
     // por external_account_key); re-busca pela chave para anexar as transações à
     // conta vencedora em vez de a um id que não foi persistido.
-    const persisted = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+    const persisted = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
     assetId = persisted?.id ?? newId;
   }
 
@@ -230,7 +231,7 @@ export async function commitOfxImport(
   let reserveValueCents: bigint | null = null;
   if (input.reserveTotalCents != null) {
     const reserveKey = `${st.accountKey}:reserve`;
-    const existingReserve = await deps.assets.findByExternalAccountKey(input.userId, reserveKey);
+    const existingReserve = await deps.assets.findByExternalAccountKey(input.profileId, reserveKey);
     const reserveValue = Money.fromCents(input.reserveTotalCents);
     if (existingReserve) {
       await deps.assets.update({ ...existingReserve, currentValue: reserveValue, updatedAt: now });
@@ -238,6 +239,7 @@ export async function commitOfxImport(
       await deps.assets.create({
         id: crypto.randomUUID(),
         userId: input.userId,
+        profileId: input.profileId,
         category: "cash",
         label: `Reserva ${bankName ?? bankId}`,
         currentValue: reserveValue,

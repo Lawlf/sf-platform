@@ -3,6 +3,7 @@
 import { captureInvestmentSnapshot } from "@/application/use-cases/investments/capture-investment-snapshot.use-case";
 import { getInvestmentEvolution } from "@/application/use-cases/investments/get-investment-evolution.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export interface SerializedEvolutionMonth {
@@ -19,7 +20,8 @@ export async function fetchInvestmentEvolution(): Promise<SerializedInvestmentEv
   const user = await requireUser();
   if (!user.isPro) return null;
 
-  const assets = await repos.assets.findActiveByUserAndCategory(user.id, "investment");
+  const profileId = await getActiveProfileId();
+  const assets = await repos.assets.findActiveByProfileAndCategory(profileId, "investment");
   await captureInvestmentSnapshot(
     { snapshots: repos.investmentSnapshots, clock },
     { userId: user.id, assets },

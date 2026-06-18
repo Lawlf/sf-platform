@@ -18,7 +18,8 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "assets:read");
       await enforceUsageOrThrow(ctx);
-      const assets = await repos.assets.findActiveByUser(ctx.userId);
+      const profileId = await resolvePfProfileId(ctx.userId);
+      const assets = await repos.assets.findActiveByProfile(profileId);
       return text(serialize(assets));
     },
   );

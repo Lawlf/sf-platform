@@ -76,6 +76,7 @@ function makeVehicle(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     category: "vehicle",
     label: `${LABEL_PREFIX}civic`,
     currentValue: Money.fromCents(8_000_000n),
@@ -104,6 +105,7 @@ function makeRealEstate(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId: userId,
     category: "real_estate",
     label: `${LABEL_PREFIX}apt`,
     currentValue: Money.fromCents(45_000_000n),
@@ -163,7 +165,7 @@ describe("AssetRepository (integration)", () => {
     }
   });
 
-  it("findActiveByUser excludes deactivated assets", async () => {
+  it("findActiveByProfile excludes deactivated assets", async () => {
     const active = makeVehicle();
     const inactive = makeRealEstate({
       deactivatedAt: new Date("2024-05-01T00:00:00Z"),
@@ -172,12 +174,12 @@ describe("AssetRepository (integration)", () => {
     await repo.create(active);
     await repo.create(inactive);
 
-    const list = await repo.findActiveByUser(userId);
+    const list = await repo.findActiveByProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.id).toBe(active.id);
   });
 
-  it("findActiveByUserAndCategory filters by both category and active", async () => {
+  it("findActiveByProfileAndCategory filters by both category and active", async () => {
     await repo.create(makeVehicle());
     await repo.create(makeRealEstate());
     await repo.create(
@@ -188,11 +190,11 @@ describe("AssetRepository (integration)", () => {
       }),
     );
 
-    const vehicles = await repo.findActiveByUserAndCategory(userId, "vehicle");
+    const vehicles = await repo.findActiveByProfileAndCategory(userId, "vehicle");
     expect(vehicles).toHaveLength(1);
     expect(vehicles[0]?.category).toBe("vehicle");
 
-    const realEstate = await repo.findActiveByUserAndCategory(userId, "real_estate");
+    const realEstate = await repo.findActiveByProfileAndCategory(userId, "real_estate");
     expect(realEstate).toHaveLength(1);
     expect(realEstate[0]?.category).toBe("real_estate");
   });

@@ -14,7 +14,7 @@ const inputSchema = z.object({
 export const refreshFipeAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     unwrap(
       await refreshAssetFromFipe(
         {
@@ -22,7 +22,7 @@ export const refreshFipeAction = action({
           fipe: new ParallelumFipeClient(),
           clock,
         },
-        { userId, assetId: input.assetId },
+        { profileId, assetId: input.assetId },
       ),
     );
   },

@@ -20,7 +20,7 @@ const inputSchema = z.object({
 export const deactivateAssetAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     const salePriceCents =
       input.salePriceCents !== undefined && input.salePriceCents !== null
         ? BigInt(input.salePriceCents)
@@ -30,7 +30,7 @@ export const deactivateAssetAction = action({
       await deactivateAsset(
         { assets: repos.assets, clock },
         {
-          userId,
+          profileId,
           assetId: input.assetId,
           kind: input.kind,
           salePriceCents,

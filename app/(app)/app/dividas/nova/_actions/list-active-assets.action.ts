@@ -1,6 +1,7 @@
 "use server";
 
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { serializeMoney, type SerializedMoney } from "../../../_actions/_serialize";
@@ -17,8 +18,9 @@ export interface ActiveAssetPayload {
 export async function listActiveAssetsForLinking(): Promise<ActiveAssetPayload[]> {
   const user = await getCurrentUser();
   if (!user) return [];
+  const profileId = await getActiveProfileId();
   const repo = repos.assets;
-  const assets = await repo.findActiveByUser(user.id);
+  const assets = await repo.findActiveByProfile(profileId);
   return assets.map((a) => ({
     id: a.id,
     label: a.label,

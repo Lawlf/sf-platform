@@ -16,7 +16,7 @@ export interface DeactivateAssetDeps {
 }
 
 export interface DeactivateAssetInput {
-  userId: string;
+  profileId: string;
   assetId: string;
   /**
    * Categoria estruturada do motivo da desativação.
@@ -50,7 +50,7 @@ export async function deactivateAsset(
   deps: DeactivateAssetDeps,
   input: DeactivateAssetInput,
 ): Promise<Result<AssetEntity, DeactivateAssetError>> {
-  const existing = await deps.assets.findById(input.assetId, input.userId);
+  const existing = await deps.assets.findById(input.assetId, input.profileId);
   if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
     return err(new AssetAlreadyDeactivated("Ativo já está desativado."));

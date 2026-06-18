@@ -16,7 +16,7 @@ import { ok, type Result } from "@/shared/errors/result";
 
 export interface GetWalletBalanceDeps {
   assets: {
-    findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]>;
+    findActiveByProfileAndCategory(profileId: string, category: "cash"): Promise<AssetEntity[]>;
     createDefaultWallet(asset: AssetEntity): Promise<void>;
   };
   incomes: { listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
@@ -76,15 +76,15 @@ export async function getWalletBalance(
   deps: GetWalletBalanceDeps,
   input: GetWalletBalanceInput,
 ): Promise<Result<WalletBalanceResult, NoWalletError>> {
-  const cash = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+  const cash = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
   // A Carteira é um ativo DEDICADO (label "Carteira"). Nunca caímos no primeiro
   // cash qualquer (ex.: Reserva), senão editar a Reserva mexeria no saldo da
   // Carteira. Se não existe, cria a Carteira vazia (idempotente) e usa ela.
   let walletAsset = cash.find((a) => a.label === "Carteira");
   if (!walletAsset) {
-    const fresh = buildDefaultWallet(input.userId, crypto.randomUUID(), deps.clock.now());
+    const fresh = buildDefaultWallet(input.userId, input.profileId, crypto.randomUUID(), deps.clock.now());
     await deps.assets.createDefaultWallet(fresh);
-    const after = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+    const after = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
     walletAsset = after.find((a) => a.label === "Carteira") ?? fresh;
   }
 

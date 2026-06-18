@@ -38,6 +38,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "a1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Reserva de emergência",
     currentValue: Money.fromCents(50000n),

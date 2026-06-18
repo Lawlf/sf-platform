@@ -66,7 +66,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const profileId = await getActiveProfileId();
   const [goals, assets, debts, settings, macro] = await Promise.all([
     goalsRepo.listForUser(user.id, { status: "active" }),
-    assetsRepo.findActiveByUser(user.id),
+    assetsRepo.findActiveByProfile(profileId),
     debtsRepo.listForProfile(profileId, { status: "active" }),
     settingsRepo.findByUser(user.id),
     buildGoalMacro(
@@ -157,12 +157,13 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const profileId = await getActiveProfileId();
   const assetsRepo = repos.assets;
   const goalsRepo = repos.goals;
   const settingsRepo = repos.financialPlanningSettings;
 
   const [cashAssets, goals, settings] = await Promise.all([
-    assetsRepo.findActiveByUserAndCategory(user.id, "cash"),
+    assetsRepo.findActiveByProfileAndCategory(profileId, "cash"),
     goalsRepo.listForUser(user.id, { status: "active" }),
     settingsRepo.findByUser(user.id),
   ]);

@@ -7,6 +7,7 @@ import { investmentBreakdown } from "./investment-breakdown.service";
 
 const BASE: Omit<AssetEntity, "id" | "label" | "currentValue" | "metadata"> = {
   userId: "u1",
+  profileId: "profile-1",
   category: "investment",
   fipeCode: null,
   fipeLastSyncedAt: null,

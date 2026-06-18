@@ -29,6 +29,7 @@ export interface CreateAssetAllocationInput {
 
 export interface CreateAssetInput {
   userId: string;
+  profileId: string;
   category: AssetCategory;
   label: string;
   currentValueCents: bigint;
@@ -121,6 +122,7 @@ export async function createAsset(
   const asset: AssetEntity = {
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     category: input.category,
     label,
     currentValue: Money.fromCents(input.currentValueCents, input.currency),

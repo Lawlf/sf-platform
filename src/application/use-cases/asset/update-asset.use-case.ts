@@ -18,7 +18,7 @@ export interface UpdateAssetDeps {
 }
 
 export interface UpdateAssetInput {
-  userId: string;
+  profileId: string;
   assetId: string;
   label?: string;
   currentValueCents?: bigint;
@@ -38,7 +38,7 @@ export async function updateAsset(
   deps: UpdateAssetDeps,
   input: UpdateAssetInput,
 ): Promise<Result<AssetEntity, UpdateAssetError>> {
-  const existing = await deps.assets.findById(input.assetId, input.userId);
+  const existing = await deps.assets.findById(input.assetId, input.profileId);
   if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
     return err(new AssetDeactivated("Ativo está desativado e não pode ser editado."));

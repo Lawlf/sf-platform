@@ -9,6 +9,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "a1",
     userId: "u1",
+    profileId: "profile-1",
     category: "other",
     label: "Ativo de teste",
     currentValue: Money.fromCents(100_000_00n), // R$ 100.000,00

@@ -4,7 +4,7 @@ import { loadSimPrefill, type LoadSimPrefillDeps } from "./load-sim-prefill.use-
 
 function emptyDeps(): LoadSimPrefillDeps {
   return {
-    assets: { findActiveByUser: vi.fn(async () => []) },
+    assets: { findActiveByProfile: vi.fn(async () => []) },
     allocations: { findByAsset: vi.fn(async () => []) },
     debts: { listForProfile: vi.fn(async () => []) },
     incomes: { listForProfile: vi.fn(async () => []) },
@@ -25,7 +25,7 @@ describe("loadSimPrefill", () => {
   it("usa os repos injetados (sem instanciar Drizzle)", async () => {
     const deps = emptyDeps();
     await loadSimPrefill(deps, { userId: "u1", profileId: "profile-1" });
-    expect(deps.assets.findActiveByUser).toHaveBeenCalledWith("u1");
+    expect(deps.assets.findActiveByProfile).toHaveBeenCalledWith("profile-1");
     expect(deps.incomes.listForProfile).toHaveBeenCalledWith("profile-1", { onlyActive: true });
   });
 });
