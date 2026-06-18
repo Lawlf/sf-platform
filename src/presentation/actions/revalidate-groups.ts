@@ -13,6 +13,7 @@ export const REVALIDATE_GROUPS = {
   billing: ["/app/configuracoes/planos"],
   profile: ["/app/perfil"],
   content: ["/app/conteudo/trilha"],
+  mei: ["/app/mei"],
 } as const;
 
 export type RevalidateGroup = keyof typeof REVALIDATE_GROUPS;

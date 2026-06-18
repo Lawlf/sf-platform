@@ -46,7 +46,7 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
+const BASE_NAV_GROUPS: NavGroup[] = [
   {
     label: "",
     items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
@@ -68,6 +68,20 @@ const NAV_GROUPS: NavGroup[] = [
     ],
   },
 ];
+
+const MEI_NAV_ITEM: NavItem = {
+  href: "/app/mei" as Route,
+  label: "Meu salário real",
+  icon: Building2,
+};
+
+function buildNavGroups(hasPj: boolean): NavGroup[] {
+  if (!hasPj) return BASE_NAV_GROUPS;
+  return BASE_NAV_GROUPS.map((group, i) => {
+    if (i !== 1) return group;
+    return { label: group.label, items: [...group.items, MEI_NAV_ITEM] };
+  });
+}
 
 function isActive(pathname: string, item: NavItem): boolean {
   if (item.exact) return pathname === item.href;
@@ -91,6 +105,8 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
     pathname.startsWith("/app/conteudo/livros") ||
     pathname.startsWith("/app/conteudo/ritmo");
   const [collapsed, setCollapsed] = useState(false);
+  const hasPj = profiles.some((p) => p.type === "PJ_MEI");
+  const navGroups = buildNavGroups(hasPj);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -196,7 +212,7 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
           <ImmersiveSidebar activeTrilha={null} />
         ) : (
           <nav className="flex flex-col gap-5">
-            {NAV_GROUPS.map((group) => (
+            {navGroups.map((group) => (
             <div key={group.label || "main"} className="flex flex-col gap-1">
               {!collapsed && group.label ? (
                 <span className="px-3 pb-1 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
