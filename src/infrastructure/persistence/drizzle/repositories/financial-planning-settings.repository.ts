@@ -12,7 +12,7 @@ import {
 function rowToEntity(row: FinancialPlanningSettingsRow): FinancialPlanningSettingsEntity {
   return {
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     liquidBucketAssetId: row.liquidBucketAssetId ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -34,15 +34,16 @@ export class FinancialPlanningSettingsRepository
   }
 
   async upsertLiquidBucket(
+    userId: string,
     profileId: string,
     liquidBucketAssetId: string | null,
   ): Promise<FinancialPlanningSettingsEntity> {
     const rows = await getDb()
       .insert(financialPlanningSettings)
-      .values({ userId: profileId, profileId, liquidBucketAssetId })
+      .values({ userId, profileId, liquidBucketAssetId })
       .onConflictDoUpdate({
-        target: financialPlanningSettings.userId,
-        set: { profileId, liquidBucketAssetId, updatedAt: sql`now()` },
+        target: financialPlanningSettings.profileId,
+        set: { liquidBucketAssetId, updatedAt: sql`now()` },
       })
       .returning();
     const row = rows[0];

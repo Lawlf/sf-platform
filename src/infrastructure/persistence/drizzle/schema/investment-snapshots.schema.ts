@@ -19,7 +19,7 @@ export const investmentSnapshots = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     month: date("month", { mode: "date" }).notNull(),
     investmentType: text("investment_type").notNull(),
     totalValueCents: bigint("total_value_cents", { mode: "bigint" }).notNull(),
@@ -28,7 +28,7 @@ export const investmentSnapshots = pgTable(
       .default(sql`now()`),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.userId, t.month, t.investmentType] }),
+    pk: primaryKey({ columns: [t.profileId, t.month, t.investmentType] }),
     profileIdx: index("investment_snapshots_profile_id_idx").on(t.profileId),
   }),
 );

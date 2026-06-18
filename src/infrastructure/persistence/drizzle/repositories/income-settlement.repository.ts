@@ -15,7 +15,7 @@ import {
 function rowToEntity(row: IncomeSettlementRow): IncomeSettlementEntity {
   return {
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     incomeId: row.incomeId,
     month: row.month,
     status: row.status as IncomeSettlementStatus,
@@ -39,7 +39,7 @@ export class IncomeSettlementRepository implements IncomeSettlementRepositoryPor
       })
       .onConflictDoUpdate({
         target: [
-          incomeSettlements.userId,
+          incomeSettlements.profileId,
           incomeSettlements.incomeId,
           incomeSettlements.month,
         ],

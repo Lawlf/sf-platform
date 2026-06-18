@@ -11,6 +11,7 @@ export interface InvestmentSnapshotRepositoryPort {
    * (remove tipos que sumiram, insere/atualiza os presentes). Idempotente.
    */
   replaceMonth(
+    userId: string,
     profileId: string,
     month: Date,
     rows: InvestmentSnapshotRow[],

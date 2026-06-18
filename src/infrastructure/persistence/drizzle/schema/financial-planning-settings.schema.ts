@@ -9,9 +9,12 @@ export const financialPlanningSettings = pgTable(
   "financial_planning_settings",
   {
     userId: uuid("user_id")
-      .primaryKey()
+      .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .primaryKey()
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
     liquidBucketAssetId: uuid("liquid_bucket_asset_id").references(() => assets.id, {
       onDelete: "set null",
     }),

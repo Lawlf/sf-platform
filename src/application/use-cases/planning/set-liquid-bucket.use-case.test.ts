@@ -55,10 +55,10 @@ function makeSettingsRepo(): FinancialPlanningSettingsRepositoryPort {
   const store = new Map<string, FinancialPlanningSettingsEntity>();
   return {
     findByProfile: async (profileId: string) => store.get(profileId) ?? null,
-    upsertLiquidBucket: async (profileId: string, liquidBucketAssetId: string | null) => {
+    upsertLiquidBucket: async (userId: string, profileId: string, liquidBucketAssetId: string | null) => {
       const existing = store.get(profileId);
       const record: FinancialPlanningSettingsEntity = {
-        userId: profileId,
+        userId,
         profileId,
         liquidBucketAssetId,
         createdAt: existing?.createdAt ?? new Date(0),

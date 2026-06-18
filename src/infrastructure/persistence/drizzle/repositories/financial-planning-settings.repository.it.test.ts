@@ -11,23 +11,26 @@ import { financialPlanningSettings } from "../schema/financial-planning-settings
 
 import { AssetRepository } from "./asset.repository";
 import { FinancialPlanningSettingsRepository } from "./financial-planning-settings.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-fp-settings-user@saborfinanceiro.com.br";
 const ASSET_LABEL_PREFIX = "it-test-fp-settings-asset-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const assets = new AssetRepository();
 const repo = new FinancialPlanningSettingsRepository();
 
 let userId: string;
+let profileId: string;
 let assetId: string;
 
 function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
-    profileId: userId,
+    profileId,
     category: "cash",
     label: `${ASSET_LABEL_PREFIX}conta`,
     currentValue: Money.fromCents(1_000_000n),
@@ -57,6 +60,9 @@ beforeAll(async () => {
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
 
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
+
   const asset = makeAsset();
   assetId = asset.id;
   await assets.create(asset);
@@ -64,7 +70,7 @@ beforeAll(async () => {
 
 afterEach(async () => {
   await getDb().execute(
-    sql`delete from financial_planning_settings where user_id = ${userId}`,
+    sql`delete from financial_planning_settings where profile_id = ${profileId}`,
   );
 });
 
@@ -78,53 +84,57 @@ afterAll(async () => {
 
 describe("FinancialPlanningSettingsRepository (integration)", () => {
   it("findByProfile returns null when no settings row exists", async () => {
-    const result = await repo.findByProfile(userId);
+    const result = await repo.findByProfile(profileId);
     expect(result).toBeNull();
   });
 
   it("upsertLiquidBucket creates a row; findByProfile returns it", async () => {
-    const entity = await repo.upsertLiquidBucket(userId, assetId);
+    const entity = await repo.upsertLiquidBucket(userId, profileId, assetId);
 
     expect(entity.userId).toBe(userId);
+    expect(entity.profileId).toBe(profileId);
     expect(entity.liquidBucketAssetId).toBe(assetId);
     expect(entity.createdAt).toBeInstanceOf(Date);
     expect(entity.updatedAt).toBeInstanceOf(Date);
 
-    const found = await repo.findByProfile(userId);
+    const found = await repo.findByProfile(profileId);
     expect(found).not.toBeNull();
     expect(found?.userId).toBe(userId);
+    expect(found?.profileId).toBe(profileId);
     expect(found?.liquidBucketAssetId).toBe(assetId);
   });
 
   it("upsertLiquidBucket called twice updates the same row and bumps updatedAt", async () => {
-    const first = await repo.upsertLiquidBucket(userId, assetId);
+    const first = await repo.upsertLiquidBucket(userId, profileId, assetId);
 
     await new Promise((resolve) => setTimeout(resolve, 5));
 
-    const second = await repo.upsertLiquidBucket(userId, null);
+    const second = await repo.upsertLiquidBucket(userId, profileId, null);
 
     expect(second.userId).toBe(userId);
+    expect(second.profileId).toBe(profileId);
     expect(second.liquidBucketAssetId).toBeNull();
     expect(second.updatedAt.getTime()).toBeGreaterThanOrEqual(first.updatedAt.getTime());
 
-    const found = await repo.findByProfile(userId);
+    const found = await repo.findByProfile(profileId);
     expect(found?.liquidBucketAssetId).toBeNull();
 
     const allRows = await getDb()
       .select()
       .from(financialPlanningSettings)
-      .where(eq(financialPlanningSettings.userId, userId));
+      .where(eq(financialPlanningSettings.profileId, profileId));
     expect(allRows).toHaveLength(1);
   });
 
   it("upsertLiquidBucket with null stores a null bucket", async () => {
-    const entity = await repo.upsertLiquidBucket(userId, null);
+    const entity = await repo.upsertLiquidBucket(userId, profileId, null);
 
     expect(entity.userId).toBe(userId);
+    expect(entity.profileId).toBe(profileId);
     expect(entity.liquidBucketAssetId).toBeNull();
     expect(entity.createdAt).toBeInstanceOf(Date);
 
-    const found = await repo.findByProfile(userId);
+    const found = await repo.findByProfile(profileId);
     expect(found).not.toBeNull();
     expect(found?.liquidBucketAssetId).toBeNull();
   });

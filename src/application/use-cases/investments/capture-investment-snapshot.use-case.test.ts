@@ -43,7 +43,8 @@ describe("captureInvestmentSnapshot", () => {
       { userId: "u1", profileId: "profile-1", assets: [inv("a", "crypto", 100n), inv("b", "crypto", 50n), inv("c", "fixed_income", 200n)] },
     );
     expect(replaceMonth).toHaveBeenCalledTimes(1);
-    const [profileId, month, rows] = replaceMonth.mock.calls[0] as unknown[];
+    const [userId, profileId, month, rows] = replaceMonth.mock.calls[0] as unknown[];
+    expect(userId).toBe("u1");
     expect(profileId).toBe("profile-1");
     expect((month as Date).toISOString().slice(0, 10)).toBe("2026-06-01");
     expect(rows).toEqual([
@@ -58,6 +59,6 @@ describe("captureInvestmentSnapshot", () => {
       { snapshots: { replaceMonth, listForProfile: vi.fn() } as never, clock: { now: () => NOW } },
       { userId: "u1", profileId: "profile-1", assets: [] },
     );
-    expect(replaceMonth).toHaveBeenCalledWith("profile-1", expect.any(Date), [], NOW);
+    expect(replaceMonth).toHaveBeenCalledWith("u1", "profile-1", expect.any(Date), [], NOW);
   });
 });

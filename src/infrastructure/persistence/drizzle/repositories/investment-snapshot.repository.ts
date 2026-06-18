@@ -15,7 +15,7 @@ import {
 function rowToEntity(row: InvestmentSnapshotRow): InvestmentSnapshotEntity {
   return {
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     month: row.month,
     investmentType: row.investmentType,
     totalValueCents: row.totalValueCents,
@@ -27,6 +27,7 @@ export class InvestmentSnapshotRepository
   implements InvestmentSnapshotRepositoryPort
 {
   async replaceMonth(
+    userId: string,
     profileId: string,
     month: Date,
     rows: PortRow[],
@@ -44,7 +45,7 @@ export class InvestmentSnapshotRepository
       if (rows.length === 0) return;
       await tx.insert(investmentSnapshots).values(
         rows.map((r) => ({
-          userId: profileId,
+          userId,
           profileId,
           month,
           investmentType: r.investmentType,

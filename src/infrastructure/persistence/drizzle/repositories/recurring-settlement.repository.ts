@@ -15,7 +15,7 @@ import {
 function rowToEntity(row: RecurringSettlementRow): RecurringSettlementEntity {
   return {
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     debtId: row.debtId,
     month: row.month,
     status: row.status as RecurringSettlementStatus,
@@ -39,7 +39,7 @@ export class RecurringSettlementRepository implements RecurringSettlementReposit
       })
       .onConflictDoUpdate({
         target: [
-          recurringSettlements.userId,
+          recurringSettlements.profileId,
           recurringSettlements.debtId,
           recurringSettlements.month,
         ],

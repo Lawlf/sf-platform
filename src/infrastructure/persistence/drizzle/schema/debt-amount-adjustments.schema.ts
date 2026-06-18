@@ -33,7 +33,7 @@ export const debtAmountAdjustments = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     kind: debtAmountAdjustmentKind("kind").notNull(),
     // Formato YYYY-MM para todos os campos de mês.
     // Para kind=period: startMonth obrigatório, endMonth null = aberto.

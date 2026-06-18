@@ -3,6 +3,7 @@ import type { FinancialPlanningSettingsEntity } from "@/domain/entities/financia
 export interface FinancialPlanningSettingsRepositoryPort {
   findByProfile(profileId: string): Promise<FinancialPlanningSettingsEntity | null>;
   upsertLiquidBucket(
+    userId: string,
     profileId: string,
     liquidBucketAssetId: string | null,
   ): Promise<FinancialPlanningSettingsEntity>;

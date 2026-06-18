@@ -32,7 +32,7 @@ export const debts = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
     kind: debtKind("kind").notNull(),
     status: debtStatus("status").notNull().default("active"),

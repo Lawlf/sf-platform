@@ -32,5 +32,5 @@ export async function captureInvestmentSnapshot(
     investmentType: b.investmentType,
     totalValueCents: b.totalValueCents,
   }));
-  await deps.snapshots.replaceMonth(input.profileId, month, rows, now);
+  await deps.snapshots.replaceMonth(input.userId, input.profileId, month, rows, now);
 }

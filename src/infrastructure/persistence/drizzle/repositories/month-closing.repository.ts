@@ -12,7 +12,7 @@ import {
 function rowToEntity(row: MonthClosingRow): MonthClosingEntity {
   return {
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     month: row.month,
     baselineNetWorthCents: row.baselineNetWorthCents,
     endNetWorthCents: row.endNetWorthCents,
@@ -43,7 +43,7 @@ export class MonthClosingRepository implements MonthClosingRepositoryPort {
         closedAt: closing.closedAt,
       })
       .onConflictDoUpdate({
-        target: [monthClosings.userId, monthClosings.month],
+        target: [monthClosings.profileId, monthClosings.month],
         set: {
           profileId: closing.profileId,
           baselineNetWorthCents: closing.baselineNetWorthCents,

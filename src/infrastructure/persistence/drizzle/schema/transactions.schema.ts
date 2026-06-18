@@ -12,7 +12,7 @@ export const transactions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     direction: text("direction").notNull().default("out"),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
     currency: text("currency").notNull().default("BRL"),
@@ -34,8 +34,8 @@ export const transactions = pgTable(
     // Backstop de banco contra a corrida de double-commit do import OFX: o mesmo
     // fitId (external_id) nunca pode entrar duas vezes para o mesmo usuário.
     // Parcial porque lançamentos manuais têm external_id nulo (sem dedup).
-    uniqExternal: uniqueIndex("transactions_user_external_uniq")
-      .on(t.userId, t.externalId)
+    uniqExternal: uniqueIndex("transactions_profile_external_uniq")
+      .on(t.profileId, t.externalId)
       .where(sql`${t.externalId} is not null`),
   }),
 );

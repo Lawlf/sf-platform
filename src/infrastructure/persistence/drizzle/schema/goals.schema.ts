@@ -34,7 +34,7 @@ export const goals = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     type: goalType("type").notNull(),
     title: text("title").notNull(),
     status: goalStatus("status").notNull().default("active"),

@@ -15,7 +15,7 @@ export const goalContributions = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
     currency: text("currency").notNull().default("BRL"),
     createdAt: timestamp("created_at", { withTimezone: true })

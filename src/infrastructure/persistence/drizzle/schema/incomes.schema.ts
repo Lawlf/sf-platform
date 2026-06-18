@@ -23,7 +23,7 @@ export const incomes = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
     amountCents: bigint("amount_cents", { mode: "bigint" }).notNull(),
     currency: text("currency").notNull().default("BRL"),

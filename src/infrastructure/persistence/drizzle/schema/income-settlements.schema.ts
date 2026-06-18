@@ -11,7 +11,7 @@ export const incomeSettlements = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     incomeId: uuid("income_id")
       .notNull()
       .references(() => incomes.id, { onDelete: "cascade" }),
@@ -23,7 +23,7 @@ export const incomeSettlements = pgTable(
       .default(sql`now()`),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.userId, t.incomeId, t.month] }),
+    pk: primaryKey({ columns: [t.profileId, t.incomeId, t.month] }),
     profileIdx: index("income_settlements_profile_id_idx").on(t.profileId),
   }),
 );

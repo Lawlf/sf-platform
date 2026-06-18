@@ -25,6 +25,6 @@ export async function setLiquidBucket(
     }
   }
 
-  const saved = await settings.upsertLiquidBucket(profileId, assetId);
+  const saved = await settings.upsertLiquidBucket(userId, profileId, assetId);
   return { ok: true, settings: saved };
 }
