@@ -21,7 +21,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     type: "PF",
     linkedProfileId: null,
     displayName: null,
-    isPrimary: false,
+    isPrimary: true,
     createdAt: NOW,
     updatedAt: NOW,
     ...over,
@@ -42,7 +42,7 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
     findById: vi.fn(async (id: string) => store.find((p) => p.id === id) ?? null),
     findPrimaryPf: vi.fn(async (userId: string) => store.find((p) => p.userId === userId && p.isPrimary) ?? null),
     ensurePfProfile: vi.fn(async (_userId: string, _now: Date) => {
-      const existing = store.find((p) => p.type === "PF");
+      const existing = store.find((p) => p.type === "PF" && p.isPrimary);
       if (existing) return existing;
       const pf = makeProfile({ id: "pf-id", type: "PF", isPrimary: true });
       store.push(pf);
@@ -145,9 +145,9 @@ describe("createMeiProfile", () => {
     expect(profileRepo._profiles.filter((p) => p.type === "PJ_MEI")).toHaveLength(1);
   });
 
-  it("returns the existing PJ profile when already created", async () => {
-    const pf = makeProfile({ id: "pf-id", type: "PF" });
-    const pj = makeProfile({ id: "pj-id", type: "PJ_MEI", linkedProfileId: "pf-id" });
+  it("returns existing PJ when PF already has linkedProfileId pointing to PJ_MEI", async () => {
+    const pf = makeProfile({ id: "pf-id", type: "PF", isPrimary: true, linkedProfileId: "pj-id" });
+    const pj = makeProfile({ id: "pj-id", type: "PJ_MEI", isPrimary: false, linkedProfileId: "pf-id" });
     const profileRepo = makeProfileRepo([pf, pj]);
     const debtRepo = makeDebtRepo();
     const deps = makeDeps(profileRepo, debtRepo);
@@ -158,5 +158,6 @@ describe("createMeiProfile", () => {
 
     expect(result.value.pj.id).toBe("pj-id");
     expect(debtRepo._created).toHaveLength(0);
+    expect(profileRepo._profiles.filter((p) => p.type === "PJ_MEI")).toHaveLength(1);
   });
 });

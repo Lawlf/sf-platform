@@ -27,11 +27,11 @@ export async function createMeiProfile(
 
   const pf = await deps.profiles.ensurePfProfile(input.userId, now);
 
-  const existing = (await deps.profiles.listForUser(input.userId)).find(
-    (p) => p.type === "PJ_MEI",
-  );
-  if (existing) {
-    return ok({ pf, pj: existing });
+  if (pf.linkedProfileId) {
+    const linked = await deps.profiles.findById(pf.linkedProfileId);
+    if (linked && linked.type === "PJ_MEI") {
+      return ok({ pf, pj: linked });
+    }
   }
 
   const pj = await deps.profiles.create({

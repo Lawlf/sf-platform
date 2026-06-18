@@ -15,6 +15,7 @@ import {
   Settings,
   Target,
   TrendingUp,
+  UserPlus,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -22,11 +23,12 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useRef, useState, useTransition } from "react";
+import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import { createMeiProfileAction } from "../perfil/_actions/create-mei-profile.action";
+import { createProfileAction } from "../_actions/create-profile.action";
 import { switchProfileAction } from "../_actions/switch-profile.action";
 import type { SerializedProfile } from "../_actions/profile-queries";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
@@ -281,6 +283,9 @@ function AccountZone({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(false);
+  const [createName, setCreateName] = useState("");
+  const [createType, setCreateType] = useState<"PF" | "PJ_MEI">("PJ_MEI");
   const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
@@ -300,6 +305,21 @@ function AccountZone({
       await switchProfileAction({ profileId });
       setOpen(false);
       router.refresh();
+    });
+  }
+
+  function handleCreateProfile(e: FormEvent) {
+    e.preventDefault();
+    if (!createName.trim()) return;
+    startTransition(async () => {
+      const result = await createProfileAction({ type: createType, displayName: createName.trim() });
+      if (result.ok) {
+        setCreateOpen(false);
+        setCreateName("");
+        setCreateType("PJ_MEI");
+        setOpen(false);
+        router.refresh();
+      }
     });
   }
 
@@ -449,6 +469,61 @@ function AccountZone({
               <span className="flex-1 text-left">Sou MEI / tenho CNPJ</span>
             </button>
           ) : null}
+
+          {!createOpen ? (
+            <button
+              type="button"
+              role="menuitem"
+              disabled={pending}
+              onClick={() => setCreateOpen(true)}
+              className="focus-ring mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10] disabled:opacity-60"
+            >
+              <UserPlus size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+              <span className="flex-1 text-left">Criar perfil</span>
+            </button>
+          ) : (
+            <form onSubmit={handleCreateProfile} className="mt-1 flex flex-col gap-2 px-1">
+              <input
+                autoFocus
+                type="text"
+                placeholder="Nome do perfil"
+                value={createName}
+                onChange={(e) => setCreateName(e.target.value)}
+                maxLength={60}
+                disabled={pending}
+                className="w-full rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-2.5 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-500)] disabled:opacity-60"
+              />
+              <select
+                value={createType}
+                onChange={(e) => setCreateType(e.target.value as "PF" | "PJ_MEI")}
+                disabled={pending}
+                className="w-full rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-2.5 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-500)] disabled:opacity-60"
+              >
+                <option value="PJ_MEI">Empresa (PJ / MEI)</option>
+                <option value="PF">Pessoa física</option>
+              </select>
+              <div className="flex gap-1.5">
+                <button
+                  type="submit"
+                  disabled={pending || !createName.trim()}
+                  className="focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-[0.8125rem] font-semibold text-white transition-colors hover:bg-[color:var(--color-brand-600)] disabled:opacity-60"
+                >
+                  {pending ? (
+                    <Loader2 size={14} strokeWidth={1.75} aria-hidden className="animate-spin" />
+                  ) : null}
+                  Criar
+                </button>
+                <button
+                  type="button"
+                  disabled={pending}
+                  onClick={() => { setCreateOpen(false); setCreateName(""); }}
+                  className="focus-ring rounded-lg border border-[color:var(--border-strong)] px-3 py-1.5 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] disabled:opacity-60"
+                >
+                  Cancelar
+                </button>
+              </div>
+            </form>
+          )}
 
           <div className="my-1.5 h-px bg-[color:var(--border-soft)]" />
           <Link
