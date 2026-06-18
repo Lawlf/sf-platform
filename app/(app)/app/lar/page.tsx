@@ -6,12 +6,14 @@ import { PageShell } from "../_components/page-shell";
 import {
   fetchHouseholdMembers,
   fetchHouseholdPendingInvites,
+  fetchHouseholdSnapshot,
   fetchMyHouseholds,
   fetchMyPendingInvites,
   fetchMyShares,
 } from "../_actions/household-queries";
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
+import { HouseholdJointView } from "./_components/household-joint-view.client";
 import { HouseholdPanel } from "./_components/household-panel.client";
 import { MyProfileSharing } from "./_components/my-profile-sharing.client";
 import { PendingInvitesPanel } from "./_components/pending-invites-panel.client";
@@ -28,16 +30,18 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, adminPendingInvites, myShares] = await Promise.all([
+      const [members, adminPendingInvites, myShares, snapshot] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdPendingInvites(h.id),
         fetchMyShares(h.id),
+        fetchHouseholdSnapshot(h.id),
       ]);
       return {
         household: h,
         members: members ?? [],
         pendingInvites: adminPendingInvites ?? [],
         myShares,
+        snapshot,
       };
     }),
   );
@@ -50,7 +54,7 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares }) => (
+      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot }) => (
         <div key={household.id} className="flex flex-col gap-4">
           <HouseholdPanel
             household={household}
@@ -60,6 +64,9 @@ export default async function LarPage() {
           />
           {myShares ? (
             <MyProfileSharing householdId={household.id} data={myShares} />
+          ) : null}
+          {snapshot ? (
+            <HouseholdJointView householdId={household.id} snapshot={snapshot} />
           ) : null}
         </div>
       ))}
