@@ -8,10 +8,12 @@ import {
   fetchHouseholdPendingInvites,
   fetchMyHouseholds,
   fetchMyPendingInvites,
+  fetchMyShares,
 } from "../_actions/household-queries";
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
 import { HouseholdPanel } from "./_components/household-panel.client";
+import { MyProfileSharing } from "./_components/my-profile-sharing.client";
 import { PendingInvitesPanel } from "./_components/pending-invites-panel.client";
 
 export const metadata: Metadata = { title: "Lar" };
@@ -26,11 +28,17 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, adminPendingInvites] = await Promise.all([
+      const [members, adminPendingInvites, myShares] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdPendingInvites(h.id),
+        fetchMyShares(h.id),
       ]);
-      return { household: h, members: members ?? [], pendingInvites: adminPendingInvites ?? [] };
+      return {
+        household: h,
+        members: members ?? [],
+        pendingInvites: adminPendingInvites ?? [],
+        myShares,
+      };
     }),
   );
 
@@ -42,14 +50,18 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, pendingInvites: adminInvites }) => (
-        <HouseholdPanel
-          key={household.id}
-          household={household}
-          members={members}
-          currentUserId={user.id}
-          pendingInvites={adminInvites}
-        />
+      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares }) => (
+        <div key={household.id} className="flex flex-col gap-4">
+          <HouseholdPanel
+            household={household}
+            members={members}
+            currentUserId={user.id}
+            pendingInvites={adminInvites}
+          />
+          {myShares ? (
+            <MyProfileSharing householdId={household.id} data={myShares} />
+          ) : null}
+        </div>
       ))}
 
       {households.length === 0 ? <CreateHouseholdForm /> : null}

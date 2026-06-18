@@ -1,6 +1,7 @@
 "use server";
 
-import type { HouseholdInviteEntity, HouseholdMemberEntity } from "@/domain/entities/household.entity";
+import type { HouseholdInviteEntity, HouseholdMemberEntity, HouseholdShareLevel } from "@/domain/entities/household.entity";
+import type { ProfileType } from "@/domain/entities/profile.entity";
 import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -128,4 +129,44 @@ export async function fetchMyPendingInvites(): Promise<SerializedInvite[]> {
     status: inv.status,
     createdAtIso: inv.createdAt.toISOString(),
   }));
+}
+
+export interface SerializedSharedProfile {
+  profileId: string;
+  shareLevel: HouseholdShareLevel;
+}
+
+export interface SerializedProfileOption {
+  id: string;
+  type: ProfileType;
+  displayName: string | null;
+  isPrimary: boolean;
+}
+
+export interface MySharesData {
+  shares: SerializedSharedProfile[];
+  profiles: SerializedProfileOption[];
+}
+
+export async function fetchMyShares(householdId: string): Promise<MySharesData | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const membership = await repos.households.findMembership(householdId, user.id);
+  if (!membership) return null;
+
+  const [shares, profiles] = await Promise.all([
+    repos.households.listSharedProfilesForUser(householdId, user.id),
+    repos.profiles.listForUser(user.id),
+  ]);
+
+  return {
+    shares: shares.map((s) => ({ profileId: s.profileId, shareLevel: s.shareLevel })),
+    profiles: profiles.map((p) => ({
+      id: p.id,
+      type: p.type,
+      displayName: p.displayName,
+      isPrimary: p.isPrimary,
+    })),
+  };
 }

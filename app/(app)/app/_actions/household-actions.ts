@@ -9,6 +9,8 @@ import { removeMember } from "@/application/use-cases/household/remove-member.us
 import { respondInvite } from "@/application/use-cases/household/respond-invite.use-case";
 import { revokeInvite } from "@/application/use-cases/household/revoke-invite.use-case";
 import { setMemberRole } from "@/application/use-cases/household/set-member-role.use-case";
+import { shareProfile } from "@/application/use-cases/household/share-profile.use-case";
+import { unshareProfile } from "@/application/use-cases/household/unshare-profile.use-case";
 import type { HouseholdRole } from "@/domain/entities/household.entity";
 import { clock, repos } from "@/infrastructure/container";
 import { action, unwrap } from "@/presentation/actions/action";
@@ -109,6 +111,39 @@ export const setMemberRoleAction = action({
       await setMemberRole(
         { households: repos.households },
         { householdId, adminUserId: userId, targetUserId, role: role as HouseholdRole },
+      ),
+    );
+  },
+});
+
+export const shareProfileAction = action({
+  schema: z.object({
+    householdId: z.string().uuid(),
+    profileId: z.string().uuid(),
+    shareLevel: z.enum(["aggregate", "detail"]),
+  }),
+  revalidates: ["household"],
+  handler: async ({ householdId, profileId, shareLevel }, { userId }) => {
+    unwrap(
+      await shareProfile(
+        { households: repos.households, profiles: repos.profiles, clock },
+        { householdId, userId, profileId, shareLevel },
+      ),
+    );
+  },
+});
+
+export const unshareProfileAction = action({
+  schema: z.object({
+    householdId: z.string().uuid(),
+    profileId: z.string().uuid(),
+  }),
+  revalidates: ["household"],
+  handler: async ({ householdId, profileId }, { userId }) => {
+    unwrap(
+      await unshareProfile(
+        { households: repos.households },
+        { householdId, userId, profileId },
       ),
     );
   },
