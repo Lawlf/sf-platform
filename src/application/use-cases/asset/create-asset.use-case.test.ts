@@ -289,12 +289,12 @@ describe("createAsset", () => {
     expect(assets.create).not.toHaveBeenCalled();
   });
 
-  it("returns Forbidden when allocation references debt owned by other user", async () => {
+  it("returns Forbidden when allocation references debt owned by other profile", async () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const debts = makeDebtRepo();
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
-      makeDebt({ userId: "other-user" }),
+      makeDebt({ userId: "other-user", profileId: "profile-2" }),
     );
     const clock = makeClock();
 

@@ -107,6 +107,7 @@ export async function executeWrite(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
+          profileId,
           incomeId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.amountCents !== undefined && { amount: money(args.amountCents, currency) }),
@@ -126,7 +127,7 @@ export async function executeWrite(
       const before = existing ? serialize(existing) : null;
       const result = await deleteIncome(
         { incomes: deps.incomes, clock: deps.clock },
-        { userId, incomeId: id },
+        { userId, profileId, incomeId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "income", entityId: id, before, after: null, reversible: true };
@@ -183,6 +184,7 @@ export async function executeWrite(
         { debts: deps.debts, clock: deps.clock },
         {
           userId,
+          profileId,
           debtId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.notes !== undefined && { notes: optStr(args.notes) }),
@@ -229,7 +231,7 @@ export async function executeWrite(
           allocations: deps.allocations,
           clock: deps.clock,
         },
-        { userId, debtId: id },
+        { userId, profileId, debtId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "debt", entityId: id, before, after: null, reversible: false };
@@ -333,7 +335,7 @@ export async function executeWrite(
       const before = existing ? serialize(existing) : null;
       const result = await updateGoal(
         { goals: deps.goals },
-        { userId, goalId: id, patch: buildGoalPatch(args) },
+        { userId, profileId, goalId: id, patch: buildGoalPatch(args) },
       );
       if (!result.ok) throw new Error(result.message);
       const after = serialize(result.goal);
@@ -344,7 +346,7 @@ export async function executeWrite(
       const id = str(args.goalId);
       const existing = await deps.goals.findById(id);
       const before = existing ? serialize(existing) : null;
-      const result = await deleteGoal({ goals: deps.goals }, { userId, goalId: id });
+      const result = await deleteGoal({ goals: deps.goals }, { userId, profileId, goalId: id });
       if (!result.ok) throw new Error(result.message);
       return { entityType: "goal", entityId: id, before, after: null, reversible: true };
     }

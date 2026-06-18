@@ -40,7 +40,7 @@ export async function getGoalDetail(
   }: { userId: string; profileId: string; goalId: string; isPro: boolean },
 ): Promise<GoalDetailResult | null> {
   const goal = await deps.goals.findById(goalId);
-  if (!goal || goal.userId !== userId) return null;
+  if (!goal || goal.profileId !== profileId) return null;
 
   const [macro, snapshotList, contributionList] = await Promise.all([
     buildGoalMacro(deps, { userId, profileId }),

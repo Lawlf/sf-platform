@@ -101,10 +101,12 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
       extraPaymentCents: cents().optional(),
     },
     execute: async (args, ctx) => {
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await projectDebtPayoff(
         { debts: repos.debts, clock },
         {
           userId: ctx.userId,
+          profileId,
           debtId: String(args.debtId),
           monthlyPayment: Money.fromCents(big(args.monthlyPaymentCents)),
           ...(args.extraPaymentCents !== undefined
@@ -430,10 +432,12 @@ export const SIMULATOR_TOOLS: SimulatorToolDef[] = [
       extraPaymentCents: cents(),
     },
     execute: async (args, ctx) => {
+      const profileId = await resolvePfProfileId(ctx.userId);
       const result = await simulateExtraPayment(
         { debts: repos.debts, clock },
         {
           userId: ctx.userId,
+          profileId,
           debtId: String(args.debtId),
           monthlyPayment: Money.fromCents(big(args.monthlyPaymentCents)),
           extraPayment: Money.fromCents(big(args.extraPaymentCents)),

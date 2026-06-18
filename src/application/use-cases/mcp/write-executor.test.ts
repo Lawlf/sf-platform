@@ -182,7 +182,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
-      profileId: "profile-1",
+      profileId: "p1",
       label: "Salary",
       amount: Money.fromCents(500000n, "USD"),
       frequency: "monthly",
@@ -213,6 +213,7 @@ describe("executeWrite", () => {
     const existing = {
       id: "d1",
       userId: "u1",
+      profileId: "p1",
       kind: "personal_loan",
       label: "Loan",
       status: "active",
@@ -250,7 +251,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
-      profileId: "profile-1",
+      profileId: "p1",
       label: "Salário",
       amount: Money.fromCents(500000n),
       frequency: "monthly",
@@ -287,6 +288,7 @@ describe("executeWrite", () => {
     const existing = {
       id: "d1",
       userId: "u1",
+      profileId: "p1",
       kind: "personal_loan",
       label: "Empréstimo",
       status: "active",

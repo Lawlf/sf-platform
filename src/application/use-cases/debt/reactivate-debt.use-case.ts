@@ -13,6 +13,7 @@ export interface ReactivateDebtDeps {
 
 export interface ReactivateDebtInput {
   userId: string;
+  profileId: string;
   debtId: string;
 }
 
@@ -34,7 +35,7 @@ export async function reactivateDebt(
 ): Promise<Result<void, DebtNotFound | Forbidden | DebtAlreadyActive>> {
   const existing = await deps.debts.findById(input.debtId);
   if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
   if (existing.status === "active") return err(new DebtAlreadyActive("Dívida já está ativa."));
 
   const allPayments = await deps.payments.listForDebt(input.debtId);

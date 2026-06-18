@@ -16,6 +16,7 @@ export interface GetDebtDetailDeps {
 
 export interface GetDebtDetailInput {
   userId: string;
+  profileId: string;
   debtId: string;
 }
 
@@ -31,7 +32,7 @@ export async function getDebtDetail(
 ): Promise<Result<GetDebtDetailOutput, DebtNotFound | Forbidden>> {
   const debt = await deps.debts.findById(input.debtId);
   if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
-  if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (debt.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   let amortization: AmortizationSchedule | null = null;
   if (debt.kind === "financing") {

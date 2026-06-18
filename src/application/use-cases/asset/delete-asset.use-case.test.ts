@@ -139,14 +139,12 @@ describe("deleteAsset", () => {
     expect(assets.softDelete).not.toHaveBeenCalled();
   });
 
-  it("returns Forbidden when stored userId differs from caller (defense in depth)", async () => {
+  it("returns Forbidden when profileId differs from caller (defense in depth)", async () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const clock = makeClock();
-    // Hypothetical case: findById returned an asset (would not normally
-    // happen since findById is scoped by userId), but the stored userId
-    // does not match. The use case still rejects.
-    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset("owner"));
+    const asset = { ...makeAsset("owner"), profileId: "profile-2" };
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(asset);
 
     const result = await deleteAsset(
       { assets, allocations, clock },

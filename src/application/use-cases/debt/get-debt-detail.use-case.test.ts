@@ -143,7 +143,7 @@ describe("getDebtDetail", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(debt);
     (payments.listForDebt as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", debtId: "debt-1" });
+    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", profileId: "profile-1", debtId: "debt-1" });
 
     expect(result._tag).toBe("ok");
     if (isOk(result)) {
@@ -161,7 +161,7 @@ describe("getDebtDetail", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(debt);
     (payments.listForDebt as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", debtId: "debt-3" });
+    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", profileId: "profile-1", debtId: "debt-3" });
 
     expect(result._tag).toBe("ok");
     if (isOk(result)) {
@@ -177,7 +177,7 @@ describe("getDebtDetail", () => {
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(debt);
     (payments.listForDebt as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", debtId: "debt-2" });
+    const result = await getDebtDetail({ debts, payments }, { userId: "user-1", profileId: "profile-1", debtId: "debt-2" });
 
     expect(result._tag).toBe("ok");
     if (isOk(result)) {
@@ -192,7 +192,7 @@ describe("getDebtDetail", () => {
 
     const result = await getDebtDetail(
       { debts, payments },
-      { userId: "user-1", debtId: "missing" },
+      { userId: "user-1", profileId: "profile-1", debtId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -208,7 +208,7 @@ describe("getDebtDetail", () => {
 
     const result = await getDebtDetail(
       { debts, payments },
-      { userId: "intruder", debtId: "debt-1" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1" },
     );
 
     expect(isErr(result)).toBe(true);

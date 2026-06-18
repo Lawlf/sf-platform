@@ -9,11 +9,11 @@ export interface ArchiveIncomeDeps {
 
 export async function archiveIncome(
   deps: ArchiveIncomeDeps,
-  input: { userId: string; incomeId: string },
+  input: { userId: string; profileId: string; incomeId: string },
 ): Promise<Result<void, IncomeNotFound | Forbidden>> {
   const existing = await deps.incomes.findById(input.incomeId);
   if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
   await deps.incomes.setActive(input.incomeId, false);
   return ok(undefined);
 }

@@ -47,7 +47,7 @@ export async function settleIncome(
 ): Promise<Result<void, SettleIncomeError>> {
   const income = await deps.incomes.findById(input.incomeId);
   if (!income) return err(new IncomeNotFound("Renda não encontrada."));
-  if (income.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (income.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   const month = MonthYear.fromIso(input.monthIso);
   const now = deps.clock.now();

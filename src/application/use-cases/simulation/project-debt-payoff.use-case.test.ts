@@ -78,6 +78,7 @@ describe("projectDebtPayoff", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         monthlyPayment: makeMoney(500),
       },
@@ -100,6 +101,7 @@ describe("projectDebtPayoff", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "missing",
         monthlyPayment: makeMoney(500),
       },
@@ -120,6 +122,7 @@ describe("projectDebtPayoff", () => {
       { debts, clock },
       {
         userId: "intruder",
+        profileId: "profile-2",
         debtId: "debt-1",
         monthlyPayment: makeMoney(500),
       },

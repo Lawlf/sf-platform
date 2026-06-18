@@ -17,12 +17,13 @@ export async function updateGoal(
   { goals }: UpdateGoalDeps,
   {
     userId,
+    profileId,
     goalId,
     patch,
-  }: { userId: string; goalId: string; patch: Partial<GoalEntity> },
+  }: { userId: string; profileId: string; goalId: string; patch: Partial<GoalEntity> },
 ): Promise<UpdateGoalResult> {
   const existing = await goals.findById(goalId);
-  if (!existing || existing.userId !== userId) {
+  if (!existing || existing.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 

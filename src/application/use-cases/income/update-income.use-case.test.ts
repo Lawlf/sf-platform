@@ -61,7 +61,7 @@ describe("updateIncome", () => {
     const newAmount = makeAmount(6000);
     const result = await updateIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "income-1", label: "Salario novo", amount: newAmount },
+      { userId: "user-1", profileId: "profile-1", incomeId: "income-1", label: "Salario novo", amount: newAmount },
     );
 
     expect(result._tag).toBe("ok");
@@ -79,7 +79,7 @@ describe("updateIncome", () => {
 
     const result = await updateIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "missing" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -97,7 +97,7 @@ describe("updateIncome", () => {
 
     const result = await updateIncome(
       { incomes, clock },
-      { userId: "intruder", incomeId: "income-1", label: "x" },
+      { userId: "intruder", profileId: "profile-2", incomeId: "income-1", label: "x" },
     );
 
     expect(isErr(result)).toBe(true);

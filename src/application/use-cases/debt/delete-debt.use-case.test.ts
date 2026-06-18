@@ -95,7 +95,7 @@ describe("deleteDebt", () => {
 
     const result = await deleteDebt(
       { debts, payments, allocations, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");
@@ -131,7 +131,7 @@ describe("deleteDebt", () => {
 
     const result = await deleteDebt(
       { debts, payments, allocations, clock },
-      { userId: "user-1", debtId: "missing" },
+      { userId: "user-1", profileId: "profile-1", debtId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -152,7 +152,7 @@ describe("deleteDebt", () => {
 
     const result = await deleteDebt(
       { debts, payments, allocations, clock },
-      { userId: "intruder", debtId: "debt-1" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -174,7 +174,7 @@ describe("deleteDebt", () => {
 
     const result = await deleteDebt(
       { debts, payments, allocations, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");

@@ -80,8 +80,8 @@ describe("settleRecurringCommitment", () => {
     if (isErr(res)) expect(res.error).toBeInstanceOf(DebtNotFound);
   });
 
-  it("retorna Forbidden quando o compromisso é de outro usuário", async () => {
-    const debt = makeRecurring({ userId: "someone-else" });
+  it("retorna Forbidden quando o compromisso é de outro perfil", async () => {
+    const debt = makeRecurring({ userId: "someone-else", profileId: "profile-2" });
     const res = await settleRecurringCommitment(
       { debts: makeDebtRepo(debt), settlements: makeSettlementsRepo(), clock: makeClock() },
       { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "convert_to_debt" },

@@ -36,7 +36,7 @@ export async function deleteAsset(
 ): Promise<Result<void, AssetNotFound | Forbidden>> {
   const existing = await deps.assets.findById(input.assetId, input.profileId);
   if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   await deps.allocations.deleteByAssetId(input.assetId);
   await deps.assets.softDelete(input.assetId, deps.clock.now());

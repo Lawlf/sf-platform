@@ -76,6 +76,7 @@ describe("simulateExtraPayment", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         monthlyPayment: makeMoney(500),
         extraPayment: makeMoney(0),
@@ -99,6 +100,7 @@ describe("simulateExtraPayment", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         monthlyPayment: makeMoney(500),
         extraPayment: makeMoney(200),
@@ -124,6 +126,7 @@ describe("simulateExtraPayment", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "missing",
         monthlyPayment: makeMoney(500),
         extraPayment: makeMoney(100),

@@ -27,16 +27,16 @@ function firstOfMonth(date: Date): Date {
 
 export async function recordContribution(
   deps: RecordContributionDeps,
-  input: { userId: string; goalId: string; amountCents: bigint },
+  input: { userId: string; profileId: string; goalId: string; amountCents: bigint },
 ): Promise<RecordContributionResult> {
-  const { userId, goalId, amountCents } = input;
+  const { userId, profileId, goalId, amountCents } = input;
 
   if (amountCents <= 0n) {
     return { ok: false, message: "O valor a guardar deve ser maior que zero." };
   }
 
   const goal = await deps.goals.findById(goalId);
-  if (!goal || goal.userId !== userId) {
+  if (!goal || goal.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 

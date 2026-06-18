@@ -14,10 +14,10 @@ export type ArchiveGoalResult =
  */
 export async function archiveGoal(
   { goals }: ArchiveGoalDeps,
-  { userId, goalId }: { userId: string; goalId: string },
+  { userId, profileId, goalId }: { userId: string; profileId: string; goalId: string },
 ): Promise<ArchiveGoalResult> {
   const existing = await goals.findById(goalId);
-  if (!existing || existing.userId !== userId) {
+  if (!existing || existing.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 

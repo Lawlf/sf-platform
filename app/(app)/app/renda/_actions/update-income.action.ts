@@ -15,7 +15,7 @@ const updateSchema = incomeFormSchema.extend({
 export const updateIncomeAction = action({
   schema: updateSchema,
   revalidates: ["incomes", "home"],
-  handler: async (data, { userId }) => {
+  handler: async (data, { userId, profileId }) => {
     const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 
     unwrap(
@@ -23,6 +23,7 @@ export const updateIncomeAction = action({
         { incomes: repos.incomes, clock },
         {
           userId,
+          profileId,
           incomeId: data.incomeId,
           label: data.label,
           amount,

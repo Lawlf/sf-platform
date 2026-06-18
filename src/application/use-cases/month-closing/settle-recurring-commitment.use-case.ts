@@ -50,7 +50,7 @@ export async function settleRecurringCommitment(
 ): Promise<Result<void, SettleRecurringCommitmentError>> {
   const debt = await deps.debts.findById(input.debtId);
   if (!debt) return err(new DebtNotFound("Compromisso não encontrado."));
-  if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (debt.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   if (input.action === "paid") {
     return ok(undefined);

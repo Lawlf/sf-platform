@@ -265,13 +265,13 @@ describe("linkAssetToDebt", () => {
     }
   });
 
-  it("returns Forbidden when debt belongs to another user", async () => {
+  it("returns Forbidden when debt belongs to another profile", async () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const debts = makeDebtRepo();
     const clock = makeClock();
     (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset());
-    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "other" }));
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "other", profileId: "profile-2" }));
 
     const result = await linkAssetToDebt(
       { assets, allocations, debts, clock },

@@ -120,11 +120,12 @@ export const createGoalAction = action({
 export const updateGoalAction = action({
   schema: updateGoalSchema,
   revalidates: ["goals"],
-  handler: async ({ goalId, patch }, { userId }) => {
+  handler: async ({ goalId, patch }, { userId, profileId }) => {
     const result = await updateGoal(
       { goals: repos.goals },
       {
         userId,
+        profileId,
         goalId,
         patch: {
           ...(patch.title !== undefined && { title: patch.title }),
@@ -165,7 +166,7 @@ export const updateGoalAction = action({
 export const recordContributionAction = action({
   schema: recordContributionSchema,
   revalidates: ["goals", "home"],
-  handler: async ({ goalId, amountCents }, { userId }) => {
+  handler: async ({ goalId, amountCents }, { userId, profileId }) => {
     const result = await recordContribution(
       {
         goals: repos.goals,
@@ -190,7 +191,7 @@ export const recordContributionAction = action({
         clock,
         newId: () => crypto.randomUUID(),
       },
-      { userId, goalId, amountCents: BigInt(amountCents) },
+      { userId, profileId, goalId, amountCents: BigInt(amountCents) },
     );
     if (!result.ok) throw new ActionError(result.message);
   },
@@ -199,8 +200,8 @@ export const recordContributionAction = action({
 export const archiveGoalAction = action({
   schema: z.string(),
   revalidates: ["goals"],
-  handler: async (goalId, { userId }) => {
-    const result = await archiveGoal({ goals: repos.goals }, { userId, goalId });
+  handler: async (goalId, { userId, profileId }) => {
+    const result = await archiveGoal({ goals: repos.goals }, { userId, profileId, goalId });
     if (!result.ok) throw new ActionError(result.message);
   },
 });
@@ -208,8 +209,8 @@ export const archiveGoalAction = action({
 export const deleteGoalAction = action({
   schema: z.string(),
   revalidates: ["goals"],
-  handler: async (goalId, { userId }) => {
-    const result = await deleteGoal({ goals: repos.goals }, { userId, goalId });
+  handler: async (goalId, { userId, profileId }) => {
+    const result = await deleteGoal({ goals: repos.goals }, { userId, profileId, goalId });
     if (!result.ok) throw new ActionError(result.message);
     await purgeEntityBestEffort(userId, "goal", goalId);
   },

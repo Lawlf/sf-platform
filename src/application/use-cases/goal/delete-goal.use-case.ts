@@ -14,10 +14,10 @@ export type DeleteGoalResult =
  */
 export async function deleteGoal(
   { goals }: DeleteGoalDeps,
-  { userId, goalId }: { userId: string; goalId: string },
+  { userId, profileId, goalId }: { userId: string; profileId: string; goalId: string },
 ): Promise<DeleteGoalResult> {
   const existing = await goals.findById(goalId);
-  if (!existing || existing.userId !== userId) {
+  if (!existing || existing.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 

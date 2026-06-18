@@ -8,6 +8,7 @@ import {
 } from "@/infrastructure/calendar/ics-builder";
 import { loadEnv } from "@/infrastructure/config/env";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -22,13 +23,14 @@ export async function GET(
 ): Promise<Response> {
   const user = await requireUser();
   const { id } = await context.params;
+  const profileId = await getActiveProfileId();
 
   const detail = await getDebtDetail(
     {
       debts: repos.debts,
       payments: repos.debtPayments,
     },
-    { userId: user.id, debtId: id },
+    { userId: user.id, profileId, debtId: id },
   );
 
   if (!isOk(detail)) return new Response("Not found", { status: 404 });

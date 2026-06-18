@@ -28,12 +28,13 @@ export type PayoffActionResult = ActionResult<PayoffData>;
 
 export const runPayoffAction = action({
   schema,
-  handler: async (input, { userId }): Promise<PayoffData> => {
+  handler: async (input, { userId, profileId }): Promise<PayoffData> => {
     const r = unwrap(
       await projectDebtPayoff(
         { debts: repos.debts, clock },
         {
           userId,
+          profileId,
           debtId: input.debtId,
           monthlyPayment: Money.fromCents(input.monthlyPaymentCents),
           ...(input.extraPaymentCents !== undefined

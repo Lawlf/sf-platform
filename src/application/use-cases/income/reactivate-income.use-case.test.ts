@@ -55,7 +55,7 @@ describe("reactivateIncome", () => {
 
     const result = await reactivateIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "income-1" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "income-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -69,7 +69,7 @@ describe("reactivateIncome", () => {
 
     const result = await reactivateIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "missing" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -88,7 +88,7 @@ describe("reactivateIncome", () => {
 
     const result = await reactivateIncome(
       { incomes, clock },
-      { userId: "intruder", incomeId: "income-1" },
+      { userId: "intruder", profileId: "profile-2", incomeId: "income-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -107,7 +107,7 @@ describe("reactivateIncome", () => {
 
     const result = await reactivateIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "income-1" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "income-1" },
     );
 
     expect(isErr(result)).toBe(true);

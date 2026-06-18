@@ -127,12 +127,13 @@ const updateGoalCascadeConfigSchema = z.object({
 export const updateGoalCascadeConfigAction = action({
   schema: updateGoalCascadeConfigSchema,
   revalidates: ["timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const user = await requireUser();
     const result = await updateGoalCascadeConfig(
       { goals: repos.goals },
       {
         userId,
+        profileId,
         goalId: input.goalId,
         isPro: user.isPro,
         mode: input.mode,

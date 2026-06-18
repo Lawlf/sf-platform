@@ -79,6 +79,7 @@ describe("updateDebt", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         label: "Novo label",
         notes: "Anotacao",
@@ -111,6 +112,7 @@ describe("updateDebt", () => {
       { debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         currentBalance: Money.fromCents(400000n, "USD"),
       },
@@ -129,7 +131,7 @@ describe("updateDebt", () => {
     const clock = makeClock();
     (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await updateDebt({ debts, clock }, { userId: "user-1", debtId: "missing" });
+    const result = await updateDebt({ debts, clock }, { userId: "user-1", profileId: "profile-1", debtId: "missing" });
 
     expect(isErr(result)).toBe(true);
     if (isErr(result)) {
@@ -145,7 +147,7 @@ describe("updateDebt", () => {
 
     const result = await updateDebt(
       { debts, clock },
-      { userId: "intruder", debtId: "debt-1", label: "hack" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1", label: "hack" },
     );
 
     expect(isErr(result)).toBe(true);

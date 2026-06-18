@@ -13,6 +13,7 @@ export interface UpdateIncomeDeps {
 
 export interface UpdateIncomeInput {
   userId: string;
+  profileId: string;
   incomeId: string;
   label?: string;
   amount?: Money;
@@ -29,7 +30,7 @@ export async function updateIncome(
 ): Promise<Result<IncomeEntity, IncomeNotFound | Forbidden>> {
   const existing = await deps.incomes.findById(input.incomeId);
   if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   void deps.clock.now();
   const updated: IncomeEntity = {

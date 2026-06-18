@@ -73,8 +73,8 @@ describe("settleIncome", () => {
     if (isErr(res)) expect(res.error).toBeInstanceOf(IncomeNotFound);
   });
 
-  it("retorna Forbidden quando a renda é de outro usuário", async () => {
-    const income = makeIncome({ userId: "someone-else" });
+  it("retorna Forbidden quando a renda é de outro perfil", async () => {
+    const income = makeIncome({ userId: "someone-else", profileId: "profile-2" });
     const res = await settleIncome(
       { incomes: makeIncomeRepo(income), settlements: makeSettlementsRepo(), clock: makeClock() },
       { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },

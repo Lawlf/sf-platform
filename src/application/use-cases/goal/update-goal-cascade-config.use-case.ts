@@ -13,6 +13,7 @@ export async function updateGoalCascadeConfig(
   { goals }: UpdateGoalCascadeConfigDeps,
   {
     userId,
+    profileId,
     goalId,
     isPro,
     mode,
@@ -20,6 +21,7 @@ export async function updateGoalCascadeConfig(
     parallelFraction,
   }: {
     userId: string;
+    profileId: string;
     goalId: string;
     isPro: boolean;
     mode: GoalCascadeMode;
@@ -28,7 +30,7 @@ export async function updateGoalCascadeConfig(
   },
 ): Promise<UpdateGoalCascadeConfigResult> {
   const existing = await goals.findById(goalId);
-  if (!existing || existing.userId !== userId) {
+  if (!existing || existing.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 

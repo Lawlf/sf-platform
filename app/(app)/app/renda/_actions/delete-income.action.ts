@@ -12,8 +12,8 @@ import { purgeEntityBestEffort } from "../../_actions/_purge-entity";
 export const deleteIncomeAction = action({
   schema: z.string(),
   revalidates: ["incomes", "timeline", "notifications", "home"],
-  handler: async (incomeId, { userId }) => {
-    unwrap(await deleteIncome({ incomes: repos.incomes, clock }, { userId, incomeId }));
+  handler: async (incomeId, { userId, profileId }) => {
+    unwrap(await deleteIncome({ incomes: repos.incomes, clock }, { userId, profileId, incomeId }));
 
     await purgeEntityBestEffort(userId, "income", incomeId);
     await detectNotificationsForUser(userId);

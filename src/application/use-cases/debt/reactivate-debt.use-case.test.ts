@@ -107,7 +107,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");
@@ -130,7 +130,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");
@@ -172,7 +172,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");
@@ -223,7 +223,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(result._tag).toBe("ok");
@@ -242,7 +242,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "missing" },
+      { userId: "user-1", profileId: "profile-1", debtId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -262,7 +262,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "intruder", debtId: "debt-1" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -282,7 +282,7 @@ describe("reactivateDebt", () => {
 
     const result = await reactivateDebt(
       { debts, payments, clock },
-      { userId: "user-1", debtId: "debt-1" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1" },
     );
 
     expect(isErr(result)).toBe(true);

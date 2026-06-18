@@ -90,7 +90,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "paid_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -127,7 +127,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "paid_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -147,7 +147,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "written_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "written_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -167,7 +167,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "written_off", note: "  parei em 03/2023  " },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "written_off", note: "  parei em 03/2023  " },
     );
 
     expect(result._tag).toBe("ok");
@@ -187,7 +187,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "missing", reason: "written_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "missing", reason: "written_off" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -206,7 +206,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "intruder", debtId: "debt-1", reason: "paid_off" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(isErr(result)).toBe(true);

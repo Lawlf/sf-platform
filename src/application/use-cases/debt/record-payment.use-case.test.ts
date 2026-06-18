@@ -103,6 +103,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount,
         principalPortion,
@@ -139,6 +140,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "missing",
         amount: makeMoney(100),
         principalPortion: makeMoney(80),
@@ -166,6 +168,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "intruder",
+        profileId: "profile-2",
         debtId: "debt-1",
         amount: makeMoney(100),
         principalPortion: makeMoney(80),
@@ -193,6 +196,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(1000), // 750 + 200 = 950, not 1000
         principalPortion: makeMoney(750),
@@ -225,6 +229,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(550),
         principalPortion: makeMoney(500),
@@ -276,6 +281,7 @@ describe("recordPayment", () => {
       },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(950),
         principalPortion: makeMoney(750),
