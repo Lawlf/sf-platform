@@ -25,6 +25,7 @@ import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
 import { fetchUnreadNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
+import { fetchUserProfiles } from "./app/_actions/profile-queries";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
@@ -57,10 +58,11 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const notificationCount = await fetchUnreadNotificationsCount();
 
   const credsRepo = repos.userCredentials;
-  const [creds, passkeys, avatarUrl] = await Promise.all([
+  const [creds, passkeys, avatarUrl, profilesPayload] = await Promise.all([
     credsRepo.find(user.id),
     credsRepo.listWebauthn(user.id),
     repos.userAvatars.get(user.id),
+    fetchUserProfiles(),
   ]);
   const appLockEnabled = creds?.appLockEnabled ?? false;
   const appLockTimeout = creds?.appLockTimeout ?? 60;
@@ -76,12 +78,20 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
-            <Sidebar displayName={displayName} avatarUrl={avatarUrl} isPro={user.isPro} />
+            <Sidebar
+              displayName={displayName}
+              avatarUrl={avatarUrl}
+              isPro={user.isPro}
+              profiles={profilesPayload?.profiles ?? []}
+              activeProfileId={profilesPayload?.activeProfileId ?? profileId}
+            />
             <Topbar notificationCount={notificationCount} />
             <MobileTopBar
               displayName={displayName}
               avatarUrl={avatarUrl}
               notificationCount={notificationCount}
+              profiles={profilesPayload?.profiles ?? []}
+              activeProfileId={profilesPayload?.activeProfileId ?? profileId}
             />
 
             <UsageHeartbeat />

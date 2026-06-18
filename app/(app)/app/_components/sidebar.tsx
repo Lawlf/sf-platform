@@ -1,11 +1,13 @@
 "use client";
 
 import {
+  Building2,
   Check,
   ChevronsUpDown,
   Coins,
   HomeIcon,
   LineChart,
+  Loader2,
   PanelRightClose,
   PanelRightOpen,
   PlusCircle,
@@ -13,18 +15,20 @@ import {
   Settings,
   Target,
   TrendingUp,
-  UserPlus,
   UserRound,
   Wallet,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
+import { createMeiProfileAction } from "../perfil/_actions/create-mei-profile.action";
+import { switchProfileAction } from "../_actions/switch-profile.action";
+import type { SerializedProfile } from "../_actions/profile-queries";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
@@ -76,9 +80,11 @@ export interface SidebarProps {
   displayName: string;
   avatarUrl?: string | null | undefined;
   isPro: boolean;
+  profiles: SerializedProfile[];
+  activeProfileId: string;
 }
 
-export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
@@ -235,6 +241,8 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
         avatarUrl={avatarUrl}
         isPro={isPro}
         collapsed={collapsed}
+        profiles={profiles}
+        activeProfileId={activeProfileId}
       />
     </aside>
   );
@@ -245,14 +253,49 @@ function AccountZone({
   avatarUrl,
   isPro,
   collapsed,
+  profiles,
+  activeProfileId,
 }: {
   displayName: string;
   avatarUrl?: string | null | undefined;
   isPro: boolean;
   collapsed: boolean;
+  profiles: SerializedProfile[];
+  activeProfileId: string;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+  const hasPj = profiles.some((p) => p.type === "PJ_MEI");
+
+  function profileLabel(type: SerializedProfile["type"]): string {
+    return type === "PJ_MEI" ? "MEI" : "PF";
+  }
+
+  function profileSubtitle(type: SerializedProfile["type"]): string {
+    return type === "PJ_MEI" ? "Empresa (MEI)" : "Pessoa física";
+  }
+
+  function handleSwitch(profileId: string) {
+    startTransition(async () => {
+      await switchProfileAction({ profileId });
+      setOpen(false);
+      router.refresh();
+    });
+  }
+
+  function handleCreateMei() {
+    startTransition(async () => {
+      const result = await createMeiProfileAction({});
+      if (result.ok) {
+        setOpen(false);
+        router.refresh();
+      }
+    });
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -312,7 +355,9 @@ function AccountZone({
             </span>
           ) : null}
         </span>
-        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Conta pessoal</span>
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+          {activeProfile ? profileSubtitle(activeProfile.type) : "Conta pessoal"}
+        </span>
       </span>
       <ChevronsUpDown
         size={15}
@@ -334,47 +379,60 @@ function AccountZone({
           className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)]"
         >
           <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Trocar conta
+            Perfil ativo
           </p>
-          <button
-            type="button"
-            role="menuitemradio"
-            aria-checked="true"
-            className="focus-ring flex w-full items-center gap-2.5 rounded-lg bg-[color:var(--surface-2)] px-2.5 py-2 transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <UserAvatar
-              dataUrl={avatarUrl}
-              displayName={displayName}
-              className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
-            />
-            <span className="min-w-0 flex-1 truncate text-left text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-              {displayName}
-            </span>
-            <Check
-              size={15}
-              strokeWidth={2.25}
-              aria-hidden
-              className="flex-none text-[color:var(--color-brand-800)]"
-            />
-          </button>
 
-          <div
-            aria-disabled="true"
-            className="mt-0.5 flex cursor-default items-center gap-2.5 rounded-lg px-2.5 py-2 opacity-55"
-          >
-            <UserPlus
-              size={16}
-              strokeWidth={1.75}
-              aria-hidden
-              className="flex-none text-[color:var(--text-muted)]"
-            />
-            <span className="flex-1 text-[0.8125rem] font-medium text-[color:var(--text-secondary)]">
-              Adicionar conta
-            </span>
-            <span className="rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
-              1/1
-            </span>
-          </div>
+          {profiles.map((profile) => {
+            const isActive = profile.id === activeProfileId;
+            const label = profileLabel(profile.type);
+            const subtitle = profileSubtitle(profile.type);
+            return (
+              <button
+                key={profile.id}
+                type="button"
+                role="menuitemradio"
+                aria-checked={isActive}
+                disabled={pending || isActive}
+                onClick={() => handleSwitch(profile.id)}
+                className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${isActive ? "bg-[color:var(--surface-2)]" : "hover:bg-[color:var(--color-brand-500)]/[0.10]"}`}
+              >
+                <UserAvatar
+                  dataUrl={isActive ? avatarUrl : undefined}
+                  displayName={displayName}
+                  className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
+                />
+                <span className="flex min-w-0 flex-1 flex-col items-start">
+                  <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+                    {displayName}
+                  </span>
+                  <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                </span>
+                <span className="flex-none rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
+                  {label}
+                </span>
+                {isActive ? (
+                  <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
+                ) : null}
+              </button>
+            );
+          })}
+
+          {!hasPj ? (
+            <button
+              type="button"
+              role="menuitem"
+              disabled={pending}
+              onClick={handleCreateMei}
+              className="focus-ring mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10] disabled:opacity-60"
+            >
+              {pending ? (
+                <Loader2 size={16} strokeWidth={1.75} aria-hidden className="flex-none animate-spin text-[color:var(--text-muted)]" />
+              ) : (
+                <Building2 size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+              )}
+              <span className="flex-1 text-left">Sou MEI / tenho CNPJ</span>
+            </button>
+          ) : null}
 
           <div className="my-1.5 h-px bg-[color:var(--border-soft)]" />
           <Link

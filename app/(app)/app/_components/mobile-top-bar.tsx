@@ -5,6 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
+import type { SerializedProfile } from "../_actions/profile-queries";
 
 import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
 import { UserAvatar } from "./user-avatar";
@@ -13,9 +14,13 @@ export interface MobileTopBarProps {
   displayName: string;
   avatarUrl?: string | null | undefined;
   notificationCount?: number;
+  profiles?: SerializedProfile[];
+  activeProfileId?: string;
 }
 
-export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0 }: MobileTopBarProps) {
+export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId }: MobileTopBarProps) {
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+  const profileBadge = activeProfile?.type === "PJ_MEI" ? "MEI" : activeProfile ? "PF" : null;
   const hasNotifications = notificationCount > 0;
   const badgeLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 
@@ -36,6 +41,11 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0 }: 
             className="flex h-10 w-10 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.875rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]"
           />
           <span className="max-w-[150px] truncate">{displayName}</span>
+          {profileBadge ? (
+            <span className="flex-none rounded bg-[color:var(--color-brand-500)]/[0.16] px-1.5 py-px text-[0.5625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+              {profileBadge}
+            </span>
+          ) : null}
         </Link>
       </SimpleTooltip>
 
