@@ -3,7 +3,7 @@ import type { SerializedMeiInsight } from "../_actions/fetch-mei-diagnostic";
 export function insightText(ins: SerializedMeiInsight): string {
   switch (ins.kind) {
     case "pro_labore_curto":
-      return `Seu pró-labore cobre só ${ins.coberturaPct ?? 0}% do seu custo de vida. Você está tirando ${ins.diffCents ?? "R$ 0,00"} da reserva pessoal pra fechar o mês.`;
+      return `Seu pró-labore cobre só ${ins.coberturaPct ?? 0}% dos seus custos fixos do mês. Você está tirando ${ins.diffCents ?? "R$ 0,00"} da reserva pra fechar o mês.`;
 
     case "mistura_pf_pj":
       return `${ins.valorCents ?? "R$ 0,00"} de gasto pessoal saiu pela conta da empresa${ins.pctFaturamento !== undefined ? ` (${ins.pctFaturamento}% do faturamento)` : ""}, sem registro como retirada.`;
