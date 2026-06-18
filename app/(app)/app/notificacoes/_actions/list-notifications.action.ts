@@ -21,6 +21,7 @@ export interface SerializedNotification {
   url: string | null;
   description: string | null;
   cta: string | null;
+  inviteId: string | null;
 }
 
 const DATE_FMT = new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "short" });
@@ -56,6 +57,11 @@ export async function fetchNotifications(opts?: {
       }
     }
 
+    const inviteId =
+      n.kind === "household_invite" && typeof n.payload.inviteId === "string"
+        ? n.payload.inviteId
+        : null;
+
     return {
       id: n.id,
       kind: n.kind,
@@ -70,6 +76,7 @@ export async function fetchNotifications(opts?: {
       url,
       description,
       cta,
+      inviteId,
     };
   });
 }

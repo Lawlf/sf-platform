@@ -14,6 +14,7 @@ export const REVALIDATE_GROUPS = {
   profile: ["/app/perfil"],
   content: ["/app/conteudo/trilha"],
   mei: ["/app/mei"],
+  household: ["/app/lar"],
 } as const;
 
 export type RevalidateGroup = keyof typeof REVALIDATE_GROUPS;

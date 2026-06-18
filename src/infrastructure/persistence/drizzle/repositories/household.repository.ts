@@ -189,6 +189,20 @@ export class HouseholdRepository implements HouseholdRepositoryPort {
     return rows.map(rowToInvite);
   }
 
+  async listPendingInvitesForHousehold(householdId: string): Promise<HouseholdInviteEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(householdInvites)
+      .where(
+        and(
+          eq(householdInvites.householdId, householdId),
+          eq(householdInvites.status, "pending"),
+        ),
+      )
+      .orderBy(asc(householdInvites.createdAt));
+    return rows.map(rowToInvite);
+  }
+
   async setInviteStatus(id: string, status: HouseholdInviteStatus, now: Date): Promise<void> {
     await getDb()
       .update(householdInvites)

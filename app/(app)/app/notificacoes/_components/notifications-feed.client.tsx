@@ -7,6 +7,7 @@ import { useEffect, useRef } from "react";
 import type { SerializedNotification } from "../_actions/list-notifications.action";
 import { markAllNotificationsReadAction } from "../_actions/mark-all-read.action";
 
+import { HouseholdInviteCard } from "./household-invite-card.client";
 import { NotificationCard } from "./notification-card.client";
 import { notificationDateLabel } from "./notification-date-label";
 
@@ -52,9 +53,13 @@ export function NotificationsFeed({ notifications, hasUnread }: NotificationsFee
             {g.label}
           </h2>
           <div className="flex flex-col gap-2">
-            {g.items.map((n) => (
-              <NotificationCard key={n.id} notification={n} />
-            ))}
+            {g.items.map((n) =>
+              n.kind === "household_invite" ? (
+                <HouseholdInviteCard key={n.id} notification={n} />
+              ) : (
+                <NotificationCard key={n.id} notification={n} />
+              ),
+            )}
           </div>
         </div>
       ))}

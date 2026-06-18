@@ -47,5 +47,7 @@ export interface HouseholdRepositoryPort {
 
   listPendingInvitesForRef(inviteeRef: string): Promise<HouseholdInviteEntity[]>;
 
+  listPendingInvitesForHousehold(householdId: string): Promise<HouseholdInviteEntity[]>;
+
   setInviteStatus(id: string, status: HouseholdInviteStatus, now: Date): Promise<void>;
 }
