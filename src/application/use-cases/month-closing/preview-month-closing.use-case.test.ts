@@ -66,6 +66,7 @@ function makeIncome(amountReais: number): IncomeEntity {
 function makeClosing(monthIso: string, endNetWorthCents: bigint): MonthClosingEntity {
   return {
     userId: "u1",
+    profileId: "profile-1",
     month: MonthYear.fromIso(monthIso).firstDay(),
     baselineNetWorthCents: 0n,
     endNetWorthCents,
@@ -90,7 +91,7 @@ function makeDeps(stored: Stored): MonthClosingDeps {
 
   const closings: MonthClosingRepositoryPort = {
     upsert: async () => {},
-    listForUser: async () => closingsStore,
+    listForProfile: async () => closingsStore,
     latest: async () => {
       if (closingsStore.length === 0) return null;
       return [...closingsStore].sort((a, b) => b.month.getTime() - a.month.getTime())[0]!;

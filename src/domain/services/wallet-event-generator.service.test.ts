@@ -104,6 +104,7 @@ describe("WalletEventGenerator.incomeEvents", () => {
   it("income confirmed not_received that month emits no event", () => {
     const settlement: IncomeSettlementEntity = {
       userId: "u1",
+      profileId: "profile-1",
       incomeId: "i1",
       month: utc(2026, 6, 1),
       status: "not_received",
@@ -121,6 +122,7 @@ describe("WalletEventGenerator.incomeEvents", () => {
   it("income confirmed adjusted uses the adjusted amount", () => {
     const settlement: IncomeSettlementEntity = {
       userId: "u1",
+      profileId: "profile-1",
       incomeId: "i1",
       month: utc(2026, 6, 1),
       status: "adjusted",
@@ -140,6 +142,7 @@ describe("WalletEventGenerator.incomeEvents", () => {
   it("income confirmed received uses the full amount", () => {
     const settlement: IncomeSettlementEntity = {
       userId: "u1",
+      profileId: "profile-1",
       incomeId: "i1",
       month: utc(2026, 6, 1),
       status: "received",
@@ -158,6 +161,7 @@ describe("WalletEventGenerator.incomeEvents", () => {
   it("a settlement only affects its own month", () => {
     const settlement: IncomeSettlementEntity = {
       userId: "u1",
+      profileId: "profile-1",
       incomeId: "i1",
       month: utc(2026, 5, 1),
       status: "not_received",
@@ -292,6 +296,7 @@ describe("WalletEventGenerator.debtEvents", () => {
   it("skips a month settled as converted_to_debt", () => {
     const settlement: RecurringSettlementEntity = {
       userId: "u1",
+      profileId: "profile-1",
       debtId: "d1",
       month: utc(2026, 5, 1),
       status: "converted_to_debt",

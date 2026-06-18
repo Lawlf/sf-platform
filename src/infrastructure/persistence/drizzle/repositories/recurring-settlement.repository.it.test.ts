@@ -71,6 +71,7 @@ function makeSettlement(
 ): RecurringSettlementEntity {
   return {
     userId,
+    profileId: userId,
     debtId,
     month: new Date("2026-03-01T00:00:00Z"),
     status: "converted_to_debt",
@@ -81,10 +82,10 @@ function makeSettlement(
 }
 
 describe("RecurringSettlementRepository (integration)", () => {
-  it("upsert inserts and listForUser returns it", async () => {
+  it("upsert inserts and listForProfile returns it", async () => {
     await repo.upsert(makeSettlement());
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.userId).toBe(userId);
     expect(list[0]?.debtId).toBe(debtId);
@@ -98,23 +99,23 @@ describe("RecurringSettlementRepository (integration)", () => {
     await debts.create(makeRecurringDebt(createdDebtId, `${LABEL_PREFIX}created`));
     await repo.upsert(makeSettlement({ status: "cancelled", createdDebtId }));
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.status).toBe("cancelled");
     expect(list[0]?.createdDebtId).toBe(createdDebtId);
   });
 
-  it("listForUserMonth returns only settlements of that month", async () => {
+  it("listForProfileMonth returns only settlements of that month", async () => {
     await repo.upsert(makeSettlement({ month: new Date("2026-03-01T00:00:00Z") }));
     await repo.upsert(makeSettlement({ month: new Date("2026-04-01T00:00:00Z") }));
 
-    const march = await repo.listForUserMonth(userId, new Date("2026-03-01T00:00:00Z"));
+    const march = await repo.listForProfileMonth(userId, new Date("2026-03-01T00:00:00Z"));
     expect(march).toHaveLength(1);
     expect(march[0]?.month.getTime()).toBe(new Date("2026-03-01T00:00:00Z").getTime());
   });
 
-  it("listForUser returns empty when the user has no settlements", async () => {
-    const list = await repo.listForUser(userId);
+  it("listForProfile returns empty when the user has no settlements", async () => {
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(0);
   });
 });

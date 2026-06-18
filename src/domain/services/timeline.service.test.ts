@@ -853,6 +853,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "not_received",
@@ -876,6 +877,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "adjusted",
@@ -899,6 +901,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "received",
@@ -923,6 +926,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 3, 1)),
           status: "not_received",

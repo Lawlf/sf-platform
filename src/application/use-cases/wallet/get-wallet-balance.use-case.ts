@@ -21,8 +21,8 @@ export interface GetWalletBalanceDeps {
   };
   incomes: { listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
   debts: { listForProfile(profileId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
-  settlements: { listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> };
-  incomeSettlements: { listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]> };
+  settlements: { listForProfileMonth(profileId: string, month: Date): Promise<RecurringSettlementEntity[]> };
+  incomeSettlements: { listForProfileMonth(profileId: string, month: Date): Promise<IncomeSettlementEntity[]> };
   debtPayments: {
     listForProfileInRange(profileId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
   };
@@ -102,8 +102,8 @@ export async function getWalletBalance(
 
   const months = monthsInWindow(window);
   const [settlementLists, incomeSettlementLists] = await Promise.all([
-    Promise.all(months.map((month) => deps.settlements.listForUserMonth(input.userId, month))),
-    Promise.all(months.map((month) => deps.incomeSettlements.listForUserMonth(input.userId, month))),
+    Promise.all(months.map((month) => deps.settlements.listForProfileMonth(input.profileId, month))),
+    Promise.all(months.map((month) => deps.incomeSettlements.listForProfileMonth(input.profileId, month))),
   ]);
   const settlements = settlementLists.flat();
   const incomeSettlements = incomeSettlementLists.flat();

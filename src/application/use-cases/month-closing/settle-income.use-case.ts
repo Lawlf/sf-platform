@@ -20,6 +20,7 @@ export type IncomeSettleAction = IncomeSettlementStatus;
 
 export interface SettleIncomeInput {
   userId: string;
+  profileId: string;
   incomeId: string;
   /** Mês no formato ISO "YYYY-MM" (ex.: "2026-03"). */
   monthIso: string;
@@ -53,6 +54,7 @@ export async function settleIncome(
 
   const settlement: IncomeSettlementEntity = {
     userId: input.userId,
+    profileId: input.profileId,
     incomeId: input.incomeId,
     month: month.firstDay(),
     status: input.action,

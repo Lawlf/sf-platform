@@ -54,8 +54,8 @@ function makeDebtRepo(debt: DebtEntity | null): DebtRepositoryPort {
 function makeSettlementsRepo(): RecurringSettlementRepositoryPort {
   return {
     upsert: vi.fn(),
-    listForUserMonth: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfileMonth: vi.fn(),
+    listForProfile: vi.fn(),
   };
 }
 
@@ -74,7 +74,7 @@ describe("settleRecurringCommitment", () => {
   it("retorna DebtNotFound quando o compromisso não existe", async () => {
     const res = await settleRecurringCommitment(
       { debts: makeDebtRepo(null), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, debtId: DEBT_ID, monthIso: "2026-03", action: "paid" },
+      { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "paid" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(DebtNotFound);
@@ -84,7 +84,7 @@ describe("settleRecurringCommitment", () => {
     const debt = makeRecurring({ userId: "someone-else" });
     const res = await settleRecurringCommitment(
       { debts: makeDebtRepo(debt), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, debtId: DEBT_ID, monthIso: "2026-03", action: "convert_to_debt" },
+      { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "convert_to_debt" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(Forbidden);
@@ -95,7 +95,7 @@ describe("settleRecurringCommitment", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleRecurringCommitment(
       { debts, settlements, clock: makeClock() },
-      { userId: OWNER, debtId: DEBT_ID, monthIso: "2026-03", action: "paid" },
+      { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "paid" },
     );
     expect(isOk(res)).toBe(true);
     expect(settlements.upsert).not.toHaveBeenCalled();
@@ -108,7 +108,7 @@ describe("settleRecurringCommitment", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleRecurringCommitment(
       { debts, settlements, clock: makeClock(new Date("2026-04-02T10:00:00Z")) },
-      { userId: OWNER, debtId: DEBT_ID, monthIso: "2026-03", action: "convert_to_debt" },
+      { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "convert_to_debt" },
     );
     expect(isOk(res)).toBe(true);
 
@@ -133,7 +133,7 @@ describe("settleRecurringCommitment", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleRecurringCommitment(
       { debts, settlements, clock: makeClock() },
-      { userId: OWNER, debtId: DEBT_ID, monthIso: "2026-03", action: "cancel" },
+      { userId: OWNER, profileId: "profile-1", debtId: DEBT_ID, monthIso: "2026-03", action: "cancel" },
     );
     expect(isOk(res)).toBe(true);
 

@@ -33,6 +33,7 @@ afterAll(async () => {
 function makeClosing(overrides: Partial<MonthClosingEntity> = {}): MonthClosingEntity {
   return {
     userId,
+    profileId: userId,
     month: new Date("2026-01-01T00:00:00Z"),
     baselineNetWorthCents: 100_000n,
     endNetWorthCents: 150_000n,
@@ -48,7 +49,7 @@ describe("MonthClosingRepository (integration)", () => {
     const closing = makeClosing();
     await repo.upsert(closing);
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.userId).toBe(userId);
     expect(list[0]?.baselineNetWorthCents).toBe(100_000n);
@@ -62,7 +63,7 @@ describe("MonthClosingRepository (integration)", () => {
     await repo.upsert(makeClosing({ leakCents: 10_000n }));
     await repo.upsert(makeClosing({ leakCents: 99_000n, endNetWorthCents: 200_000n }));
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.leakCents).toBe(99_000n);
     expect(list[0]?.endNetWorthCents).toBe(200_000n);
@@ -83,7 +84,7 @@ describe("MonthClosingRepository (integration)", () => {
     await repo.upsert(makeClosing({ month: new Date("2026-01-01T00:00:00Z"), leakCents: 1_000n }));
     await repo.upsert(makeClosing({ month: new Date("2026-02-01T00:00:00Z"), leakCents: 2_000n }));
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(3);
     expect(list[0]?.leakCents).toBe(1_000n);
     expect(list[1]?.leakCents).toBe(2_000n);

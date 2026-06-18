@@ -10,6 +10,7 @@ export interface CaptureInvestmentSnapshotDeps {
 
 export interface CaptureInvestmentSnapshotInput {
   userId: string;
+  profileId: string;
   assets: AssetEntity[];
 }
 
@@ -31,5 +32,5 @@ export async function captureInvestmentSnapshot(
     investmentType: b.investmentType,
     totalValueCents: b.totalValueCents,
   }));
-  await deps.snapshots.replaceMonth(input.userId, month, rows, now);
+  await deps.snapshots.replaceMonth(input.profileId, month, rows, now);
 }

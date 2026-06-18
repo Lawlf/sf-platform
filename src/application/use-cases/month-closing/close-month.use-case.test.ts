@@ -67,6 +67,7 @@ function makeIncome(amountReais: number): IncomeEntity {
 function makeClosing(monthIso: string): MonthClosingEntity {
   return {
     userId: "u1",
+    profileId: "profile-1",
     month: MonthYear.fromIso(monthIso).firstDay(),
     baselineNetWorthCents: 0n,
     endNetWorthCents: 0n,
@@ -86,7 +87,7 @@ function makeDeps(args: {
 
   const closings: MonthClosingRepositoryPort = {
     upsert,
-    listForUser: async () => closingsStore,
+    listForProfile: async () => closingsStore,
     latest: async () => {
       if (closingsStore.length === 0) return null;
       return [...closingsStore].sort((a, b) => b.month.getTime() - a.month.getTime())[0]!;
@@ -135,6 +136,7 @@ describe("closeMonth", () => {
     expect(upsert).toHaveBeenCalledTimes(1);
     expect(upsert).toHaveBeenCalledWith({
       userId: "u1",
+      profileId: "profile-1",
       month: MonthYear.fromIso("2026-05").firstDay(),
       baselineNetWorthCents: 80_000n,
       endNetWorthCents: 80_000n,

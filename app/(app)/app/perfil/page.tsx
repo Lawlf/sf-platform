@@ -111,7 +111,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       closings: repos.monthClosings,
       now: () => clock.now(),
     },
-    { userId, state: prescriptionState },
+    { userId, profileId, state: prescriptionState },
   );
 
   return (

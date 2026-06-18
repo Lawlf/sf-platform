@@ -47,8 +47,8 @@ function makeIncomeRepo(income: IncomeEntity | null): IncomeRepositoryPort {
 function makeSettlementsRepo(): IncomeSettlementRepositoryPort {
   return {
     upsert: vi.fn(),
-    listForUserMonth: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfileMonth: vi.fn(),
+    listForProfile: vi.fn(),
   };
 }
 
@@ -67,7 +67,7 @@ describe("settleIncome", () => {
   it("retorna IncomeNotFound quando a renda não existe", async () => {
     const res = await settleIncome(
       { incomes: makeIncomeRepo(null), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(IncomeNotFound);
@@ -77,7 +77,7 @@ describe("settleIncome", () => {
     const income = makeIncome({ userId: "someone-else" });
     const res = await settleIncome(
       { incomes: makeIncomeRepo(income), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(Forbidden);
@@ -87,7 +87,7 @@ describe("settleIncome", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleIncome(
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isOk(res)).toBe(true);
     expect(settlements.upsert).toHaveBeenCalledTimes(1);
@@ -101,7 +101,7 @@ describe("settleIncome", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleIncome(
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "not_received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "not_received" },
     );
     expect(isOk(res)).toBe(true);
     const s = firstArg<IncomeSettlementEntity>(settlements.upsert);
@@ -115,6 +115,7 @@ describe("settleIncome", () => {
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock(new Date("2026-04-02T10:00:00Z")) },
       {
         userId: OWNER,
+        profileId: "profile-1",
         incomeId: INCOME_ID,
         monthIso: "2026-03",
         action: "adjusted",

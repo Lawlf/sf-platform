@@ -245,8 +245,8 @@ export async function fetchMonthDetail(input: {
       to: month.lastDay(),
     }),
     debtAmountAdjustmentsRepo.listForProfile(profileId),
-    settlementsRepo.listForUser(user.id),
-    incomeSettlementsRepo.listForUser(user.id),
+    settlementsRepo.listForProfile(profileId),
+    incomeSettlementsRepo.listForProfile(profileId),
   ]);
 
   const settlements: TimelineSettlement[] = settlementsRaw.map((s) => ({

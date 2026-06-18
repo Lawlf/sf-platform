@@ -77,12 +77,12 @@ afterAll(async () => {
 });
 
 describe("FinancialPlanningSettingsRepository (integration)", () => {
-  it("findByUser returns null when no settings row exists", async () => {
-    const result = await repo.findByUser(userId);
+  it("findByProfile returns null when no settings row exists", async () => {
+    const result = await repo.findByProfile(userId);
     expect(result).toBeNull();
   });
 
-  it("upsertLiquidBucket creates a row; findByUser returns it", async () => {
+  it("upsertLiquidBucket creates a row; findByProfile returns it", async () => {
     const entity = await repo.upsertLiquidBucket(userId, assetId);
 
     expect(entity.userId).toBe(userId);
@@ -90,7 +90,7 @@ describe("FinancialPlanningSettingsRepository (integration)", () => {
     expect(entity.createdAt).toBeInstanceOf(Date);
     expect(entity.updatedAt).toBeInstanceOf(Date);
 
-    const found = await repo.findByUser(userId);
+    const found = await repo.findByProfile(userId);
     expect(found).not.toBeNull();
     expect(found?.userId).toBe(userId);
     expect(found?.liquidBucketAssetId).toBe(assetId);
@@ -107,7 +107,7 @@ describe("FinancialPlanningSettingsRepository (integration)", () => {
     expect(second.liquidBucketAssetId).toBeNull();
     expect(second.updatedAt.getTime()).toBeGreaterThanOrEqual(first.updatedAt.getTime());
 
-    const found = await repo.findByUser(userId);
+    const found = await repo.findByProfile(userId);
     expect(found?.liquidBucketAssetId).toBeNull();
 
     const allRows = await getDb()
@@ -124,7 +124,7 @@ describe("FinancialPlanningSettingsRepository (integration)", () => {
     expect(entity.liquidBucketAssetId).toBeNull();
     expect(entity.createdAt).toBeInstanceOf(Date);
 
-    const found = await repo.findByUser(userId);
+    const found = await repo.findByProfile(userId);
     expect(found).not.toBeNull();
     expect(found?.liquidBucketAssetId).toBeNull();
   });

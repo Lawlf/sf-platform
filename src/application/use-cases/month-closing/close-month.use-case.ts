@@ -21,6 +21,7 @@ export async function closeMonth(
 
   await deps.closings.upsert({
     userId: input.userId,
+    profileId: input.profileId,
     month: MonthYear.fromIso(computed.monthIso).firstDay(),
     baselineNetWorthCents: computed.baselineNetWorthCents,
     endNetWorthCents: computed.endNetWorthCents,

@@ -15,6 +15,7 @@ import {
 function rowToEntity(row: IncomeSettlementRow): IncomeSettlementEntity {
   return {
     userId: row.userId,
+    profileId: row.profileId ?? row.userId,
     incomeId: row.incomeId,
     month: row.month,
     status: row.status as IncomeSettlementStatus,
@@ -29,6 +30,7 @@ export class IncomeSettlementRepository implements IncomeSettlementRepositoryPor
       .insert(incomeSettlements)
       .values({
         userId: settlement.userId,
+        profileId: settlement.profileId,
         incomeId: settlement.incomeId,
         month: settlement.month,
         status: settlement.status,
@@ -42,6 +44,7 @@ export class IncomeSettlementRepository implements IncomeSettlementRepositoryPor
           incomeSettlements.month,
         ],
         set: {
+          profileId: settlement.profileId,
           status: settlement.status,
           adjustedAmountCents: settlement.adjustedAmountCents,
           createdAt: settlement.createdAt,
@@ -49,20 +52,20 @@ export class IncomeSettlementRepository implements IncomeSettlementRepositoryPor
       });
   }
 
-  async listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]> {
+  async listForProfileMonth(profileId: string, month: Date): Promise<IncomeSettlementEntity[]> {
     const rows = await getDb()
       .select()
       .from(incomeSettlements)
-      .where(and(eq(incomeSettlements.userId, userId), eq(incomeSettlements.month, month)))
+      .where(and(eq(incomeSettlements.profileId, profileId), eq(incomeSettlements.month, month)))
       .orderBy(asc(incomeSettlements.incomeId));
     return rows.map(rowToEntity);
   }
 
-  async listForUser(userId: string): Promise<IncomeSettlementEntity[]> {
+  async listForProfile(profileId: string): Promise<IncomeSettlementEntity[]> {
     const rows = await getDb()
       .select()
       .from(incomeSettlements)
-      .where(eq(incomeSettlements.userId, userId))
+      .where(eq(incomeSettlements.profileId, profileId))
       .orderBy(asc(incomeSettlements.month));
     return rows.map(rowToEntity);
   }

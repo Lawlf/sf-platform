@@ -12,6 +12,7 @@ import {
 function rowToEntity(row: FinancialPlanningSettingsRow): FinancialPlanningSettingsEntity {
   return {
     userId: row.userId,
+    profileId: row.profileId ?? row.userId,
     liquidBucketAssetId: row.liquidBucketAssetId ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -21,11 +22,11 @@ function rowToEntity(row: FinancialPlanningSettingsRow): FinancialPlanningSettin
 export class FinancialPlanningSettingsRepository
   implements FinancialPlanningSettingsRepositoryPort
 {
-  async findByUser(userId: string): Promise<FinancialPlanningSettingsEntity | null> {
+  async findByProfile(profileId: string): Promise<FinancialPlanningSettingsEntity | null> {
     const rows = await getDb()
       .select()
       .from(financialPlanningSettings)
-      .where(eq(financialPlanningSettings.userId, userId))
+      .where(eq(financialPlanningSettings.profileId, profileId))
       .limit(1);
     const row = rows[0];
     if (!row) return null;
@@ -33,15 +34,15 @@ export class FinancialPlanningSettingsRepository
   }
 
   async upsertLiquidBucket(
-    userId: string,
+    profileId: string,
     liquidBucketAssetId: string | null,
   ): Promise<FinancialPlanningSettingsEntity> {
     const rows = await getDb()
       .insert(financialPlanningSettings)
-      .values({ userId, liquidBucketAssetId })
+      .values({ userId: profileId, profileId, liquidBucketAssetId })
       .onConflictDoUpdate({
         target: financialPlanningSettings.userId,
-        set: { liquidBucketAssetId, updatedAt: sql`now()` },
+        set: { profileId, liquidBucketAssetId, updatedAt: sql`now()` },
       })
       .returning();
     const row = rows[0];

@@ -24,12 +24,12 @@ export async function fetchInvestmentEvolution(): Promise<SerializedInvestmentEv
   const assets = await repos.assets.findActiveByProfileAndCategory(profileId, "investment");
   await captureInvestmentSnapshot(
     { snapshots: repos.investmentSnapshots, clock },
-    { userId: user.id, assets },
+    { userId: user.id, profileId, assets },
   );
 
   const evo = await getInvestmentEvolution(
     { snapshots: repos.investmentSnapshots },
-    { userId: user.id },
+    { profileId },
   );
   if (evo.types.length === 0) return null;
 

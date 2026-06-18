@@ -54,16 +54,17 @@ function makeAssetsRepo(initial: AssetEntity[]): AssetRepositoryPort {
 function makeSettingsRepo(): FinancialPlanningSettingsRepositoryPort {
   const store = new Map<string, FinancialPlanningSettingsEntity>();
   return {
-    findByUser: async (userId: string) => store.get(userId) ?? null,
-    upsertLiquidBucket: async (userId: string, liquidBucketAssetId: string | null) => {
-      const existing = store.get(userId);
+    findByProfile: async (profileId: string) => store.get(profileId) ?? null,
+    upsertLiquidBucket: async (profileId: string, liquidBucketAssetId: string | null) => {
+      const existing = store.get(profileId);
       const record: FinancialPlanningSettingsEntity = {
-        userId,
+        userId: profileId,
+        profileId,
         liquidBucketAssetId,
         createdAt: existing?.createdAt ?? new Date(0),
         updatedAt: new Date(),
       };
-      store.set(userId, record);
+      store.set(profileId, record);
       return record;
     },
   };
@@ -85,14 +86,14 @@ describe("setLiquidBucket", () => {
   it("sets the bucket to a cash asset owned by the user", async () => {
     const res = await setLiquidBucket({ assets, settings }, { userId: "u1", profileId: "profile-1", assetId: "buck" });
     expect(res.ok).toBe(true);
-    const stored = await settings.findByUser("u1");
+    const stored = await settings.findByProfile("profile-1");
     expect(stored?.liquidBucketAssetId).toBe("buck");
   });
 
   it("clears the bucket when assetId is null", async () => {
     const res = await setLiquidBucket({ assets, settings }, { userId: "u1", profileId: "profile-1", assetId: null });
     expect(res.ok).toBe(true);
-    const stored = await settings.findByUser("u1");
+    const stored = await settings.findByProfile("profile-1");
     expect(stored?.liquidBucketAssetId).toBeNull();
   });
 

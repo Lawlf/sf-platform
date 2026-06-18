@@ -70,7 +70,7 @@ export async function computeMonthClosing(
 ): Promise<ComputedMonthClosing | null> {
   const open = await getOpenMonth(
     { closings: deps.closings, clock: deps.clock },
-    { userId: input.userId },
+    { profileId: input.profileId },
   );
   if (!open) return null;
 
@@ -155,7 +155,7 @@ async function resolveBaseline(
   profileId: string,
   openMonthIso: string,
 ): Promise<bigint> {
-  const latest = await deps.closings.latest(userId);
+  const latest = await deps.closings.latest(profileId);
   if (latest && MonthYear.fromDate(latest.month).next().toIso() === openMonthIso) {
     return latest.endNetWorthCents;
   }

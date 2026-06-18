@@ -2,6 +2,7 @@ export type IncomeSettlementStatus = "received" | "not_received" | "adjusted";
 
 export interface IncomeSettlementEntity {
   userId: string;
+  profileId: string;
   incomeId: string;
   /** Primeiro dia do mes (UTC). */
   month: Date;

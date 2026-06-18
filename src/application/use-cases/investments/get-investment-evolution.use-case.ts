@@ -17,9 +17,9 @@ export interface GetInvestmentEvolutionDeps {
 
 export async function getInvestmentEvolution(
   deps: GetInvestmentEvolutionDeps,
-  input: { userId: string },
+  input: { profileId: string },
 ): Promise<InvestmentEvolution> {
-  const rows = await deps.snapshots.listForUser(input.userId);
+  const rows = await deps.snapshots.listForProfile(input.profileId);
   if (rows.length === 0) return { types: [], months: [] };
 
   const typeSet = new Set<string>();

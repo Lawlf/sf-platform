@@ -68,7 +68,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
     goalsRepo.listForProfile(profileId, { status: "active" }),
     assetsRepo.findActiveByProfile(profileId),
     debtsRepo.listForProfile(profileId, { status: "active" }),
-    settingsRepo.findByUser(user.id),
+    settingsRepo.findByProfile(profileId),
     buildGoalMacro(
       {
         assets: assetsRepo,
@@ -165,7 +165,7 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
   const [cashAssets, goals, settings] = await Promise.all([
     assetsRepo.findActiveByProfileAndCategory(profileId, "cash"),
     goalsRepo.listForProfile(profileId, { status: "active" }),
-    settingsRepo.findByUser(user.id),
+    settingsRepo.findByProfile(profileId),
   ]);
 
   const orderedGoals = [...goals]
@@ -301,9 +301,9 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const incomesRepo = repos.incomes;
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
     debtsRepo.listForProfile(profileId, { status: "all" }),
-    settlementsRepo.listForUserMonth(user.id, month.firstDay()),
+    settlementsRepo.listForProfileMonth(profileId, month.firstDay()),
     incomesRepo.listForProfile(profileId),
-    incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),
+    incomeSettlementsRepo.listForProfileMonth(profileId, month.firstDay()),
   ]);
 
   const statusByDebtId = new Map<string, RecurringSettlementStatus>(

@@ -66,7 +66,7 @@ const settleRecurringCommitmentSchema = z.object({
 export const settleRecurringCommitmentAction = action({
   schema: settleRecurringCommitmentSchema,
   revalidates: ["timeline", "home"],
-  handler: async ({ debtId, monthIso, action: settleAction }, { userId }) => {
+  handler: async ({ debtId, monthIso, action: settleAction }, { userId, profileId }) => {
     unwrap(
       await settleRecurringCommitment(
         {
@@ -74,7 +74,7 @@ export const settleRecurringCommitmentAction = action({
           settlements: repos.recurringSettlements,
           clock,
         },
-        { userId, debtId, monthIso, action: settleAction },
+        { userId, profileId, debtId, monthIso, action: settleAction },
       ),
     );
   },
@@ -95,7 +95,7 @@ const settleIncomeSchema = z
 export const settleIncomeAction = action({
   schema: settleIncomeSchema,
   revalidates: ["timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     unwrap(
       await settleIncome(
         {
@@ -105,6 +105,7 @@ export const settleIncomeAction = action({
         },
         {
           userId,
+          profileId,
           incomeId: input.incomeId,
           monthIso: input.monthIso,
           action: input.status,

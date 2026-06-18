@@ -14,7 +14,7 @@ function deps(over: {
     state: over.state ?? "ready_to_grow",
     deps: {
       usage: { listActiveMonthIsos: async () => over.activeMonths ?? [] },
-      closings: { listForUser: async () => over.closings ?? [] },
+      closings: { listForProfile: async () => over.closings ?? [] },
       now: () => new Date(Date.UTC(2026, 5, 15)),
     },
   };
@@ -24,6 +24,7 @@ function closing(month: string, over: Partial<MonthClosingEntity> = {}): MonthCl
   const [y, m] = month.split("-").map(Number);
   return {
     userId: "u1",
+    profileId: "profile-1",
     month: new Date(Date.UTC(y!, m! - 1, 1)),
     baselineNetWorthCents: 0n,
     endNetWorthCents: 0n,
@@ -40,7 +41,7 @@ function closing(month: string, over: Partial<MonthClosingEntity> = {}): MonthCl
 describe("getConsistencyCard", () => {
   it("estado vazio: 0 meses, patamar Começo, sem delta", async () => {
     const { deps: d, state } = deps({ activeMonths: [] });
-    const view = await getConsistencyCard(d, { userId: "u1", state });
+    const view = await getConsistencyCard(d, { userId: "u1", profileId: "profile-1", state });
     expect(view.tier).toBe("Começo");
     expect(view.monthsActive).toBe(0);
     expect(view.delta).toBeNull();
@@ -51,7 +52,7 @@ describe("getConsistencyCard", () => {
     const { deps: d, state } = deps({
       activeMonths: ["2026-03", "2026-04", "2026-05", "2026-06"],
     });
-    const view = await getConsistencyCard(d, { userId: "u1", state });
+    const view = await getConsistencyCard(d, { userId: "u1", profileId: "profile-1", state });
     expect(view.tier).toBe("No ritmo");
     expect(view.monthsActive).toBe(4);
     expect(view.milestone).toBe(6);
@@ -79,7 +80,7 @@ describe("getConsistencyCard", () => {
         }),
       ],
     });
-    const view = await getConsistencyCard(d, { userId: "u1", state });
+    const view = await getConsistencyCard(d, { userId: "u1", profileId: "profile-1", state });
     expect(view.delta).toMatchObject({
       lever: "net_worth",
       direction: "positive",
@@ -93,7 +94,7 @@ describe("getConsistencyCard", () => {
       activeMonths: ["2026-06"],
       closings: [closing("2026-06", { endNetWorthCents: 5_000_00n })],
     });
-    const view = await getConsistencyCard(d, { userId: "u1", state });
+    const view = await getConsistencyCard(d, { userId: "u1", profileId: "profile-1", state });
     expect(view.delta).toBeNull();
   });
 });

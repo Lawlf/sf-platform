@@ -2,6 +2,7 @@ export type RecurringSettlementStatus = "converted_to_debt" | "cancelled";
 
 export interface RecurringSettlementEntity {
   userId: string;
+  profileId: string;
   debtId: string;
   /** Primeiro dia do mes (UTC). */
   month: Date;

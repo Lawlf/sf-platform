@@ -21,6 +21,7 @@ export type SettleAction = "paid" | "convert_to_debt" | "cancel";
 
 export interface SettleRecurringCommitmentInput {
   userId: string;
+  profileId: string;
   debtId: string;
   /** Mês no formato ISO "YYYY-MM" (ex.: "2026-03"). */
   monthIso: string;
@@ -87,6 +88,7 @@ export async function settleRecurringCommitment(
 
     const settlement: RecurringSettlementEntity = {
       userId: input.userId,
+      profileId: input.profileId,
       debtId: input.debtId,
       month: month.firstDay(),
       status: "converted_to_debt",
@@ -106,6 +108,7 @@ export async function settleRecurringCommitment(
 
   const settlement: RecurringSettlementEntity = {
     userId: input.userId,
+    profileId: input.profileId,
     debtId: input.debtId,
     month: month.firstDay(),
     status: "cancelled",
