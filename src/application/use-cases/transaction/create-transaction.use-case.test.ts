@@ -58,6 +58,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(30000n),
       description: "Mercado",
@@ -75,6 +76,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "in",
       amount: Money.fromCents(50000n),
       description: "Pix",
@@ -91,6 +93,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(30000n),
       description: "Conta futura",
@@ -116,6 +119,7 @@ describe("createTransaction", () => {
     });
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(1000n),
       description: "x",
@@ -133,6 +137,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(1000n),
       description: "x",

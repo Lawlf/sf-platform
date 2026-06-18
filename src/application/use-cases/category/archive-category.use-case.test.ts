@@ -77,7 +77,7 @@ describe("archiveCategory", () => {
   it("com vínculos move transações e dívidas e arquiva por último", async () => {
     const d = deps({ txnCount: 3, debtCount: 2 });
     await archiveCategory(d, { ...base, key: "compras", destinationKey: "outros" });
-    expect(d.transactions.reassignCategory).toHaveBeenCalledWith("u1", "compras", "outros");
+    expect(d.transactions.reassignCategory).toHaveBeenCalledWith("profile-1", "compras", "outros");
     expect(d.debts.reassignExpenseCategory).toHaveBeenCalledWith("profile-1", "compras", "outros");
     expect(d.userCategories.rows[0]?.archivedAt).toBeInstanceOf(Date);
   });
@@ -92,6 +92,6 @@ describe("archiveCategory", () => {
     });
     expect(d.debts.countByExpenseCategory).not.toHaveBeenCalled();
     expect(d.debts.reassignExpenseCategory).not.toHaveBeenCalled();
-    expect(d.transactions.reassignCategory).toHaveBeenCalledWith("u1", "venda", "outros");
+    expect(d.transactions.reassignCategory).toHaveBeenCalledWith("profile-1", "venda", "outros");
   });
 });

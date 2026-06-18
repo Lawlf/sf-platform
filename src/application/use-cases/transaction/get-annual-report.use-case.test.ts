@@ -18,6 +18,7 @@ function txn(
   return {
     id: crypto.randomUUID(),
     userId: "u1",
+    profileId: "profile-1",
     direction: opts.direction ?? "out",
     occurredAt: new Date(iso),
     amount: Money.fromCents(cents),
@@ -32,42 +33,9 @@ function txn(
   };
 }
 
-function fakeRepo(rows: TransactionEntity[]): TransactionRepositoryPort {
+function fakeRepo(rows: TransactionEntity[]): Pick<TransactionRepositoryPort, "listForProfileInRange"> {
   return {
-    async create() {
-      throw new Error("not used");
-    },
-    async update() {
-      throw new Error("not used");
-    },
-    async findByIdForUser() {
-      throw new Error("not used");
-    },
-    async listByAccount() {
-      throw new Error("not used");
-    },
-    async listByAccountPaged() {
-      throw new Error("not used");
-    },
-    async countByAccount() {
-      throw new Error("not used");
-    },
-    async monthSummariesByAccount() {
-      throw new Error("not used");
-    },
-    async softDelete() {
-      throw new Error("not used");
-    },
-    async existingExternalIds() {
-      throw new Error("not used");
-    },
-    async countByCategory() {
-      throw new Error("not used");
-    },
-    async reassignCategory() {
-      throw new Error("not used");
-    },
-    async listForUserInRange(_userId, from, to) {
+    async listForProfileInRange(_profileId, from, to) {
       return rows.filter((r) => r.occurredAt >= from && r.occurredAt <= to);
     },
   };
@@ -77,7 +45,7 @@ describe("getAnnualReport", () => {
   it("rejects Free users", async () => {
     const result = await getAnnualReport(
       { transactions: fakeRepo([]) },
-      { userId: "u1", year: 2026, isPro: false },
+      { profileId: "profile-1", year: 2026, isPro: false },
     );
     expect(result.ok).toBe(false);
     if (!result.ok) expect(result.message).toMatch(/Pro/);
@@ -91,7 +59,7 @@ describe("getAnnualReport", () => {
     ]);
     const result = await getAnnualReport(
       { transactions: repo },
-      { userId: "u1", year: 2026, isPro: true },
+      { profileId: "profile-1", year: 2026, isPro: true },
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -107,7 +75,7 @@ describe("getAnnualReport", () => {
     ]);
     const result = await getAnnualReport(
       { transactions: repo },
-      { userId: "u1", year: 2026, isPro: true },
+      { profileId: "profile-1", year: 2026, isPro: true },
     );
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.report.totalCents).toBe(30000n);
@@ -121,7 +89,7 @@ describe("getAnnualReport", () => {
     ]);
     const result = await getAnnualReport(
       { transactions: repo },
-      { userId: "u1", year: 2026, isPro: true },
+      { profileId: "profile-1", year: 2026, isPro: true },
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -141,7 +109,7 @@ describe("getAnnualReport", () => {
     ]);
     const result = await getAnnualReport(
       { transactions: repo },
-      { userId: "u1", year: 2026, isPro: true },
+      { profileId: "profile-1", year: 2026, isPro: true },
     );
     expect(result.ok).toBe(true);
     if (result.ok) {
@@ -161,7 +129,7 @@ describe("getAnnualReport", () => {
     ]);
     const result = await getAnnualReport(
       { transactions: repo },
-      { userId: "u1", year: 2026, isPro: true },
+      { profileId: "profile-1", year: 2026, isPro: true },
     );
     expect(result.ok).toBe(true);
     if (result.ok) {

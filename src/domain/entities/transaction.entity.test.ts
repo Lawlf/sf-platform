@@ -15,6 +15,7 @@ describe("transaction entity", () => {
     const t: TransactionEntity = {
       id: "t1",
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(12000n),
       description: "Mercado",
@@ -35,6 +36,7 @@ describe("transaction entity", () => {
     const t: TransactionEntity = {
       id: "t2",
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(100n),
       description: "x",

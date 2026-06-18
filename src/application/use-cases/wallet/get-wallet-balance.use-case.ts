@@ -26,7 +26,7 @@ export interface GetWalletBalanceDeps {
   debtPayments: {
     listForProfileInRange(profileId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
   };
-  transactions: { listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
+  transactions: { listForProfileInRange(profileId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
   debtAmountAdjustments: { listForProfile(profileId: string): Promise<DebtAmountAdjustmentEntity[]> };
   clock: { now(): Date };
 }
@@ -95,7 +95,7 @@ export async function getWalletBalance(
   const [incomes, debts, transactions, payments, adjustments] = await Promise.all([
     deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
     deps.debts.listForProfile(input.profileId, { status: "active" }),
-    deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
+    deps.transactions.listForProfileInRange(input.profileId, anchorAt, endOfMonthUtc(asOf)),
     deps.debtPayments.listForProfileInRange(input.profileId, { from: anchorAt, to: endOfMonthUtc(asOf) }),
     deps.debtAmountAdjustments.listForProfile(input.profileId),
   ]);

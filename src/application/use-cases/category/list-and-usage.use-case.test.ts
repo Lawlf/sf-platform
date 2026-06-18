@@ -22,7 +22,7 @@ describe("categoryUsage", () => {
         transactions: { countByCategory: vi.fn(async () => 3) },
         debts: { countByExpenseCategory: vi.fn(async () => 2) },
       },
-      { userId: "u1", profileId: "profile-1", domain: "expense", key: "compras" },
+      { profileId: "profile-1", domain: "expense", key: "compras" },
     );
     expect(r).toEqual({ transactions: 3, debts: 2 });
   });
@@ -34,7 +34,7 @@ describe("categoryUsage", () => {
         transactions: { countByCategory: vi.fn(async () => 1) },
         debts: { countByExpenseCategory: countDebts },
       },
-      { userId: "u1", profileId: "profile-1", domain: "inflow", key: "venda" },
+      { profileId: "profile-1", domain: "inflow", key: "venda" },
     );
     expect(r).toEqual({ transactions: 1, debts: 0 });
     expect(countDebts).not.toHaveBeenCalled();

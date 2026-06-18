@@ -120,7 +120,7 @@ export async function commitOfxImport(
   }
 
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);
-  const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
+  const seen = new Set(await deps.transactions.existingExternalIds(input.profileId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
   const movement = findInternalTransfers(newTxns);
@@ -138,6 +138,7 @@ export async function commitOfxImport(
     await deps.transactions.create({
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       direction: t.direction,
       amount: Money.fromCents(t.amountCents),
       description: t.memo,

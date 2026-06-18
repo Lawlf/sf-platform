@@ -25,10 +25,9 @@ export async function categoryUsageQuery(
   domain: CategoryDomain,
   key: string,
 ): Promise<CategoryUsage> {
-  const user = await requireUser();
   const profileId = await getActiveProfileId();
   return categoryUsage(
     { transactions: repos.transactions, debts: repos.debts },
-    { userId: user.id, profileId, domain, key },
+    { profileId, domain, key },
   );
 }

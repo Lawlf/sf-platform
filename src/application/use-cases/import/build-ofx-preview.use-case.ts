@@ -55,7 +55,7 @@ export async function buildOfxPreview(
 
   const matched = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);
-  const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
+  const seen = new Set(await deps.transactions.existingExternalIds(input.profileId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
   const movement = findInternalTransfers(newTxns);

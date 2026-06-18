@@ -25,6 +25,7 @@ export interface CreateTransactionDeps {
 
 export interface CreateTransactionInput {
   userId: string;
+  profileId: string;
   direction: TransactionDirection;
   amount: Money;
   description: string;
@@ -60,8 +61,7 @@ export async function createTransaction(
   input: CreateTransactionInput,
 ): Promise<Result<TransactionEntity, never>> {
   const status = input.status ?? "paid";
-  const profileId = input.userId;
-  const account = await resolveAccount(deps, input.userId, profileId, input.accountId);
+  const account = await resolveAccount(deps, input.userId, input.profileId, input.accountId);
 
   const amount =
     input.amount.currency === account.currentValue.currency
@@ -79,6 +79,7 @@ export async function createTransaction(
   const persisted = await deps.transactions.create({
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     direction: input.direction,
     amount,
     description: input.description,

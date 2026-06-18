@@ -5,11 +5,11 @@ import { isReserveTransfer } from "@/domain/services/ofx/reserve-transfer";
 const EXCLUDED_CATEGORIES = new Set(["promoted_debt", "promoted_income", "internal_transfer"]);
 
 export interface GetMonthlyConsumoDeps {
-  transactions: Pick<TransactionRepositoryPort, "listForUserInRange">;
+  transactions: Pick<TransactionRepositoryPort, "listForProfileInRange">;
 }
 
 export interface GetMonthlyConsumoInput {
-  userId: string;
+  profileId: string;
   from: Date;
   to: Date;
 }
@@ -25,7 +25,7 @@ export async function getMonthlyConsumo(
   deps: GetMonthlyConsumoDeps,
   input: GetMonthlyConsumoInput,
 ): Promise<MonthlyConsumo> {
-  const txns = await deps.transactions.listForUserInRange(input.userId, input.from, input.to);
+  const txns = await deps.transactions.listForProfileInRange(input.profileId, input.from, input.to);
   const consumo = txns.filter(
     (t) =>
       t.direction === "out" &&

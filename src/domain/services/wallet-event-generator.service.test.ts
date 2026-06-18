@@ -178,6 +178,7 @@ function txn(over: Partial<TransactionEntity>): TransactionEntity {
   return {
     id: "t1",
     userId: "u1",
+    profileId: "profile-1",
     direction: "out",
     amount: moneyOf(40),
     description: "Café",

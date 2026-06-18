@@ -6,7 +6,7 @@ export interface ListAccountTransactionsPageDeps {
 }
 
 export interface ListAccountTransactionsPageInput {
-  userId: string;
+  profileId: string;
   accountId: string;
   limit: number;
   beforeOccurredAt?: Date;
@@ -26,7 +26,7 @@ export async function listAccountTransactionsPage(
     input.beforeOccurredAt && input.beforeId
       ? { limit: input.limit + 1, beforeOccurredAt: input.beforeOccurredAt, beforeId: input.beforeId }
       : { limit: input.limit + 1 };
-  const rows = await deps.transactions.listByAccountPaged(input.accountId, input.userId, opts);
+  const rows = await deps.transactions.listByAccountPaged(input.accountId, input.profileId, opts);
   const hasMore = rows.length > input.limit;
   const items = hasMore ? rows.slice(0, input.limit) : rows;
   const last = items[items.length - 1];

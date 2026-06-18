@@ -138,6 +138,7 @@ export async function executeWrite(
         { transactions: deps.transactions, assets: deps.assets, clock: deps.clock },
         {
           userId,
+          profileId,
           direction: "out",
           amount: money(args.amountCents, currency),
           description: str(args.description),

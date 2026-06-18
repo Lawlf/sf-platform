@@ -77,7 +77,7 @@ export default async function DashboardPage() {
     getPrescription(),
     getMonthlyConsumo(
       { transactions: repos.transactions },
-      { userId: user.id, from: consumoFrom, to: consumoTo },
+      { profileId, from: consumoFrom, to: consumoTo },
     ),
     fetchOutOfMonthSummary(),
     repos.assets.listExternalAccountKeys(profileId),

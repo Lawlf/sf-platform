@@ -423,10 +423,11 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
   const user = await getCurrentUser();
   const year = new Date().getUTCFullYear();
   if (!user) return emptyAnnualReport(year, false);
+  const profileId = await getActiveProfileId();
 
   const result = await getAnnualReport(
     { transactions: repos.transactions },
-    { userId: user.id, year, isPro: user.isPro },
+    { profileId, year, isPro: user.isPro },
   );
 
   if (!result.ok) return emptyAnnualReport(year, false);

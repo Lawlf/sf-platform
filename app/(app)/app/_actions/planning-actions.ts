@@ -156,7 +156,7 @@ const createTransactionSchema = z.object({
 export const createTransactionAction = action({
   schema: createTransactionSchema,
   revalidates: ["report"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const description = input.description.trim();
     if (description.length === 0) {
       throw new ActionError("Descreva o gasto.");
@@ -191,6 +191,7 @@ export const createTransactionAction = action({
       },
       {
         userId,
+        profileId,
         direction: input.direction ?? "out",
         amount: Money.fromCents(amountCents),
         description,

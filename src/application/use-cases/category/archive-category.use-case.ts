@@ -44,7 +44,7 @@ export async function archiveCategory(
   if (!target) throw new CategoryError("Categoria não encontrada.");
   if (target.archived) throw new CategoryError("Essa categoria já está arquivada.");
 
-  const txnCount = await deps.transactions.countByCategory(userId, key);
+  const txnCount = await deps.transactions.countByCategory(profileId, key);
   const debtCount =
     domain === "expense" ? await deps.debts.countByExpenseCategory(profileId, key) : 0;
 
@@ -57,7 +57,7 @@ export async function archiveCategory(
     if (!destination || destination.archived) {
       throw new CategoryError("Categoria de destino inválida.");
     }
-    await deps.transactions.reassignCategory(userId, key, destinationKey);
+    await deps.transactions.reassignCategory(profileId, key, destinationKey);
     if (domain === "expense") {
       await deps.debts.reassignExpenseCategory(profileId, key, destinationKey);
     }

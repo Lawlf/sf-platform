@@ -94,7 +94,7 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
     settlements: { listForUserMonth: async () => [] },
     incomeSettlements: { listForUserMonth: async () => [] },
     debtPayments: { listForProfileInRange: async () => [] },
-    transactions: { listForUserInRange: async () => [] },
+    transactions: { listForProfileInRange: async () => [] },
     debtAmountAdjustments: { listForProfile: async () => [] },
     clock: { now: () => utc(2026, 6, 4) },
     ...over,

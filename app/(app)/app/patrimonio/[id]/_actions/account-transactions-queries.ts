@@ -3,6 +3,7 @@
 import { listAccountTransactionsPage } from "@/application/use-cases/transaction/list-account-transactions-page.use-case";
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { buildCategoryLabeler, type CategoryLabeler } from "../../../_actions/_category-labels";
@@ -46,11 +47,12 @@ export async function fetchAccountTransactionsPage(args: {
 }): Promise<AccountTxnPagePayload | null> {
   const user = await getCurrentUser();
   if (!user) return null;
+  const profileId = await getActiveProfileId();
 
   const page = await listAccountTransactionsPage(
     { transactions: repos.transactions },
     {
-      userId: user.id,
+      profileId,
       accountId: args.accountId,
       limit: args.limit ?? DEFAULT_PAGE_LIMIT,
       ...(args.beforeOccurredAtIso && args.beforeId
@@ -67,9 +69,8 @@ export async function fetchAccountTransactionsPage(args: {
 }
 
 export async function fetchAccountTransactionCount(accountId: string): Promise<number> {
-  const user = await getCurrentUser();
-  if (!user) return 0;
-  return repos.transactions.countByAccount(accountId, user.id);
+  const profileId = await getActiveProfileId();
+  return repos.transactions.countByAccount(accountId, profileId);
 }
 
 export interface AccountMonthSummary {
@@ -82,9 +83,8 @@ export interface AccountMonthSummary {
 export async function fetchAccountMonthSummaries(
   accountId: string,
 ): Promise<AccountMonthSummary[]> {
-  const user = await getCurrentUser();
-  if (!user) return [];
-  const rows = await repos.transactions.monthSummariesByAccount(accountId, user.id);
+  const profileId = await getActiveProfileId();
+  const rows = await repos.transactions.monthSummariesByAccount(accountId, profileId);
   return rows.map((r) => ({
     key: r.key,
     inCents: r.inCents.toString(),

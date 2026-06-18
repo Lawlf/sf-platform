@@ -26,6 +26,7 @@ export function isIncomeSource(raw: string): raw is IncomeSource {
 export interface TransactionEntity {
   id: string;
   userId: string;
+  profileId: string;
   direction: TransactionDirection;
   amount: Money;
   description: string;

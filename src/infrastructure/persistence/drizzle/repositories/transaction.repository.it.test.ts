@@ -17,11 +17,13 @@ const DESC_PREFIX = "it-test-transaction-";
 const users = new UserRepository();
 const repo = new TransactionRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  profileId = userId;
 });
 
 afterEach(async () => {
@@ -39,6 +41,7 @@ function makeTransaction(
   return {
     id: randomUUID(),
     userId,
+    profileId,
     direction: "out" as const,
     occurredAt: new Date("2026-06-15T00:00:00Z"),
     amount: Money.fromCents(4000n),
@@ -62,8 +65,8 @@ describe("TransactionRepository (integration)", () => {
     expect(created.description).toBe(`${DESC_PREFIX}café`);
     expect(created.category).toBe("alimentação");
 
-    const found = await repo.listForUserInRange(
-      userId,
+    const found = await repo.listForProfileInRange(
+      profileId,
       new Date("2026-06-01T00:00:00Z"),
       new Date("2026-06-30T23:59:59Z"),
     );
@@ -75,8 +78,8 @@ describe("TransactionRepository (integration)", () => {
   it("excludes transactions outside the requested range", async () => {
     await repo.create(makeTransaction({ occurredAt: new Date("2026-03-10T00:00:00Z") }));
 
-    const found = await repo.listForUserInRange(
-      userId,
+    const found = await repo.listForProfileInRange(
+      profileId,
       new Date("2026-06-01T00:00:00Z"),
       new Date("2026-06-30T23:59:59Z"),
     );
@@ -86,8 +89,8 @@ describe("TransactionRepository (integration)", () => {
   it("excludes soft-deleted transactions", async () => {
     await repo.create(makeTransaction({ deletedAt: new Date("2026-06-16T00:00:00Z") }));
 
-    const found = await repo.listForUserInRange(
-      userId,
+    const found = await repo.listForProfileInRange(
+      profileId,
       new Date("2026-06-01T00:00:00Z"),
       new Date("2026-06-30T23:59:59Z"),
     );
@@ -103,10 +106,10 @@ describe("TransactionRepository (integration)", () => {
       }),
     );
 
-    const hits = await repo.existingExternalIds(userId, ["A1", "NOPE"]);
+    const hits = await repo.existingExternalIds(profileId, ["A1", "NOPE"]);
     expect(hits).toEqual(["A1"]);
 
-    const empty = await repo.existingExternalIds(userId, []);
+    const empty = await repo.existingExternalIds(profileId, []);
     expect(empty).toEqual([]);
   });
 });
