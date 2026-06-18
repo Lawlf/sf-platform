@@ -16,4 +16,5 @@ export interface ProfileRepositoryPort {
     displayName: string | null;
     now: Date;
   }): Promise<ProfileEntity>;
+  setLinkedProfile(profileId: string, linkedProfileId: string): Promise<void>;
 }

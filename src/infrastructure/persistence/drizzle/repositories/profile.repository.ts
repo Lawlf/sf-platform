@@ -1,4 +1,4 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { ProfileEntity } from "@/domain/entities/profile.entity";
 import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
@@ -69,5 +69,12 @@ export class ProfileRepository implements ProfileRepositoryPort {
     const row = rows[0];
     if (!row) throw new Error("Failed to insert profile");
     return rowToEntity(row);
+  }
+
+  async setLinkedProfile(profileId: string, linkedProfileId: string): Promise<void> {
+    await getDb()
+      .update(profiles)
+      .set({ linkedProfileId, updatedAt: sql`now()` })
+      .where(eq(profiles.id, profileId));
   }
 }

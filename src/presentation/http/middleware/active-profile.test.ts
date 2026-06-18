@@ -20,6 +20,7 @@ function fakeRepo(profilesList: ProfileEntity[], ensured?: ProfileEntity): Profi
     findById: vi.fn(async () => null),
     ensurePfProfile: vi.fn(async () => ensured ?? pf("u1")),
     create: vi.fn(),
+    setLinkedProfile: vi.fn(),
   };
 }
 
