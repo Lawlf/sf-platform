@@ -470,6 +470,13 @@
       "when": 1781788224991,
       "tag": "0066_medical_zuras",
       "breakpoints": true
+    },
+    {
+      "idx": 67,
+      "version": "7",
+      "when": 1781793952349,
+      "tag": "0067_futuristic_misty_knight",
+      "breakpoints": true
     }
   ]
 }

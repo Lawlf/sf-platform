@@ -29,6 +29,7 @@ import { McpPendingActionRepository } from "@/infrastructure/persistence/drizzle
 import { McpTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-token.repository";
 import { McpUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-usage.repository";
 import { McpWriteIdempotencyRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-write-idempotency.repository";
+import { MeiMonthlyRepository } from "@/infrastructure/persistence/drizzle/repositories/mei-monthly.repository";
 import { ModuleProgressRepository } from "@/infrastructure/persistence/drizzle/repositories/module-progress.repository";
 import { MonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/month-closing.repository";
 import { NotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/notification-preferences.repository";
@@ -84,6 +85,7 @@ export const repos = {
   mcpTokens: new McpTokenRepository(),
   mcpUsage: new McpUsageRepository(),
   mcpWriteIdempotency: new McpWriteIdempotencyRepository(),
+  meiMonthly: new MeiMonthlyRepository(),
   moduleProgress: new ModuleProgressRepository(),
   monthClosings: new MonthClosingRepository(),
   notificationPreferences: new NotificationPreferencesRepository(),
