@@ -15,3 +15,11 @@ export class HouseholdInviteInvalidStatus extends DomainError {
 export class HouseholdAlreadyMember extends DomainError {
   readonly code = "HOUSEHOLD_ALREADY_MEMBER" as const;
 }
+
+export class HouseholdLastAdminError extends DomainError {
+  readonly code = "HOUSEHOLD_LAST_ADMIN" as const;
+}
+
+export class HouseholdNotMember extends DomainError {
+  readonly code = "HOUSEHOLD_NOT_MEMBER" as const;
+}
