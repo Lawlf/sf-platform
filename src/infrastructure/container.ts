@@ -17,6 +17,7 @@ import { FinancialPlanningSettingsRepository } from "@/infrastructure/persistenc
 import { GoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-contribution.repository";
 import { GoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-snapshot.repository";
 import { GoalRepository } from "@/infrastructure/persistence/drizzle/repositories/goal.repository";
+import { HouseholdRepository } from "@/infrastructure/persistence/drizzle/repositories/household.repository";
 import { IncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/income-settlement.repository";
 import { IncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/income.repository";
 import { InvestmentSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/investment-snapshot.repository";
@@ -73,6 +74,7 @@ export const repos = {
   goalContributions: new GoalContributionRepository(),
   goalSnapshots: new GoalSnapshotRepository(),
   goals: new GoalRepository(),
+  households: new HouseholdRepository(),
   incomeSettlements: new IncomeSettlementRepository(),
   incomes: new IncomeRepository(),
   investmentSnapshots: new InvestmentSnapshotRepository(),
