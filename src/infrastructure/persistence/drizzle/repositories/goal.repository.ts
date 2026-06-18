@@ -160,7 +160,14 @@ export class GoalRepository implements GoalRepositoryPort {
     const result = await getDb()
       .select({ value: count() })
       .from(goals)
-      .where(and(eq(goals.profileId, profileId), eq(goals.status, "active"), isNull(goals.deletedAt)));
+      .where(
+        and(
+          eq(goals.profileId, profileId),
+          eq(goals.status, "active"),
+          isNull(goals.deletedAt),
+          isNull(goals.householdId),
+        ),
+      );
     return result[0]?.value ?? 0;
   }
 

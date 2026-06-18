@@ -2,7 +2,9 @@
 
 import { z } from "zod";
 
+import { contributeHouseholdGoal } from "@/application/use-cases/household/contribute-household-goal.use-case";
 import { createHousehold } from "@/application/use-cases/household/create-household.use-case";
+import { createHouseholdGoal } from "@/application/use-cases/household/create-household-goal.use-case";
 import { inviteMember } from "@/application/use-cases/household/invite-member.use-case";
 import { leaveHousehold } from "@/application/use-cases/household/leave-household.use-case";
 import { removeMember } from "@/application/use-cases/household/remove-member.use-case";
@@ -144,6 +146,46 @@ export const unshareProfileAction = action({
       await unshareProfile(
         { households: repos.households },
         { householdId, userId, profileId },
+      ),
+    );
+  },
+});
+
+export const createHouseholdGoalAction = action({
+  schema: z.object({
+    householdId: z.string().uuid(),
+    label: z.string().min(1, "Dê um nome à meta.").max(100),
+    targetCents: z.coerce.bigint().positive("O valor alvo deve ser maior que zero."),
+  }),
+  revalidates: ["household"],
+  handler: async ({ householdId, label, targetCents }, { userId, profileId }) => {
+    unwrap(
+      await createHouseholdGoal(
+        { households: repos.households, goals: repos.goals, clock, newId: () => crypto.randomUUID() },
+        { householdId, userId, profileId, label, targetCents },
+      ),
+    );
+  },
+});
+
+export const contributeHouseholdGoalAction = action({
+  schema: z.object({
+    householdId: z.string().uuid(),
+    goalId: z.string().uuid(),
+    amountCents: z.coerce.bigint().positive("O valor do aporte deve ser maior que zero."),
+  }),
+  revalidates: ["household"],
+  handler: async ({ householdId, goalId, amountCents }, { userId, profileId }) => {
+    unwrap(
+      await contributeHouseholdGoal(
+        {
+          households: repos.households,
+          goals: repos.goals,
+          contributions: repos.goalContributions,
+          clock,
+          newId: () => crypto.randomUUID(),
+        },
+        { householdId, userId, profileId, goalId, amountCents },
       ),
     );
   },

@@ -4,6 +4,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 
 import { PageShell } from "../_components/page-shell";
 import {
+  fetchHouseholdGoals,
   fetchHouseholdMembers,
   fetchHouseholdPendingInvites,
   fetchHouseholdSnapshot,
@@ -13,6 +14,7 @@ import {
 } from "../_actions/household-queries";
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
+import { HouseholdGoals } from "./_components/household-goals.client";
 import { HouseholdJointView } from "./_components/household-joint-view.client";
 import { HouseholdPanel } from "./_components/household-panel.client";
 import { MyProfileSharing } from "./_components/my-profile-sharing.client";
@@ -30,11 +32,12 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, adminPendingInvites, myShares, snapshot] = await Promise.all([
+      const [members, adminPendingInvites, myShares, snapshot, goals] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdPendingInvites(h.id),
         fetchMyShares(h.id),
         fetchHouseholdSnapshot(h.id),
+        fetchHouseholdGoals(h.id),
       ]);
       return {
         household: h,
@@ -42,6 +45,7 @@ export default async function LarPage() {
         pendingInvites: adminPendingInvites ?? [],
         myShares,
         snapshot,
+        goals: goals ?? [],
       };
     }),
   );
@@ -54,7 +58,7 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot }) => (
+      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot, goals }) => (
         <div key={household.id} className="flex flex-col gap-4">
           <HouseholdPanel
             household={household}
@@ -68,6 +72,7 @@ export default async function LarPage() {
           {snapshot ? (
             <HouseholdJointView householdId={household.id} snapshot={snapshot} />
           ) : null}
+          <HouseholdGoals householdId={household.id} goals={goals} />
         </div>
       ))}
 

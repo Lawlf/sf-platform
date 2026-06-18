@@ -4,6 +4,7 @@ import type { HouseholdInviteEntity, HouseholdMemberEntity, HouseholdShareLevel 
 import type { ProfileType } from "@/domain/entities/profile.entity";
 import { buildHouseholdSnapshot } from "@/application/use-cases/household/build-household-snapshot.use-case";
 import { getSharedProfileDetail } from "@/application/use-cases/household/get-shared-profile-detail.use-case";
+import { listHouseholdGoals } from "@/application/use-cases/household/list-household-goals.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
 import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
 import { clock, repos } from "@/infrastructure/container";
@@ -298,4 +299,38 @@ export async function fetchSharedProfileDetail(
         status: d.status,
       })),
   };
+}
+
+export interface SerializedHouseholdGoal {
+  id: string;
+  title: string;
+  savedBrl: string;
+  targetBrl: string | null;
+  savedCents: string;
+  targetCents: string | null;
+  progressPct: number | null;
+}
+
+export async function fetchHouseholdGoals(
+  householdId: string,
+): Promise<SerializedHouseholdGoal[] | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const result = await listHouseholdGoals(
+    { households: repos.households, goals: repos.goals, contributions: repos.goalContributions },
+    { householdId, userId: user.id },
+  );
+
+  if (!isOk(result)) return null;
+
+  return result.value.map(({ goal, savedCents, targetCents, progressPct }) => ({
+    id: goal.id,
+    title: goal.title,
+    savedBrl: formatCents(savedCents),
+    targetBrl: targetCents !== null ? formatCents(targetCents) : null,
+    savedCents: savedCents.toString(),
+    targetCents: targetCents !== null ? targetCents.toString() : null,
+    progressPct,
+  }));
 }
