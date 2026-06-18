@@ -5,16 +5,20 @@ import type {
   HouseholdInviteEntity,
   HouseholdInviteStatus,
   HouseholdMemberEntity,
+  HouseholdMemberProfileEntity,
   HouseholdRole,
+  HouseholdShareLevel,
 } from "@/domain/entities/household.entity";
 import type { HouseholdRepositoryPort } from "@/domain/ports/repositories/household.repository";
 
 import { getDb } from "../client";
 import {
   householdInvites,
+  householdMemberProfiles,
   householdMembers,
   households,
   type HouseholdInviteRow,
+  type HouseholdMemberProfileRow,
   type HouseholdMemberRow,
   type HouseholdRow,
 } from "../schema/households.schema";
@@ -47,6 +51,17 @@ function rowToInvite(row: HouseholdInviteRow): HouseholdInviteEntity {
     status: row.status as HouseholdInviteStatus,
     createdAt: row.createdAt,
     respondedAt: row.respondedAt ?? null,
+  };
+}
+
+function rowToMemberProfile(row: HouseholdMemberProfileRow): HouseholdMemberProfileEntity {
+  return {
+    householdId: row.householdId,
+    userId: row.userId,
+    profileId: row.profileId,
+    shareLevel: row.shareLevel as HouseholdShareLevel,
+    createdAt: row.createdAt,
+    updatedAt: row.updatedAt,
   };
 }
 
@@ -208,5 +223,82 @@ export class HouseholdRepository implements HouseholdRepositoryPort {
       .update(householdInvites)
       .set({ status, respondedAt: now })
       .where(eq(householdInvites.id, id));
+  }
+
+  async upsertSharedProfile(input: {
+    householdId: string;
+    userId: string;
+    profileId: string;
+    shareLevel: HouseholdShareLevel;
+    now: Date;
+  }): Promise<void> {
+    await getDb()
+      .insert(householdMemberProfiles)
+      .values({
+        householdId: input.householdId,
+        userId: input.userId,
+        profileId: input.profileId,
+        shareLevel: input.shareLevel,
+        createdAt: input.now,
+        updatedAt: input.now,
+      })
+      .onConflictDoUpdate({
+        target: [householdMemberProfiles.householdId, householdMemberProfiles.profileId],
+        set: { shareLevel: input.shareLevel, updatedAt: input.now },
+      });
+  }
+
+  async removeSharedProfile(householdId: string, profileId: string): Promise<void> {
+    await getDb()
+      .delete(householdMemberProfiles)
+      .where(
+        and(
+          eq(householdMemberProfiles.householdId, householdId),
+          eq(householdMemberProfiles.profileId, profileId),
+        ),
+      );
+  }
+
+  async findSharedProfile(
+    householdId: string,
+    profileId: string,
+  ): Promise<HouseholdMemberProfileEntity | null> {
+    const rows = await getDb()
+      .select()
+      .from(householdMemberProfiles)
+      .where(
+        and(
+          eq(householdMemberProfiles.householdId, householdId),
+          eq(householdMemberProfiles.profileId, profileId),
+        ),
+      )
+      .limit(1);
+    return rows[0] ? rowToMemberProfile(rows[0]) : null;
+  }
+
+  async listSharedProfiles(householdId: string): Promise<HouseholdMemberProfileEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(householdMemberProfiles)
+      .where(eq(householdMemberProfiles.householdId, householdId))
+      .orderBy(asc(householdMemberProfiles.createdAt));
+    return rows.map(rowToMemberProfile);
+  }
+
+  async listSharedProfilesForUser(
+    householdId: string,
+    userId: string,
+  ): Promise<HouseholdMemberProfileEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(householdMemberProfiles)
+      .where(
+        and(
+          eq(householdMemberProfiles.householdId, householdId),
+          eq(householdMemberProfiles.userId, userId),
+        ),
+      )
+      .orderBy(asc(householdMemberProfiles.createdAt));
+    return rows.map(rowToMemberProfile);
   }
 }

@@ -1,9 +1,11 @@
 import { sql } from "drizzle-orm";
 import { index, pgEnum, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const householdRole = pgEnum("household_role", ["admin", "member"]);
+export const householdShareLevel = pgEnum("household_share_level", ["aggregate", "detail"]);
 export const householdInviteStatus = pgEnum("household_invite_status", [
   "pending",
   "accepted",
@@ -70,6 +72,35 @@ export const householdInvites = pgTable(
   }),
 );
 
+export const householdMemberProfiles = pgTable(
+  "household_member_profiles",
+  {
+    householdId: uuid("household_id")
+      .notNull()
+      .references(() => households.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
+    shareLevel: householdShareLevel("share_level").notNull().default("aggregate"),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .default(sql`now()`),
+  },
+  (t) => ({
+    pk: primaryKey({ columns: [t.householdId, t.profileId] }),
+    householdUserIdx: index("household_member_profiles_household_user_idx").on(
+      t.householdId,
+      t.userId,
+    ),
+  }),
+);
+
 export type HouseholdRow = typeof households.$inferSelect;
 export type NewHouseholdRow = typeof households.$inferInsert;
 
@@ -78,3 +109,6 @@ export type NewHouseholdMemberRow = typeof householdMembers.$inferInsert;
 
 export type HouseholdInviteRow = typeof householdInvites.$inferSelect;
 export type NewHouseholdInviteRow = typeof householdInvites.$inferInsert;
+
+export type HouseholdMemberProfileRow = typeof householdMemberProfiles.$inferSelect;
+export type NewHouseholdMemberProfileRow = typeof householdMemberProfiles.$inferInsert;

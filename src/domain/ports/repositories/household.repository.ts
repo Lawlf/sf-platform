@@ -3,7 +3,9 @@ import type {
   HouseholdInviteEntity,
   HouseholdInviteStatus,
   HouseholdMemberEntity,
+  HouseholdMemberProfileEntity,
   HouseholdRole,
+  HouseholdShareLevel,
 } from "@/domain/entities/household.entity";
 
 export interface HouseholdRepositoryPort {
@@ -50,4 +52,26 @@ export interface HouseholdRepositoryPort {
   listPendingInvitesForHousehold(householdId: string): Promise<HouseholdInviteEntity[]>;
 
   setInviteStatus(id: string, status: HouseholdInviteStatus, now: Date): Promise<void>;
+
+  upsertSharedProfile(input: {
+    householdId: string;
+    userId: string;
+    profileId: string;
+    shareLevel: HouseholdShareLevel;
+    now: Date;
+  }): Promise<void>;
+
+  removeSharedProfile(householdId: string, profileId: string): Promise<void>;
+
+  findSharedProfile(
+    householdId: string,
+    profileId: string,
+  ): Promise<HouseholdMemberProfileEntity | null>;
+
+  listSharedProfiles(householdId: string): Promise<HouseholdMemberProfileEntity[]>;
+
+  listSharedProfilesForUser(
+    householdId: string,
+    userId: string,
+  ): Promise<HouseholdMemberProfileEntity[]>;
 }

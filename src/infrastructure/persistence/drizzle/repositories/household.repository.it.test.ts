@@ -4,6 +4,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
 import { closeDb, getDb } from "../client";
 
 import { HouseholdRepository } from "./household.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL_A = "it-household-user-a@saborfinanceiro.com.br";
@@ -11,6 +12,7 @@ const TEST_EMAIL_B = "it-household-user-b@saborfinanceiro.com.br";
 
 const users = new UserRepository();
 const repo = new HouseholdRepository();
+const profiles = new ProfileRepository();
 
 let userAId: string;
 let userBId: string;
@@ -177,5 +179,114 @@ describe("HouseholdRepository (integration)", () => {
 
     const members = await repo.listMembers(householdId);
     expect(members).toHaveLength(0);
+  });
+
+  it("upsertSharedProfile (aggregate) → findSharedProfile returns the record", async () => {
+    const now = new Date();
+    const householdId = crypto.randomUUID();
+    await repo.createHousehold({ id: householdId, name: "Lar I", createdByUserId: userAId, now });
+    await repo.addMember({ householdId, userId: userAId, role: "admin", now });
+
+    const profile = await profiles.ensurePfProfile(userAId, now);
+
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userAId,
+      profileId: profile.id,
+      shareLevel: "aggregate",
+      now,
+    });
+
+    const found = await repo.findSharedProfile(householdId, profile.id);
+    expect(found).not.toBeNull();
+    expect(found?.householdId).toBe(householdId);
+    expect(found?.userId).toBe(userAId);
+    expect(found?.profileId).toBe(profile.id);
+    expect(found?.shareLevel).toBe("aggregate");
+  });
+
+  it("re-upsert with detail level updates shareLevel", async () => {
+    const now = new Date();
+    const householdId = crypto.randomUUID();
+    await repo.createHousehold({ id: householdId, name: "Lar J", createdByUserId: userAId, now });
+    await repo.addMember({ householdId, userId: userAId, role: "admin", now });
+
+    const profile = await profiles.ensurePfProfile(userAId, now);
+
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userAId,
+      profileId: profile.id,
+      shareLevel: "aggregate",
+      now,
+    });
+
+    const later = new Date(now.getTime() + 1000);
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userAId,
+      profileId: profile.id,
+      shareLevel: "detail",
+      now: later,
+    });
+
+    const found = await repo.findSharedProfile(householdId, profile.id);
+    expect(found?.shareLevel).toBe("detail");
+  });
+
+  it("listSharedProfilesForUser returns only the user's shares", async () => {
+    const now = new Date();
+    const householdId = crypto.randomUUID();
+    await repo.createHousehold({ id: householdId, name: "Lar K", createdByUserId: userAId, now });
+    await repo.addMember({ householdId, userId: userAId, role: "admin", now });
+    await repo.addMember({ householdId, userId: userBId, role: "member", now });
+
+    const profileA = await profiles.ensurePfProfile(userAId, now);
+    const profileB = await profiles.ensurePfProfile(userBId, now);
+
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userAId,
+      profileId: profileA.id,
+      shareLevel: "aggregate",
+      now,
+    });
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userBId,
+      profileId: profileB.id,
+      shareLevel: "detail",
+      now,
+    });
+
+    const sharesForA = await repo.listSharedProfilesForUser(householdId, userAId);
+    expect(sharesForA).toHaveLength(1);
+    expect(sharesForA[0]?.userId).toBe(userAId);
+
+    const sharesForB = await repo.listSharedProfilesForUser(householdId, userBId);
+    expect(sharesForB).toHaveLength(1);
+    expect(sharesForB[0]?.userId).toBe(userBId);
+  });
+
+  it("removeSharedProfile deletes the record", async () => {
+    const now = new Date();
+    const householdId = crypto.randomUUID();
+    await repo.createHousehold({ id: householdId, name: "Lar L", createdByUserId: userAId, now });
+    await repo.addMember({ householdId, userId: userAId, role: "admin", now });
+
+    const profile = await profiles.ensurePfProfile(userAId, now);
+
+    await repo.upsertSharedProfile({
+      householdId,
+      userId: userAId,
+      profileId: profile.id,
+      shareLevel: "aggregate",
+      now,
+    });
+
+    await repo.removeSharedProfile(householdId, profile.id);
+
+    const found = await repo.findSharedProfile(householdId, profile.id);
+    expect(found).toBeNull();
   });
 });
