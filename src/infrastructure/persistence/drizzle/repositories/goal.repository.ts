@@ -12,7 +12,7 @@ function rowToEntity(row: GoalRow): GoalEntity {
   return {
     id: row.id,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     type: row.type,
     title: row.title,
     status: row.status,

@@ -13,29 +13,34 @@ import { closeDb, getDb } from "../client";
 
 import { DebtPaymentRepository } from "./debt-payment.repository";
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-payment-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-payment-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const debts = new DebtRepository();
 const repo = new DebtPaymentRepository();
 
 let userId: string;
+let profileId: string;
 let debtId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   const annual = InterestRate.fromAnnual(0.1);
   if (!isOk(annual)) throw new Error("rate fixture");
   const debt: FinancingDebt = {
     id: randomUUID(),
     userId,
-    profileId: userId,
+    profileId,
     label: `${LABEL_PREFIX}financing`,
     kind: "financing",
     status: "active",

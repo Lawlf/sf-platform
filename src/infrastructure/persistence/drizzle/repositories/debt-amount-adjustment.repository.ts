@@ -20,7 +20,7 @@ function rowToEntity(row: DebtAmountAdjustmentRow): DebtAmountAdjustmentEntity {
     id: row.id,
     debtId: row.debtId,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     amount: Money.fromCents(row.amountCents, row.currency as Currency),
     note: row.note,
     createdAt: row.createdAt,

@@ -26,7 +26,7 @@ function rowToEntity(row: DebtRow): DebtEntity {
   const base = {
     id: row.id,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     label: row.label,
     status: row.status,
     originalPrincipal: Money.fromCents(row.originalPrincipalCents, row.currency as Currency),

@@ -14,7 +14,7 @@ function rowToEntity(row: GoalContributionRow): GoalContributionEntity {
     id: row.id,
     goalId: row.goalId,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     amountCents: row.amountCents,
     createdAt: row.createdAt,
   };

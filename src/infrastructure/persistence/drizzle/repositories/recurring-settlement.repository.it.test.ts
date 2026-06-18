@@ -10,6 +10,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { closeDb, getDb } from "../client";
 
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { RecurringSettlementRepository } from "./recurring-settlement.repository";
 import { UserRepository } from "./user.repository";
 
@@ -17,17 +18,19 @@ const TEST_EMAIL = "it-test-recurring-settlement-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-recurring-settlement-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const debts = new DebtRepository();
 const repo = new RecurringSettlementRepository();
 
 let userId: string;
+let profileId: string;
 let debtId: string;
 
 function makeRecurringDebt(id: string, label: string): RecurringDebt {
   return {
     id,
     userId,
-    profileId: userId,
+    profileId,
     label,
     kind: "recurring",
     status: "active",
@@ -50,6 +53,8 @@ beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   debtId = randomUUID();
   await debts.create(makeRecurringDebt(debtId, `${LABEL_PREFIX}commitment`));
@@ -71,7 +76,7 @@ function makeSettlement(
 ): RecurringSettlementEntity {
   return {
     userId,
-    profileId: userId,
+    profileId,
     debtId,
     month: new Date("2026-03-01T00:00:00Z"),
     status: "converted_to_debt",

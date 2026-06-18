@@ -8,18 +8,23 @@ import type { GoalEntity } from "@/domain/entities/goal.entity";
 import { closeDb, getDb } from "../client";
 
 import { GoalRepository } from "./goal.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-goal-user@saborfinanceiro.com.br";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new GoalRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {
@@ -38,7 +43,7 @@ function makeGoal(overrides: Partial<Omit<GoalEntity, "createdAt" | "updatedAt">
   return {
     id: randomUUID(),
     userId,
-    profileId: userId,
+    profileId,
     type: "savings",
     title: "Reserva de emergencia",
     status: "active",

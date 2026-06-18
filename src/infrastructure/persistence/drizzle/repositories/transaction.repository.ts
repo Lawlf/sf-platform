@@ -18,7 +18,7 @@ function rowToEntity(row: TransactionRow): TransactionEntity {
   return {
     id: row.id,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     direction: row.direction as TransactionDirection,
     amount: Money.fromCents(row.amountCents, row.currency as Currency),
     description: row.description,
@@ -54,7 +54,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
 
 export class TransactionRepository implements TransactionRepositoryPort {
   async create(transaction: Omit<TransactionEntity, "createdAt">): Promise<TransactionEntity> {
-    // Idempotente no índice parcial (user_id, external_id): em uma corrida de
+    // Idempotente no índice parcial (profile_id, external_id): em uma corrida de
     // double-commit do OFX o segundo insert do mesmo fitId vira no-op em vez de
     // duplicar. Lançamentos manuais (external_id nulo) não batem no índice e
     // seguem o insert normal.
@@ -73,7 +73,7 @@ export class TransactionRepository implements TransactionRepositoryPort {
         .from(transactions)
         .where(
           and(
-            eq(transactions.userId, transaction.userId),
+            eq(transactions.profileId, transaction.profileId),
             eq(transactions.externalId, transaction.externalId),
           ),
         )

@@ -116,7 +116,7 @@ function toEntity(row: AssetRow): AssetEntity {
   return {
     id: row.id,
     userId: row.userId,
-    profileId: row.profileId ?? row.userId,
+    profileId: row.profileId,
     category: row.category as AssetCategory,
     label: row.label,
     currentValue: Money.fromCents(row.currentValueCents, row.currency as Currency),

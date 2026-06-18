@@ -8,6 +8,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 
 import { closeDb, getDb } from "../client";
 
+import { ProfileRepository } from "./profile.repository";
 import { TransactionRepository } from "./transaction.repository";
 import { UserRepository } from "./user.repository";
 
@@ -15,6 +16,7 @@ const TEST_EMAIL = "it-test-transaction-user@saborfinanceiro.com.br";
 const DESC_PREFIX = "it-test-transaction-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new TransactionRepository();
 let userId: string;
 let profileId: string;
@@ -23,7 +25,8 @@ beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
-  profileId = userId;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {

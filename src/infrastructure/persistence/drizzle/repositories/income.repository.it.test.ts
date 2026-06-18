@@ -9,19 +9,24 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { closeDb, getDb } from "../client";
 
 import { IncomeRepository } from "./income.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-income-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-income-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new IncomeRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {
@@ -37,7 +42,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: randomUUID(),
     userId,
-    profileId: userId,
+    profileId,
     label: `${LABEL_PREFIX}salario`,
     amount: Money.fromCents(500_000n),
     frequency: "monthly",

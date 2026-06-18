@@ -6,18 +6,23 @@ import type { MonthClosingEntity } from "@/domain/entities/month-closing.entity"
 import { closeDb, getDb } from "../client";
 
 import { MonthClosingRepository } from "./month-closing.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-month-closing-user@saborfinanceiro.com.br";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new MonthClosingRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {
@@ -33,7 +38,7 @@ afterAll(async () => {
 function makeClosing(overrides: Partial<MonthClosingEntity> = {}): MonthClosingEntity {
   return {
     userId,
-    profileId: userId,
+    profileId,
     month: new Date("2026-01-01T00:00:00Z"),
     baselineNetWorthCents: 100_000n,
     endNetWorthCents: 150_000n,

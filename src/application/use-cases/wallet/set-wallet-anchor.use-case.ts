@@ -16,6 +16,7 @@ export interface SetWalletAnchorDeps {
 
 export interface SetWalletAnchorInput {
   userId: string;
+  profileId: string;
   valueCents: bigint;
 }
 
@@ -23,13 +24,12 @@ export async function setWalletAnchor(
   deps: SetWalletAnchorDeps,
   input: SetWalletAnchorInput,
 ): Promise<Result<{ walletId: string }, NoWalletError>> {
-  const profileId = input.userId;
-  const cash = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
+  const cash = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
   let wallet = cash.find((a) => a.label === "Carteira");
   if (!wallet) {
-    const fresh = buildDefaultWallet(input.userId, profileId, crypto.randomUUID(), deps.clock.now());
+    const fresh = buildDefaultWallet(input.userId, input.profileId, crypto.randomUUID(), deps.clock.now());
     await deps.assets.createDefaultWallet(fresh);
-    const after = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
+    const after = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
     wallet = after.find((a) => a.label === "Carteira") ?? fresh;
   }
 
