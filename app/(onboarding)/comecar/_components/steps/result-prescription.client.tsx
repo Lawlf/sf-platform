@@ -116,7 +116,7 @@ export function ResultPrescription({
         <div className="flex flex-col gap-3">
           <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-              O que você deve hoje
+              O total que você deve
             </p>
             <p
               className={`mt-1 text-[2rem] font-extrabold leading-none ${

@@ -40,7 +40,7 @@ export function HouseholdGapHero({ gap }: Props) {
 
   return (
     <section
-      aria-label="Quanto falta a casa fechar no mês"
+      aria-label="Sobra ou falta do mês da casa"
       className={`flex flex-col gap-4 rounded-2xl border p-5 ${
         covered
           ? "border-[color:var(--semantic-positive,#16a34a)]/30 bg-[color:var(--semantic-positive,#16a34a)]/[0.04]"

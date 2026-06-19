@@ -34,8 +34,8 @@ interface Props {
 
 function profileTypeLabel(profile: ProfileItem): string {
   if (profile.type === "PF") return "Pessoal";
-  if (profile.taxClassification === "mei") return "Empresa · MEI";
-  return "Empresa";
+  if (profile.taxClassification === "mei") return "Negócio · MEI";
+  return "Negócio";
 }
 
 function isMei(profile: ProfileItem): boolean {
@@ -96,7 +96,7 @@ export function ProfilesManager({ profiles, activeProfileId }: Props) {
     });
   }
 
-  const deleteTargetName = deleteTarget?.displayName ?? (deleteTarget?.type === "PJ_MEI" ? "Empresa" : "Pessoal");
+  const deleteTargetName = deleteTarget?.displayName ?? (deleteTarget?.type === "PJ_MEI" ? "Negócio" : "Pessoal");
   const deleteConfirmMatch = deleteConfirm.trim() === deleteTargetName;
 
   return (

@@ -272,7 +272,7 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
           { label: "Nome", value: values.label || "Sem nome" },
           { label: "Tipo", value: "Cheque especial" },
           { label: "Banco", value: values.bankName || "Sem banco" },
-          { label: "Quanto falta", value: formatAmount(values.currentBalanceCents, currency) },
+          { label: "Quanto falta pagar", value: formatAmount(values.currentBalanceCents, currency) },
           { label: "Taxa", value: `${values.monthlyRatePct}% por mês` },
         ]}
       />

@@ -31,7 +31,7 @@ export const ongoingScenarioSchema = z
     // (original - pago) no form. Guardamos os dois: o pago valida a entrada,
     // o saldo é o que o servidor consome.
     amountPaidCents: z.bigint().nonnegative("O quanto você já pagou não pode ser negativo."),
-    currentBalanceCents: z.bigint().positive("Saldo devedor deve ser positivo."),
+    currentBalanceCents: z.bigint().positive("O valor que falta pagar deve ser positivo."),
     annualRatePct: z.number().min(0).max(200),
     paidInstallments: z.number().int().min(0).max(600),
     remainingTerms: z.number().int().min(1, "Informe quantas parcelas faltam.").max(600),
