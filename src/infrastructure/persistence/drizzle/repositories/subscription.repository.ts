@@ -1,4 +1,4 @@
-import { and, eq, gte, isNotNull, lt, sql } from "drizzle-orm";
+import { and, eq, gte, inArray, isNotNull, lt, sql } from "drizzle-orm";
 
 import type {
   PaymentProvider,
@@ -72,6 +72,19 @@ export class SubscriptionRepository implements SubscriptionRepositoryPort {
       ACTIVE_STATUSES.includes(r.status as (typeof ACTIVE_STATUSES)[number]),
     );
     return active ? toEntity(active) : null;
+  }
+
+  async findLiveByProvider(provider: PaymentProvider): Promise<Subscription[]> {
+    const rows = await getDb()
+      .select()
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.provider, provider),
+          inArray(subscriptions.status, ["active", "past_due", "paused", "incomplete"]),
+        ),
+      );
+    return rows.map(toEntity);
   }
 
   async findAllByUserId(userId: string): Promise<Subscription[]> {

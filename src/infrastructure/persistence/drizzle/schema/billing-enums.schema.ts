@@ -1,6 +1,6 @@
 import { pgEnum } from "drizzle-orm/pg-core";
 
-export const paymentProvider = pgEnum("payment_provider", ["manual", "stripe"]);
+export const paymentProvider = pgEnum("payment_provider", ["manual", "stripe", "google_play"]);
 
 export const subscriptionStatus = pgEnum("subscription_status", [
   "incomplete",

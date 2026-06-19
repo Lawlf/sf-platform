@@ -5,7 +5,7 @@ export type SubscriptionStatus =
   | "canceled"
   | "paused";
 
-export type PaymentProvider = "manual" | "stripe";
+export type PaymentProvider = "manual" | "stripe" | "google_play";
 
 const GRACE_PERIOD_MS = 3 * 24 * 60 * 60 * 1000;
 

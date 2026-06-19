@@ -58,6 +58,35 @@ VALUES
     '["historico_ilimitado", "simulacoes", "relatorios", "exportacao", "vitalicio"]'::jsonb,
     true,
     30
+  ),
+  -- Google Play (assinatura in-app no Android via TWA). provider_price_id = SKU
+  -- criado no Play Console. Mapeado por findByProviderPriceId(google_play, sku).
+  -- Rode este seed so DEPOIS de aplicar a migration 0073 (ADD VALUE 'google_play').
+  (
+    'pro-monthly-android',
+    'PRO Mensal',
+    'google_play',
+    'pro_monthly',
+    'pro_monthly',
+    1990,
+    'BRL',
+    'month',
+    '["historico_ilimitado", "simulacoes", "relatorios", "exportacao"]'::jsonb,
+    true,
+    11
+  ),
+  (
+    'pro-yearly-android',
+    'PRO Anual',
+    'google_play',
+    'pro_annual',
+    'pro_annual',
+    19900,
+    'BRL',
+    'year',
+    '["historico_ilimitado", "simulacoes", "relatorios", "exportacao"]'::jsonb,
+    true,
+    21
   )
 ON CONFLICT (slug) DO UPDATE SET
   name = EXCLUDED.name,
