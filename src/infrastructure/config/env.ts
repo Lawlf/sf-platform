@@ -22,8 +22,6 @@ const envSchema = z.object({
   UPSTASH_REDIS_REST_TOKEN: emptyToUndefined,
   SENTRY_DSN: emptyToUndefined,
   PLAUSIBLE_DOMAIN: emptyToUndefined,
-  // Cotação de ações (brapi.dev). Opcional: sem token, a UI degrada graciosamente.
-  BRAPI_TOKEN: emptyToUndefined,
   // Segredo do cron para a rota de atualização diária de cotações.
   CRON_SECRET: emptyToUndefined,
   EXCHANGE_RATE_API_URL: emptyToUndefined,
@@ -51,6 +49,12 @@ const envSchema = z.object({
   R2_ACCESS_KEY: emptyToUndefined,
   R2_SECRET: emptyToUndefined,
   R2_BUCKET: emptyToUndefined,
+
+  // Digital Asset Links da TWA (app Android via PWABuilder). Sem isto a TWA abre
+  // com a barra de URL do Chrome visível. Fingerprint SHA-256 sai do keystore que
+  // o PWABuilder gera no empacotamento; preencher depois do primeiro build.
+  ANDROID_PACKAGE_NAME: emptyToUndefined,
+  ANDROID_CERT_SHA256: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
