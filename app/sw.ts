@@ -4,6 +4,11 @@ import type { PrecacheEntry, RuntimeCaching, SerwistGlobalConfig } from "serwist
 import { ExpirationPlugin, NetworkFirst, Serwist } from "serwist";
 
 import { OFFLINE_FALLBACK_HTML } from "./offline-fallback-html";
+import {
+  OFX_SHARE_CACHE,
+  OFX_SHARE_STASH_URL,
+  OFX_SHARE_TARGET_PATH,
+} from "./ofx-share-target";
 
 declare global {
   interface WorkerGlobalScope extends SerwistGlobalConfig {
@@ -50,6 +55,35 @@ serwist.setCatchHandler(async ({ request }) => {
     });
   }
   return Response.error();
+});
+
+// Share Target: o SO faz POST multipart pra este path quando o usuário
+// compartilha um OFX. O SW guarda o conteúdo no Cache e redireciona pra página,
+// que lê o stash no client. Precede o fetch handler do serwist (registrado em
+// addEventListeners) pra capturar o POST antes do cache de navegação.
+async function stashSharedOfx(request: Request): Promise<Response> {
+  const formData = await request.formData();
+  const files = formData.getAll("file").filter((f): f is File => f instanceof File);
+  const items = await Promise.all(
+    files.map(async (f) => ({ name: f.name, text: await f.text() })),
+  );
+  const cache = await caches.open(OFX_SHARE_CACHE);
+  await cache.put(
+    OFX_SHARE_STASH_URL,
+    new Response(JSON.stringify(items), {
+      headers: { "Content-Type": "application/json" },
+    }),
+  );
+  const target = new URL(`${OFX_SHARE_TARGET_PATH}?shared=1`, self.location.origin);
+  return Response.redirect(target.toString(), 303);
+}
+
+self.addEventListener("fetch", (event) => {
+  if (event.request.method !== "POST") return;
+  const url = new URL(event.request.url);
+  if (url.pathname === OFX_SHARE_TARGET_PATH) {
+    event.respondWith(stashSharedOfx(event.request));
+  }
 });
 
 serwist.addEventListeners();

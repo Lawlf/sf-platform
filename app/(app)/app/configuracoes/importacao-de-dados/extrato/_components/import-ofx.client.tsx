@@ -3,15 +3,38 @@
 import { Check, ChevronDown, ChevronUp } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useCallback, useEffect, useState, useTransition } from "react";
 
 import { MoneyInputControlled } from "@/app/(app)/app/_components/money-input-controlled";
+
+import {
+  OFX_SHARE_CACHE,
+  OFX_SHARE_STASH_URL,
+} from "@/app/ofx-share-target";
 
 import {
   commitOfxAction,
   previewOfxAction,
   type SerializablePreview,
 } from "../../_actions";
+
+interface LaunchParams {
+  readonly files: readonly FileSystemFileHandle[];
+}
+
+interface LaunchQueue {
+  setConsumer(consumer: (params: LaunchParams) => void): void;
+}
+
+async function consumeSharedOfx(): Promise<File[]> {
+  if (typeof caches === "undefined") return [];
+  const cache = await caches.open(OFX_SHARE_CACHE);
+  const stashed = await cache.match(OFX_SHARE_STASH_URL);
+  if (!stashed) return [];
+  await cache.delete(OFX_SHARE_STASH_URL);
+  const items = (await stashed.json()) as { name: string; text: string }[];
+  return items.map((i) => new File([i.text], i.name, { type: "application/x-ofx" }));
+}
 
 type Step = "upload" | "review" | "done";
 
@@ -383,29 +406,55 @@ export function ImportOfx({ connectedAccounts }: { connectedAccounts: ConnectedA
   const [error, setError] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  const ingestFiles = useCallback(
+    (files: File[]) => {
+      if (files.length === 0) return;
+
+      setError(null);
+
+      void Promise.all(files.map((f) => f.text())).then((texts) => {
+        setContents(texts);
+
+        const fd = new FormData();
+        for (const f of files) fd.append("file", f);
+
+        startTransition(async () => {
+          const res = await previewOfxAction(fd);
+          if (res.ok) {
+            setPreview(res.preview);
+            setStep("review");
+          } else {
+            setError(res.message);
+          }
+        });
+      });
+    },
+    [startTransition],
+  );
+
   function handleFilesChange(e: React.ChangeEvent<HTMLInputElement>) {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
+    ingestFiles(Array.from(e.target.files ?? []));
+    e.target.value = "";
+  }
 
-    setError(null);
+  useEffect(() => {
+    void consumeSharedOfx().then((files) => {
+      if (files.length > 0) ingestFiles(files);
+    });
 
-    Promise.all(files.map((f) => f.text())).then((texts) => {
-      setContents(texts);
+    const url = new URL(window.location.href);
+    if (url.searchParams.has("shared")) {
+      url.searchParams.delete("shared");
+      window.history.replaceState(null, "", `${url.pathname}${url.search}`);
+    }
 
-      const fd = new FormData();
-      for (const f of files) fd.append("file", f);
-
-      startTransition(async () => {
-        const res = await previewOfxAction(fd);
-        if (res.ok) {
-          setPreview(res.preview);
-          setStep("review");
-        } else {
-          setError(res.message);
-        }
+    const launchQueue = (window as Window & { launchQueue?: LaunchQueue }).launchQueue;
+    launchQueue?.setConsumer((params) => {
+      void Promise.all(params.files.map((handle) => handle.getFile())).then((files) => {
+        if (files.length > 0) ingestFiles(files);
       });
     });
-  }
+  }, [ingestFiles]);
 
   if (step === "done" && receipt !== null) {
     const accountWorth = receipt.ledgerBalance + (receipt.reserveValue ?? 0);
