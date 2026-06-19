@@ -1,5 +1,10 @@
 import type { MetadataRoute } from "next";
 
+import {
+  OFX_SHARE_ACCEPT,
+  OFX_SHARE_TARGET_PATH,
+} from "./ofx-share-target";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/app",
@@ -17,6 +22,24 @@ export default function manifest(): MetadataRoute.Manifest {
     dir: "ltr",
     orientation: "portrait",
     categories: ["finance", "productivity", "education"],
+    file_handlers: [
+      {
+        action: OFX_SHARE_TARGET_PATH,
+        accept: {
+          "application/x-ofx": [".ofx"],
+          "text/x-ofx": [".ofx"],
+          "application/octet-stream": [".ofx"],
+        },
+      },
+    ],
+    share_target: {
+      action: OFX_SHARE_TARGET_PATH,
+      method: "POST",
+      enctype: "multipart/form-data",
+      params: {
+        files: [{ name: "file", accept: OFX_SHARE_ACCEPT }],
+      },
+    },
     shortcuts: [
       {
         name: "Dívidas",
