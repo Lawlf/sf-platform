@@ -308,4 +308,134 @@ describe("buildHouseholdGap", () => {
     expect(result.value.gapCents).toBe(0n);
     expect(result.value.porMembro).toHaveLength(0);
   });
+
+  it("suggestedShareCents e proporcional a renda quando ha gap e 2+ membros com renda", async () => {
+    const share1 = makeShare({ profileId: "p1", userId: "u1" });
+    const share2 = makeShare({ profileId: "p2", userId: "u2" });
+
+    const income1 = makeIncome("i1", "u1", "p1", 6000);
+    const income2 = makeIncome("i2", "u2", "p2", 4000);
+
+    const debt1 = makeRecurringDebt("d1", "u1", "p1", 500);
+    const debt2 = makeRecurringDebt("d2", "u2", "p2", 500);
+
+    const deps = makeDeps({
+      membership: makeMembership("u1"),
+      sharedProfiles: [share1, share2],
+      members: [makeMembership("u1"), makeMembership("u2")],
+      incomesPerProfile: { p1: [income1], p2: [income2] },
+      debtsPerProfile: { p1: [debt1], p2: [debt2] },
+    });
+
+    const result = await buildHouseholdGap(deps, { householdId: "h1", userId: "u1" });
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+
+    const gap = result.value;
+    // custosGarantidos = 500 + 500 = 1000 reais (100_000 centavos)
+    // jaRecebido = 0, aReceberConfirmado = 6000+4000 = 10000 reais (1_000_000 centavos)
+    // gapCents = 100_000 - 0 - 1_000_000 = -900_000 (coberto)
+    // gap coberto => suggestedShareCents null
+    const m1 = gap.porMembro.find((m) => m.profileId === "p1");
+    const m2 = gap.porMembro.find((m) => m.profileId === "p2");
+    expect(m1?.suggestedShareCents).toBeNull();
+    expect(m2?.suggestedShareCents).toBeNull();
+  });
+
+  it("suggestedShareCents e proporcional quando gap > 0 e 2 membros com renda positiva", async () => {
+    const share1 = makeShare({ profileId: "p1", userId: "u1" });
+    const share2 = makeShare({ profileId: "p2", userId: "u2" });
+
+    const income1 = makeIncome("i1", "u1", "p1", 6000);
+    const income2 = makeIncome("i2", "u2", "p2", 4000);
+
+    const settlement1: IncomeSettlementEntity = {
+      userId: "u1",
+      profileId: "p1",
+      incomeId: "i1",
+      month: NOW,
+      status: "received",
+      adjustedAmountCents: null,
+      createdAt: NOW,
+    };
+    const settlement2: IncomeSettlementEntity = {
+      userId: "u2",
+      profileId: "p2",
+      incomeId: "i2",
+      month: NOW,
+      status: "received",
+      adjustedAmountCents: null,
+      createdAt: NOW,
+    };
+
+    const debt = makeRecurringDebt("d1", "u1", "p1", 20000);
+
+    const deps = makeDeps({
+      membership: makeMembership("u1"),
+      sharedProfiles: [share1, share2],
+      members: [makeMembership("u1"), makeMembership("u2")],
+      incomesPerProfile: { p1: [income1], p2: [income2] },
+      debtsPerProfile: { p1: [debt] },
+      settlementsPerProfile: { p1: [settlement1], p2: [settlement2] },
+    });
+
+    const result = await buildHouseholdGap(deps, { householdId: "h1", userId: "u1" });
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+
+    const gap = result.value;
+    // custosGarantidos = 20000 reais = 2_000_000 centavos
+    // jaRecebido = 6000+4000 = 10000 reais = 1_000_000 centavos
+    // gap = 2_000_000 - 1_000_000 = 1_000_000 centavos positivo
+    expect(gap.gapCents).toBe(1_000_000n);
+
+    const m1 = gap.porMembro.find((m) => m.profileId === "p1");
+    const m2 = gap.porMembro.find((m) => m.profileId === "p2");
+
+    // totalRenda = 6000+4000 = 10000 reais (ambas recebidas)
+    // p1 = 6000/10000 * 1_000_000 = 600_000
+    // p2 (ultimo) = 1_000_000 - 600_000 = 400_000
+    expect(m1?.suggestedShareCents).toBe(600_000n);
+    expect(m2?.suggestedShareCents).toBe(400_000n);
+    // soma bate exatamente com o gap
+    expect((m1?.suggestedShareCents ?? 0n) + (m2?.suggestedShareCents ?? 0n)).toBe(gap.gapCents);
+  });
+
+  it("suggestedShareCents e null quando so 1 membro tem renda", async () => {
+    const share1 = makeShare({ profileId: "p1", userId: "u1" });
+    const share2 = makeShare({ profileId: "p2", userId: "u2" });
+
+    const income1 = makeIncome("i1", "u1", "p1", 6000);
+
+    const settlement1: IncomeSettlementEntity = {
+      userId: "u1",
+      profileId: "p1",
+      incomeId: "i1",
+      month: NOW,
+      status: "received",
+      adjustedAmountCents: null,
+      createdAt: NOW,
+    };
+
+    const debt = makeRecurringDebt("d1", "u1", "p1", 10000);
+
+    const deps = makeDeps({
+      membership: makeMembership("u1"),
+      sharedProfiles: [share1, share2],
+      members: [makeMembership("u1"), makeMembership("u2")],
+      incomesPerProfile: { p1: [income1] },
+      debtsPerProfile: { p1: [debt] },
+      settlementsPerProfile: { p1: [settlement1] },
+    });
+
+    const result = await buildHouseholdGap(deps, { householdId: "h1", userId: "u1" });
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+
+    const gap = result.value;
+    expect(gap.gapCents > 0n).toBe(true);
+    for (const m of gap.porMembro) {
+      expect(m.suggestedShareCents).toBeNull();
+    }
+  });
 });

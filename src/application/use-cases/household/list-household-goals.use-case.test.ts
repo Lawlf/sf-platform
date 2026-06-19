@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 
+import type { GoalContributionEntity } from "@/domain/entities/goal-contribution.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
 import type { HouseholdMemberEntity } from "@/domain/entities/household.entity";
 import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
@@ -44,9 +45,24 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   };
 }
 
+function makeContribution(
+  overrides: Partial<GoalContributionEntity> = {},
+): GoalContributionEntity {
+  return {
+    id: "c1",
+    goalId: "g1",
+    userId: "u1",
+    profileId: "p1",
+    amountCents: 1_000_00n,
+    createdAt: NOW,
+    ...overrides,
+  };
+}
+
 function makeDeps(
   member: HouseholdMemberEntity | null,
   householdGoals: GoalEntity[],
+  contributions: GoalContributionEntity[] = [],
 ): ListHouseholdGoalsDeps {
   const households: Pick<HouseholdRepositoryPort, "findMembership"> = {
     findMembership: vi.fn(async () => member),
@@ -57,7 +73,8 @@ function makeDeps(
   return {
     households: households as unknown as HouseholdRepositoryPort,
     goals: goals as unknown as GoalRepositoryPort,
-    contributions: { listForGoal: vi.fn(async () => []) },
+    contributions: { listForGoal: vi.fn(async () => contributions) },
+    now: () => NOW,
   };
 }
 
@@ -114,6 +131,101 @@ describe("listHouseholdGoals", () => {
     expect(isOk(r)).toBe(true);
     if (isOk(r)) {
       expect(r.value).toHaveLength(0);
+    }
+  });
+
+  it("etaMonths e null quando nao ha contribuicoes", async () => {
+    const member = makeMember();
+    const goal = makeGoal({ manualSavedCents: 100_000_00n, targetCents: 500_000_00n });
+    const deps = makeDeps(member, [goal], []);
+
+    const r = await listHouseholdGoals(deps, { householdId: "h1", userId: "u1" });
+
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      expect(r.value[0]!.etaMonths).toBeNull();
+    }
+  });
+
+  it("etaMonths e null quando targetCents e null", async () => {
+    const member = makeMember();
+    const goal = makeGoal({ targetCents: null, manualSavedCents: 50_000n });
+    const c = makeContribution({ amountCents: 50_000n });
+    const deps = makeDeps(member, [goal], [c]);
+
+    const r = await listHouseholdGoals(deps, { householdId: "h1", userId: "u1" });
+
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      expect(r.value[0]!.etaMonths).toBeNull();
+    }
+  });
+
+  it("etaMonths calculado a partir do ritmo de contribuicoes em meses distintos", async () => {
+    const member = makeMember();
+    const goal = makeGoal({
+      manualSavedCents: 20_000_00n,
+      targetCents: 100_000_00n,
+    });
+
+    const MAY = new Date("2026-05-10T10:00:00Z");
+    const APR = new Date("2026-04-10T10:00:00Z");
+
+    const c1 = makeContribution({ id: "c1", amountCents: 5_000_00n, createdAt: APR });
+    const c2 = makeContribution({ id: "c2", amountCents: 5_000_00n, createdAt: MAY });
+
+    const deps = makeDeps(member, [goal], [c1, c2]);
+
+    const r = await listHouseholdGoals(deps, { householdId: "h1", userId: "u1" });
+
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      const view = r.value[0]!;
+      // Ritmo: 1_000_000 / 3 meses (abr + mai + jun=NOW) = 333_333 centavos/mes (bigint)
+      // Faltam: 10_000_000 - 2_000_000 = 8_000_000 centavos
+      // etaMonths = ceil(8_000_000 / 333_333) = 25
+      expect(view.etaMonths).toBe(25);
+    }
+  });
+
+  it("etaMonths e 0 quando meta ja esta completa", async () => {
+    const member = makeMember();
+    const goal = makeGoal({
+      manualSavedCents: 100_000_00n,
+      targetCents: 100_000_00n,
+    });
+    const c = makeContribution({ amountCents: 100_000_00n, createdAt: NOW });
+    const deps = makeDeps(member, [goal], [c]);
+
+    const r = await listHouseholdGoals(deps, { householdId: "h1", userId: "u1" });
+
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      expect(r.value[0]!.etaMonths).toBe(0);
+    }
+  });
+
+  it("contribuicoes no mesmo mes contam como 1 mes distinto", async () => {
+    const member = makeMember();
+    const goal = makeGoal({
+      manualSavedCents: 10_000_00n,
+      targetCents: 50_000_00n,
+    });
+
+    const c1 = makeContribution({ id: "c1", amountCents: 5_000_00n, createdAt: NOW });
+    const c2 = makeContribution({ id: "c2", amountCents: 5_000_00n, createdAt: NOW });
+
+    const deps = makeDeps(member, [goal], [c1, c2]);
+
+    const r = await listHouseholdGoals(deps, { householdId: "h1", userId: "u1" });
+
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      const view = r.value[0]!;
+      // Ritmo: 10.000 / 1 mes = 10.000/mes
+      // Faltam: 50.000 - 10.000 = 40.000
+      // etaMonths = ceil(40.000 / 10.000) = 4
+      expect(view.etaMonths).toBe(4);
     }
   });
 });

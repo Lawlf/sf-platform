@@ -334,6 +334,7 @@ export interface SerializedHouseholdGoal {
   savedCents: string;
   targetCents: string | null;
   progressPct: number | null;
+  etaMonths: number | null;
 }
 
 export async function fetchHouseholdGoals(
@@ -343,13 +344,13 @@ export async function fetchHouseholdGoals(
   if (!user) return null;
 
   const result = await listHouseholdGoals(
-    { households: repos.households, goals: repos.goals, contributions: repos.goalContributions },
+    { households: repos.households, goals: repos.goals, contributions: repos.goalContributions, now: () => clock.now() },
     { householdId, userId: user.id },
   );
 
   if (!isOk(result)) return null;
 
-  return result.value.map(({ goal, savedCents, targetCents, progressPct }) => ({
+  return result.value.map(({ goal, savedCents, targetCents, progressPct, etaMonths }) => ({
     id: goal.id,
     title: goal.title,
     savedBrl: formatCents(savedCents),
@@ -357,6 +358,7 @@ export async function fetchHouseholdGoals(
     savedCents: savedCents.toString(),
     targetCents: targetCents !== null ? targetCents.toString() : null,
     progressPct,
+    etaMonths,
   }));
 }
 
@@ -380,7 +382,7 @@ export async function fetchMyHouseholdGoals(): Promise<SerializedHouseholdGoalFo
   const perHousehold = await Promise.all(
     households.map(async (h) => {
       const result = await listHouseholdGoals(
-        { households: repos.households, goals: repos.goals, contributions: repos.goalContributions },
+        { households: repos.households, goals: repos.goals, contributions: repos.goalContributions, now: () => clock.now() },
         { householdId: h.id, userId: user.id },
       );
       if (!isOk(result)) return [];
@@ -411,6 +413,7 @@ export interface HouseholdGapMemberPayload {
   displayName: string | null;
   jaRecebidoBrl: string;
   aReceberConfirmadoBrl: string;
+  suggestedShareBrl: string | null;
 }
 
 export interface HouseholdGapPayload {
@@ -477,6 +480,7 @@ export async function fetchHouseholdGap(householdId: string): Promise<HouseholdG
         displayName: pm.displayName,
         jaRecebidoBrl: formatCents(pm.jaRecebidoCents),
         aReceberConfirmadoBrl: formatCents(pm.aReceberConfirmadoCents),
+        suggestedShareBrl: pm.suggestedShareCents !== null ? formatCents(pm.suggestedShareCents) : null,
       })),
     },
   };

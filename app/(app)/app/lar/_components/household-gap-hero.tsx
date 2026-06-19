@@ -22,11 +22,21 @@ function memberHasActivity(member: HouseholdGapMemberPayload): boolean {
   return !brlIsZero(member.jaRecebidoBrl) || !brlIsZero(member.aReceberConfirmadoBrl);
 }
 
+function buildSplitLabel(porMembro: HouseholdGapMemberPayload[]): string | null {
+  const withSuggestion = porMembro.filter((m) => m.suggestedShareBrl !== null);
+  if (withSuggestion.length < 2) return null;
+  const parts = withSuggestion
+    .map((m) => `${resolveDisplayName(m)} ~${m.suggestedShareBrl}`)
+    .join(", ");
+  return `Pra cobrir, proporcional à renda: ${parts}. Vocês decidem.`;
+}
+
 export function HouseholdGapHero({ gap }: Props) {
   const gapCentsNum = BigInt(gap.gapCents);
   const covered = gapCentsNum <= 0n;
   const showEstimado = !brlIsZero(gap.aReceberEstimadoBrl);
   const activeMembers = gap.porMembro.filter(memberHasActivity);
+  const splitLabel = covered ? null : buildSplitLabel(gap.porMembro);
 
   return (
     <section
@@ -140,6 +150,10 @@ export function HouseholdGapHero({ gap }: Props) {
             })}
           </div>
         </div>
+      ) : null}
+
+      {splitLabel ? (
+        <p className="text-[0.6875rem] text-[color:var(--text-muted)]">{splitLabel}</p>
       ) : null}
 
       <p className="text-[0.6875rem] text-[color:var(--text-muted)]">

@@ -67,12 +67,12 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
                   aria-checked={active}
                   disabled={pending || active}
                   onClick={() => handleSwitch(profile.id)}
-                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--surface-2)]" : "hover:bg-[color:var(--color-brand-500)]/[0.10]"}`}
+                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
                 >
                   <UserAvatar
                     dataUrl={active ? avatarUrl : undefined}
                     displayName={displayName}
-                    className="flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.75rem] font-bold text-white"
+                    className={`flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.75rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
                   />
                   <span className="flex min-w-0 flex-1 flex-col items-start">
                     <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">

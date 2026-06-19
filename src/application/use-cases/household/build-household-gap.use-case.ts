@@ -41,6 +41,7 @@ export interface HouseholdGapMember {
   displayName: string | null;
   jaRecebidoCents: bigint;
   aReceberConfirmadoCents: bigint;
+  suggestedShareCents: bigint | null;
 }
 
 export interface HouseholdGap {
@@ -50,6 +51,59 @@ export interface HouseholdGap {
   aReceberEstimadoCents: bigint;
   gapCents: bigint;
   porMembro: HouseholdGapMember[];
+}
+
+interface RawMemberForShare {
+  profileId: string;
+  displayName: string | null;
+  jaRecebidoCents: bigint;
+  aReceberConfirmadoCents: bigint;
+}
+
+function computeSuggestedShares(
+  rawMembers: RawMemberForShare[],
+  gapCents: bigint,
+): HouseholdGapMember[] {
+  const membersWithIncome = rawMembers.filter(
+    (m) => m.jaRecebidoCents + m.aReceberConfirmadoCents > 0n,
+  );
+
+  if (gapCents <= 0n || membersWithIncome.length < 2) {
+    return rawMembers.map((m) => ({ ...m, suggestedShareCents: null }));
+  }
+
+  const totalRendaCents = membersWithIncome.reduce(
+    (sum, m) => sum + m.jaRecebidoCents + m.aReceberConfirmadoCents,
+    0n,
+  );
+
+  if (totalRendaCents <= 0n) {
+    return rawMembers.map((m) => ({ ...m, suggestedShareCents: null }));
+  }
+
+  const memberSet = new Set(membersWithIncome.map((m) => m.profileId));
+  let allocated = 0n;
+  const shares: HouseholdGapMember[] = [];
+
+  for (let i = 0; i < rawMembers.length; i++) {
+    const m = rawMembers[i]!;
+    if (!memberSet.has(m.profileId)) {
+      shares.push({ ...m, suggestedShareCents: null });
+      continue;
+    }
+    const isLast = i === rawMembers.length - 1 || !rawMembers.slice(i + 1).some((x) => memberSet.has(x.profileId));
+    let share: bigint;
+    if (isLast) {
+      share = gapCents - allocated;
+    } else {
+      const renda = m.jaRecebidoCents + m.aReceberConfirmadoCents;
+      share = (gapCents * renda) / totalRendaCents;
+      allocated += share;
+    }
+    shares.push({ ...m, suggestedShareCents: share });
+  }
+
+  return shares;
 }
 
 export async function buildHouseholdGap(
@@ -76,7 +130,7 @@ export async function buildHouseholdGap(
   let totalAReceberConfirmado = 0n;
   let totalAReceberEstimado = 0n;
 
-  const porMembro: HouseholdGapMember[] = [];
+  const rawMembers: RawMemberForShare[] = [];
 
   for (const share of activeShares) {
     const [rawDebts, rawIncomes, settlements] = await Promise.all([
@@ -113,7 +167,7 @@ export async function buildHouseholdGap(
 
     const profile = await deps.profiles.findById(share.profileId);
 
-    porMembro.push({
+    rawMembers.push({
       profileId: share.profileId,
       displayName: profile?.displayName ?? null,
       jaRecebidoCents: pieces.jaRecebidoCents,
@@ -122,6 +176,8 @@ export async function buildHouseholdGap(
   }
 
   const gapCents = totalCustos - totalJaRecebido - totalAReceberConfirmado;
+
+  const porMembro: HouseholdGapMember[] = computeSuggestedShares(rawMembers, gapCents);
 
   return ok({
     custosGarantidosCents: totalCustos,

@@ -21,6 +21,18 @@ interface Props {
 
 const MAX_CENTS = 999_999_999_99n;
 
+const PT_BR_MONTHS = [
+  "jan", "fev", "mar", "abr", "mai", "jun",
+  "jul", "ago", "set", "out", "nov", "dez",
+] as const;
+
+function etaLabel(etaMonths: number): string {
+  const target = new Date();
+  target.setMonth(target.getMonth() + etaMonths);
+  const month = PT_BR_MONTHS[target.getMonth()]!;
+  return `${month}/${target.getFullYear()}`;
+}
+
 function useBrlInput() {
   const [cents, setCents] = useState(0n);
 
@@ -148,6 +160,15 @@ function GoalCard({ householdId, goal }: GoalCardProps) {
           </>
         ) : null}
       </div>
+
+      {goal.etaMonths !== null && goal.etaMonths > 0 ? (
+        <p className="text-[0.75rem] text-[color:var(--text-muted)]">
+          No ritmo atual, em{" "}
+          <span className="font-medium text-[color:var(--text-secondary)]">
+            {etaLabel(goal.etaMonths)}
+          </span>
+        </p>
+      ) : null}
 
       <div className="flex items-center gap-2">
         <input
@@ -322,19 +343,27 @@ export function HouseholdFeaturedGoal({ householdId, goal }: FeaturedGoalProps) 
       ) : null}
 
       <div className="flex items-center justify-between gap-2">
-        <span className="text-[0.75rem] text-[color:var(--text-secondary)]">
-          <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
-            <HideableValue>{goal.savedBrl}</HideableValue>
+        <div className="flex min-w-0 flex-1 flex-col gap-0.5">
+          <span className="text-[0.75rem] text-[color:var(--text-secondary)]">
+            <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
+              <HideableValue>{goal.savedBrl}</HideableValue>
+            </span>
+            {goal.targetBrl ? (
+              <>
+                {" "}de{" "}
+                <span className="tabular-nums">
+                  <HideableValue>{goal.targetBrl}</HideableValue>
+                </span>
+              </>
+            ) : null}
           </span>
-          {goal.targetBrl ? (
-            <>
-              {" "}de{" "}
-              <span className="tabular-nums">
-                <HideableValue>{goal.targetBrl}</HideableValue>
-              </span>
-            </>
+          {goal.etaMonths !== null && goal.etaMonths > 0 ? (
+            <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+              No ritmo atual, em{" "}
+              <span className="font-medium">{etaLabel(goal.etaMonths)}</span>
+            </span>
           ) : null}
-        </span>
+        </div>
         <Link
           href={`/app/lar/metas` as Route}
           className="focus-ring shrink-0 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] hover:opacity-80"
