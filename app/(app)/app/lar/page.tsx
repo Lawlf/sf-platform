@@ -5,6 +5,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { PageShell } from "../_components/page-shell";
 import {
   fetchHouseholdGoals,
+  fetchHouseholdInsight,
   fetchHouseholdMembers,
   fetchHouseholdPendingInvites,
   fetchHouseholdSnapshot,
@@ -15,6 +16,7 @@ import {
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
 import { HouseholdGoals } from "./_components/household-goals.client";
+import { HouseholdInsightCard } from "./_components/household-insight-card";
 import { HouseholdJointView } from "./_components/household-joint-view.client";
 import { HouseholdPanel } from "./_components/household-panel.client";
 import { MyProfileSharing } from "./_components/my-profile-sharing.client";
@@ -32,12 +34,13 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, adminPendingInvites, myShares, snapshot, goals] = await Promise.all([
+      const [members, adminPendingInvites, myShares, snapshot, goals, insight] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdPendingInvites(h.id),
         fetchMyShares(h.id),
         fetchHouseholdSnapshot(h.id),
         fetchHouseholdGoals(h.id),
+        fetchHouseholdInsight(h.id),
       ]);
       return {
         household: h,
@@ -46,6 +49,7 @@ export default async function LarPage() {
         myShares,
         snapshot,
         goals: goals ?? [],
+        insight,
       };
     }),
   );
@@ -58,7 +62,7 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot, goals }) => (
+      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot, goals, insight }) => (
         <div key={household.id} className="flex flex-col gap-4">
           <HouseholdPanel
             household={household}
@@ -71,6 +75,9 @@ export default async function LarPage() {
           ) : null}
           {snapshot ? (
             <HouseholdJointView householdId={household.id} snapshot={snapshot} />
+          ) : null}
+          {insight && snapshot ? (
+            <HouseholdInsightCard insight={insight} snapshot={snapshot} />
           ) : null}
           <HouseholdGoals householdId={household.id} goals={goals} />
         </div>

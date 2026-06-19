@@ -3,10 +3,12 @@
 import type { HouseholdInviteEntity, HouseholdMemberEntity, HouseholdShareLevel } from "@/domain/entities/household.entity";
 import type { ProfileType } from "@/domain/entities/profile.entity";
 import { buildHouseholdSnapshot } from "@/application/use-cases/household/build-household-snapshot.use-case";
+import { buildHouseholdPrescription } from "@/application/use-cases/household/build-household-prescription.use-case";
 import { getSharedProfileDetail } from "@/application/use-cases/household/get-shared-profile-detail.use-case";
 import { listHouseholdGoals } from "@/application/use-cases/household/list-household-goals.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
 import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
+import type { MoveType, PrescriptionState } from "@/domain/services/prescription/prescription.types";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
@@ -333,4 +335,104 @@ export async function fetchHouseholdGoals(
     targetCents: targetCents !== null ? targetCents.toString() : null,
     progressPct,
   }));
+}
+
+export interface HouseholdInsightPayload {
+  state: PrescriptionState;
+  dominantType: MoveType | null;
+  dominantHeadline: string | null;
+  dominantImpact: string | null;
+}
+
+export async function fetchHouseholdInsight(
+  householdId: string,
+): Promise<HouseholdInsightPayload | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const result = await buildHouseholdPrescription(
+    {
+      households: repos.households,
+      debts: repos.debts,
+      incomes: repos.incomes,
+      assets: repos.assets,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
+      clock,
+      now: () => clock.now(),
+    },
+    { householdId, userId: user.id },
+  );
+
+  if (!isOk(result)) return null;
+
+  const p = result.value;
+  if (p.state === "incomplete" || !p.dominant) return null;
+
+  const dom = p.dominant;
+
+  const brl = (reais: number): string =>
+    new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
+      Math.round(reais * 100) / 100,
+    );
+
+  const monthsLabel = (n: number): string => (n === 1 ? "1 mês" : `${n} meses`);
+
+  let headline = "";
+  let impact = "";
+
+  switch (dom.type) {
+    case "pay_debt": {
+      const label = dom.targetDebtLabel ?? "a dívida mais cara";
+      headline = `Coloquem a sobra na ${label} primeiro.`;
+      if (dom.metrics.baselineNeverPayoff) {
+        const months = dom.metrics.monthsToPayoff;
+        impact =
+          months != null
+            ? `Pagando só o mínimo, ela não quita. Com a sobra da casa, vocês zeram em ${monthsLabel(months)}.`
+            : "Pagando só o mínimo, o saldo não cai. A sobra da casa acelera a quitação.";
+      } else {
+        const saved = dom.metrics.interestSavedReais ?? 0;
+        const months = dom.metrics.monthsSaved ?? 0;
+        impact = `A casa economiza ${brl(saved)} em juros e antecipa a quitação em ${monthsLabel(months)}.`;
+      }
+      break;
+    }
+    case "build_reserve": {
+      const gap = dom.metrics.reserveGapReais ?? 0;
+      const months = dom.metrics.monthsToReserve;
+      const minSafety = dom.reasonCode === "below_min_safety";
+      headline = minSafety
+        ? "Juntem um colchão antes de atacar as dívidas."
+        : "Direcionem a sobra para a reserva de emergência.";
+      impact =
+        months == null
+          ? `Faltam ${brl(gap)} para o colchão da casa ficar completo.`
+          : `Faltam ${brl(gap)}, cerca de ${monthsLabel(months)} no ritmo atual.`;
+      break;
+    }
+    case "invest": {
+      const monthly = dom.metrics.monthlyContributionReais ?? 0;
+      const growth = dom.metrics.projectedGrowthReais ?? 0;
+      headline = `A sobra da casa pode render: comecem com ${brl(monthly)} por mês.`;
+      impact = `Em 12 meses, isso pode render cerca de ${brl(growth)}.`;
+      break;
+    }
+    case "reduce_commitment": {
+      const cut = dom.metrics.targetReductionReais ?? 0;
+      const negative = dom.reasonCode === "negative_free_balance";
+      headline = negative
+        ? "Cortem um gasto fixo: hoje sai mais do que entra na casa."
+        : "Cortem um gasto fixo para sobrar mais por mês.";
+      impact = `Cortar cerca de ${brl(cut)} por mês já reequilibra as contas da casa.`;
+      break;
+    }
+  }
+
+  return {
+    state: p.state,
+    dominantType: dom.type,
+    dominantHeadline: headline,
+    dominantImpact: impact,
+  };
 }
