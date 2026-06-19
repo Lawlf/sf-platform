@@ -6,6 +6,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
+import { terms } from "../../../_lib/copy/terms";
 
 
 const KIND_LABEL: Record<DebtKind, string> = {
@@ -83,7 +84,7 @@ function buildHeaderStats(
           value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "A definir",
         };
   return [
-    { label: "Dívida atual", value: debt.currentBalance.format(), isCurrency: true },
+    { label: terms.debtRemaining, value: debt.currentBalance.format(), isCurrency: true },
     { label: "Valor original", value: debt.originalPrincipal.format(), isCurrency: true },
     { label: "Início", value: DATE_FMT.format(debt.startDate) },
     secondary,

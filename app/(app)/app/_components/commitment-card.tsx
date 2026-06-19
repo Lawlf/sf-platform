@@ -51,7 +51,7 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-            Quanto do salário já tem dono
+            Quanto da renda já tem dono
           </span>
           <HowItWorksSheet topic="renda-comprometida" variant="brand" />
         </div>
@@ -69,7 +69,7 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         aria-valuenow={Number(display)}
         aria-valuemin={0}
         aria-valuemax={100}
-        aria-label={`Quanto do salário já tem dono: ${display}%. ${tone.label}`}
+        aria-label={`Quanto da renda já tem dono: ${display}%. ${tone.label}`}
       >
         <div
           className="absolute inset-y-0 left-0 rounded-full"

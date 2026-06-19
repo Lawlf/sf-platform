@@ -36,6 +36,25 @@ const eslintConfig = [
         },
       ],
       "@typescript-eslint/consistent-type-imports": ["warn", { prefer: "type-imports" }],
+      // Termos descontinuados (drift de copy). Use o canônico: "Quanto falta pagar"
+      // (saldo por dívida), "Sobra do mês" / "Falta do mês" (sobra mensal). Ver
+      // app/(app)/app/_lib/copy/terms.ts. "saldo livre" segue válido como termo
+      // interno/engine, por isso não entra aqui.
+      "no-restricted-syntax": [
+        "error",
+        {
+          selector:
+            "Literal[value=/Dívida atual|Saldo devedor|Sobra esse mês|Falta esse mês|Você deve hoje/]",
+          message:
+            "Termo de copy descontinuado. Use o canônico (Quanto falta pagar / Sobra do mês). Ver app/(app)/app/_lib/copy/terms.ts.",
+        },
+        {
+          selector:
+            "JSXText[value=/Dívida atual|Sobra esse mês|Falta esse mês|Você deve hoje/]",
+          message:
+            "Termo de copy descontinuado. Use o canônico (Quanto falta pagar / Sobra do mês). Ver app/(app)/app/_lib/copy/terms.ts.",
+        },
+      ],
     },
   },
 ];

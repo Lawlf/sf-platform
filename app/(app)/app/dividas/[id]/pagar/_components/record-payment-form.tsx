@@ -178,7 +178,7 @@ export function RecordPaymentForm({
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <div className="flex items-baseline justify-between gap-3">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-            Dívida atual
+            Quanto falta pagar
           </span>
           <span className="text-[1.125rem] font-extrabold text-[color:var(--text-primary)]">
             {currentBalanceFormatted}

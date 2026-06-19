@@ -134,7 +134,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
   const badgeClass = negative
     ? "bg-[#fca5a5]/[0.16] text-[#fca5a5]"
     : "bg-white/20 text-white";
-  const badgeLabel = positive ? "Sobra esse mês" : "Falta esse mês";
+  const badgeLabel = positive ? "Sobra do mês" : "Falta do mês";
   const showBadge = !noIncome;
 
   // No fallback sem renda, o valor grande vira texto-estado (não é dinheiro).

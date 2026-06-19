@@ -260,7 +260,7 @@ const TOPICS = {
   "meta-reserva": {
     title: "Meta de reserva de emergência",
     tag: "Meta",
-    body: "Mede quantos meses de custo fixo a sua reserva atual cobre em relação ao alvo que você definiu. O progresso avança conforme você deposita na reserva com seu saldo livre mensal. A previsão de conclusão é calculada pelo ritmo do seu aporte.",
+    body: "Mede quantos meses de custo fixo a sua reserva atual cobre em relação ao alvo que você definiu. O progresso avança conforme você deposita na reserva com a sobra do mês. A previsão de conclusão é calculada pelo ritmo do seu aporte.",
     technical:
       "Alvo em centavos = custo fixo mensal x meses de meta. Progresso = reserva atual / alvo. ETA = (alvo - reserva atual) / aporte mensal (saldo livre). Rendimento da reserva é ignorado de propósito pra ser conservador; incluí-lo aceleraria marginalmente o prazo.",
   },

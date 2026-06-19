@@ -137,7 +137,7 @@ export function DividasListClient({ statusFilter }: { statusFilter: DebtStatusFi
       {showTotal ? (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3">
           <div className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
-            Você deve hoje
+            Quanto falta pagar
           </div>
           <div className="mt-0.5 flex items-baseline gap-2">
             <span className="text-[1.5rem] font-bold tabular-nums text-[color:var(--text-primary)]">

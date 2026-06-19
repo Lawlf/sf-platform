@@ -44,6 +44,8 @@ import { createTransactionAction } from "../../_actions/planning-actions";
 import { categoryIcon } from "../../_components/category-icons";
 import { CreateCategorySheet } from "../../_components/create-category-sheet.client";
 import { MoneyInput } from "../../_components/money-input";
+import { lancarCopy } from "../../_lib/copy/catalogs";
+import { useCopy } from "../../_lib/copy/use-copy";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
 import { createCashAccount } from "../_actions/create-cash-account.action";
 import {
@@ -101,6 +103,7 @@ function todayIso(defaultMonthIso?: string): string {
 
 export function LogTransactionForm({ defaultMonthIso }: Props) {
   const queryClient = useQueryClient();
+  const t = useCopy(lancarCopy);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
   const [direction, setDirection] = useState<Direction>("out");
@@ -278,7 +281,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
           id={`${dateId}-desc`}
           type="text"
           autoComplete="off"
-          placeholder={direction === "in" ? "Freela extra" : "Mercado da semana"}
+          placeholder={direction === "in" ? t("form.inPlaceholder") : t("form.outPlaceholder")}
           {...form.register("description")}
           className={wizardInputClass}
         />
@@ -447,7 +450,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
                 <SheetHeader>
                   <SheetTitle>Nova conta</SheetTitle>
                   <SheetDescription>
-                    Um lugar pra guardar e movimentar dinheiro: Nubank, carteira, dinheiro vivo.
+                    Um lugar pra guardar e movimentar dinheiro: Nubank, poupança, dinheiro vivo.
                   </SheetDescription>
                 </SheetHeader>
                 <input

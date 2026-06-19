@@ -127,7 +127,7 @@ export function LandingMockDashboard() {
                       Se nada mudar, sobram R$ 980 no fim do mês
                     </span>
                     <span className="mt-2 inline-flex items-center gap-1 rounded-full bg-white/20 px-2 py-0.5 text-[9px] font-bold text-white backdrop-blur">
-                      Sobra esse mês
+                      Sobra do mês
                     </span>
                   </div>
                   <ChevronRight

@@ -14,6 +14,8 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 
+import { addHubCopy } from "../_lib/copy/catalogs";
+import { useCopy } from "../_lib/copy/use-copy";
 import { useOnline } from "../_lib/offline/use-online";
 import { KindCard } from "../dividas/nova/_components/kind-card";
 
@@ -25,47 +27,6 @@ interface IntentOption {
   icon: ReactNode;
 }
 
-// Hub de intenção: uma pergunta única em linguagem de leigo que roteia para as
-// portas que continuam existindo por baixo (dívida, renda, patrimônio, meta,
-// lançar). Não funde entidades; unifica só a entrada. "Entrou ou saiu agora"
-// (avulso, micro) fica por último de propósito.
-const INTENTS: readonly IntentOption[] = [
-  {
-    id: "divida",
-    href: "/app/dividas/nova" as Route,
-    title: "Comprei ou tenho conta pra pagar",
-    description: "Parcela, cartão, empréstimo, conta fixa.",
-    icon: <CreditCard size={22} strokeWidth={2} aria-hidden />,
-  },
-  {
-    id: "renda",
-    href: "/app/renda/nova" as Route,
-    title: "Recebo todo mês",
-    description: "Salário, aposentadoria, aluguel, freela fixo.",
-    icon: <Wallet size={22} strokeWidth={2} aria-hidden />,
-  },
-  {
-    id: "patrimonio",
-    href: "/app/patrimonio/novo" as Route,
-    title: "O que já é meu",
-    description: "Carro, casa, reserva, investimento.",
-    icon: <Landmark size={22} strokeWidth={2} aria-hidden />,
-  },
-  {
-    id: "meta",
-    href: "/app/metas/nova" as Route,
-    title: "Quero juntar pra um objetivo",
-    icon: <Target size={22} strokeWidth={2} aria-hidden />,
-  },
-  {
-    id: "lancar",
-    href: "/app/lancar" as Route,
-    title: "Um gasto ou recebimento do dia",
-    description: "Um PIX, uma venda, um gasto avulso.",
-    icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
-  },
-] as const;
-
 interface AddIntentSheetProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -74,6 +35,48 @@ interface AddIntentSheetProps {
 export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
   const router = useRouter();
   const online = useOnline();
+  const t = useCopy(addHubCopy);
+
+  // Hub de intenção: uma pergunta única em linguagem de leigo que roteia para as
+  // portas que continuam existindo por baixo (dívida, renda, patrimônio, meta,
+  // lançar). Não funde entidades; unifica só a entrada. "Entrou ou saiu agora"
+  // (avulso, micro) fica por último de propósito.
+  const intents: readonly IntentOption[] = [
+    {
+      id: "divida",
+      href: "/app/dividas/nova" as Route,
+      title: "Comprei ou tenho conta pra pagar",
+      description: "Parcela, cartão, empréstimo, conta fixa.",
+      icon: <CreditCard size={22} strokeWidth={2} aria-hidden />,
+    },
+    {
+      id: "renda",
+      href: "/app/renda/nova" as Route,
+      title: t("income.title"),
+      description: t("income.desc"),
+      icon: <Wallet size={22} strokeWidth={2} aria-hidden />,
+    },
+    {
+      id: "patrimonio",
+      href: "/app/patrimonio/novo" as Route,
+      title: "O que já é meu",
+      description: t("patrimonio.desc"),
+      icon: <Landmark size={22} strokeWidth={2} aria-hidden />,
+    },
+    {
+      id: "meta",
+      href: "/app/metas/nova" as Route,
+      title: "Quero juntar pra um objetivo",
+      icon: <Target size={22} strokeWidth={2} aria-hidden />,
+    },
+    {
+      id: "lancar",
+      href: "/app/lancar" as Route,
+      title: "Um gasto ou recebimento do dia",
+      description: t("lancar.desc"),
+      icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
+    },
+  ];
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -83,7 +86,7 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
           <SheetDescription>Diz o que aconteceu, a gente coloca no lugar certo.</SheetDescription>
         </SheetHeader>
         <div role="list" className="flex flex-col gap-2">
-          {INTENTS.map((intent) => (
+          {intents.map((intent) => (
             <Fragment key={intent.id}>
               {intent.id === "lancar" ? (
                 <div className="my-0.5 h-px bg-[color:var(--border-soft)]" aria-hidden />

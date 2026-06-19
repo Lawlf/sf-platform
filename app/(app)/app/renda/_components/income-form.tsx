@@ -13,6 +13,8 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../_components/money-input";
+import { incomeCopy } from "../../_lib/copy/catalogs";
+import { useCopy } from "../../_lib/copy/use-copy";
 import { queryKeys } from "../../_lib/query-keys";
 import { parseIncomeSeed } from "../../simular/_lib/income-seed";
 import { createIncomeAction } from "../_actions/create-income.action";
@@ -43,6 +45,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
   const queryClient = useQueryClient();
   const searchParams = useSearchParams();
   const [pending, startTransition] = useTransition();
+  const t = useCopy(incomeCopy);
   const [serverError, setServerError] = useState<string | null>(null);
 
   // Vindo de um simulador (ex: salário-CLT, 13º, férias, rescisão): pré-preenche
@@ -108,7 +111,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         <input
           id="renda-label"
           {...form.register("label")}
-          placeholder="Ex: Salário, freela, aluguel, comissão"
+          placeholder={t("form.namePlaceholder")}
           className={fieldClass}
           aria-invalid={form.formState.errors.label ? true : undefined}
           aria-describedby={form.formState.errors.label ? "renda-label-error" : undefined}
@@ -131,12 +134,14 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         required
         currency={currency}
       />
-      <Link
-        href={"/app/simular/salario-clt" as Route}
-        className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-      >
-        Só sei o salário no papel? Calcular o que cai na conta
-      </Link>
+      {t("form.cltNudge") ? (
+        <Link
+          href={"/app/simular/salario-clt" as Route}
+          className="focus-ring -mt-1 w-fit text-[0.75rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+        >
+          {t("form.cltNudge")}
+        </Link>
+      ) : null}
 
       {frequency === "monthly" ? (
         <div>

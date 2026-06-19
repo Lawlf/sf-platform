@@ -371,7 +371,7 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label={existing ? "Quanto ainda falta pagar" : "Quanto tem de fatura agora"}
+          label={existing ? "Quanto falta pagar" : "Quanto tem de fatura agora"}
           htmlFor={statementId}
           error={errors.currentStatementCents?.message}
         >

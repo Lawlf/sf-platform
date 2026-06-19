@@ -5,6 +5,9 @@ import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
+import { debtCopy } from "../../../_lib/copy/catalogs";
+import { useCopy } from "../../../_lib/copy/use-copy";
+
 import { KindCard } from "./kind-card";
 import { WizardShell } from "./wizard-shell";
 
@@ -77,6 +80,7 @@ const ACTIONS: readonly ActionOption[] = [
 export function KindPicker() {
   const router = useRouter();
   const linkAssetId = useSearchParams().get("linkAssetId");
+  const t = useCopy(debtCopy);
 
   return (
     <WizardShell
@@ -92,7 +96,7 @@ export function KindPicker() {
             key={action.id}
             icon={action.icon}
             title={action.title}
-            description={action.description}
+            description={action.id === "comprei" ? t("kind.bought.desc") : action.description}
             selected={false}
             onSelect={() => router.push(withLinkAsset(action.href, linkAssetId))}
           />

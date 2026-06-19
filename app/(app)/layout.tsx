@@ -12,6 +12,8 @@ import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { fetchMyHouseholds } from "./app/_actions/household-queries";
+import { fetchUserProfiles } from "./app/_actions/profile-queries";
 import { AppLockProvider } from "./app/_components/app-lock/app-lock-provider.client";
 import { BottomNavGate } from "./app/_components/bottom-nav-gate";
 import { CommandPalette } from "./app/_components/command-palette.client";
@@ -24,9 +26,8 @@ import { InstallProvider } from "./app/_components/pwa/install-provider.client";
 import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
+import { CopyProvider } from "./app/_lib/copy/provider.client";
 import { fetchUnreadNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
-import { fetchMyHouseholds } from "./app/_actions/household-queries";
-import { fetchUserProfiles } from "./app/_actions/profile-queries";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
@@ -82,6 +83,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
       <AppLockProvider enabled={appLockEnabled} timeoutSeconds={appLockTimeout} hasPasskey={hasPasskey}>
         <MoneyVisibilityProvider initialHidden={hideValues}>
           <InstallProvider isPro={user.isPro}>
+          <CopyProvider value={activeIsPj ? "PJ_MEI" : "PF"}>
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
@@ -113,6 +115,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               <BottomNavGate activeIsPj={activeIsPj} />
             </div>
           </div>
+          </CopyProvider>
           </InstallProvider>
         </MoneyVisibilityProvider>
       </AppLockProvider>

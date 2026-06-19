@@ -82,7 +82,7 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
               {(
                 [
                   { value: "PF" as const, label: "Pessoal", icon: UserRound },
-                  { value: "Empresa" as const, label: "Empresa", icon: Building2 },
+                  { value: "Empresa" as const, label: "Negócio / MEI", icon: Building2 },
                 ] as const
               ).map(({ value, label, icon: Icon }) => {
                 const active = profileType === value;
@@ -155,7 +155,7 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
                       handleCreate();
                     }
                   }}
-                  placeholder="Ex.: Minha empresa"
+                  placeholder="Ex.: Meu negócio"
                   className={wizardInputClass}
                 />
               </div>

@@ -687,7 +687,7 @@ export function PersonalLoanForm({
 
             {ongoingDerived && ongoingDerived.parcela > 0n && ongoingDerived.remaining > 0 ? (
               <ComputedCard
-                label="Falta pagar"
+                label="Quanto falta pagar"
                 value={formatCentsBRL(ongoingDerived.currentBalanceCents)}
                 sub={`Sai ${formatCentsBRL(ongoingDerived.parcela)} por mês até quitar`}
               />

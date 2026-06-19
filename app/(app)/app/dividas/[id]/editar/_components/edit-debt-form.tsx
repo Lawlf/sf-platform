@@ -252,7 +252,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
           <MoneyInput
             control={form.control}
             name="currentBalanceCents"
-            label="Saldo devedor atual"
+            label="Quanto falta pagar"
             helper="Valor que ainda falta pagar."
             currency={currency}
             onValueChange={handleBalanceChange}
