@@ -137,19 +137,19 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
             <div className="grid grid-cols-3 gap-2">
               <WizardRadioCard
                 title="Não"
-                description="Sem bem vinculado."
+                description="Não é por um bem."
                 active={choice === "no"}
                 onSelect={handlePickNo}
               />
               <WizardRadioCard
                 title="Já cadastrei"
-                description="Escolher da lista."
+                description="Está na minha lista."
                 active={choice === "existing"}
                 onSelect={handlePickExisting}
               />
               <WizardRadioCard
                 title="Cadastrar novo"
-                description="Criar agora aqui."
+                description="Vou registrar agora."
                 active={choice === "new"}
                 onSelect={handlePickNew}
               />
@@ -211,7 +211,7 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
                         htmlFor={allocationInputId}
                         className="mb-1 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80"
                       >
-                        Quanto desta dívida pertence a este bem?
+                        Quanto do que você deve é por causa desse bem?
                       </label>
                       <WizardMoneyField
                         control={f.control}

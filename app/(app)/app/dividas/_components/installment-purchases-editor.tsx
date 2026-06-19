@@ -187,7 +187,7 @@ export function InstallmentPurchasesEditor<TFieldValues extends FieldValues>({
       {fields.length > 0 ? (
         <div className="flex items-center justify-between rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-3 py-2.5">
           <span className="text-[0.75rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-            Soma das parcelas mensais
+            Total por mês
           </span>
           <span className="text-[0.875rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             {formatCentsBRL(totalMonthlyCents)}

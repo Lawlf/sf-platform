@@ -76,7 +76,7 @@ const formSchema = z.object({
     ctx.addIssue({
       code: z.ZodIssueCode.custom,
       path: ["currentStatementCents"],
-      message: "A fatura mais o rotativo não podem passar do limite do cartão.",
+      message: "A fatura mais o saldo que rolou não pode passar do limite do cartão.",
     });
   }
 });
@@ -356,6 +356,7 @@ export function CreditCardForm({
 
         <WizardField
           label="Limite total"
+          helper="Opcional. Mostra quanto do cartão você já usou."
           htmlFor={limitId}
           error={errors.creditLimitCents?.message}
         >
@@ -386,6 +387,7 @@ export function CreditCardForm({
         <div className="grid grid-cols-2 gap-2">
           <WizardField
             label="Dia de fechamento"
+            helper="Dia em que a fatura fecha e para de somar compras novas."
             htmlFor={statementDayId}
             error={errors.statementDay?.message}
           >
@@ -400,7 +402,12 @@ export function CreditCardForm({
             />
           </WizardField>
 
-          <WizardField label="Dia de vencimento" htmlFor={dueDayId} error={errors.dueDay?.message}>
+          <WizardField
+            label="Dia de vencimento"
+            helper="Dia de pagar a fatura. Vem escrito na própria fatura."
+            htmlFor={dueDayId}
+            error={errors.dueDay?.message}
+          >
             <input
               id={dueDayId}
               type="number"
@@ -413,7 +420,7 @@ export function CreditCardForm({
           </WizardField>
         </div>
 
-        <WizardField label="Você paga a fatura inteira ou está pagando juros?">
+        <WizardField label="Você costuma pagar a fatura inteira ou só uma parte?">
           <div className="grid grid-cols-2 gap-2">
             <button
               type="button"
@@ -425,7 +432,7 @@ export function CreditCardForm({
                   : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
               }`}
             >
-              Pago a fatura toda
+              Pago tudo
             </button>
             <button
               type="button"
@@ -437,7 +444,7 @@ export function CreditCardForm({
                   : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
               }`}
             >
-              Tô pagando juros
+              Pago só uma parte
             </button>
           </div>
         </WizardField>
@@ -483,7 +490,8 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label="Sobrou fatura de mÃªs passado sem pagar? (opcional)"
+          label="Tem saldo de antes que ainda não foi pago? (opcional)"
+          helper="Valor que sobrou de faturas passadas e foi rolando."
           htmlFor={revolvingBalanceId}
           error={errors.revolvingBalanceCents?.message}
         >
@@ -496,7 +504,12 @@ export function CreditCardForm({
           />
         </WizardField>
 
-        <WizardField label="Data de início" htmlFor={startDateId} error={errors.startDate?.message}>
+        <WizardField
+          label="A partir de quando contar"
+          helper="Quando esse cartão entra no seu planejamento. Pode deixar hoje."
+          htmlFor={startDateId}
+          error={errors.startDate?.message}
+        >
           <input
             id={startDateId}
             type="date"
@@ -514,7 +527,7 @@ export function CreditCardForm({
         currentStep={visibleStep(4)}
         totalSteps={totalSteps}
         title="Compras parceladas"
-        description="Compras ainda sendo pagas no cartão. Opcional."
+        description="Compras que você ainda está pagando parcelado nesse cartão. Se não tiver, é só pular."
         onBack={() => setStep(revolving ? 3 : 2)}
         primary={{
           label: "Continuar",
@@ -545,7 +558,7 @@ export function CreditCardForm({
       <WizardShell
         currentStep={visibleStep(5)}
         totalSteps={totalSteps}
-        title="Esse compromisso é por causa de um bem?"
+        title="Parcelou algum bem nesse cartão?"
         description="Carro, imóvel ou outro patrimônio parcelado no cartão."
         onBack={() => setStep(4)}
         primary={
@@ -568,14 +581,23 @@ export function CreditCardForm({
   }
 
   // step 6
-  const interestText = monthlyInterestCents
-    ? formatCentsBRL(monthlyInterestCents)
-    : "Informe taxa para calcular";
-
+  const rateIsEstimated =
+    values.revolvingMonthlyRatePct === DEBT_RATE_ESTIMATES.creditCardRevolving.valuePct;
   const rateLabel =
     values.revolvingMonthlyRatePct !== null && values.revolvingMonthlyRatePct !== undefined
-      ? `${values.revolvingMonthlyRatePct}% por mÃªs`
-      : "Sem taxa";
+      ? `${values.revolvingMonthlyRatePct}% por mês${rateIsEstimated ? " (estimativa)" : ""}`
+      : "Não informada";
+
+  const statementCents =
+    typeof values.currentStatementCents === "bigint" ? values.currentStatementCents : 0n;
+  const heroCents = statementCents > 0n ? statementCents : (monthlyInterestCents ?? 0n);
+  const heroValue = formatCentsBRL(heroCents);
+  const heroSub =
+    revolving && monthlyInterestCents
+      ? rateIsEstimated
+        ? `Inclui ~${formatCentsBRL(monthlyInterestCents)} de juros se rolar (estimativa de mercado, confira na fatura)`
+        : `Inclui juros de ${formatCentsBRL(monthlyInterestCents)} se rolar o saldo`
+      : `Fatura que vence todo dia ${values.dueDay}`;
 
   const linkSummary = buildLinkSummary(values);
 
@@ -595,11 +617,7 @@ export function CreditCardForm({
         loading: pending,
       }}
     >
-      <ComputedCard
-        label="Juros por mÃªs se nÃ£o pagar tudo"
-        value={interestText}
-        sub="Considerando a taxa atual"
-      />
+      <ComputedCard label="Vai sair do seu mês" value={heroValue} sub={heroSub} />
 
       <SummaryList
         items={[
@@ -614,12 +632,12 @@ export function CreditCardForm({
           { label: "Fatura atual", value: formatCentsBRL(values.currentStatementCents) },
           { label: "Fechamento", value: `Dia ${values.statementDay}` },
           { label: "Vencimento", value: `Dia ${values.dueDay}` },
-          { label: "Juros do cartÃ£o", value: rateLabel },
+          ...(revolving ? [{ label: "Juros do cartão", value: rateLabel }] : []),
           {
             label: "Compras parceladas",
             value:
               purchasesArray.fields.length === 0
-                ? "Nenhuma"
+                ? "Não registrado"
                 : `${purchasesArray.fields.length} compra(s) · ${formatCentsBRL(monthlyInstallmentsTotal)}/mês`,
           },
           { label: "Bem vinculado", value: linkSummary },
