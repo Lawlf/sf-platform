@@ -17,7 +17,6 @@ import {
   TrendingUp,
   UserPlus,
   UserRound,
-  Users,
   Wallet,
 } from "lucide-react";
 import type { Route } from "next";
@@ -81,17 +80,18 @@ const PJ_FINANCE_GROUP: NavGroup = {
   ],
 };
 
-const HOUSEHOLD_NAV_ITEM: NavItem = {
-  href: "/app/lar" as Route,
-  label: "Nosso lar",
-  icon: Users,
+const LAR_GROUP: NavGroup = {
+  label: "Lar",
+  items: [
+    { href: "/app/lar" as Route, label: "Visão geral", icon: HomeIcon, exact: true },
+    { href: "/app/lar/metas" as Route, label: "Metas da família", icon: Target },
+  ],
 };
 
 function buildNavGroups(activeIsPj: boolean, hasHousehold: boolean): NavGroup[] {
-  const tools = hasHousehold
-    ? { label: TOOLS_GROUP.label, items: [...TOOLS_GROUP.items, HOUSEHOLD_NAV_ITEM] }
-    : TOOLS_GROUP;
-  return [HOME_GROUP, activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP, tools];
+  const groups: NavGroup[] = [HOME_GROUP, activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP, TOOLS_GROUP];
+  if (hasHousehold) groups.push(LAR_GROUP);
+  return groups;
 }
 
 function isActive(pathname: string, item: NavItem): boolean {

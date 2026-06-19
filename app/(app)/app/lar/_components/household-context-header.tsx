@@ -1,4 +1,4 @@
-import { SlidersHorizontal } from "lucide-react";
+import { Settings } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -41,10 +41,10 @@ export function HouseholdContextHeader({ household, members, mode }: Props) {
       {mode === "view" ? (
         <Link
           href={`/app/lar/${household.id}/gerenciar` as Route}
-          className="focus-ring flex flex-none items-center gap-1.5 rounded-lg border border-[color:var(--border-soft)] px-3 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
+          aria-label="Gerenciar lar"
+          className="focus-ring flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--border-strong)] hover:text-[color:var(--text-primary)]"
         >
-          <SlidersHorizontal size={15} strokeWidth={1.75} aria-hidden />
-          Gerenciar lar
+          <Settings size={16} strokeWidth={1.75} aria-hidden />
         </Link>
       ) : (
         <span className="flex-none rounded-lg bg-[color:var(--surface-2)] px-3 py-2 text-[0.8125rem] font-medium text-[color:var(--text-muted)]">

@@ -14,6 +14,7 @@ import { parseGoalSeed } from "../../simular/_lib/goal-seed";
 import { loadSimPrefill } from "../../simular/_lib/sim-prefill";
 import { fetchGoalsWithProgress } from "../_actions/goal-queries";
 
+import { fetchMyHouseholds } from "../../_actions/household-queries";
 import { HouseholdGoalNudge } from "./_components/household-goal-nudge";
 import { NewGoal } from "./_components/new-goal.client";
 
@@ -80,7 +81,7 @@ export default async function NovaMetaPage({
     }
   }
 
-  const [prefill, debtList, assetList] = await Promise.all([
+  const [prefill, debtList, assetList, households] = await Promise.all([
     loadSimPrefill(user.id),
     (async () => {
       const r = await listDebts(
@@ -106,12 +107,13 @@ export default async function NovaMetaPage({
           valueCents: a.currentValue.toCents().toString(),
         }));
     })(),
+    fetchMyHouseholds(),
   ]);
 
   return (
     <PageShell title="Nova meta" backHref={"/app/metas" as Route}>
       <NewGoal prefill={prefill} debts={debtList} assets={assetList} seed={seed} />
-      <HouseholdGoalNudge />
+      {households.length > 0 ? <HouseholdGoalNudge /> : null}
     </PageShell>
   );
 }

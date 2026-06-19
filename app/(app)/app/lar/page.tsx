@@ -2,7 +2,6 @@ import type { Metadata, Route } from "next";
 
 import { PageShell } from "../_components/page-shell";
 import {
-  fetchHouseholdGoals,
   fetchHouseholdInsight,
   fetchHouseholdMembers,
   fetchHouseholdSnapshot,
@@ -12,7 +11,6 @@ import {
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
 import { HouseholdContextHeader } from "./_components/household-context-header";
-import { HouseholdGoals } from "./_components/household-goals.client";
 import { HouseholdInsightCard } from "./_components/household-insight-card";
 import { HouseholdJointEmpty } from "./_components/household-joint-empty";
 import { HouseholdJointView } from "./_components/household-joint-view.client";
@@ -29,17 +27,15 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, snapshot, goals, insight] = await Promise.all([
+      const [members, snapshot, insight] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdSnapshot(h.id),
-        fetchHouseholdGoals(h.id),
         fetchHouseholdInsight(h.id),
       ]);
       return {
         household: h,
         members: members ?? [],
         snapshot,
-        goals: goals ?? [],
         insight,
       };
     }),
@@ -53,7 +49,7 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, snapshot, goals, insight }) => (
+      {householdData.map(({ household, members, snapshot, insight }) => (
         <div key={household.id} className="flex flex-col gap-4">
           <HouseholdContextHeader household={household} members={members} mode="view" />
           {snapshot && !snapshot.gated ? (
@@ -66,7 +62,6 @@ export default async function LarPage() {
           ) : null}
           {snapshot && snapshot.gated && snapshot.hasData ? <HouseholdPaywallCard /> : null}
           {snapshot && snapshot.gated && !snapshot.hasData ? <HouseholdJointEmpty /> : null}
-          <HouseholdGoals householdId={household.id} goals={goals} />
         </div>
       ))}
 
