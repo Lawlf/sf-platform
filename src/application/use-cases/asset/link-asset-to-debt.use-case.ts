@@ -25,6 +25,7 @@ export interface LinkAssetToDebtDeps {
 
 export interface LinkAssetToDebtInput {
   userId: string;
+  profileId: string;
   assetId: string;
   debtId: string;
   allocationOriginalCents: bigint;
@@ -47,7 +48,7 @@ export async function linkAssetToDebt(
     return err(new InvalidAllocation("Alocação deve ser maior que zero."));
   }
 
-  const asset = await deps.assets.findById(input.assetId, input.userId);
+  const asset = await deps.assets.findById(input.assetId, input.profileId);
   if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
     return err(new AssetDeactivated("Ativo desativado não pode ser vinculado a dívidas."));
@@ -55,7 +56,7 @@ export async function linkAssetToDebt(
 
   const debt = await deps.debts.findById(input.debtId);
   if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
-  if (debt.userId !== input.userId) {
+  if (debt.profileId !== input.profileId) {
     return err(new Forbidden("Acesso negado à dívida informada."));
   }
   if (debt.status !== "active") {

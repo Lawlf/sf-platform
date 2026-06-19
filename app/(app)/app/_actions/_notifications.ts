@@ -4,6 +4,7 @@ import { detectNegativeBalance } from "@/application/use-cases/notification/dete
 import { TimelineService } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 
 /**
  * Helper para disparar deteccao de notificacoes apos uma mutacao critica
@@ -26,15 +27,16 @@ export async function detectNotificationsForUser(userId: string): Promise<void> 
     const assets = repos.assets;
     const adjustmentsRepo = repos.debtAmountAdjustments;
 
+    const profileId = await resolvePfProfileId(userId);
     const [debtsRaw, incomesRaw, paymentsRaw, assetsRaw, adjustmentsRaw] = await Promise.all([
-      debts.listForUser(userId, { status: "all" }),
-      incomes.listForUser(userId),
-      payments.listForUserInRange(userId, {
+      debts.listForProfile(profileId, { status: "all" }),
+      incomes.listForProfile(profileId),
+      payments.listForProfileInRange(profileId, {
         from: currentMonth.firstDay(),
         to: currentMonth.lastDay(),
       }),
-      assets.findActiveByUser(userId),
-      adjustmentsRepo.listForUser(userId),
+      assets.findActiveByProfile(profileId),
+      adjustmentsRepo.listForProfile(profileId),
     ]);
 
     const timeline = TimelineService.buildTimeline({

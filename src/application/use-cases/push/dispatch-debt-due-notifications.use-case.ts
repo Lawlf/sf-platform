@@ -13,6 +13,7 @@ export interface DispatchDebtDueDeps extends SendPushToUserDeps {
   users: UserRepositoryPort;
   debts: DebtRepositoryPort;
   clock: Clock;
+  resolveProfileId: (userId: string) => Promise<string>;
 }
 
 export interface DispatchDebtDueResult {
@@ -50,9 +51,10 @@ export async function dispatchDebtDueNotifications(
     if (prefs && (!prefs.pushEnabled || !prefs.debtDueEnabled)) continue;
     const daysBefore = prefs?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT;
 
+    const profileId = await deps.resolveProfileId(user.id);
     const duesResult = await getUpcomingDueDates(
       { debts: deps.debts, clock: dayClock },
-      { userId: user.id, horizonDays: daysBefore + 1 },
+      { userId: user.id, profileId, horizonDays: daysBefore + 1 },
     );
     const dues = isOk(duesResult) ? duesResult.value : [];
     const matching = dues.filter(

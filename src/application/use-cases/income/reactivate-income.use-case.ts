@@ -11,6 +11,7 @@ export interface ReactivateIncomeDeps {
 
 export interface ReactivateIncomeInput {
   userId: string;
+  profileId: string;
   incomeId: string;
 }
 
@@ -20,7 +21,7 @@ export async function reactivateIncome(
 ): Promise<Result<void, IncomeNotFound | Forbidden | IncomeAlreadyActive>> {
   const existing = await deps.incomes.findById(input.incomeId);
   if (!existing) return err(new IncomeNotFound("Renda não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
   if (existing.isActive) return err(new IncomeAlreadyActive("Renda já está ativa."));
   if (deps.clock) {
     void deps.clock.now();

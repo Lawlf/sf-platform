@@ -31,7 +31,7 @@ const schema = z.object({
 export const recordPaymentAction = action({
   schema,
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async (d, { userId }) => {
+  handler: async (d, { userId, profileId }) => {
     const payment = unwrap(
       await recordPayment(
         {
@@ -43,6 +43,7 @@ export const recordPaymentAction = action({
         },
         {
           userId,
+          profileId,
           debtId: d.debtId,
           amount: Money.fromCents(d.amountCents),
           principalPortion: Money.fromCents(d.principalCents),

@@ -15,6 +15,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 const HORIZON_MONTHS = 120;
@@ -62,11 +63,12 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
   const goalsRepo = repos.goals;
   const settingsRepo = repos.financialPlanningSettings;
 
+  const profileId = await getActiveProfileId();
   const [goals, assets, debts, settings, macro] = await Promise.all([
-    goalsRepo.listForUser(user.id, { status: "active" }),
-    assetsRepo.findActiveByUser(user.id),
-    debtsRepo.listForUser(user.id, { status: "active" }),
-    settingsRepo.findByUser(user.id),
+    goalsRepo.listForProfile(profileId, { status: "active" }),
+    assetsRepo.findActiveByProfile(profileId),
+    debtsRepo.listForProfile(profileId, { status: "active" }),
+    settingsRepo.findByProfile(profileId),
     buildGoalMacro(
       {
         assets: assetsRepo,
@@ -77,7 +79,7 @@ export async function fetchPlanningProjection(): Promise<PlanningProjectionPaylo
         rates: repos.exchangeRates,
         overrides: repos.userFxOverrides,
       },
-      { userId: user.id },
+      { userId: user.id, profileId },
     ),
   ]);
 
@@ -155,14 +157,15 @@ export async function fetchPlanningConfig(): Promise<PlanningConfigPayload | nul
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const profileId = await getActiveProfileId();
   const assetsRepo = repos.assets;
   const goalsRepo = repos.goals;
   const settingsRepo = repos.financialPlanningSettings;
 
   const [cashAssets, goals, settings] = await Promise.all([
-    assetsRepo.findActiveByUserAndCategory(user.id, "cash"),
-    goalsRepo.listForUser(user.id, { status: "active" }),
-    settingsRepo.findByUser(user.id),
+    assetsRepo.findActiveByProfileAndCategory(profileId, "cash"),
+    goalsRepo.listForProfile(profileId, { status: "active" }),
+    settingsRepo.findByProfile(profileId),
   ]);
 
   const orderedGoals = [...goals]
@@ -273,6 +276,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const user = await getCurrentUser();
   if (!user) return { open: false };
 
+  const profileId = await getActiveProfileId();
   const debtsRepo = repos.debts;
   const preview = await previewMonthClosing(
     {
@@ -286,7 +290,7 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId: user.id },
+    { userId: user.id, profileId },
   );
 
   if (!preview.open) return { open: false };
@@ -296,10 +300,10 @@ export async function fetchMonthClosing(): Promise<MonthClosingPayload> {
   const incomeSettlementsRepo = repos.incomeSettlements;
   const incomesRepo = repos.incomes;
   const [debts, settlements, incomes, incomeSettlements] = await Promise.all([
-    debtsRepo.listForUser(user.id, { status: "all" }),
-    settlementsRepo.listForUserMonth(user.id, month.firstDay()),
-    incomesRepo.listForUser(user.id),
-    incomeSettlementsRepo.listForUserMonth(user.id, month.firstDay()),
+    debtsRepo.listForProfile(profileId, { status: "all" }),
+    settlementsRepo.listForProfileMonth(profileId, month.firstDay()),
+    incomesRepo.listForProfile(profileId),
+    incomeSettlementsRepo.listForProfileMonth(profileId, month.firstDay()),
   ]);
 
   const statusByDebtId = new Map<string, RecurringSettlementStatus>(
@@ -419,10 +423,11 @@ export async function fetchAnnualReport(): Promise<AnnualReportPayload> {
   const user = await getCurrentUser();
   const year = new Date().getUTCFullYear();
   if (!user) return emptyAnnualReport(year, false);
+  const profileId = await getActiveProfileId();
 
   const result = await getAnnualReport(
     { transactions: repos.transactions },
-    { userId: user.id, year, isPro: user.isPro },
+    { profileId, year, isPro: user.isPro },
   );
 
   if (!result.ok) return emptyAnnualReport(year, false);

@@ -11,7 +11,7 @@ import { detectNotificationsForUser } from "../../../_actions/_notifications";
 export const reactivateDebtAction = action({
   schema: z.string(),
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async (debtId, { userId }) => {
+  handler: async (debtId, { userId, profileId }) => {
     unwrap(
       await reactivateDebt(
         {
@@ -19,7 +19,7 @@ export const reactivateDebtAction = action({
           payments: repos.debtPayments,
           clock,
         },
-        { userId, debtId },
+        { userId, profileId, debtId },
       ),
     );
     await detectNotificationsForUser(userId);

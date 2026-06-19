@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -23,6 +24,7 @@ interface Props {
 export default async function EditarMetaPage({ params }: Props) {
   const user = await requireUser();
   const { id } = await params;
+  const profileId = await getActiveProfileId();
 
   const detail = await fetchGoalDetail(id);
   if (!detail) notFound();
@@ -32,7 +34,7 @@ export default async function EditarMetaPage({ params }: Props) {
     (async () => {
       const r = await listDebts(
         { debts: repos.debts },
-        { userId: user.id, status: "active" },
+        { profileId, status: "active" },
       );
       if (!isOk(r)) return [];
       return r.value.map((d) => ({
@@ -43,7 +45,7 @@ export default async function EditarMetaPage({ params }: Props) {
     })(),
     (async () => {
       const repo = repos.assets;
-      const assets = await repo.findActiveByUser(user.id);
+      const assets = await repo.findActiveByProfile(profileId);
       return assets
         .filter((a) => a.category === "cash" || a.category === "investment")
         .map((a) => ({

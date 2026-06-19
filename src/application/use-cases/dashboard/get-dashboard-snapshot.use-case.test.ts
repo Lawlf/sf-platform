@@ -37,7 +37,7 @@ function makeOverrides(): UserFxOverrideRepositoryPort {
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn().mockResolvedValue([]),
+    listForProfile: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -50,7 +50,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn().mockResolvedValue([]),
+    listForProfile: vi.fn().mockResolvedValue([]),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -80,6 +80,7 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
   return {
     id: "debt-1",
     userId,
+    profileId: "profile-1",
     label: "Casa propria",
     status: "active",
     originalPrincipal: principal,
@@ -106,6 +107,7 @@ function makeRecurring(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
   return {
     id: "rec-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Aluguel",
     status: "active",
     originalPrincipal: Money.fromCents(0n),
@@ -129,6 +131,7 @@ function makeIncome(userId = "user-1"): IncomeEntity {
   return {
     id: "income-1",
     userId,
+    profileId: "profile-1",
     label: "Salario",
     amount: makeMoney(8000),
     frequency: "monthly",
@@ -150,12 +153,12 @@ describe("getDashboardSnapshot", () => {
 
     const debt = makeFinancing();
     const income = makeIncome();
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -165,8 +168,8 @@ describe("getDashboardSnapshot", () => {
       expect(result.value.totalDebtBalance.toCents()).toBe(debt.currentBalance.toCents());
       expect(result.value.incomeCommittedPct).toBeGreaterThan(0);
     }
-    expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "all" });
-    expect(incomes.listForUser).toHaveBeenCalledWith("user-1", { onlyActive: true });
+    expect(debts.listForProfile).toHaveBeenCalledWith("profile-1", { status: "all" });
+    expect(incomes.listForProfile).toHaveBeenCalledWith("profile-1", { onlyActive: true });
   });
 
   it("written_off debt entra no totalDebtBalance mas nao no serviço mensal; paid_off fica fora", async () => {
@@ -187,12 +190,12 @@ describe("getDashboardSnapshot", () => {
       status: "paid_off" as const,
       currentBalance: makeMoney(0),
     };
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([active, outOfMonth, paid]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([active, outOfMonth, paid]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -204,19 +207,19 @@ describe("getDashboardSnapshot", () => {
         {
           debts: (() => {
             const r = makeDebtRepo();
-            (r.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([active]);
+            (r.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([active]);
             return r;
           })(),
           incomes: (() => {
             const r = makeIncomeRepo();
-            (r.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
+            (r.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
             return r;
           })(),
           clock,
           rates: makeRates(),
           overrides: makeOverrides(),
         },
-        { userId: "user-1" },
+        { userId: "user-1", profileId: "profile-1" },
       );
       if (isOk(activeOnly)) {
         expect(result.value.totalMonthlyService.toCents()).toBe(
@@ -233,7 +236,7 @@ describe("getDashboardSnapshot", () => {
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-empty" },
+      { userId: "user-empty", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -251,12 +254,12 @@ describe("getDashboardSnapshot", () => {
 
     const income = makeIncome();
     const housing = makeRecurring({ id: "rec-1", recurringAmountCents: 150_000n });
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([housing]);
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([housing]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([income]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -280,7 +283,7 @@ describe("getDashboardSnapshot", () => {
     try {
       const result = await getDashboardSnapshot(
         { debts, incomes, clock, rates: makeRates(), overrides: makeOverrides() },
-        { userId: "user-1" },
+        { userId: "user-1", profileId: "profile-1" },
       );
       expect(isErr(result)).toBe(true);
       if (isErr(result)) {
@@ -297,11 +300,11 @@ describe("getDashboardSnapshot", () => {
     const clock = makeClock();
 
     const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates("5.00"), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -317,11 +320,11 @@ describe("getDashboardSnapshot", () => {
     const clock = makeClock();
 
     const usdIncome: IncomeEntity = { ...makeIncome(), amount: Money.fromCents(20_000n, "USD") };
-    (incomes.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([usdIncome]);
 
     const result = await getDashboardSnapshot(
       { debts, incomes, clock, rates: makeRates(null), overrides: makeOverrides() },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isErr(result)).toBe(true);

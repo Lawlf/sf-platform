@@ -10,13 +10,16 @@ import { ensureUsername } from "@/application/use-cases/profile/ensure-username.
 import { getProfileIdentity } from "@/application/use-cases/profile/get-profile-identity.use-case";
 import { tierFor } from "@/domain/services/consistency.service";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../_components/page-shell";
+import { fetchMyHouseholds } from "../_actions/household-queries";
 
 import { AdminPanelButton } from "./_components/admin-panel-button.client";
 import { FlairPicker } from "./_components/flair-picker.client";
+import { HouseholdEntryCard } from "./_components/household-entry-card";
 import { PerfilAchievements } from "./_components/perfil-achievements";
 import { PerfilHero } from "./_components/perfil-hero";
 import { PerfilStats } from "./_components/perfil-stats";
@@ -32,6 +35,7 @@ export default async function PerfilPage({
   const { stepup } = await searchParams;
   const avatarUrl = await repos.userAvatars.get(user.id);
   const unlockedAchievements = await repos.userAchievements.listForUser(user.id);
+  const households = await fetchMyHouseholds();
 
   const username = await ensureUsername({ users: repos.users }, { userId: user.id });
   const activeMonths = await repos.usage.listActiveMonthIsos(user.id);
@@ -71,11 +75,13 @@ export default async function PerfilPage({
         <PerfilStatsSection userId={user.id} />
       </Suspense>
       <PerfilAchievements unlocked={unlockedAchievements} />
+      <HouseholdEntryCard hasHousehold={households.length > 0} />
     </PageShell>
   );
 }
 
 async function PerfilStatsSection({ userId }: { userId: string }) {
+  const profileId = await getActiveProfileId();
   const debts = repos.debts;
   const snapshotR = await getDashboardSnapshot(
     {
@@ -85,7 +91,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId },
+    { userId, profileId },
   );
   const snapshot = isOk(snapshotR) ? snapshotR.value : null;
 
@@ -99,7 +105,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       clock,
       now: () => clock.now(),
     },
-    { userId },
+    { userId, profileId },
   );
   const prescriptionState = isOk(prescR) ? prescR.value.state : "incomplete";
 
@@ -109,7 +115,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       closings: repos.monthClosings,
       now: () => clock.now(),
     },
-    { userId, state: prescriptionState },
+    { userId, profileId, state: prescriptionState },
   );
 
   return (

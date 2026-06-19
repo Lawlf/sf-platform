@@ -20,6 +20,7 @@ import { isErr, ok, type Result } from "@/shared/errors/result";
 
 export interface GetNetWorthInput {
   userId: string;
+  profileId: string;
 }
 
 export interface GetNetWorthDeps extends ConvertEntityDeps {
@@ -38,10 +39,10 @@ export async function getNetWorth(
   deps: GetNetWorthDeps,
   input: GetNetWorthInput,
 ): Promise<Result<NetWorthSnapshot, DomainError>> {
-  const activeAssets = await deps.assets.findActiveByUser(input.userId);
+  const activeAssets = await deps.assets.findActiveByProfile(input.profileId);
   // Dívidas que ainda se deve: ativas + "fora do mês" (written_off). As quitadas
   // (paid_off) ficam de fora. Net worth e total de dívida incluem as fora do mês.
-  const allDebts = await deps.debts.listForUser(input.userId, { status: "all" });
+  const allDebts = await deps.debts.listForProfile(input.profileId, { status: "all" });
   const activeDebts = allDebts.filter(
     (d) => d.status === "active" || d.status === "written_off",
   );

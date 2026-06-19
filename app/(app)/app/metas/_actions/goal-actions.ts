@@ -10,6 +10,7 @@ import { recordContribution } from "@/application/use-cases/goal/record-contribu
 import { updateGoal } from "@/application/use-cases/goal/update-goal.use-case";
 import { GoalProgressService } from "@/domain/services/goal-progress.service";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId, resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -75,17 +76,18 @@ function toCreateInput(raw: CreateGoalActionInput): CreateGoalInput {
 export const createGoalAction = action({
   schema: createGoalSchema,
   revalidates: ["goals"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const user = await requireUser();
     const result = await createGoal(
       { goals: repos.goals },
-      { userId, isPro: user.isPro, input: toCreateInput(input) },
+      { userId, profileId, isPro: user.isPro, input: toCreateInput(input) },
     );
     if (!result.ok) throw new ActionError(result.message);
 
     try {
       const now = new Date();
       const month = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
+      const profileId = await getActiveProfileId();
       const macro = await buildGoalMacro(
         {
           assets: repos.assets,
@@ -96,7 +98,7 @@ export const createGoalAction = action({
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,
         },
-        { userId },
+        { userId, profileId },
       );
       const progress = GoalProgressService.compute(result.goal, macro);
       await repos.goalSnapshots.upsert({
@@ -118,11 +120,12 @@ export const createGoalAction = action({
 export const updateGoalAction = action({
   schema: updateGoalSchema,
   revalidates: ["goals"],
-  handler: async ({ goalId, patch }, { userId }) => {
+  handler: async ({ goalId, patch }, { userId, profileId }) => {
     const result = await updateGoal(
       { goals: repos.goals },
       {
         userId,
+        profileId,
         goalId,
         patch: {
           ...(patch.title !== undefined && { title: patch.title }),
@@ -163,15 +166,16 @@ export const updateGoalAction = action({
 export const recordContributionAction = action({
   schema: recordContributionSchema,
   revalidates: ["goals", "home"],
-  handler: async ({ goalId, amountCents }, { userId }) => {
+  handler: async ({ goalId, amountCents }, { userId, profileId }) => {
     const result = await recordContribution(
       {
         goals: repos.goals,
         assets: repos.assets,
         contributions: repos.goalContributions,
         snapshots: repos.goalSnapshots,
-        buildMacro: (macroUserId) =>
-          buildGoalMacro(
+        buildMacro: async (macroUserId) => {
+          const macroProfileId = await resolvePfProfileId(macroUserId);
+          return buildGoalMacro(
             {
               assets: repos.assets,
               allocations: repos.assetDebtAllocations,
@@ -181,12 +185,13 @@ export const recordContributionAction = action({
               rates: repos.exchangeRates,
               overrides: repos.userFxOverrides,
             },
-            { userId: macroUserId },
-          ),
+            { userId: macroUserId, profileId: macroProfileId },
+          );
+        },
         clock,
         newId: () => crypto.randomUUID(),
       },
-      { userId, goalId, amountCents: BigInt(amountCents) },
+      { userId, profileId, goalId, amountCents: BigInt(amountCents) },
     );
     if (!result.ok) throw new ActionError(result.message);
   },
@@ -195,8 +200,8 @@ export const recordContributionAction = action({
 export const archiveGoalAction = action({
   schema: z.string(),
   revalidates: ["goals"],
-  handler: async (goalId, { userId }) => {
-    const result = await archiveGoal({ goals: repos.goals }, { userId, goalId });
+  handler: async (goalId, { userId, profileId }) => {
+    const result = await archiveGoal({ goals: repos.goals }, { userId, profileId, goalId });
     if (!result.ok) throw new ActionError(result.message);
   },
 });
@@ -204,8 +209,8 @@ export const archiveGoalAction = action({
 export const deleteGoalAction = action({
   schema: z.string(),
   revalidates: ["goals"],
-  handler: async (goalId, { userId }) => {
-    const result = await deleteGoal({ goals: repos.goals }, { userId, goalId });
+  handler: async (goalId, { userId, profileId }) => {
+    const result = await deleteGoal({ goals: repos.goals }, { userId, profileId, goalId });
     if (!result.ok) throw new ActionError(result.message);
     await purgeEntityBestEffort(userId, "goal", goalId);
   },

@@ -29,6 +29,7 @@ export interface CreateAssetAllocationInput {
 
 export interface CreateAssetInput {
   userId: string;
+  profileId: string;
   category: AssetCategory;
   label: string;
   currentValueCents: bigint;
@@ -102,7 +103,7 @@ export async function createAsset(
     }
     const debt = await deps.debts.findById(alloc.debtId);
     if (!debt) return err(new DebtNotFound(`Dívida ${alloc.debtId} não encontrada.`));
-    if (debt.userId !== input.userId) {
+    if (debt.profileId !== input.profileId) {
       return err(new Forbidden("Acesso negado à dívida informada."));
     }
     if (debt.status !== "active") {
@@ -121,6 +122,7 @@ export async function createAsset(
   const asset: AssetEntity = {
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     category: input.category,
     label,
     currentValue: Money.fromCents(input.currentValueCents, input.currency),

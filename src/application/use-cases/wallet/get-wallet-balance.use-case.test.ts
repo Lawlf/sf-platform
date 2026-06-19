@@ -19,6 +19,7 @@ function wallet(over: Partial<AssetEntity>): AssetEntity {
   return {
     id: "wallet-1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Carteira",
     currentValue: moneyOf(500),
@@ -47,6 +48,7 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
   return {
     id: "i1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Salário",
     amount: moneyOf(5000),
     frequency: "monthly",
@@ -84,16 +86,16 @@ function recurringDebt(over: Partial<DebtEntity>): DebtEntity {
 function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
   return {
     assets: {
-      findActiveByUserAndCategory: async () => [wallet({})],
+      findActiveByProfileAndCategory: async () => [wallet({})],
       createDefaultWallet: async () => {},
     },
-    incomes: { listForUser: async () => [income({})] },
-    debts: { listForUser: async () => [] },
-    settlements: { listForUserMonth: async () => [] },
-    incomeSettlements: { listForUserMonth: async () => [] },
-    debtPayments: { listForUserInRange: async () => [] },
-    transactions: { listForUserInRange: async () => [] },
-    debtAmountAdjustments: { listForUser: async () => [] },
+    incomes: { listForProfile: async () => [income({})] },
+    debts: { listForProfile: async () => [] },
+    settlements: { listForProfileMonth: async () => [] },
+    incomeSettlements: { listForProfileMonth: async () => [] },
+    debtPayments: { listForProfileInRange: async () => [] },
+    transactions: { listForProfileInRange: async () => [] },
+    debtAmountAdjustments: { listForProfile: async () => [] },
     clock: { now: () => utc(2026, 6, 4) },
     ...over,
   } as GetWalletBalanceDeps;
@@ -102,55 +104,55 @@ function deps(over: Partial<GetWalletBalanceDeps>): GetWalletBalanceDeps {
 describe("getWalletBalance", () => {
   it("reactive balance excludes income that has not landed yet", async () => {
     // asOf June 4, salary lands June 5 -> still just the anchor 500.
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.reactiveBalance.toNumber()).toBe(500);
   });
 
   it("month-end projection includes income that will land this month", async () => {
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.monthEndProjection.toNumber()).toBe(5500);
   });
 
   it("creates a dedicated Carteira (needsAnchor) when the user has none", async () => {
     const r = await getWalletBalance(
-      deps({ assets: { findActiveByUserAndCategory: async () => [], createDefaultWallet: async () => {} } }),
-      { userId: "u1" },
+      deps({ assets: { findActiveByProfileAndCategory: async () => [], createDefaultWallet: async () => {} } }),
+      { userId: "u1", profileId: "profile-1" },
     );
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });
 
   it("flags needsAnchor when the wallet has never been anchored", async () => {
-    const r = await getWalletBalance(deps({ assets: { findActiveByUserAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1" });
+    const r = await getWalletBalance(deps({ assets: { findActiveByProfileAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });
 
   it("needsAnchor is false once anchored", async () => {
-    const r = await getWalletBalance(deps({}), { userId: "u1" });
+    const r = await getWalletBalance(deps({}), { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(false);
   });
 
   it("does not subtract a debt before its due day", async () => {
     const d = deps({
-      debts: { listForUser: async () => [recurringDebt({})] },
+      debts: { listForProfile: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.reactiveBalance.toNumber()).toBe(5500);
   });
 
   it("includes a due-this-month debt in the projection", async () => {
     const d = deps({
-      debts: { listForUser: async () => [recurringDebt({})] },
+      debts: { listForProfile: async () => [recurringDebt({})] },
       clock: { now: () => utc(2026, 6, 7) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.monthEndProjection.toNumber()).toBe(4300);
   });
@@ -160,9 +162,9 @@ describe("getWalletBalance", () => {
     // do mês ainda saiu da carteira. Antes da unificação a carteira ignorava
     // esse pagamento e projetava sobra falsa.
     const d = deps({
-      debts: { listForUser: async () => [] },
+      debts: { listForProfile: async () => [] },
       debtPayments: {
-        listForUserInRange: async () => [
+        listForProfileInRange: async () => [
           {
             id: "p-quit",
             debtId: "gone",
@@ -177,7 +179,7 @@ describe("getWalletBalance", () => {
       },
       clock: { now: () => utc(2026, 6, 4) },
     });
-    const r = await getWalletBalance(d, { userId: "u1" });
+    const r = await getWalletBalance(d, { userId: "u1", profileId: "profile-1" });
     if (!isOk(r)) throw new Error("expected ok");
     // anchor 500 - pagamento 2000 (realizado em 3/jun) = -1500.
     expect(r.value.reactiveBalance.toNumber()).toBe(-1500);

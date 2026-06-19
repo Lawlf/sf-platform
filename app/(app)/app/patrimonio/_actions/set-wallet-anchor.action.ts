@@ -13,11 +13,11 @@ const inputSchema = z.object({
 export const setWalletAnchorAction = action({
   schema: inputSchema,
   revalidates: ["assets", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     unwrap(
       await setWalletAnchor(
         { assets: repos.assets, clock },
-        { userId, valueCents: BigInt(input.valueCents) },
+        { userId, profileId, valueCents: BigInt(input.valueCents) },
       ),
     );
   },

@@ -18,8 +18,10 @@ import {
   Search,
   SearchX,
   ShieldCheck,
+  SlidersHorizontal,
   Tag,
   UserCog,
+  Users,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -47,6 +49,18 @@ const SECTIONS: SettingSection[] = [
         label: "Dados pessoais",
         description: "Nome e email.",
         icon: UserCog,
+      },
+      {
+        href: "/app/configuracoes/perfis" as Route,
+        label: "Perfis",
+        description: "Separe renda, dívidas e patrimônio por contexto.",
+        icon: SlidersHorizontal,
+      },
+      {
+        href: "/app/lar" as Route,
+        label: "Nosso lar",
+        description: "Convites e o que você compartilha com quem divide as contas.",
+        icon: Users,
       },
       {
         href: "/app/configuracoes/estilo" as Route,

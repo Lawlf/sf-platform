@@ -8,18 +8,33 @@ import type { GoalEntity } from "@/domain/entities/goal.entity";
 import { closeDb, getDb } from "../client";
 
 import { GoalRepository } from "./goal.repository";
+import { HouseholdRepository } from "./household.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-goal-user@saborfinanceiro.com.br";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
+const households = new HouseholdRepository();
 const repo = new GoalRepository();
 let userId: string;
+let profileId: string;
+let householdId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
+  const hh = await households.createHousehold({
+    id: randomUUID(),
+    name: "Lar IT Test",
+    createdByUserId: userId,
+    now: new Date(),
+  });
+  householdId = hh.id;
 });
 
 afterEach(async () => {
@@ -27,6 +42,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
+  await getDb().execute(sql`delete from households where id = ${householdId}`);
   await getDb().execute(sql`delete from users where email = ${TEST_EMAIL}`);
   await closeDb();
 });
@@ -38,6 +54,8 @@ function makeGoal(overrides: Partial<Omit<GoalEntity, "createdAt" | "updatedAt">
   return {
     id: randomUUID(),
     userId,
+    profileId,
+    householdId: null,
     type: "savings",
     title: "Reserva de emergencia",
     status: "active",
@@ -93,7 +111,7 @@ describe("GoalRepository (integration)", () => {
     await repo.create(g3);
     await repo.softDelete(g3.id);
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(2);
     const ids = all.map((g) => g.id);
     expect(ids).toContain(g1.id);
@@ -107,11 +125,11 @@ describe("GoalRepository (integration)", () => {
     await repo.create(makeGoal({ id: randomUUID(), status: "reached" }));
     await repo.create(makeGoal({ id: randomUUID(), status: "archived" }));
 
-    const active = await repo.listForUser(userId, { status: "active" });
+    const active = await repo.listForProfile(userId, { status: "active" });
     expect(active).toHaveLength(2);
     expect(active.every((g) => g.status === "active")).toBe(true);
 
-    const reached = await repo.listForUser(userId, { status: "reached" });
+    const reached = await repo.listForProfile(userId, { status: "reached" });
     expect(reached).toHaveLength(1);
     expect(reached[0]?.status).toBe("reached");
   });
@@ -188,5 +206,37 @@ describe("GoalRepository (integration)", () => {
     expect(created.realReturnPct).toBeCloseTo(8.75);
     expect(created.fundingMode).toBe("linked");
     expect(created.deadline).toBeInstanceOf(Date);
+  });
+
+  it("listForHousehold retorna metas do lar; listForProfile nao as retorna", async () => {
+    const personal = makeGoal({ id: randomUUID(), title: "Meta pessoal", householdId: null });
+    const household = makeGoal({ id: randomUUID(), title: "Meta do lar", householdId });
+
+    await repo.create(personal);
+    await repo.create(household);
+
+    const forHousehold = await repo.listForHousehold(householdId);
+    const forProfile = await repo.listForProfile(profileId);
+
+    const hhIds = forHousehold.map((g) => g.id);
+    expect(hhIds).toContain(household.id);
+    expect(hhIds).not.toContain(personal.id);
+
+    const profileIds = forProfile.map((g) => g.id);
+    expect(profileIds).toContain(personal.id);
+    expect(profileIds).not.toContain(household.id);
+  });
+
+  it("findByIdInHousehold retorna meta do household correto e null para household errado", async () => {
+    const goal = makeGoal({ id: randomUUID(), householdId });
+    await repo.create(goal);
+
+    const found = await repo.findByIdInHousehold(goal.id, householdId);
+    expect(found).not.toBeNull();
+    expect(found?.id).toBe(goal.id);
+    expect(found?.householdId).toBe(householdId);
+
+    const notFound = await repo.findByIdInHousehold(goal.id, randomUUID());
+    expect(notFound).toBeNull();
   });
 });

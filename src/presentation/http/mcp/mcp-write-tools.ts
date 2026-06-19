@@ -14,6 +14,7 @@ import { findWriteAction } from "@/domain/mcp/write-actions";
 import { CURRENCIES } from "@/domain/value-objects/money.vo";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { DomainError } from "@/shared/errors/domain-error";
 import { isErr } from "@/shared/errors/result";
 
@@ -64,6 +65,7 @@ function confirmDeps(): ConfirmMcpActionDeps {
     pending: repos.mcpPendingActions,
     hasher: new WebCryptoHasher(),
     clock,
+    resolveProfileId: resolvePfProfileId,
   };
 }
 
@@ -175,8 +177,10 @@ export function registerMcpWriteTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, scopeFor(toolName));
       await enforceUsageOrThrow(ctx);
+      const profileId = await resolvePfProfileId(ctx.userId);
       const out = await performMcpWrite(writeDeps(), {
         ctx,
+        profileId,
         toolName,
         args,
         maxAmountCents,

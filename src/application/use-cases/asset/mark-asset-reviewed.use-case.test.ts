@@ -13,13 +13,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -34,6 +34,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "cash",
     label: "Reserva Nubank",
     currentValue: Money.fromCents(50_000_00n),
@@ -72,7 +73,7 @@ describe("markAssetReviewed", () => {
 
     const result = await markAssetReviewed(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -96,7 +97,7 @@ describe("markAssetReviewed", () => {
 
     const result = await markAssetReviewed(
       { assets, clock },
-      { userId: "user-1", assetId: "missing" },
+      { profileId: "profile-1", assetId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -118,7 +119,7 @@ describe("markAssetReviewed", () => {
 
     const result = await markAssetReviewed(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -140,7 +141,7 @@ describe("markAssetReviewed", () => {
 
     const result = await markAssetReviewed(
       { assets, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);

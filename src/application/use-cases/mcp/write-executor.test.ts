@@ -18,7 +18,7 @@ function rate(annual: number): InterestRate {
 function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> = {}): WriteExecutorDeps {
   const incomes = {
     findById: vi.fn(async () => null),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(async (e: IncomeEntity) => e),
     update: vi.fn(async (e: IncomeEntity) => e),
     setActive: vi.fn(),
@@ -52,21 +52,24 @@ function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> =
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(async () => null),
-    findActiveByUser: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfile: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(),
-    listCryptoTickersForUser: vi.fn(),
+    listStockTickersForProfile: vi.fn(),
+    listCryptoTickersForProfile: vi.fn(),
     softDelete: vi.fn(),
   };
   const goals = {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(async () => null),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
+    listForHousehold: vi.fn(async () => []),
+    findByIdInHousehold: vi.fn(async () => null),
     countActive: vi.fn(async () => 0),
     softDelete: vi.fn(),
+    restore: vi.fn(),
     listAllActive: vi.fn(),
   };
   const clock = { now: vi.fn(() => new Date("2026-06-03T12:00:00Z")) };
@@ -91,6 +94,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { label: "Salário", amountCents: 500000, frequency: "monthly", startDate: "2026-06-01" },
     });
@@ -109,6 +113,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         label: "Salary",
@@ -130,6 +135,7 @@ describe("executeWrite", () => {
     await executeWrite(deps, {
       toolName: "asset_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         category: "real_estate",
@@ -151,6 +157,7 @@ describe("executeWrite", () => {
     await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "financing",
@@ -178,6 +185,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
+      profileId: "p1",
       label: "Salary",
       amount: Money.fromCents(500000n, "USD"),
       frequency: "monthly",
@@ -196,6 +204,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { incomeId: "i1", amountCents: 600000 },
     });
@@ -207,6 +216,7 @@ describe("executeWrite", () => {
     const existing = {
       id: "d1",
       userId: "u1",
+      profileId: "p1",
       kind: "personal_loan",
       label: "Loan",
       status: "active",
@@ -232,6 +242,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { debtId: "d1", currentBalanceCents: 700000 },
     });
@@ -243,6 +254,7 @@ describe("executeWrite", () => {
     const existing: IncomeEntity = {
       id: "i1",
       userId: "u1",
+      profileId: "p1",
       label: "Salário",
       amount: Money.fromCents(500000n),
       frequency: "monthly",
@@ -261,6 +273,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "income_update",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { incomeId: "i1", amountCents: 600000 },
     });
@@ -278,6 +291,7 @@ describe("executeWrite", () => {
     const existing = {
       id: "d1",
       userId: "u1",
+      profileId: "p1",
       kind: "personal_loan",
       label: "Empréstimo",
       status: "active",
@@ -302,6 +316,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_delete",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { debtId: "d1" },
     });
@@ -324,6 +339,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "financing",
@@ -362,6 +378,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "debt_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: {
         kind: "credit_card",
@@ -399,6 +416,8 @@ describe("executeWrite", () => {
     const created: GoalEntity = {
       id: "g1",
       userId: "u1",
+      profileId: "p1",
+      householdId: null,
       type: "savings",
       title: "Reserva",
       status: "active",
@@ -423,6 +442,7 @@ describe("executeWrite", () => {
     const r = await executeWrite(deps, {
       toolName: "goal_create",
       userId: "u1",
+      profileId: "p1",
       isPro: true,
       args: { type: "savings", title: "Reserva", targetCents: 1000000, fundingMode: "manual" },
     });
@@ -442,6 +462,7 @@ describe("executeWrite", () => {
       executeWrite(deps, {
         toolName: "goal_create",
         userId: "u1",
+        profileId: "p1",
         isPro: false,
         args: { type: "savings", title: "Segunda meta" },
       }),

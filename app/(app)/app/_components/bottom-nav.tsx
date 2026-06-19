@@ -1,6 +1,6 @@
 "use client";
 
-import { Coins, HomeIcon, Plus, TrendingUp, Wallet } from "lucide-react";
+import { Building2, Coins, HomeIcon, Plus, TrendingUp, Wallet } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -18,11 +18,18 @@ interface NavItem {
 // O FAB central abre o hub de intenção ("o que você quer registrar?"), a ação
 // núcleo do app. "Simular" saiu daqui (exploração, não ação primária) e vive nos
 // acessos rápidos.
-const NAV_ITEMS: NavItem[] = [
+const PF_NAV_ITEMS: NavItem[] = [
   { href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true },
   { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
   { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
   { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
+];
+
+const PJ_NAV_ITEMS: NavItem[] = [
+  { href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true },
+  { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
+  { href: "/app/mei" as Route, label: "Salário", icon: Building2 },
+  { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -30,11 +37,12 @@ function isActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export function BottomNav() {
+export function BottomNav({ activeIsPj }: { activeIsPj: boolean }) {
   const pathname = usePathname();
   const [addOpen, setAddOpen] = useState(false);
-  const leftItems = NAV_ITEMS.slice(0, 2);
-  const rightItems = NAV_ITEMS.slice(2);
+  const navItems = activeIsPj ? PJ_NAV_ITEMS : PF_NAV_ITEMS;
+  const leftItems = navItems.slice(0, 2);
+  const rightItems = navItems.slice(2);
 
   function renderItem(item: NavItem) {
     const Icon = item.icon;

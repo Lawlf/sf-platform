@@ -15,6 +15,7 @@ import {
 function rowToEntity(row: InvestmentSnapshotRow): InvestmentSnapshotEntity {
   return {
     userId: row.userId,
+    profileId: row.profileId,
     month: row.month,
     investmentType: row.investmentType,
     totalValueCents: row.totalValueCents,
@@ -27,6 +28,7 @@ export class InvestmentSnapshotRepository
 {
   async replaceMonth(
     userId: string,
+    profileId: string,
     month: Date,
     rows: PortRow[],
     capturedAt: Date,
@@ -36,7 +38,7 @@ export class InvestmentSnapshotRepository
         .delete(investmentSnapshots)
         .where(
           and(
-            eq(investmentSnapshots.userId, userId),
+            eq(investmentSnapshots.profileId, profileId),
             eq(investmentSnapshots.month, month),
           ),
         );
@@ -44,6 +46,7 @@ export class InvestmentSnapshotRepository
       await tx.insert(investmentSnapshots).values(
         rows.map((r) => ({
           userId,
+          profileId,
           month,
           investmentType: r.investmentType,
           totalValueCents: r.totalValueCents,
@@ -53,11 +56,11 @@ export class InvestmentSnapshotRepository
     });
   }
 
-  async listForUser(userId: string): Promise<InvestmentSnapshotEntity[]> {
+  async listForProfile(profileId: string): Promise<InvestmentSnapshotEntity[]> {
     const rows = await getDb()
       .select()
       .from(investmentSnapshots)
-      .where(eq(investmentSnapshots.userId, userId))
+      .where(eq(investmentSnapshots.profileId, profileId))
       .orderBy(asc(investmentSnapshots.month));
     return rows.map(rowToEntity);
   }

@@ -16,7 +16,7 @@ import type {
 import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import {
   assetDebtAllocations,
   type AssetDebtAllocationRow,
@@ -116,6 +116,7 @@ function toEntity(row: AssetRow): AssetEntity {
   return {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId,
     category: row.category as AssetCategory,
     label: row.label,
     currentValue: Money.fromCents(row.currentValueCents, row.currency as Currency),
@@ -157,6 +158,7 @@ export class AssetRepository implements AssetRepositoryPort {
       .values({
         id: asset.id,
         userId: asset.userId,
+        profileId: asset.profileId,
         category: asset.category,
         label: asset.label,
         currentValueCents: asset.currentValue.toCents(),
@@ -192,6 +194,7 @@ export class AssetRepository implements AssetRepositoryPort {
       .values({
         id: asset.id,
         userId: asset.userId,
+        profileId: asset.profileId,
         category: asset.category,
         label: asset.label,
         currentValueCents: asset.currentValue.toCents(),
@@ -244,27 +247,27 @@ export class AssetRepository implements AssetRepositoryPort {
       .where(eq(assets.id, asset.id));
   }
 
-  async findById(id: string, userId: string): Promise<AssetEntity | null> {
+  async findById(id: string, profileId: string): Promise<AssetEntity | null> {
     const rows = await getDb()
       .select()
       .from(assets)
-      .where(and(eq(assets.id, id), ownedBy(assets, userId)))
+      .where(and(eq(assets.id, id), scopedToProfile(assets, profileId)))
       .limit(1);
     return rows[0] ? toEntity(rows[0]) : null;
   }
 
-  async findActiveByUser(userId: string): Promise<AssetEntity[]> {
+  async findActiveByProfile(profileId: string): Promise<AssetEntity[]> {
     const rows = await getDb()
       .select()
       .from(assets)
       .where(
-        and(eq(assets.userId, userId), isNull(assets.deactivatedAt), isNull(assets.deletedAt)),
+        and(eq(assets.profileId, profileId), isNull(assets.deactivatedAt), isNull(assets.deletedAt)),
       );
     return rows.map(toEntity);
   }
 
-  async findActiveByUserAndCategory(
-    userId: string,
+  async findActiveByProfileAndCategory(
+    profileId: string,
     category: AssetCategory,
   ): Promise<AssetEntity[]> {
     const rows = await getDb()
@@ -272,7 +275,7 @@ export class AssetRepository implements AssetRepositoryPort {
       .from(assets)
       .where(
         and(
-          eq(assets.userId, userId),
+          eq(assets.profileId, profileId),
           eq(assets.category, category),
           isNull(assets.deactivatedAt),
           isNull(assets.deletedAt),
@@ -281,8 +284,8 @@ export class AssetRepository implements AssetRepositoryPort {
     return rows.map(toEntity);
   }
 
-  async findByIdWithAllocations(id: string, userId: string): Promise<AssetWithAllocations | null> {
-    const asset = await this.findById(id, userId);
+  async findByIdWithAllocations(id: string, profileId: string): Promise<AssetWithAllocations | null> {
+    const asset = await this.findById(id, profileId);
     if (!asset) return null;
     const allocs = await getDb()
       .select()
@@ -291,8 +294,8 @@ export class AssetRepository implements AssetRepositoryPort {
     return { asset, allocations: allocs.map(allocationToEntity) };
   }
 
-  async findActiveWithAllocations(userId: string): Promise<AssetWithAllocations[]> {
-    const activeAssets = await this.findActiveByUser(userId);
+  async findActiveWithAllocations(profileId: string): Promise<AssetWithAllocations[]> {
+    const activeAssets = await this.findActiveByProfile(profileId);
     if (activeAssets.length === 0) return [];
     const assetIds = activeAssets.map((a) => a.id);
     const allocs = await getDb()
@@ -311,8 +314,8 @@ export class AssetRepository implements AssetRepositoryPort {
     }));
   }
 
-  async listStockTickersForUser(userId: string): Promise<string[]> {
-    const rows = await this.findActiveByUserAndCategory(userId, "investment");
+  async listStockTickersForProfile(profileId: string): Promise<string[]> {
+    const rows = await this.findActiveByProfileAndCategory(profileId, "investment");
     const tickers = new Set<string>();
     for (const a of rows) {
       const meta = a.metadata;
@@ -324,8 +327,8 @@ export class AssetRepository implements AssetRepositoryPort {
     return Array.from(tickers).sort();
   }
 
-  async listCryptoTickersForUser(userId: string): Promise<string[]> {
-    const rows = await this.findActiveByUserAndCategory(userId, "investment");
+  async listCryptoTickersForProfile(profileId: string): Promise<string[]> {
+    const rows = await this.findActiveByProfileAndCategory(profileId, "investment");
     const tickers = new Set<string>();
     for (const a of rows) {
       const meta = a.metadata;
@@ -341,13 +344,13 @@ export class AssetRepository implements AssetRepositoryPort {
     await getDb().update(assets).set({ deletedAt, updatedAt: deletedAt }).where(eq(assets.id, id));
   }
 
-  async findByExternalAccountKey(userId: string, key: string): Promise<AssetEntity | null> {
+  async findByExternalAccountKey(profileId: string, key: string): Promise<AssetEntity | null> {
     const rows = await getDb()
       .select()
       .from(assets)
       .where(
         and(
-          eq(assets.userId, userId),
+          eq(assets.profileId, profileId),
           eq(assets.externalAccountKey, key),
           isNull(assets.deletedAt),
         ),
@@ -357,11 +360,11 @@ export class AssetRepository implements AssetRepositoryPort {
     return row ? toEntity(row) : null;
   }
 
-  async listExternalAccountKeys(userId: string): Promise<string[]> {
+  async listExternalAccountKeys(profileId: string): Promise<string[]> {
     const rows = await getDb()
       .select({ key: assets.externalAccountKey })
       .from(assets)
-      .where(and(eq(assets.userId, userId), isNotNull(assets.externalAccountKey), isNull(assets.deletedAt)));
+      .where(and(eq(assets.profileId, profileId), isNotNull(assets.externalAccountKey), isNull(assets.deletedAt)));
     return rows.map((r) => r.key).filter((v): v is string => v !== null);
   }
 }

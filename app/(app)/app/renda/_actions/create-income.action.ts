@@ -11,13 +11,14 @@ import { awardEventAchievement } from "../../_actions/_achievements";
 export const createIncomeAction = action({
   schema: incomeFormSchema,
   revalidates: ["incomes"],
-  handler: async (data, { userId }) => {
+  handler: async (data, { userId, profileId }) => {
     const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 
     await registerIncome(
       { incomes: repos.incomes, clock },
       {
         userId,
+        profileId,
         label: data.label,
         amount,
         frequency: data.frequency,

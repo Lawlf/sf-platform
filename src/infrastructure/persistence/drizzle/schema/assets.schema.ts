@@ -12,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const assetCategory = pgEnum("asset_category", [
@@ -36,6 +37,7 @@ export const assets = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     category: assetCategory("category").notNull(),
     label: text("label").notNull(),
     currentValueCents: bigint("current_value_cents", { mode: "bigint" }).notNull(),
@@ -77,19 +79,20 @@ export const assets = pgTable(
     userCategoryIdx: index("assets_user_id_category_idx").on(table.userId, table.category),
     userActiveIdx: index("assets_user_id_active_idx").on(table.userId, table.deactivatedAt),
     userDeletedIdx: index("assets_user_deleted_idx").on(table.userId, table.deletedAt),
+    profileIdx: index("assets_profile_id_idx").on(table.profileId),
     // No máximo uma Carteira padrão ativa por usuário. Backstop de banco contra
     // a corrida de check-then-insert que duplicava a Carteira em entradas
     // concorrentes no app (ensureDefaultWallet / resolveAccount).
     defaultWalletIdx: uniqueIndex("assets_default_wallet_uniq")
-      .on(table.userId)
+      .on(table.profileId)
       .where(
         sql`${table.category} = 'cash' and ${table.label} = 'Carteira' and ${table.deletedAt} is null and ${table.deactivatedAt} is null`,
       ),
-    // No máximo uma conta por chave externa (OFX) por usuário. Backstop contra a
+    // No máximo uma conta por chave externa (OFX) por perfil. Backstop contra a
     // corrida de double-commit do import, que duplicava a conta bancária e
     // dobrava o patrimônio. Parcial: ativos manuais têm external_account_key nulo.
     externalKeyIdx: uniqueIndex("assets_external_account_key_uniq")
-      .on(table.userId, table.externalAccountKey)
+      .on(table.profileId, table.externalAccountKey)
       .where(sql`${table.externalAccountKey} is not null and ${table.deletedAt} is null`),
   }),
 );

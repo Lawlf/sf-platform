@@ -2,6 +2,6 @@ import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement
 
 export interface IncomeSettlementRepositoryPort {
   upsert(settlement: IncomeSettlementEntity): Promise<void>;
-  listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]>;
-  listForUser(userId: string): Promise<IncomeSettlementEntity[]>;
+  listForProfileMonth(profileId: string, month: Date): Promise<IncomeSettlementEntity[]>;
+  listForProfile(profileId: string): Promise<IncomeSettlementEntity[]>;
 }

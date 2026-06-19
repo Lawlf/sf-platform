@@ -7,6 +7,7 @@ import { comparePayoffStrategies } from "@/application/use-cases/simulation/comp
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isErr } from "@/shared/errors/result";
 
 const schema = z.object({
@@ -38,10 +39,12 @@ export async function runStrategyAction(formData: FormData): Promise<StrategyAct
   if (!parsed.success)
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
 
+  const profileId = await getActiveProfileId();
   const r = await comparePayoffStrategies(
     { debts: repos.debts, clock },
     {
       userId: user.id,
+      profileId,
       debtIds: parsed.data.debtIds,
       monthlyBudget: Money.fromCents(parsed.data.monthlyBudgetCents),
     },

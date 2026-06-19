@@ -24,7 +24,7 @@ const SGML_RDB = `OFXHEADER:100
 function makeDeps(opts?: { existingKey?: boolean; seenFitIds?: string[]; reserveValueCents?: bigint }) {
   return {
     assets: {
-      findByExternalAccountKey: async (_userId: string, key: string) => {
+      findByExternalAccountKey: async (_profileId: string, key: string) => {
         if (key.endsWith(":reserve")) {
           return opts?.reserveValueCents != null
             ? ({ id: "reserve-1", currentValue: Money.fromCents(opts.reserveValueCents) } as never)
@@ -41,7 +41,7 @@ function makeDeps(opts?: { existingKey?: boolean; seenFitIds?: string[]; reserve
 
 describe("buildOfxPreview", () => {
   it("returns a macro preview with no persistence, marking new vs existing account", async () => {
-    const r = await buildOfxPreview(makeDeps(), { userId: "u1", contents: [SGML] });
+    const r = await buildOfxPreview(makeDeps(), { userId: "u1", profileId: "profile-1", contents: [SGML] });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     const p = r.value;
@@ -56,6 +56,7 @@ describe("buildOfxPreview", () => {
   it("flags duplicates and matched account on re-import", async () => {
     const r = await buildOfxPreview(makeDeps({ existingKey: true, seenFitIds: ["A1"] }), {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML],
     });
     expect(isOk(r)).toBe(true);
@@ -66,7 +67,7 @@ describe("buildOfxPreview", () => {
   });
 
   it("excludes reserve transfers (RDB) from the net movement", async () => {
-    const r = await buildOfxPreview(makeDeps(), { userId: "u1", contents: [SGML_RDB] });
+    const r = await buildOfxPreview(makeDeps(), { userId: "u1", profileId: "profile-1", contents: [SGML_RDB] });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.netCents).toBe(100000n);
@@ -74,7 +75,7 @@ describe("buildOfxPreview", () => {
   });
 
   it("reports reserve delta from RDB flows and null when no reserve asset exists", async () => {
-    const r = await buildOfxPreview(makeDeps(), { userId: "u1", contents: [SGML_RDB] });
+    const r = await buildOfxPreview(makeDeps(), { userId: "u1", profileId: "profile-1", contents: [SGML_RDB] });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.reserve).not.toBeNull();
@@ -86,6 +87,7 @@ describe("buildOfxPreview", () => {
   it("reports the existing reserve asset value when one is connected", async () => {
     const r = await buildOfxPreview(makeDeps({ reserveValueCents: 500000n }), {
       userId: "u1",
+      profileId: "profile-1",
       contents: [SGML_RDB],
     });
     expect(isOk(r)).toBe(true);
@@ -94,7 +96,7 @@ describe("buildOfxPreview", () => {
   });
 
   it("has a null reserve block when no RDB flows are present", async () => {
-    const r = await buildOfxPreview(makeDeps(), { userId: "u1", contents: [SGML] });
+    const r = await buildOfxPreview(makeDeps(), { userId: "u1", profileId: "profile-1", contents: [SGML] });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.reserve).toBeNull();
@@ -113,7 +115,7 @@ describe("buildOfxPreview", () => {
 <STMTTRN><TRNTYPE>CREDIT<DTPOSTED>20260205<TRNAMT>5000.00<FITID>A2<MEMO>SALARIO</STMTTRN>
 <LEDGERBAL><BALAMT>10000.00<DTASOF>20260228</LEDGERBAL>
 </STMTRS></STMTTRNRS></BANKMSGSRSV1></OFX>`;
-    const r = await buildOfxPreview(makeDeps(), { userId: "u1", contents: [jan, feb] });
+    const r = await buildOfxPreview(makeDeps(), { userId: "u1", profileId: "profile-1", contents: [jan, feb] });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.newTransactionCount).toBe(2);

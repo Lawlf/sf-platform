@@ -12,6 +12,7 @@ export type RecurringFrequency = "monthly" | "weekly" | "annual";
 interface BaseDebt {
   id: string;
   userId: string;
+  profileId: string;
   label: string;
   status: DebtStatus;
   originalPrincipal: Money;

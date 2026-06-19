@@ -4,11 +4,12 @@ import {
   type SimPrefill,
 } from "@/application/use-cases/simulation/load-sim-prefill.use-case";
 import { clock, repos } from "@/infrastructure/container";
-
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 
 export type { SimPrefill };
 
-export function loadSimPrefill(userId: string): Promise<SimPrefill> {
+export async function loadSimPrefill(userId: string): Promise<SimPrefill> {
+  const profileId = await resolvePfProfileId(userId);
   return loadSimPrefillUseCase(
     {
       assets: repos.assets,
@@ -19,6 +20,6 @@ export function loadSimPrefill(userId: string): Promise<SimPrefill> {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId },
+    { userId, profileId },
   );
 }

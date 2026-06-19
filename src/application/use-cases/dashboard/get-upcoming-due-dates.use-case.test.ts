@@ -16,7 +16,7 @@ import { getUpcomingDueDates } from "./get-upcoming-due-dates.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -47,6 +47,7 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
   return {
     id: overrides.id ?? "debt-fin",
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     label: overrides.label ?? "Casa",
     status: "active",
     originalPrincipal: principal,
@@ -75,6 +76,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
   return {
     id: overrides.id ?? "debt-pl",
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     label: overrides.label ?? "Emprestimo",
     status: "active",
     originalPrincipal: principal,
@@ -102,6 +104,7 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
   return {
     id: overrides.id ?? "debt-cc",
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     label: overrides.label ?? "Cartao",
     status: "active",
     originalPrincipal: stmt,
@@ -131,6 +134,7 @@ function makeOverdraft(): OverdraftDebt {
   return {
     id: "debt-od",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Cheque especial",
     status: "active",
     originalPrincipal: makeMoney(2000),
@@ -157,11 +161,11 @@ describe("getUpcomingDueDates", () => {
     const now = new Date(2026, 3, 20); // 2026-04-20 local
     const startDate = new Date(2026, 0, 15); // 2026-01-15 local
     const debt = makeFinancing({ startDate });
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1", horizonDays: 60 },
+      { userId: "user-1", profileId: "profile-1", horizonDays: 60 },
     );
 
     expect(isOk(result)).toBe(true);
@@ -179,11 +183,11 @@ describe("getUpcomingDueDates", () => {
     const debts = makeDebtRepo();
     const now = new Date(2026, 4, 20); // 2026-05-20 local
     const debt = makeCreditCard({ dueDay: 10 }); // 2026-05-10 already passed
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([debt]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1", horizonDays: 30 },
+      { userId: "user-1", profileId: "profile-1", horizonDays: 30 },
     );
 
     expect(isOk(result)).toBe(true);
@@ -199,11 +203,11 @@ describe("getUpcomingDueDates", () => {
     const debts = makeDebtRepo();
     const now = new Date(2026, 4, 1); // 2026-05-01 local
     const loan = makePersonalLoan({ startDate: new Date(2026, 0, 10), dueDay: 20 });
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -219,11 +223,11 @@ describe("getUpcomingDueDates", () => {
     const debts = makeDebtRepo();
     const now = new Date(2026, 4, 1); // 2026-05-01 local
     const loan = makePersonalLoan({ startDate: new Date(2026, 0, 18), dueDay: null });
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -235,11 +239,11 @@ describe("getUpcomingDueDates", () => {
   it("excludes overdraft debts from upcoming dues", async () => {
     const debts = makeDebtRepo();
     const now = new Date(2026, 4, 1);
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([makeOverdraft()]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeOverdraft()]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1" },
+      { userId: "user-1", profileId: "profile-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -258,11 +262,11 @@ describe("getUpcomingDueDates", () => {
       label: "Loan",
       startDate: new Date(2026, 2, 10), // March 10, so elapsed=2, next = May 10
     });
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([ccLater, loan, ccEarlier]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([ccLater, loan, ccEarlier]);
 
     const result = await getUpcomingDueDates(
       { debts, clock: makeClock(now) },
-      { userId: "user-1", horizonDays: 30 },
+      { userId: "user-1", profileId: "profile-1", horizonDays: 30 },
     );
 
     expect(isOk(result)).toBe(true);

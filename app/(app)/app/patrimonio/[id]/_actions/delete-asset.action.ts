@@ -12,7 +12,7 @@ import { purgeEntityBestEffort } from "../../../_actions/_purge-entity";
 export const deleteAssetAction = action({
   schema: z.string(),
   revalidates: ["assets", "debts", "timeline", "notifications", "home"],
-  handler: async (assetId, { userId }) => {
+  handler: async (assetId, { userId, profileId }) => {
     unwrap(
       await deleteAsset(
         {
@@ -20,7 +20,7 @@ export const deleteAssetAction = action({
           allocations: repos.assetDebtAllocations,
           clock,
         },
-        { userId, assetId },
+        { userId, profileId, assetId },
       ),
     );
 

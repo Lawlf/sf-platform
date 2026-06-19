@@ -14,11 +14,13 @@ function makeSavingsGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: GOAL_ID,
     userId: USER_ID,
+    profileId: "profile-1",
+    householdId: null,
     type: "savings",
     title: "Reserva viagem",
     status: "active",
     targetCents: 1000n,
-    manualSavedCents: 1000n, // already reached
+    manualSavedCents: 1000n,
     deadline: null,
     linkedDebtId: null,
     linkedAssetId: null,

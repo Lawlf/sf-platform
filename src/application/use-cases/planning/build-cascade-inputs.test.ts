@@ -8,7 +8,7 @@ import { buildCascadeInputs } from "./build-cascade-inputs";
 
 function goal(p: Partial<GoalEntity> & Pick<GoalEntity, "type">): GoalEntity {
   return {
-    id: "g1", userId: "u1", title: "g", status: "active",
+    id: "g1", userId: "u1", profileId: "profile-1", householdId: null, title: "g", status: "active",
     targetCents: null, deadline: null, linkedDebtId: null, linkedAssetId: null,
     targetMonths: null, fundingMode: null, manualSavedCents: null, monthlyCostCents: null,
     realReturnPct: null, cascadeOrder: null, cascadeMode: null, cascadeParallelPct: null,
@@ -55,7 +55,7 @@ describe("buildCascadeInputs", () => {
   it("derives an accumulate goal's rate from its linked asset", () => {
     const g = goal({ type: "savings", targetCents: 100000n, linkedAssetId: "buck" });
     const assets = [{
-      id: "buck", userId: "u1", category: "cash" as const, label: "x",
+      id: "buck", userId: "u1", profileId: "profile-1", category: "cash" as const, label: "x",
       currentValue: { toCents: () => 0n } as never,
       metadata: { kind: "cash" as const, yieldType: "fixed_pct_year" as const, yieldRatePct: 10 },
       fipeCode: null, fipeLastSyncedAt: null, acquiredAt: null, depreciationKind: "stable" as const,

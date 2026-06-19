@@ -12,6 +12,9 @@ vi.mock("next/cache", () => ({ revalidatePath: vi.fn() }));
 vi.mock("@/presentation/http/middleware/cached-current-user", () => ({
   requireUser: vi.fn().mockResolvedValue({ id: "user-1" }),
 }));
+vi.mock("@/presentation/http/middleware/active-profile", () => ({
+  getActiveProfileId: vi.fn().mockResolvedValue("profile-1"),
+}));
 
 class TestError extends DomainError {
   readonly code = "TEST_ERROR";
@@ -31,7 +34,7 @@ describe("action()", () => {
     fd.set("label", "Mercado");
     const r = await fn(fd);
     expect(r).toEqual({ ok: true, data: { id: "x" } });
-    expect(handler).toHaveBeenCalledWith({ label: "Mercado" }, { userId: "user-1" });
+    expect(handler).toHaveBeenCalledWith({ label: "Mercado" }, { userId: "user-1", profileId: "profile-1" });
   });
 
   it("parseia objeto plano", async () => {

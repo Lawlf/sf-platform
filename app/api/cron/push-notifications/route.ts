@@ -15,6 +15,7 @@ import { dispatchDebtDueNotifications } from "@/application/use-cases/push/dispa
 import { dispatchGoalReachedNotifications } from "@/application/use-cases/push/dispatch-goal-reached-notifications.use-case";
 import { dispatchMonthlySummaryNotifications } from "@/application/use-cases/push/dispatch-monthly-summary-notifications.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { getWebPushService } from "@/infrastructure/push/web-push.service";
 import { isOk } from "@/shared/errors/result";
 
@@ -58,6 +59,7 @@ export async function GET(request: Request) {
     preferences: repos.notificationPreferences,
     pushService: getWebPushService(),
     clock,
+    resolveProfileId: resolvePfProfileId,
   };
 
   const debtResult = await dispatchDebtDueNotifications(deps);
@@ -83,11 +85,13 @@ export async function GET(request: Request) {
       {
         goals: repos.goals,
         snapshots: repos.goalSnapshots,
-        buildMacro: (userId) =>
-          buildGoalMacro(
+        buildMacro: async (userId) => {
+          const profileId = await resolvePfProfileId(userId);
+          return buildGoalMacro(
             { assets, allocations, debts, incomes, clock, rates, overrides },
-            { userId },
-          ),
+            { userId, profileId },
+          );
+        },
       },
       { now: today },
     );
@@ -96,6 +100,7 @@ export async function GET(request: Request) {
   }
 
   const evaluateSustained = async (userId: string): Promise<SustainedEvaluation> => {
+    const profileId = await resolvePfProfileId(userId);
     const debtsRepo = repos.debts;
     const snapshotR = await getDashboardSnapshot(
       {
@@ -105,7 +110,7 @@ export async function GET(request: Request) {
         rates: repos.exchangeRates,
         overrides: repos.userFxOverrides,
       },
-      { userId },
+      { userId, profileId },
     );
     const netWorthR = await getNetWorth(
       {
@@ -116,7 +121,7 @@ export async function GET(request: Request) {
         overrides: repos.userFxOverrides,
         clock,
       },
-      { userId },
+      { userId, profileId },
     );
     const committedPct = isOk(snapshotR) ? snapshotR.value.incomeCommittedPct : null;
     const netWorthCents = isOk(netWorthR) ? netWorthR.value.netWorth.toCents() : 0n;
@@ -128,11 +133,12 @@ export async function GET(request: Request) {
   };
 
   const reconcileEvents = async (userId: string): Promise<void> => {
-    const userDebts = await repos.debts.listForUser(userId, { status: "all" });
+    const profileId = await resolvePfProfileId(userId);
+    const userDebts = await repos.debts.listForProfile(profileId, { status: "all" });
     const [userAssets, userIncomes, userGoals] = await Promise.all([
-      repos.assets.findActiveByUser(userId),
-      repos.incomes.listForUser(userId),
-      repos.goals.listForUser(userId),
+      repos.assets.findActiveByProfile(profileId),
+      repos.incomes.listForProfile(profileId),
+      repos.goals.listForProfile(profileId),
     ]);
     await reconcileEventAchievements(
       (uid, slug) => awardEventAchievement(uid, slug),

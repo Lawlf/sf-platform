@@ -12,7 +12,7 @@ export type CloseMonthResult =
 
 export async function closeMonth(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<CloseMonthResult> {
   const computed = await computeMonthClosing(deps, input);
   if (!computed) {
@@ -21,6 +21,7 @@ export async function closeMonth(
 
   await deps.closings.upsert({
     userId: input.userId,
+    profileId: input.profileId,
     month: MonthYear.fromIso(computed.monthIso).firstDay(),
     baselineNetWorthCents: computed.baselineNetWorthCents,
     endNetWorthCents: computed.endNetWorthCents,

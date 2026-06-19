@@ -15,6 +15,7 @@ import {
 function rowToEntity(row: RecurringSettlementRow): RecurringSettlementEntity {
   return {
     userId: row.userId,
+    profileId: row.profileId,
     debtId: row.debtId,
     month: row.month,
     status: row.status as RecurringSettlementStatus,
@@ -29,6 +30,7 @@ export class RecurringSettlementRepository implements RecurringSettlementReposit
       .insert(recurringSettlements)
       .values({
         userId: settlement.userId,
+        profileId: settlement.profileId,
         debtId: settlement.debtId,
         month: settlement.month,
         status: settlement.status,
@@ -37,11 +39,12 @@ export class RecurringSettlementRepository implements RecurringSettlementReposit
       })
       .onConflictDoUpdate({
         target: [
-          recurringSettlements.userId,
+          recurringSettlements.profileId,
           recurringSettlements.debtId,
           recurringSettlements.month,
         ],
         set: {
+          profileId: settlement.profileId,
           status: settlement.status,
           createdDebtId: settlement.createdDebtId,
           createdAt: settlement.createdAt,
@@ -49,22 +52,22 @@ export class RecurringSettlementRepository implements RecurringSettlementReposit
       });
   }
 
-  async listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> {
+  async listForProfileMonth(profileId: string, month: Date): Promise<RecurringSettlementEntity[]> {
     const rows = await getDb()
       .select()
       .from(recurringSettlements)
       .where(
-        and(eq(recurringSettlements.userId, userId), eq(recurringSettlements.month, month)),
+        and(eq(recurringSettlements.profileId, profileId), eq(recurringSettlements.month, month)),
       )
       .orderBy(asc(recurringSettlements.debtId));
     return rows.map(rowToEntity);
   }
 
-  async listForUser(userId: string): Promise<RecurringSettlementEntity[]> {
+  async listForProfile(profileId: string): Promise<RecurringSettlementEntity[]> {
     const rows = await getDb()
       .select()
       .from(recurringSettlements)
-      .where(eq(recurringSettlements.userId, userId))
+      .where(eq(recurringSettlements.profileId, profileId))
       .orderBy(asc(recurringSettlements.month));
     return rows.map(rowToEntity);
   }

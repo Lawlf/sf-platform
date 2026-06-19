@@ -150,6 +150,7 @@ function deserializeIncome(s: Record<string, unknown>): IncomeEntity {
   return {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: typeof s.profileId === "string" ? s.profileId : str(s.userId),
     label: str(s.label),
     amount: money(s.amount),
     frequency: str(s.frequency) as IncomeEntity["frequency"],
@@ -184,6 +185,7 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
   const base = {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: typeof s.profileId === "string" ? s.profileId : str(s.userId),
     label: str(s.label),
     status: str(s.status) as DebtEntity["status"],
     originalPrincipal: money(s.originalPrincipal),
@@ -274,6 +276,7 @@ function deserializeAsset(s: Record<string, unknown>): AssetEntity {
   return {
     id: str(s.id),
     userId: str(s.userId),
+    profileId: optStr(s.profileId) ?? str(s.userId),
     category: str(s.category) as AssetEntity["category"],
     label: str(s.label),
     currentValue: money(s.currentValue),

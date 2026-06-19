@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -13,6 +14,8 @@ import { parseGoalSeed } from "../../simular/_lib/goal-seed";
 import { loadSimPrefill } from "../../simular/_lib/sim-prefill";
 import { fetchGoalsWithProgress } from "../_actions/goal-queries";
 
+import { fetchMyHouseholds } from "../../_actions/household-queries";
+import { HouseholdGoalNudge } from "./_components/household-goal-nudge";
 import { NewGoal } from "./_components/new-goal.client";
 
 export const metadata: Metadata = { title: "Nova meta" };
@@ -25,6 +28,7 @@ export default async function NovaMetaPage({
   const sp = await searchParams;
   const seed = parseGoalSeed(sp);
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   // Free plan: block if already has >= 1 active goal
   if (!user.isPro) {
@@ -77,12 +81,12 @@ export default async function NovaMetaPage({
     }
   }
 
-  const [prefill, debtList, assetList] = await Promise.all([
+  const [prefill, debtList, assetList, households] = await Promise.all([
     loadSimPrefill(user.id),
     (async () => {
       const r = await listDebts(
         { debts: repos.debts },
-        { userId: user.id, status: "active" },
+        { profileId, status: "active" },
       );
       if (!isOk(r)) return [];
       return r.value.map((d) => ({
@@ -93,7 +97,7 @@ export default async function NovaMetaPage({
     })(),
     (async () => {
       const repo = repos.assets;
-      const assets = await repo.findActiveByUser(user.id);
+      const assets = await repo.findActiveByProfile(profileId);
       return assets
         .filter((a) => a.category === "cash" || a.category === "investment")
         .map((a) => ({
@@ -103,11 +107,13 @@ export default async function NovaMetaPage({
           valueCents: a.currentValue.toCents().toString(),
         }));
     })(),
+    fetchMyHouseholds(),
   ]);
 
   return (
     <PageShell title="Nova meta" backHref={"/app/metas" as Route}>
       <NewGoal prefill={prefill} debts={debtList} assets={assetList} seed={seed} />
+      {households.length > 0 ? <HouseholdGoalNudge /> : null}
     </PageShell>
   );
 }

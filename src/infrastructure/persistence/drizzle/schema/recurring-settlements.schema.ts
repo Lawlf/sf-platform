@@ -1,7 +1,8 @@
 import { sql } from "drizzle-orm";
-import { date, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
+import { date, index, pgTable, primaryKey, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { debts } from "./debts.schema";
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const recurringSettlements = pgTable(
@@ -10,6 +11,7 @@ export const recurringSettlements = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     debtId: uuid("debt_id")
       .notNull()
       .references(() => debts.id, { onDelete: "cascade" }),
@@ -23,7 +25,8 @@ export const recurringSettlements = pgTable(
       .default(sql`now()`),
   },
   (t) => ({
-    pk: primaryKey({ columns: [t.userId, t.debtId, t.month] }),
+    pk: primaryKey({ columns: [t.profileId, t.debtId, t.month] }),
+    profileIdx: index("recurring_settlements_profile_id_idx").on(t.profileId),
   }),
 );
 

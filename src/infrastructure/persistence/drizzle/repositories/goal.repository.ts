@@ -5,13 +5,15 @@ import type { GoalEntity, GoalStatus } from "@/domain/entities/goal.entity";
 import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import { goals, type GoalRow, type NewGoalRow } from "../schema/goals.schema";
 
 function rowToEntity(row: GoalRow): GoalEntity {
   return {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId,
+    householdId: row.householdId ?? null,
     type: row.type,
     title: row.title,
     status: row.status,
@@ -36,6 +38,8 @@ function entityToRow(entity: Omit<GoalEntity, "createdAt" | "updatedAt">): NewGo
   return {
     id: entity.id,
     userId: entity.userId,
+    profileId: entity.profileId,
+    householdId: entity.householdId ?? null,
     type: entity.type,
     title: entity.title,
     status: entity.status,
@@ -119,8 +123,8 @@ export class GoalRepository implements GoalRepositoryPort {
     return rowToEntity(row);
   }
 
-  async listForUser(userId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]> {
-    const conditions = [ownedBy(goals, userId)];
+  async listForProfile(profileId: string, opts?: { status?: GoalStatus }): Promise<GoalEntity[]> {
+    const conditions = [scopedToProfile(goals, profileId), isNull(goals.householdId)];
     if (opts?.status !== undefined) {
       conditions.push(eq(goals.status, opts.status));
     }
@@ -132,11 +136,38 @@ export class GoalRepository implements GoalRepositoryPort {
     return rows.map(rowToEntity);
   }
 
-  async countActive(userId: string): Promise<number> {
+  async listForHousehold(householdId: string): Promise<GoalEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(goals)
+      .where(and(eq(goals.householdId, householdId), eq(goals.status, "active"), isNull(goals.deletedAt)))
+      .orderBy(desc(goals.createdAt));
+    return rows.map(rowToEntity);
+  }
+
+  async findByIdInHousehold(goalId: string, householdId: string): Promise<GoalEntity | null> {
+    const rows = await getDb()
+      .select()
+      .from(goals)
+      .where(and(eq(goals.id, goalId), eq(goals.householdId, householdId), isNull(goals.deletedAt)))
+      .limit(1);
+    const row = rows[0];
+    if (!row) return null;
+    return rowToEntity(row);
+  }
+
+  async countActive(profileId: string): Promise<number> {
     const result = await getDb()
       .select({ value: count() })
       .from(goals)
-      .where(and(eq(goals.userId, userId), eq(goals.status, "active"), isNull(goals.deletedAt)));
+      .where(
+        and(
+          eq(goals.profileId, profileId),
+          eq(goals.status, "active"),
+          isNull(goals.deletedAt),
+          isNull(goals.householdId),
+        ),
+      );
     return result[0]?.value ?? 0;
   }
 

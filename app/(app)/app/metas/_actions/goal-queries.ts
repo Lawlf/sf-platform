@@ -3,6 +3,7 @@
 import { getGoalDetail } from "@/application/use-cases/goal/get-goal-detail.use-case";
 import { listGoalsWithProgress } from "@/application/use-cases/goal/list-goals-with-progress.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { filterByLinkedAsset, filterByLinkedDebt } from "./linked-goals";
@@ -127,9 +128,11 @@ export async function fetchGoalsWithProgress(): Promise<
   const user = await getCurrentUser();
   if (!user) return [];
 
+  const profileId = await getActiveProfileId();
   const deps = buildDeps();
   const list = await listGoalsWithProgress(deps, {
     userId: user.id,
+    profileId,
     isPro: user.isPro,
   });
 
@@ -158,6 +161,7 @@ export async function fetchGoalDetail(
   const user = await getCurrentUser();
   if (!user) return null;
 
+  const profileId = await getActiveProfileId();
   const deps = {
     ...buildDeps(),
     snapshots: repos.goalSnapshots,
@@ -166,6 +170,7 @@ export async function fetchGoalDetail(
 
   const result = await getGoalDetail(deps, {
     userId: user.id,
+    profileId,
     goalId,
     isPro: user.isPro,
   });

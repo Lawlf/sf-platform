@@ -13,7 +13,7 @@ import { comparePayoffStrategies } from "./compare-payoff-strategies.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -49,6 +49,7 @@ function makePersonalLoan(
   return {
     id,
     userId,
+    profileId: "profile-1",
     label: `Loan ${id}`,
     status: "active",
     originalPrincipal: p,
@@ -76,12 +77,13 @@ describe("comparePayoffStrategies", () => {
     const clock = makeClock();
     const d1 = makePersonalLoan("d1", 5000, 300);
     const d2 = makePersonalLoan("d2", 8000, 450);
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([d1, d2]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([d1, d2]);
 
     const result = await comparePayoffStrategies(
       { debts, clock },
       {
         userId: "user-1",
+    profileId: "profile-1",
         debtIds: [],
         monthlyBudget: makeMoney(1500),
       },
@@ -92,7 +94,7 @@ describe("comparePayoffStrategies", () => {
       expect(result.value.snowball.order).toHaveLength(2);
       expect(result.value.avalanche.order).toHaveLength(2);
     }
-    expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "active" });
+    expect(debts.listForProfile).toHaveBeenCalledWith("profile-1", { status: "active" });
   });
 
   it("filters by explicit debtIds when provided", async () => {
@@ -101,12 +103,13 @@ describe("comparePayoffStrategies", () => {
     const d1 = makePersonalLoan("d1", 5000, 300);
     const d2 = makePersonalLoan("d2", 8000, 450);
     const d3 = makePersonalLoan("d3", 3000, 200);
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([d1, d2, d3]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([d1, d2, d3]);
 
     const result = await comparePayoffStrategies(
       { debts, clock },
       {
         userId: "user-1",
+    profileId: "profile-1",
         debtIds: ["d1", "d3"],
         monthlyBudget: makeMoney(1500),
       },
@@ -123,12 +126,13 @@ describe("comparePayoffStrategies", () => {
     const debts = makeDebtRepo();
     const clock = makeClock();
     const d1 = makePersonalLoan("d1", 5000, 300);
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([d1]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([d1]);
 
     const result = await comparePayoffStrategies(
       { debts, clock },
       {
         userId: "user-1",
+    profileId: "profile-1",
         debtIds: ["d1", "missing"],
         monthlyBudget: makeMoney(1500),
       },
@@ -143,12 +147,13 @@ describe("comparePayoffStrategies", () => {
   it("returns InvalidAmortizationParamsError when user has no active debts", async () => {
     const debts = makeDebtRepo();
     const clock = makeClock();
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
     const result = await comparePayoffStrategies(
       { debts, clock },
       {
         userId: "user-1",
+    profileId: "profile-1",
         debtIds: [],
         monthlyBudget: makeMoney(1500),
       },

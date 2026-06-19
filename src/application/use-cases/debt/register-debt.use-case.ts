@@ -26,6 +26,7 @@ export interface RegisterDebtDeps {
 export type RegisterDebtInput =
   | ({
       userId: string;
+      profileId: string;
       label: string;
       notes: string | null;
       startDate: Date;
@@ -73,6 +74,7 @@ export type RegisterDebtInput =
   | {
       kind: "recurring";
       userId: string;
+      profileId: string;
       label: string;
       recurringFrequency: RecurringFrequency;
       recurringAmountCents: bigint;
@@ -170,6 +172,7 @@ export async function registerDebt(
       entity = {
         id: crypto.randomUUID(),
         userId: input.userId,
+        profileId: input.profileId,
         label: input.label,
         status: "active",
         originalPrincipal: principalMoney,
@@ -196,6 +199,7 @@ export async function registerDebt(
 
 interface LegacyBaseInput {
   userId: string;
+  profileId: string;
   label: string;
   notes: string | null;
   startDate: Date;
@@ -206,6 +210,7 @@ function legacyBase(input: LegacyBaseInput, now: Date) {
   return {
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     label: input.label,
     status: "active" as const,
     startDate: input.startDate,

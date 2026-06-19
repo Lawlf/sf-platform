@@ -6,6 +6,7 @@ import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.u
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projection.service";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 import { formatDateSafe } from "@/shared/format/date-format";
@@ -49,6 +50,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
   const { id } = await params;
 
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const detail = await getAssetDetail(
     {
@@ -56,7 +58,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
       allocations: repos.assetDebtAllocations,
       debts: repos.debts,
     },
-    { userId: user.id, assetId: id },
+    { profileId, assetId: id },
   );
   if (!isOk(detail)) notFound();
 
@@ -69,7 +71,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
 
   const allDebtsResult = await listDebts(
     { debts: repos.debts },
-    { userId: user.id, status: "active" },
+    { profileId, status: "active" },
   );
   const allActiveDebts = isOk(allDebtsResult) ? allDebtsResult.value : [];
 

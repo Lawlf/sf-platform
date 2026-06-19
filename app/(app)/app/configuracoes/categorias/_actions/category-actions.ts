@@ -65,7 +65,7 @@ export const renameCategoryAction = action({
 export const archiveCategoryAction = action({
   schema: archiveSchema,
   revalidates: REVALIDATES,
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const user = await requireUser();
     await archiveCategory(
       {
@@ -73,7 +73,7 @@ export const archiveCategoryAction = action({
         transactions: repos.transactions,
         debts: repos.debts,
       },
-      { userId, isPro: user.isPro, ...input },
+      { userId, profileId, isPro: user.isPro, ...input },
     );
   },
 });

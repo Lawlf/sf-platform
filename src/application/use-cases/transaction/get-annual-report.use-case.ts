@@ -10,7 +10,7 @@ import {
 const EXCLUDED_CATEGORIES = new Set(["promoted_debt", "promoted_income", "internal_transfer"]);
 
 export interface GetAnnualReportDeps {
-  transactions: TransactionRepositoryPort;
+  transactions: Pick<TransactionRepositoryPort, "listForProfileInRange">;
 }
 
 export type GetAnnualReportResult =
@@ -19,7 +19,7 @@ export type GetAnnualReportResult =
 
 export async function getAnnualReport(
   { transactions }: GetAnnualReportDeps,
-  { userId, year, isPro }: { userId: string; year: number; isPro: boolean },
+  { profileId, year, isPro }: { profileId: string; year: number; isPro: boolean },
 ): Promise<GetAnnualReportResult> {
   if (!isPro) {
     return { ok: false, message: "O relatório anual é um recurso Pro." };
@@ -27,7 +27,7 @@ export async function getAnnualReport(
 
   const from = new Date(Date.UTC(year, 0, 1, 0, 0, 0, 0));
   const to = new Date(Date.UTC(year, 11, 31, 23, 59, 59, 999));
-  const allOut = (await transactions.listForUserInRange(userId, from, to)).filter(
+  const allOut = (await transactions.listForProfileInRange(profileId, from, to)).filter(
     (t) => t.direction === "out" && t.deletedAt === null,
   );
   const spending = allOut.filter(

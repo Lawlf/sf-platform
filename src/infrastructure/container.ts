@@ -17,6 +17,7 @@ import { FinancialPlanningSettingsRepository } from "@/infrastructure/persistenc
 import { GoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-contribution.repository";
 import { GoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-snapshot.repository";
 import { GoalRepository } from "@/infrastructure/persistence/drizzle/repositories/goal.repository";
+import { HouseholdRepository } from "@/infrastructure/persistence/drizzle/repositories/household.repository";
 import { IncomeSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/income-settlement.repository";
 import { IncomeRepository } from "@/infrastructure/persistence/drizzle/repositories/income.repository";
 import { InvestmentSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/investment-snapshot.repository";
@@ -29,6 +30,7 @@ import { McpPendingActionRepository } from "@/infrastructure/persistence/drizzle
 import { McpTokenRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-token.repository";
 import { McpUsageRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-usage.repository";
 import { McpWriteIdempotencyRepository } from "@/infrastructure/persistence/drizzle/repositories/mcp-write-idempotency.repository";
+import { MeiMonthlyRepository } from "@/infrastructure/persistence/drizzle/repositories/mei-monthly.repository";
 import { ModuleProgressRepository } from "@/infrastructure/persistence/drizzle/repositories/module-progress.repository";
 import { MonthClosingRepository } from "@/infrastructure/persistence/drizzle/repositories/month-closing.repository";
 import { NotificationPreferencesRepository } from "@/infrastructure/persistence/drizzle/repositories/notification-preferences.repository";
@@ -36,6 +38,7 @@ import { NotificationRepository } from "@/infrastructure/persistence/drizzle/rep
 import { OauthAccountRepository } from "@/infrastructure/persistence/drizzle/repositories/oauth-account.repository";
 import { PaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/payment.repository";
 import { PlanRepository } from "@/infrastructure/persistence/drizzle/repositories/plan.repository";
+import { ProfileRepository } from "@/infrastructure/persistence/drizzle/repositories/profile.repository";
 import { PushSubscriptionRepository } from "@/infrastructure/persistence/drizzle/repositories/push-subscription.repository";
 import { RecurringSettlementRepository } from "@/infrastructure/persistence/drizzle/repositories/recurring-settlement.repository";
 import { SessionRepository } from "@/infrastructure/persistence/drizzle/repositories/session.repository";
@@ -71,6 +74,7 @@ export const repos = {
   goalContributions: new GoalContributionRepository(),
   goalSnapshots: new GoalSnapshotRepository(),
   goals: new GoalRepository(),
+  households: new HouseholdRepository(),
   incomeSettlements: new IncomeSettlementRepository(),
   incomes: new IncomeRepository(),
   investmentSnapshots: new InvestmentSnapshotRepository(),
@@ -83,6 +87,7 @@ export const repos = {
   mcpTokens: new McpTokenRepository(),
   mcpUsage: new McpUsageRepository(),
   mcpWriteIdempotency: new McpWriteIdempotencyRepository(),
+  meiMonthly: new MeiMonthlyRepository(),
   moduleProgress: new ModuleProgressRepository(),
   monthClosings: new MonthClosingRepository(),
   notificationPreferences: new NotificationPreferencesRepository(),
@@ -90,6 +95,7 @@ export const repos = {
   oauthAccounts: new OauthAccountRepository(),
   payments: new PaymentRepository(),
   plans: new PlanRepository(),
+  profiles: new ProfileRepository(),
   pushSubscriptions: new PushSubscriptionRepository(),
   recurringSettlements: new RecurringSettlementRepository(),
   sessions: new SessionRepository(),

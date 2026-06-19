@@ -9,6 +9,7 @@ import {
 } from "@/application/use-cases/attachments/list-user-documents.use-case";
 import type { AttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -53,12 +54,13 @@ export default async function DocumentosPage() {
   }
 
   const attachments = await repos.entityAttachments.listAllForUser(user.id);
+  const profileId = await getActiveProfileId();
 
   const [debts, incomes, goals, assets] = await Promise.all([
-    repos.debts.listForUser(user.id),
-    repos.incomes.listForUser(user.id),
-    repos.goals.listForUser(user.id),
-    repos.assets.findActiveByUser(user.id),
+    repos.debts.listForProfile(profileId),
+    repos.incomes.listForProfile(profileId),
+    repos.goals.listForProfile(profileId),
+    repos.assets.findActiveByProfile(profileId),
   ]);
 
   const map = new Map<string, string>();

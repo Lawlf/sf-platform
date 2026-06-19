@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 
 import { monthlyRateFor } from "@/domain/services/financial-health.service";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -14,7 +15,8 @@ export const metadata: Metadata = { title: "Quitar dívida ou investir?" };
 
 export default async function DividaVsInvestirPage() {
   const user = await requireUser();
-  const debts = await repos.debts.listForUser(user.id, { status: "active" });
+  const profileId = await getActiveProfileId();
+  const debts = await repos.debts.listForProfile(profileId, { status: "active" });
 
   // Só dívidas que cobram juros: amortizar uma sem juros (recorrente) não
   // economiza nada. Anualiza a taxa mensal para comparar com o investimento.

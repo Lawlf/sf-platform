@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import { TooltipProvider } from "@/app/components/ui/tooltip";
 import { ensureDefaultWallet } from "@/application/use-cases/asset/ensure-default-wallet.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { AppLockProvider } from "./app/_components/app-lock/app-lock-provider.client";
@@ -24,6 +25,8 @@ import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
 import { fetchUnreadNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
+import { fetchMyHouseholds } from "./app/_actions/household-queries";
+import { fetchUserProfiles } from "./app/_actions/profile-queries";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
@@ -36,6 +39,8 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
     redirect("/comecar");
   }
 
+  const profileId = await getActiveProfileId();
+
   try {
     await ensureDefaultWallet(
       {
@@ -44,6 +49,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         newId: () => crypto.randomUUID(),
       },
       user.id,
+      profileId,
     );
   } catch {
     // Best-effort: a criação da Carteira padrão não pode derrubar o app.
@@ -53,14 +59,21 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const notificationCount = await fetchUnreadNotificationsCount();
 
   const credsRepo = repos.userCredentials;
-  const [creds, passkeys, avatarUrl] = await Promise.all([
+  const [creds, passkeys, avatarUrl, profilesPayload, households] = await Promise.all([
     credsRepo.find(user.id),
     credsRepo.listWebauthn(user.id),
     repos.userAvatars.get(user.id),
+    fetchUserProfiles(),
+    fetchMyHouseholds(),
   ]);
   const appLockEnabled = creds?.appLockEnabled ?? false;
   const appLockTimeout = creds?.appLockTimeout ?? 60;
   const hasPasskey = passkeys.length > 0;
+  const hasHousehold = households.length > 0;
+
+  const activeIsPj =
+    profilesPayload?.profiles.find((p) => p.id === profilesPayload.activeProfileId)?.type ===
+    "PJ_MEI";
 
   const hideValues = (await cookies()).get("sf_hide_values")?.value === "1";
 
@@ -72,12 +85,21 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
-            <Sidebar displayName={displayName} avatarUrl={avatarUrl} isPro={user.isPro} />
+            <Sidebar
+              displayName={displayName}
+              avatarUrl={avatarUrl}
+              isPro={user.isPro}
+              profiles={profilesPayload?.profiles ?? []}
+              activeProfileId={profilesPayload?.activeProfileId ?? profileId}
+              hasHousehold={hasHousehold}
+            />
             <Topbar notificationCount={notificationCount} />
             <MobileTopBar
               displayName={displayName}
               avatarUrl={avatarUrl}
               notificationCount={notificationCount}
+              profiles={profilesPayload?.profiles ?? []}
+              activeProfileId={profilesPayload?.activeProfileId ?? profileId}
             />
 
             <UsageHeartbeat />
@@ -88,7 +110,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             {children}
 
             <div className="md:hidden">
-              <BottomNavGate />
+              <BottomNavGate activeIsPj={activeIsPj} />
             </div>
           </div>
           </InstallProvider>

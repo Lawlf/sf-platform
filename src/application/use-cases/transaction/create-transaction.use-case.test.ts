@@ -10,6 +10,7 @@ function cashAsset(over: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "acc1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Carteira",
     currentValue: Money.fromCents(100000n),
@@ -43,7 +44,7 @@ function makeDeps(over: Partial<CreateTransactionDeps> = {}): CreateTransactionD
     },
     assets: {
       findById: vi.fn(async () => cashAsset()),
-      findActiveByUserAndCategory: vi.fn(async () => [cashAsset()]),
+      findActiveByProfileAndCategory: vi.fn(async () => [cashAsset()]),
       createDefaultWallet: vi.fn(async () => undefined),
       update: vi.fn(async () => undefined),
     },
@@ -57,6 +58,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(30000n),
       description: "Mercado",
@@ -74,6 +76,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "in",
       amount: Money.fromCents(50000n),
       description: "Pix",
@@ -90,6 +93,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(30000n),
       description: "Conta futura",
@@ -106,7 +110,7 @@ describe("createTransaction", () => {
     const deps = makeDeps({
       assets: {
         findById: vi.fn(async () => null),
-        findActiveByUserAndCategory: vi.fn(async () => []),
+        findActiveByProfileAndCategory: vi.fn(async () => []),
         createDefaultWallet: vi.fn(async (a: AssetEntity) => {
           created.push(a);
         }),
@@ -115,6 +119,7 @@ describe("createTransaction", () => {
     });
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(1000n),
       description: "x",
@@ -132,6 +137,7 @@ describe("createTransaction", () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {
       userId: "u1",
+      profileId: "profile-1",
       direction: "out",
       amount: Money.fromCents(1000n),
       description: "x",

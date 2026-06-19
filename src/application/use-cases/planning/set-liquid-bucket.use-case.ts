@@ -13,10 +13,10 @@ export type SetLiquidBucketResult =
 
 export async function setLiquidBucket(
   { assets, settings }: SetLiquidBucketDeps,
-  { userId, assetId }: { userId: string; assetId: string | null },
+  { userId, profileId, assetId }: { userId: string; profileId: string; assetId: string | null },
 ): Promise<SetLiquidBucketResult> {
   if (assetId !== null) {
-    const asset = await assets.findById(assetId, userId);
+    const asset = await assets.findById(assetId, profileId);
     if (!asset) {
       return { ok: false, message: "Ativo não encontrado." };
     }
@@ -25,6 +25,6 @@ export async function setLiquidBucket(
     }
   }
 
-  const saved = await settings.upsertLiquidBucket(userId, assetId);
+  const saved = await settings.upsertLiquidBucket(userId, profileId, assetId);
   return { ok: true, settings: saved };
 }

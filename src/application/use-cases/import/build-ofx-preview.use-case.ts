@@ -14,6 +14,7 @@ export interface BuildOfxPreviewDeps {
 
 export interface BuildOfxPreviewInput {
   userId: string;
+  profileId: string;
   contents: string[];
 }
 
@@ -52,9 +53,9 @@ export async function buildOfxPreview(
   if (mergedR._tag === "err") return err(mergedR.error);
   const st = mergedR.value;
 
-  const matched = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+  const matched = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);
-  const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
+  const seen = new Set(await deps.transactions.existingExternalIds(input.profileId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
   const movement = findInternalTransfers(newTxns);
@@ -65,7 +66,7 @@ export async function buildOfxPreview(
     .reduce((acc, t) => acc + (t.direction === "in" ? t.amountCents : -t.amountCents), 0n);
 
   const existingReserve = await deps.assets.findByExternalAccountKey(
-    input.userId,
+    input.profileId,
     `${st.accountKey}:reserve`,
   );
   const existingReserveCents = existingReserve?.currentValue.toCents() ?? null;

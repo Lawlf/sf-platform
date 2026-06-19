@@ -37,13 +37,13 @@ export type DashboardSnapshotResult = FinancialSnapshotEntity;
 
 export async function getDashboardSnapshot(
   deps: GetDashboardSnapshotDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<
   Result<DashboardSnapshotResult, InvalidAmortizationParamsError | FxRateUnavailableError>
 > {
   const [allDebts, incomes] = await Promise.all([
-    deps.debts.listForUser(input.userId, { status: "all" }),
-    deps.incomes.listForUser(input.userId, { onlyActive: true }),
+    deps.debts.listForProfile(input.profileId, { status: "all" }),
+    deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
   ]);
   // Ativas + "fora do mês" (written_off). As quitadas (paid_off) ficam de fora.
   // O snapshot separa por dentro: total inclui written_off, mensal só ativas.

@@ -19,6 +19,7 @@ export interface UpdateDebtDeps {
 
 export interface UpdateDebtInput {
   userId: string;
+  profileId: string;
   debtId: string;
   // Common fields editable for any kind.
   label?: string;
@@ -50,7 +51,7 @@ export async function updateDebt(
 ): Promise<Result<DebtEntity, DebtNotFound | Forbidden>> {
   const existing = await deps.debts.findById(input.debtId);
   if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   const now = deps.clock.now();
   const baseChanges = {

@@ -32,16 +32,16 @@ export interface GoalWithProgress {
  */
 export async function listGoalsWithProgress(
   deps: ListGoalsWithProgressDeps,
-  { userId, isPro }: { userId: string; isPro: boolean },
+  { userId, profileId, isPro }: { userId: string; profileId: string; isPro: boolean },
 ): Promise<GoalWithProgress[]> {
   const [activeGoals, macro] = await Promise.all([
-    deps.goals.listForUser(userId, { status: "active" }),
-    buildGoalMacro(deps, { userId }),
+    deps.goals.listForProfile(profileId, { status: "active" }),
+    buildGoalMacro(deps, { userId, profileId }),
   ]);
 
   return Promise.all(
     activeGoals.map(async (goal) => {
-      const resolved = await resolveLinkedAsset(deps, goal);
+      const resolved = await resolveLinkedAsset(deps, goal, profileId);
       const rawProgress = GoalProgressService.compute(resolved, macro);
       const { progress, etaLocked } = gateEta(rawProgress, isPro);
       return { goal, progress, etaLocked };
@@ -58,6 +58,7 @@ export async function listGoalsWithProgress(
 async function resolveLinkedAsset(
   deps: ListGoalsWithProgressDeps,
   goal: GoalEntity,
+  profileId: string,
 ): Promise<GoalEntity> {
   if (
     goal.type !== "savings" ||
@@ -67,7 +68,7 @@ async function resolveLinkedAsset(
     return goal;
   }
 
-  const asset = await deps.assets.findById(goal.linkedAssetId, goal.userId);
+  const asset = await deps.assets.findById(goal.linkedAssetId, profileId);
   if (!asset) return goal;
 
   const converted = await convertAssetToBase(deps, goal.userId, asset, BASE_CURRENCY);

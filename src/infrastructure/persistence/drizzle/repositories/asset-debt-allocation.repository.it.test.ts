@@ -14,17 +14,20 @@ import { closeDb, getDb } from "../client";
 import { AssetDebtAllocationRepository } from "./asset-debt-allocation.repository";
 import { AssetRepository } from "./asset.repository";
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-alloc-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-alloc-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const debtsRepo = new DebtRepository();
 const assetsRepo = new AssetRepository();
 const repo = new AssetDebtAllocationRepository();
 
 let userId: string;
+let profileId: string;
 let debtIdA: string;
 let debtIdB: string;
 let assetIdA: string;
@@ -36,6 +39,7 @@ function makeDebt(label: string): PersonalLoanDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}${label}`,
     kind: "personal_loan",
     dueDay: null,
@@ -61,6 +65,7 @@ function makeAsset(label: string): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     category: "vehicle",
     label: `${LABEL_PREFIX}${label}`,
     currentValue: Money.fromCents(5_000_000n),
@@ -88,6 +93,8 @@ beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   const dA = makeDebt("debt-a");
   const dB = makeDebt("debt-b");

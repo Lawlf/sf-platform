@@ -19,6 +19,7 @@ function makeAsset(id: string, currentValueCents: bigint, currency: Currency = "
   return {
     id,
     userId: "user-1",
+    profileId: "profile-1",
     category: "investment",
     label: "Ativo",
     currentValue: Money.fromCents(currentValueCents, currency),
@@ -46,6 +47,8 @@ function makeSavingsGoal(linkedAssetId: string, targetCents: bigint): GoalEntity
   return {
     id: "g1",
     userId: "user-1",
+    profileId: "profile-1",
+    householdId: null,
     type: "savings",
     title: "Reserva",
     status: "active",
@@ -79,13 +82,13 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(async (id: string) => (id === asset.id ? asset : null)),
-    findActiveByUser: vi.fn(async () => []),
+    findActiveByProfile: vi.fn(async () => []),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -103,7 +106,7 @@ function buildDeps({
 
   const debts: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -116,7 +119,7 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     setActive: vi.fn(),
     softDelete: vi.fn(),
     restore: vi.fn(),
@@ -126,8 +129,8 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: GoalStatus }) => {
-      if (goal.userId !== userId) return [];
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: GoalStatus }) => {
+      if ((goal.profileId ?? goal.userId) !== profileId) return [];
       if (opts?.status && goal.status !== opts.status) return [];
       return [goal];
     }),
@@ -158,7 +161,7 @@ describe("listGoalsWithProgress", () => {
     const goal = makeSavingsGoal("a1", 1_000_000n);
     const deps = buildDeps({ goal, asset, rate: "5.00" });
 
-    const result = await listGoalsWithProgress(deps, { userId: "user-1", isPro: true });
+    const result = await listGoalsWithProgress(deps, { userId: "user-1", profileId: "profile-1", isPro: true });
 
     expect(result).toHaveLength(1);
     expect(result[0]?.progress.currentCents).toBe(500_000n);
@@ -169,7 +172,7 @@ describe("listGoalsWithProgress", () => {
     const goal = makeSavingsGoal("a1", 1_000_000n);
     const deps = buildDeps({ goal, asset });
 
-    const result = await listGoalsWithProgress(deps, { userId: "user-1", isPro: true });
+    const result = await listGoalsWithProgress(deps, { userId: "user-1", profileId: "profile-1", isPro: true });
 
     expect(result[0]?.progress.currentCents).toBe(100_000n);
   });

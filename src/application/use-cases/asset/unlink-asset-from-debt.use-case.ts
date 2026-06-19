@@ -9,7 +9,7 @@ export interface UnlinkAssetFromDebtDeps {
 }
 
 export interface UnlinkAssetFromDebtInput {
-  userId: string;
+  profileId: string;
   assetId: string;
   debtId: string;
 }
@@ -26,7 +26,7 @@ export async function unlinkAssetFromDebt(
   deps: UnlinkAssetFromDebtDeps,
   input: UnlinkAssetFromDebtInput,
 ): Promise<Result<void, UnlinkAssetFromDebtError>> {
-  const asset = await deps.assets.findById(input.assetId, input.userId);
+  const asset = await deps.assets.findById(input.assetId, input.profileId);
   if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
 
   await deps.allocations.delete(input.assetId, input.debtId);

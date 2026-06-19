@@ -8,7 +8,7 @@ import { buildProjectionAssetInputs } from "./build-projection-asset-inputs";
 
 function asset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "metadata">): AssetEntity {
   return {
-    userId: "u1", category: "cash", label: "x", currentValue: Money.fromCents(100000n),
+    userId: "u1", profileId: "profile-1", category: "cash", label: "x", currentValue: Money.fromCents(100000n),
     fipeCode: null, fipeLastSyncedAt: null, acquiredAt: null, depreciationKind: "stable",
     depreciationRatePctYear: 0, purchaseDate: null, purchasePriceCents: null,
     createdAt: new Date(0), updatedAt: new Date(0), anchorAt: null, deactivatedAt: null, deactivationKind: null,

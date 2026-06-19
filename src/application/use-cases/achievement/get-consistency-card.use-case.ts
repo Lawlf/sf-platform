@@ -13,12 +13,13 @@ import { totalDistinctMonths } from "./streak-math";
 
 export interface GetConsistencyCardDeps {
   usage: { listActiveMonthIsos: (userId: string) => Promise<string[]> };
-  closings: { listForUser: (userId: string) => Promise<MonthClosingEntity[]> };
+  closings: { listForProfile: (profileId: string) => Promise<MonthClosingEntity[]> };
   now: () => Date;
 }
 
 export interface GetConsistencyCardInput {
   userId: string;
+  profileId: string;
   state: PrescriptionState;
 }
 
@@ -51,7 +52,7 @@ export async function getConsistencyCard(
 ): Promise<ConsistencyCardView> {
   const [activeMonths, closings] = await Promise.all([
     deps.usage.listActiveMonthIsos(input.userId),
-    deps.closings.listForUser(input.userId),
+    deps.closings.listForProfile(input.profileId),
   ]);
 
   const monthsActive = totalDistinctMonths(activeMonths);

@@ -9,6 +9,7 @@ import type {
 import { Money } from "@/domain/value-objects/money.vo";
 import { repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -34,7 +35,8 @@ export async function fetchDebts({
   const user = await getCurrentUser();
   if (!user) return [];
 
-  const r = await listDebts({ debts: repos.debts }, { userId: user.id, status });
+  const profileId = await getActiveProfileId();
+  const r = await listDebts({ debts: repos.debts }, { profileId, status });
   const list = isOk(r) ? r.value : [];
   return list.map((d) => ({
     id: d.id,
@@ -63,9 +65,10 @@ export async function fetchOutOfMonthSummary(): Promise<OutOfMonthSummary> {
   const user = await getCurrentUser();
   if (!user) return { count: 0, total: serializeMoney(Money.fromCents(0n)) };
 
+  const profileId = await getActiveProfileId();
   const r = await listDebts(
     { debts: repos.debts },
-    { userId: user.id, status: "written_off" },
+    { profileId, status: "written_off" },
   );
   const list = isOk(r) ? r.value : [];
   const totalCents = list.reduce((acc, d) => acc + d.currentBalance.toCents(), 0n);

@@ -16,13 +16,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -49,6 +49,7 @@ function makeAsset(userId = "user-1"): AssetEntity {
   return {
     id: "asset-1",
     userId,
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -82,7 +83,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { userId: "user-1", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -107,7 +108,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "missing" },
+      { userId: "user-1", profileId: "profile-1", assetId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -122,12 +123,12 @@ describe("deleteAsset", () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const clock = makeClock();
-    // findById takes userId; repo scoping returns null when not owned.
+    // findById takes profileId; repo scoping returns null when not owned.
     (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { userId: "intruder", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -138,18 +139,16 @@ describe("deleteAsset", () => {
     expect(assets.softDelete).not.toHaveBeenCalled();
   });
 
-  it("returns Forbidden when stored userId differs from caller (defense in depth)", async () => {
+  it("returns Forbidden when profileId differs from caller (defense in depth)", async () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const clock = makeClock();
-    // Hypothetical case: findById returned an asset (would not normally
-    // happen since findById is scoped by userId), but the stored userId
-    // does not match. The use case still rejects.
-    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset("owner"));
+    const asset = { ...makeAsset("owner"), profileId: "profile-2" };
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(asset);
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "intruder", assetId: "asset-1" },
+      { userId: "intruder", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -168,7 +167,7 @@ describe("deleteAsset", () => {
 
     const result = await deleteAsset(
       { assets, allocations, clock },
-      { userId: "user-1", assetId: "asset-1" },
+      { userId: "user-1", profileId: "profile-1", assetId: "asset-1" },
     );
 
     expect(isOk(result)).toBe(true);

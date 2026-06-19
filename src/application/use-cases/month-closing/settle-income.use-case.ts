@@ -20,6 +20,7 @@ export type IncomeSettleAction = IncomeSettlementStatus;
 
 export interface SettleIncomeInput {
   userId: string;
+  profileId: string;
   incomeId: string;
   /** Mês no formato ISO "YYYY-MM" (ex.: "2026-03"). */
   monthIso: string;
@@ -46,13 +47,14 @@ export async function settleIncome(
 ): Promise<Result<void, SettleIncomeError>> {
   const income = await deps.incomes.findById(input.incomeId);
   if (!income) return err(new IncomeNotFound("Renda não encontrada."));
-  if (income.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (income.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   const month = MonthYear.fromIso(input.monthIso);
   const now = deps.clock.now();
 
   const settlement: IncomeSettlementEntity = {
     userId: input.userId,
+    profileId: input.profileId,
     incomeId: input.incomeId,
     month: month.firstDay(),
     status: input.action,

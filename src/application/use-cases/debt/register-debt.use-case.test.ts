@@ -12,7 +12,7 @@ import { registerDebt } from "./register-debt.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -51,6 +51,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-1",
+       profileId: "profile-1",
         label: "Casa propria",
         notes: null,
         startDate: new Date("2026-01-01"),
@@ -91,6 +92,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-2",
+       profileId: "profile-1",
         label: "Emprestimo pessoal",
         notes: "para reforma",
         startDate: new Date("2026-02-01"),
@@ -126,6 +128,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-3",
+       profileId: "profile-1",
         label: "Nubank",
         notes: null,
         startDate: new Date("2026-01-01"),
@@ -162,6 +165,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-4",
+       profileId: "profile-1",
         label: "Cartão estourado",
         notes: null,
         startDate: new Date("2026-01-01"),
@@ -193,6 +197,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-5",
+       profileId: "profile-1",
         label: "Cartão sem limite",
         notes: null,
         startDate: new Date("2026-01-01"),
@@ -225,6 +230,7 @@ describe("registerDebt", () => {
       {
         kind: "recurring",
         userId: "user-r",
+        profileId: "profile-1",
         label: "Netflix",
         recurringFrequency: "monthly",
         recurringAmountCents: 5990n,
@@ -265,6 +271,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-usd-cc",
+        profileId: "profile-1",
         label: "Amex USD",
         notes: null,
         startDate: new Date("2026-01-01"),
@@ -303,6 +310,7 @@ describe("registerDebt", () => {
       {
         kind: "recurring",
         userId: "user-r-usd",
+        profileId: "profile-1",
         label: "Spotify USD",
         recurringFrequency: "monthly",
         recurringAmountCents: 999n,
@@ -333,6 +341,7 @@ describe("registerDebt", () => {
       { debts, clock },
       {
         userId: "user-4",
+       profileId: "profile-1",
         label: "Cheque especial Itau",
         notes: null,
         startDate: new Date("2026-03-01"),

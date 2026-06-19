@@ -9,6 +9,7 @@ function txn(id: string, iso: string): TransactionEntity {
   return {
     id,
     userId: "u1",
+    profileId: "profile-1",
     direction: "out",
     occurredAt: new Date(iso),
     amount: Money.fromCents(1000n),
@@ -27,7 +28,7 @@ function fakeRepo(rows: TransactionEntity[]) {
   return {
     async listByAccountPaged(
       _accountId: string,
-      _userId: string,
+      _profileId: string,
       opts: { limit: number; beforeOccurredAt?: Date; beforeId?: string },
     ) {
       let filtered = rows;
@@ -56,7 +57,7 @@ describe("listAccountTransactionsPage", () => {
   it("caps items at the limit and returns a cursor when more exist", async () => {
     const page = await listAccountTransactionsPage(
       { transactions: fakeRepo(rows) },
-      { userId: "u1", accountId: "acc1", limit: 2 },
+      { profileId: "profile-1", accountId: "acc1", limit: 2 },
     );
     expect(page.items.map((t) => t.id)).toEqual(["e", "d"]);
     expect(page.nextCursor).toEqual({ occurredAtIso: "2026-06-04T00:00:00.000Z", id: "d" });
@@ -65,7 +66,7 @@ describe("listAccountTransactionsPage", () => {
   it("returns null cursor on the last page", async () => {
     const page = await listAccountTransactionsPage(
       { transactions: fakeRepo(rows.slice(0, 2)) },
-      { userId: "u1", accountId: "acc1", limit: 5 },
+      { profileId: "profile-1", accountId: "acc1", limit: 5 },
     );
     expect(page.items).toHaveLength(2);
     expect(page.nextCursor).toBeNull();
@@ -75,7 +76,7 @@ describe("listAccountTransactionsPage", () => {
     const page = await listAccountTransactionsPage(
       { transactions: fakeRepo(rows) },
       {
-        userId: "u1",
+        profileId: "profile-1",
         accountId: "acc1",
         limit: 2,
         beforeOccurredAt: new Date("2026-06-04T00:00:00Z"),

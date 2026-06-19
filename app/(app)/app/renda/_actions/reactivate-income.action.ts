@@ -9,7 +9,7 @@ import { action, unwrap } from "@/presentation/actions/action";
 export const reactivateIncomeAction = action({
   schema: z.string(),
   revalidates: ["incomes", "home"],
-  handler: async (incomeId, { userId }) => {
-    unwrap(await reactivateIncome({ incomes: repos.incomes, clock }, { userId, incomeId }));
+  handler: async (incomeId, { userId, profileId }) => {
+    unwrap(await reactivateIncome({ incomes: repos.incomes, clock }, { userId, profileId, incomeId }));
   },
 });

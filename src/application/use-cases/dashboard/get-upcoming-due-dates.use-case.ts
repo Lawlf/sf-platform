@@ -18,10 +18,10 @@ export interface GetUpcomingDuesDeps {
 
 export async function getUpcomingDueDates(
   deps: GetUpcomingDuesDeps,
-  input: { userId: string; horizonDays?: number },
+  input: { userId: string; profileId: string; horizonDays?: number },
 ): Promise<Result<UpcomingDue[], never>> {
   const horizon = input.horizonDays ?? 30;
-  const debts = await deps.debts.listForUser(input.userId, { status: "active" });
+  const debts = await deps.debts.listForProfile(input.profileId, { status: "active" });
   const now = deps.clock.now();
   const cutoff = new Date(now.getTime() + horizon * 24 * 60 * 60 * 1000);
   const dues: UpcomingDue[] = [];

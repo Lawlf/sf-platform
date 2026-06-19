@@ -63,6 +63,7 @@ export interface WriteExecutorDeps {
 export interface WriteExecutorInput {
   toolName: string;
   userId: string;
+  profileId: string;
   isPro: boolean;
   args: Record<string, unknown>;
 }
@@ -75,7 +76,7 @@ export async function executeWrite(
   if (!action) {
     throw new Error(`Ferramenta de escrita desconhecida: ${input.toolName}`);
   }
-  const { args, userId } = input;
+  const { args, userId, profileId } = input;
 
   switch (input.toolName) {
     case "income_create": {
@@ -84,6 +85,7 @@ export async function executeWrite(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
+          profileId,
           label: str(args.label),
           amount: money(args.amountCents, currency),
           frequency: str(args.frequency) as IncomeFrequency,
@@ -105,6 +107,7 @@ export async function executeWrite(
         { incomes: deps.incomes, clock: deps.clock },
         {
           userId,
+          profileId,
           incomeId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.amountCents !== undefined && { amount: money(args.amountCents, currency) }),
@@ -124,7 +127,7 @@ export async function executeWrite(
       const before = existing ? serialize(existing) : null;
       const result = await deleteIncome(
         { incomes: deps.incomes, clock: deps.clock },
-        { userId, incomeId: id },
+        { userId, profileId, incomeId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "income", entityId: id, before, after: null, reversible: true };
@@ -136,6 +139,7 @@ export async function executeWrite(
         { transactions: deps.transactions, assets: deps.assets, clock: deps.clock },
         {
           userId,
+          profileId,
           direction: "out",
           amount: money(args.amountCents, currency),
           description: str(args.description),
@@ -163,7 +167,7 @@ export async function executeWrite(
           : args;
       const result = await registerDebt(
         { debts: deps.debts, clock: deps.clock },
-        buildRegisterDebtInput(userId, debtArgs, currency),
+        buildRegisterDebtInput(userId, profileId, debtArgs, currency),
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
@@ -180,6 +184,7 @@ export async function executeWrite(
         { debts: deps.debts, clock: deps.clock },
         {
           userId,
+          profileId,
           debtId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.notes !== undefined && { notes: optStr(args.notes) }),
@@ -226,7 +231,7 @@ export async function executeWrite(
           allocations: deps.allocations,
           clock: deps.clock,
         },
-        { userId, debtId: id },
+        { userId, profileId, debtId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "debt", entityId: id, before, after: null, reversible: false };
@@ -243,6 +248,7 @@ export async function executeWrite(
         },
         {
           userId,
+          profileId,
           category: str(args.category) as AssetCategory,
           label: str(args.label),
           currentValueCents: cents(args.currentValueCents),
@@ -263,12 +269,12 @@ export async function executeWrite(
 
     case "asset_update": {
       const id = str(args.assetId);
-      const existing = await deps.assets.findById(id, userId);
+      const existing = await deps.assets.findById(id, profileId);
       const before = existing ? serialize(existing) : null;
       const result = await updateAsset(
         { assets: deps.assets, clock: deps.clock },
         {
-          userId,
+          profileId,
           assetId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.currentValueCents !== undefined && { currentValueCents: cents(args.currentValueCents) }),
@@ -284,11 +290,11 @@ export async function executeWrite(
 
     case "asset_delete": {
       const id = str(args.assetId);
-      const existing = await deps.assets.findById(id, userId);
+      const existing = await deps.assets.findById(id, profileId);
       const before = existing ? serialize(existing) : null;
       const result = await deleteAsset(
         { assets: deps.assets, allocations: deps.allocations, clock: deps.clock },
-        { userId, assetId: id },
+        { userId, profileId, assetId: id },
       );
       if (isErr(result)) throw result.error;
       return { entityType: "asset", entityId: id, before, after: null, reversible: false };
@@ -299,6 +305,7 @@ export async function executeWrite(
         { goals: deps.goals },
         {
           userId,
+          profileId,
           isPro: input.isPro,
           input: {
             type: str(args.type) as GoalType,
@@ -328,7 +335,7 @@ export async function executeWrite(
       const before = existing ? serialize(existing) : null;
       const result = await updateGoal(
         { goals: deps.goals },
-        { userId, goalId: id, patch: buildGoalPatch(args) },
+        { userId, profileId, goalId: id, patch: buildGoalPatch(args) },
       );
       if (!result.ok) throw new Error(result.message);
       const after = serialize(result.goal);
@@ -339,7 +346,7 @@ export async function executeWrite(
       const id = str(args.goalId);
       const existing = await deps.goals.findById(id);
       const before = existing ? serialize(existing) : null;
-      const result = await deleteGoal({ goals: deps.goals }, { userId, goalId: id });
+      const result = await deleteGoal({ goals: deps.goals }, { userId, profileId, goalId: id });
       if (!result.ok) throw new Error(result.message);
       return { entityType: "goal", entityId: id, before, after: null, reversible: true };
     }
@@ -351,6 +358,7 @@ export async function executeWrite(
 
 function buildRegisterDebtInput(
   userId: string,
+  profileId: string,
   args: Record<string, unknown>,
   currency: Currency,
 ): RegisterDebtInput {
@@ -360,6 +368,7 @@ function buildRegisterDebtInput(
       return {
         kind: "financing",
         userId,
+        profileId,
         label: str(args.label),
         notes: optStr(args.notes),
         startDate: date(args.startDate),
@@ -378,6 +387,7 @@ function buildRegisterDebtInput(
       return {
         kind: "personal_loan",
         userId,
+        profileId,
         label: str(args.label),
         notes: optStr(args.notes),
         startDate: date(args.startDate),
@@ -394,6 +404,7 @@ function buildRegisterDebtInput(
       return {
         kind: "credit_card",
         userId,
+        profileId,
         label: str(args.label),
         notes: optStr(args.notes),
         startDate: date(args.startDate),
@@ -413,6 +424,7 @@ function buildRegisterDebtInput(
       return {
         kind: "overdraft",
         userId,
+        profileId,
         label: str(args.label),
         notes: optStr(args.notes),
         startDate: date(args.startDate),
@@ -425,6 +437,7 @@ function buildRegisterDebtInput(
       return {
         kind: "recurring",
         userId,
+        profileId,
         label: str(args.label),
         recurringFrequency: str(args.recurringFrequency) as RecurringFrequency,
         recurringAmountCents: cents(args.recurringAmountCents),

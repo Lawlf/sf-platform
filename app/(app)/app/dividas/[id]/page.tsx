@@ -8,6 +8,7 @@ import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calenda
 import type { AlarmOffset } from "@/infrastructure/calendar/ics-builder";
 import { loadEnv } from "@/infrastructure/config/env";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -47,10 +48,11 @@ interface PageProps {
 export default async function DebtDetailPage({ params }: PageProps) {
   const { id } = await params;
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const r = await getDebtDetail(
     { debts: repos.debts, payments: repos.debtPayments },
-    { userId: user.id, debtId: id },
+    { userId: user.id, profileId, debtId: id },
   );
   if (isErr(r)) notFound();
   const { debt, amortization, payments } = r.value;

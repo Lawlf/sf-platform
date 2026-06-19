@@ -18,6 +18,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: INCOME_ID,
     userId: OWNER,
+    profileId: "profile-1",
     label: "Salário",
     amount: Money.fromCents(500_000n),
     frequency: "monthly",
@@ -35,7 +36,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
 function makeIncomeRepo(income: IncomeEntity | null): IncomeRepositoryPort {
   return {
     findById: vi.fn(async () => income),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(async (e) => e),
     update: vi.fn(async (e) => e),
     softDelete: vi.fn(),
@@ -46,8 +47,8 @@ function makeIncomeRepo(income: IncomeEntity | null): IncomeRepositoryPort {
 function makeSettlementsRepo(): IncomeSettlementRepositoryPort {
   return {
     upsert: vi.fn(),
-    listForUserMonth: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfileMonth: vi.fn(),
+    listForProfile: vi.fn(),
   };
 }
 
@@ -66,17 +67,17 @@ describe("settleIncome", () => {
   it("retorna IncomeNotFound quando a renda não existe", async () => {
     const res = await settleIncome(
       { incomes: makeIncomeRepo(null), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(IncomeNotFound);
   });
 
-  it("retorna Forbidden quando a renda é de outro usuário", async () => {
-    const income = makeIncome({ userId: "someone-else" });
+  it("retorna Forbidden quando a renda é de outro perfil", async () => {
+    const income = makeIncome({ userId: "someone-else", profileId: "profile-2" });
     const res = await settleIncome(
       { incomes: makeIncomeRepo(income), settlements: makeSettlementsRepo(), clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isErr(res)).toBe(true);
     if (isErr(res)) expect(res.error).toBeInstanceOf(Forbidden);
@@ -86,7 +87,7 @@ describe("settleIncome", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleIncome(
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "received" },
     );
     expect(isOk(res)).toBe(true);
     expect(settlements.upsert).toHaveBeenCalledTimes(1);
@@ -100,7 +101,7 @@ describe("settleIncome", () => {
     const settlements = makeSettlementsRepo();
     const res = await settleIncome(
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock() },
-      { userId: OWNER, incomeId: INCOME_ID, monthIso: "2026-03", action: "not_received" },
+      { userId: OWNER, profileId: "profile-1", incomeId: INCOME_ID, monthIso: "2026-03", action: "not_received" },
     );
     expect(isOk(res)).toBe(true);
     const s = firstArg<IncomeSettlementEntity>(settlements.upsert);
@@ -114,6 +115,7 @@ describe("settleIncome", () => {
       { incomes: makeIncomeRepo(makeIncome()), settlements, clock: makeClock(new Date("2026-04-02T10:00:00Z")) },
       {
         userId: OWNER,
+        profileId: "profile-1",
         incomeId: INCOME_ID,
         monthIso: "2026-03",
         action: "adjusted",

@@ -2,6 +2,6 @@ import type { RecurringSettlementEntity } from "@/domain/entities/recurring-sett
 
 export interface RecurringSettlementRepositoryPort {
   upsert(settlement: RecurringSettlementEntity): Promise<void>;
-  listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]>;
-  listForUser(userId: string): Promise<RecurringSettlementEntity[]>;
+  listForProfileMonth(profileId: string, month: Date): Promise<RecurringSettlementEntity[]>;
+  listForProfile(profileId: string): Promise<RecurringSettlementEntity[]>;
 }

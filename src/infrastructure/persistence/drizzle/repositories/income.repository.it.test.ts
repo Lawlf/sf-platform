@@ -9,19 +9,24 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { closeDb, getDb } from "../client";
 
 import { IncomeRepository } from "./income.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-income-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-income-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new IncomeRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {
@@ -37,6 +42,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}salario`,
     amount: Money.fromCents(500_000n),
     frequency: "monthly",
@@ -66,14 +72,14 @@ describe("IncomeRepository (integration)", () => {
     expect(found?.isActive).toBe(true);
   });
 
-  it("listForUser onlyActive returns only active incomes", async () => {
+  it("listForProfile onlyActive returns only active incomes", async () => {
     await repo.create(makeIncome({ label: `${LABEL_PREFIX}active`, isActive: true }));
     await repo.create(makeIncome({ label: `${LABEL_PREFIX}inactive`, isActive: false }));
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(2);
 
-    const onlyActive = await repo.listForUser(userId, { onlyActive: true });
+    const onlyActive = await repo.listForProfile(userId, { onlyActive: true });
     expect(onlyActive).toHaveLength(1);
     expect(onlyActive[0]?.label).toBe(`${LABEL_PREFIX}active`);
     expect(onlyActive[0]?.isActive).toBe(true);

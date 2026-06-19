@@ -19,6 +19,7 @@ export interface ProjectDebtPayoffDeps {
 
 export interface ProjectDebtPayoffInput {
   userId: string;
+  profileId: string;
   debtId: string;
   monthlyPayment: Money;
   extraPayment?: Money;
@@ -32,7 +33,7 @@ export async function projectDebtPayoff(
 > {
   const debt = await deps.debts.findById(input.debtId);
   if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
-  if (debt.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (debt.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   const r = DebtPayoffProjectorService.project({
     debt,

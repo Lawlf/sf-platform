@@ -44,6 +44,7 @@ function makeIncome(overrides: {
   return {
     id: overrides.id ?? "inc-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Renda",
     amount: Money.fromCents(overrides.amountCents),
     frequency: overrides.frequency ?? "monthly",
@@ -66,6 +67,7 @@ function makeAsset(overrides: {
   return {
     id: overrides.id ?? "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: Money.fromCents(overrides.currentValueCents),
@@ -98,6 +100,7 @@ function makeFinancing(overrides: {
   return {
     id: overrides.id ?? "debt-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "financing",
     label: "Financiamento",
     status: "active",
@@ -132,6 +135,7 @@ function makeRecurring(overrides: {
   return {
     id: overrides.id ?? "rec-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "recurring",
     label: "Aluguel",
     status: overrides.status ?? "active",
@@ -181,6 +185,7 @@ function makeCreditCard(overrides: {
   return {
     id: overrides.id ?? "cc-1",
     userId: "user-1",
+    profileId: "profile-1",
     kind: "credit_card",
     label: "Cartão Nubank",
     status: overrides.status ?? "active",
@@ -848,6 +853,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "not_received",
@@ -871,6 +877,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "adjusted",
@@ -894,6 +901,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 2, 1)),
           status: "received",
@@ -918,6 +926,7 @@ describe("TimelineService.buildTimeline com incomeSettlements", () => {
       incomeSettlements: [
         {
           userId: "user-1",
+          profileId: "profile-1",
           incomeId: "inc-1",
           month: new Date(Date.UTC(2026, 3, 1)),
           status: "not_received",

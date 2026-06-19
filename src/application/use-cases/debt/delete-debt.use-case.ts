@@ -15,6 +15,7 @@ export interface DeleteDebtDeps {
 
 export interface DeleteDebtInput {
   userId: string;
+  profileId: string;
   debtId: string;
 }
 
@@ -36,7 +37,7 @@ export async function deleteDebt(
 ): Promise<Result<void, DebtNotFound | Forbidden>> {
   const existing = await deps.debts.findById(input.debtId);
   if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
-  if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+  if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
   await deps.payments.deleteByDebtId(input.debtId);
   await deps.allocations.deleteByDebtId(input.debtId);

@@ -18,7 +18,7 @@ export interface RefreshAssetFromFipeDeps {
 }
 
 export interface RefreshAssetFromFipeInput {
-  userId: string;
+  profileId: string;
   assetId: string;
 }
 
@@ -41,7 +41,7 @@ export async function refreshAssetFromFipe(
   deps: RefreshAssetFromFipeDeps,
   input: RefreshAssetFromFipeInput,
 ): Promise<Result<RefreshAssetFromFipeOutput, RefreshAssetFromFipeError>> {
-  const asset = await deps.assets.findById(input.assetId, input.userId);
+  const asset = await deps.assets.findById(input.assetId, input.profileId);
   if (!asset) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(asset)) {
     return err(new AssetDeactivated("Ativo desativado não pode ser atualizado via FIPE."));

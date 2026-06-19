@@ -11,7 +11,7 @@ export interface ReactivateAssetDeps {
 }
 
 export interface ReactivateAssetInput {
-  userId: string;
+  profileId: string;
   assetId: string;
 }
 
@@ -21,7 +21,7 @@ export async function reactivateAsset(
   deps: ReactivateAssetDeps,
   input: ReactivateAssetInput,
 ): Promise<Result<AssetEntity, ReactivateAssetError>> {
-  const existing = await deps.assets.findById(input.assetId, input.userId);
+  const existing = await deps.assets.findById(input.assetId, input.profileId);
   if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (isAssetActive(existing)) {
     return err(new AssetAlreadyActive("Ativo já está ativo."));

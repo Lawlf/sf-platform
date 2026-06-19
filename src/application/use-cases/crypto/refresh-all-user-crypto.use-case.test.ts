@@ -17,6 +17,7 @@ function asset(
   return {
     id,
     userId,
+    profileId: `profile-${userId}`,
     category: "investment",
     label: ticker,
     currentValue: Money.fromCents(0n),
@@ -40,19 +41,26 @@ function asset(
   };
 }
 
+function makeProfiles() {
+  return {
+    ensurePfProfile: vi.fn(async (userId: string) => ({ id: `profile-${userId}` })),
+  };
+}
+
 describe("refreshAllUserCrypto", () => {
   it("deduplica coinIds entre Pro e atualiza cada ativo", async () => {
-    const assetsByUser: Record<string, AssetEntity[]> = {
-      u1: [asset("a1", "u1", "BTC", "bitcoin", 0.2)],
-      u2: [asset("a2", "u2", "BTC", "bitcoin", 1), asset("a3", "u2", "ETH", "ethereum", 3)],
+    const assetsByProfile: Record<string, AssetEntity[]> = {
+      "profile-u1": [asset("a1", "u1", "BTC", "bitcoin", 0.2)],
+      "profile-u2": [asset("a2", "u2", "BTC", "bitcoin", 1), asset("a3", "u2", "ETH", "ethereum", 3)],
     };
     const update = vi.fn(async () => {});
     const upsertMany = vi.fn(async () => {});
 
     const result = await refreshAllUserCrypto({
       users: { findAllPro: vi.fn(async () => [{ id: "u1" }, { id: "u2" }]) } as never,
+      profiles: makeProfiles() as never,
       assets: {
-        findActiveByUserAndCategory: vi.fn(async (uid: string) => assetsByUser[uid] ?? []),
+        findActiveByProfileAndCategory: vi.fn(async (profileId: string) => assetsByProfile[profileId] ?? []),
         update,
       } as never,
       quotes: {
@@ -81,6 +89,7 @@ describe("refreshAllUserCrypto", () => {
   it("retorna zerado quando não há usuários Pro", async () => {
     const result = await refreshAllUserCrypto({
       users: { findAllPro: vi.fn(async () => []) } as never,
+      profiles: makeProfiles() as never,
       assets: {} as never,
       quotes: {} as never,
       catalog: { upsertMany: vi.fn(async () => {}), findByCoinId: vi.fn() } as never,
@@ -90,14 +99,15 @@ describe("refreshAllUserCrypto", () => {
   });
 
   it("conta failed quando a moeda não veio na resposta", async () => {
-    const assetsByUser: Record<string, AssetEntity[]> = {
-      u1: [asset("a1", "u1", "BTC", "bitcoin", 1)],
+    const assetsByProfile: Record<string, AssetEntity[]> = {
+      "profile-u1": [asset("a1", "u1", "BTC", "bitcoin", 1)],
     };
     const update = vi.fn(async () => {});
     const result = await refreshAllUserCrypto({
       users: { findAllPro: vi.fn(async () => [{ id: "u1" }]) } as never,
+      profiles: makeProfiles() as never,
       assets: {
-        findActiveByUserAndCategory: vi.fn(async (uid: string) => assetsByUser[uid] ?? []),
+        findActiveByProfileAndCategory: vi.fn(async (profileId: string) => assetsByProfile[profileId] ?? []),
         update,
       } as never,
       quotes: { fetchByIds: vi.fn(async () => []) } as never,

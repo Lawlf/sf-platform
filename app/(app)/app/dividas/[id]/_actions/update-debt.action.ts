@@ -98,10 +98,10 @@ export type ParsedUpdate = z.infer<typeof schema>;
 export const updateDebtAction = action({
   schema,
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async (d, { userId }) => {
+  handler: async (d, { userId, profileId }) => {
     const debts = repos.debts;
     const existing = await debts.findById(d.debtId);
-    if (!existing || existing.userId !== userId) {
+    if (!existing || existing.profileId !== profileId) {
       throw new ActionError("Dívida não encontrada.");
     }
     const currency = existing.currentBalance.currency;
@@ -131,7 +131,7 @@ export const updateDebtAction = action({
       overdraftMonthlyRate = r.value;
     }
 
-    const input: UpdateDebtInput = { userId, debtId: d.debtId, ...buildUpdateMoneyInput(d, currency) };
+    const input: UpdateDebtInput = { userId, profileId, debtId: d.debtId, ...buildUpdateMoneyInput(d, currency) };
     if (d.label !== undefined) input.label = d.label;
     if (d.notes !== undefined) input.notes = d.notes;
     if (d.expectedEndDate !== undefined) input.expectedEndDate = d.expectedEndDate;

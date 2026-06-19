@@ -9,6 +9,8 @@ function makeGoal(overrides: Partial<GoalEntity> = {}): GoalEntity {
   return {
     id: "g1",
     userId: "u1",
+    profileId: "profile-1",
+    householdId: null,
     type: "savings",
     title: "Meta",
     status: "active",
@@ -42,7 +44,7 @@ function makeGoalsRepo(initial: GoalEntity[]): GoalRepositoryPort {
       return updated;
     },
     create: async () => { throw new Error("not used"); },
-    listForUser: async () => { throw new Error("not used"); },
+    listForProfile: async () => { throw new Error("not used"); },
     countActive: async () => { throw new Error("not used"); },
     softDelete: async () => { throw new Error("not used"); },
     restore: async () => { throw new Error("not used"); },
@@ -56,7 +58,7 @@ describe("updateGoalCascadeConfig", () => {
   it("rejects Free users", async () => {
     const res = await updateGoalCascadeConfig(
       { goals },
-      { userId: "u1", goalId: "g1", isPro: false, mode: "parallel", order: 2, parallelFraction: 0.3 },
+      { userId: "u1", profileId: "profile-1", goalId: "g1", isPro: false, mode: "parallel", order: 2, parallelFraction: 0.3 },
     );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.message).toMatch(/Pro/);
@@ -67,7 +69,7 @@ describe("updateGoalCascadeConfig", () => {
   it("rejects when the goal is not owned by the user", async () => {
     const res = await updateGoalCascadeConfig(
       { goals },
-      { userId: "someone-else", goalId: "g1", isPro: true, mode: "queue", order: 1, parallelFraction: 0 },
+      { userId: "someone-else", profileId: "profile-2", goalId: "g1", isPro: true, mode: "queue", order: 1, parallelFraction: 0 },
     );
     expect(res.ok).toBe(false);
     if (!res.ok) expect(res.message).toBe("Meta não encontrada.");
@@ -76,7 +78,7 @@ describe("updateGoalCascadeConfig", () => {
   it("writes the three cascade fields for a Pro owner", async () => {
     const res = await updateGoalCascadeConfig(
       { goals },
-      { userId: "u1", goalId: "g1", isPro: true, mode: "parallel", order: 3, parallelFraction: 0.25 },
+      { userId: "u1", profileId: "profile-1", goalId: "g1", isPro: true, mode: "parallel", order: 3, parallelFraction: 0.25 },
     );
     expect(res.ok).toBe(true);
     if (res.ok) {

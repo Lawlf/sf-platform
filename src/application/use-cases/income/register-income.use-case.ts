@@ -11,6 +11,7 @@ export interface RegisterIncomeDeps {
 
 export interface RegisterIncomeInput {
   userId: string;
+  profileId: string;
   label: string;
   amount: Money;
   frequency: IncomeFrequency;
@@ -28,6 +29,7 @@ export async function registerIncome(
   const entity: IncomeEntity = {
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     label: input.label,
     amount: input.amount,
     frequency: input.frequency,

@@ -23,7 +23,7 @@ const schema = z.object({
 export const savePurchaseAction = action({
   schema,
   revalidates: ["assets", "debts", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const purchaseDate = new Date(input.purchaseDate);
     if (Number.isNaN(purchaseDate.getTime())) {
       throw new ActionError("Data da compra inválida.");
@@ -39,6 +39,7 @@ export const savePurchaseAction = action({
         },
         {
           userId,
+          profileId,
           category: input.assetCategory,
           label: input.assetLabel,
           currentValueCents: input.amountCents,

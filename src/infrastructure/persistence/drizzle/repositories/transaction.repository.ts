@@ -11,13 +11,14 @@ import type { TransactionRepositoryPort } from "@/domain/ports/repositories/tran
 import { type Currency, Money } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import { type NewTransactionRow, type TransactionRow, transactions } from "../schema/transactions.schema";
 
 function rowToEntity(row: TransactionRow): TransactionEntity {
   return {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId,
     direction: row.direction as TransactionDirection,
     amount: Money.fromCents(row.amountCents, row.currency as Currency),
     description: row.description,
@@ -36,6 +37,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
   return {
     id: entity.id,
     userId: entity.userId,
+    profileId: entity.profileId,
     direction: entity.direction,
     amountCents: entity.amount.toCents(),
     currency: entity.amount.currency,
@@ -52,7 +54,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
 
 export class TransactionRepository implements TransactionRepositoryPort {
   async create(transaction: Omit<TransactionEntity, "createdAt">): Promise<TransactionEntity> {
-    // Idempotente no índice parcial (user_id, external_id): em uma corrida de
+    // Idempotente no índice parcial (profile_id, external_id): em uma corrida de
     // double-commit do OFX o segundo insert do mesmo fitId vira no-op em vez de
     // duplicar. Lançamentos manuais (external_id nulo) não batem no índice e
     // seguem o insert normal.
@@ -71,7 +73,7 @@ export class TransactionRepository implements TransactionRepositoryPort {
         .from(transactions)
         .where(
           and(
-            eq(transactions.userId, transaction.userId),
+            eq(transactions.profileId, transaction.profileId),
             eq(transactions.externalId, transaction.externalId),
           ),
         )
@@ -92,32 +94,32 @@ export class TransactionRepository implements TransactionRepositoryPort {
     return rowToEntity(row);
   }
 
-  async findByIdForUser(id: string, userId: string): Promise<TransactionEntity | null> {
+  async findByIdForProfile(id: string, profileId: string): Promise<TransactionEntity | null> {
     const rows = await getDb()
       .select()
       .from(transactions)
-      .where(and(eq(transactions.id, id), ownedBy(transactions, userId)))
+      .where(and(eq(transactions.id, id), scopedToProfile(transactions, profileId)))
       .limit(1);
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
-  async listByAccount(accountId: string, userId: string): Promise<TransactionEntity[]> {
+  async listByAccount(accountId: string, profileId: string): Promise<TransactionEntity[]> {
     const rows = await getDb()
       .select()
       .from(transactions)
-      .where(and(eq(transactions.accountId, accountId), ownedBy(transactions, userId)))
+      .where(and(eq(transactions.accountId, accountId), scopedToProfile(transactions, profileId)))
       .orderBy(desc(transactions.occurredAt));
     return rows.map(rowToEntity);
   }
 
   async listByAccountPaged(
     accountId: string,
-    userId: string,
+    profileId: string,
     opts: { limit: number; beforeOccurredAt?: Date; beforeId?: string },
   ): Promise<TransactionEntity[]> {
     const base = and(
       eq(transactions.accountId, accountId),
-      eq(transactions.userId, userId),
+      eq(transactions.profileId, profileId),
       isNull(transactions.deletedAt),
     );
     const cursor =
@@ -141,7 +143,7 @@ export class TransactionRepository implements TransactionRepositoryPort {
 
   async monthSummariesByAccount(
     accountId: string,
-    userId: string,
+    profileId: string,
   ): Promise<Array<{ key: string; inCents: bigint; outCents: bigint; currency: string }>> {
     const rows = await getDb()
       .select({
@@ -154,7 +156,7 @@ export class TransactionRepository implements TransactionRepositoryPort {
       .where(
         and(
           eq(transactions.accountId, accountId),
-          eq(transactions.userId, userId),
+          eq(transactions.profileId, profileId),
           isNull(transactions.deletedAt),
         ),
       );
@@ -177,27 +179,27 @@ export class TransactionRepository implements TransactionRepositoryPort {
       .sort((a, b) => (a.key < b.key ? 1 : a.key > b.key ? -1 : 0));
   }
 
-  async countByAccount(accountId: string, userId: string): Promise<number> {
+  async countByAccount(accountId: string, profileId: string): Promise<number> {
     const rows = await getDb()
       .select({ value: count() })
       .from(transactions)
       .where(
         and(
           eq(transactions.accountId, accountId),
-          eq(transactions.userId, userId),
+          eq(transactions.profileId, profileId),
           isNull(transactions.deletedAt),
         ),
       );
     return rows[0]?.value ?? 0;
   }
 
-  async listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> {
+  async listForProfileInRange(profileId: string, from: Date, to: Date): Promise<TransactionEntity[]> {
     const rows = await getDb()
       .select()
       .from(transactions)
       .where(
         and(
-          eq(transactions.userId, userId),
+          eq(transactions.profileId, profileId),
           gte(transactions.occurredAt, from),
           lte(transactions.occurredAt, to),
           isNull(transactions.deletedAt),
@@ -211,29 +213,29 @@ export class TransactionRepository implements TransactionRepositoryPort {
     await getDb().update(transactions).set({ deletedAt }).where(eq(transactions.id, id));
   }
 
-  async countByCategory(userId: string, categoryKey: string): Promise<number> {
+  async countByCategory(profileId: string, categoryKey: string): Promise<number> {
     const rows = await getDb()
       .select({ value: count() })
       .from(transactions)
-      .where(and(eq(transactions.category, categoryKey), ownedBy(transactions, userId)));
+      .where(and(eq(transactions.category, categoryKey), scopedToProfile(transactions, profileId)));
     return rows[0]?.value ?? 0;
   }
 
-  async reassignCategory(userId: string, fromKey: string, toKey: string): Promise<void> {
+  async reassignCategory(profileId: string, fromKey: string, toKey: string): Promise<void> {
     await getDb()
       .update(transactions)
       .set({ category: toKey })
-      .where(and(eq(transactions.category, fromKey), ownedBy(transactions, userId)));
+      .where(and(eq(transactions.category, fromKey), scopedToProfile(transactions, profileId)));
   }
 
-  async existingExternalIds(userId: string, externalIds: string[]): Promise<string[]> {
+  async existingExternalIds(profileId: string, externalIds: string[]): Promise<string[]> {
     if (externalIds.length === 0) return [];
     const rows = await getDb()
       .select({ externalId: transactions.externalId })
       .from(transactions)
       .where(
         and(
-          eq(transactions.userId, userId),
+          eq(transactions.profileId, profileId),
           inArray(transactions.externalId, externalIds),
         ),
       );

@@ -13,7 +13,7 @@ import { deleteIncome } from "./delete-income.use-case";
 function makeIncomeRepo(): IncomeRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setActive: vi.fn(),
@@ -32,6 +32,7 @@ function makeIncome(userId = "user-1"): IncomeEntity {
   return {
     id: "income-1",
     userId,
+    profileId: "profile-1",
     label: "Salario",
     amount: amt.value,
     frequency: "monthly",
@@ -54,7 +55,7 @@ describe("deleteIncome", () => {
 
     const result = await deleteIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "income-1" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "income-1" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -68,7 +69,7 @@ describe("deleteIncome", () => {
 
     const result = await deleteIncome(
       { incomes, clock },
-      { userId: "user-1", incomeId: "missing" },
+      { userId: "user-1", profileId: "profile-1", incomeId: "missing" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -85,7 +86,7 @@ describe("deleteIncome", () => {
 
     const result = await deleteIncome(
       { incomes, clock },
-      { userId: "intruder", incomeId: "income-1" },
+      { userId: "intruder", profileId: "profile-2", incomeId: "income-1" },
     );
 
     expect(isErr(result)).toBe(true);

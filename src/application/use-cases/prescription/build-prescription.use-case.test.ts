@@ -45,6 +45,7 @@ const rate = (d: number) => {
 const income: IncomeEntity = {
   id: "i1",
   userId: "u1",
+  profileId: "profile-1",
   label: "Salário",
   amount: m(5000),
   frequency: "monthly",
@@ -88,16 +89,16 @@ const cashAsset = {
 } as unknown as AssetEntity;
 
 const deps = {
-  debts: { listForUser: async () => [dearCard] },
-  incomes: { listForUser: async () => [income] },
-  assets: { findActiveByUser: async () => [cashAsset] },
+  debts: { listForProfile: async () => [dearCard] },
+  incomes: { listForProfile: async () => [income] },
+  assets: { findActiveByProfile: async () => [cashAsset] },
   now: () => NOW,
   ...fxDeps(null),
 };
 
 describe("buildPrescription", () => {
   it("assembles a bleeding prescription for an expensive card with cushion present", async () => {
-    const r = await buildPrescription(deps as never, { userId: "u1" });
+    const r = await buildPrescription(deps as never, { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.state).toBe("bleeding");
@@ -107,13 +108,13 @@ describe("buildPrescription", () => {
   it("converts foreign income to base before the figures", async () => {
     const usdIncome = { ...income, id: "iUsd", amount: mUsd(1000) } as IncomeEntity;
     const fxConverted = {
-      debts: { listForUser: async () => [] },
-      incomes: { listForUser: async () => [usdIncome] },
-      assets: { findActiveByUser: async () => [] },
+      debts: { listForProfile: async () => [] },
+      incomes: { listForProfile: async () => [usdIncome] },
+      assets: { findActiveByProfile: async () => [] },
       now: () => NOW,
       ...fxDeps("5.00"),
     };
-    const r = await buildPrescription(fxConverted as never, { userId: "u1" });
+    const r = await buildPrescription(fxConverted as never, { userId: "u1", profileId: "profile-1" });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.dominant?.type).toBe("invest");
@@ -123,13 +124,13 @@ describe("buildPrescription", () => {
   it("returns the FX error when a foreign entity has no rate", async () => {
     const usdAsset = { ...cashAsset, id: "aUsd", currentValue: mUsd(1000) } as AssetEntity;
     const noRate = {
-      debts: { listForUser: async () => [] },
-      incomes: { listForUser: async () => [income] },
-      assets: { findActiveByUser: async () => [usdAsset] },
+      debts: { listForProfile: async () => [] },
+      incomes: { listForProfile: async () => [income] },
+      assets: { findActiveByProfile: async () => [usdAsset] },
       now: () => NOW,
       ...fxDeps(null),
     };
-    const r = await buildPrescription(noRate as never, { userId: "u1" });
+    const r = await buildPrescription(noRate as never, { userId: "u1", profileId: "profile-1" });
     expect(isErr(r)).toBe(true);
     if (!isErr(r)) return;
     expect(r.error).toBeInstanceOf(FxRateUnavailableError);

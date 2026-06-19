@@ -16,7 +16,7 @@ export const archiveDebtAction = action({
     note: z.string().optional(),
   }),
   revalidates: ["debts", "timeline", "notifications", "home"],
-  handler: async ({ debtId, reason, note }, { userId }) => {
+  handler: async ({ debtId, reason, note }, { userId, profileId }) => {
     unwrap(
       await archiveDebt(
         {
@@ -25,7 +25,7 @@ export const archiveDebtAction = action({
           clock,
           lock: new UpstashDistributedLock(),
         },
-        { userId, debtId, reason, ...(note !== undefined ? { note } : {}) },
+        { userId, profileId, debtId, reason, ...(note !== undefined ? { note } : {}) },
       ),
     );
     await detectNotificationsForUser(userId);

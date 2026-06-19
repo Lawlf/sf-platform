@@ -20,6 +20,7 @@ import {
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 import { dateOnlyFormat } from "@/shared/format/date-only";
@@ -223,6 +224,7 @@ export async function fetchMonthDetail(input: {
   const incomeSettlementsRepo = repos.incomeSettlements;
 
   const windowFrom = storyDetectionWindowStart(month);
+  const profileId = await getActiveProfileId();
 
   const [
     paymentsRaw,
@@ -234,17 +236,17 @@ export async function fetchMonthDetail(input: {
     settlementsRaw,
     incomeSettlementsRaw,
   ] = await Promise.all([
-    debtPayments.listForUserInRange(user.id, { from: month.firstDay(), to: month.lastDay() }),
-    debts.listForUser(user.id, { status: "all" }),
-    incomes.listForUser(user.id),
-    assets.findActiveByUser(user.id),
-    debtPayments.listForUserInRange(user.id, {
+    debtPayments.listForProfileInRange(profileId, { from: month.firstDay(), to: month.lastDay() }),
+    debts.listForProfile(profileId, { status: "all" }),
+    incomes.listForProfile(profileId),
+    assets.findActiveByProfile(profileId),
+    debtPayments.listForProfileInRange(profileId, {
       from: windowFrom.firstDay(),
       to: month.lastDay(),
     }),
-    debtAmountAdjustmentsRepo.listForUser(user.id),
-    settlementsRepo.listForUser(user.id),
-    incomeSettlementsRepo.listForUser(user.id),
+    debtAmountAdjustmentsRepo.listForProfile(profileId),
+    settlementsRepo.listForProfile(profileId),
+    incomeSettlementsRepo.listForProfile(profileId),
   ]);
 
   const settlements: TimelineSettlement[] = settlementsRaw.map((s) => ({

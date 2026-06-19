@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -22,9 +23,10 @@ function relativeUpdate(updatedAt: Date): string {
 }
 
 export default async function ExtratoPage() {
-  const user = await requireUser();
+  await requireUser();
+  const profileId = await getActiveProfileId();
 
-  const assets = await repos.assets.findActiveByUser(user.id);
+  const assets = await repos.assets.findActiveByProfile(profileId);
   const connectedAccounts = assets
     .filter((a) => a.externalAccountKey != null && !a.externalAccountKey.endsWith(":reserve"))
     .map((a) => ({ label: a.label, updated: relativeUpdate(a.updatedAt) }));

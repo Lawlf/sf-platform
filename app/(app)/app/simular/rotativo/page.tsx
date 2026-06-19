@@ -3,6 +3,7 @@ import type { Route } from "next";
 
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -24,11 +25,12 @@ export default async function RotativoPage({ searchParams }: PageProps) {
   let monthlyRatePct: number | null = null;
   let cardDebtId: string | null = null;
   let backHref: Route = "/app/simular" as Route;
+  const profileId = await getActiveProfileId();
 
   if (debtId) {
     const r = await getDebtDetail(
       { debts: repos.debts, payments: repos.debtPayments },
-      { userId: user.id, debtId },
+      { userId: user.id, profileId, debtId },
     );
     if (isOk(r) && r.value.debt.kind === "credit_card") {
       const debt = r.value.debt;

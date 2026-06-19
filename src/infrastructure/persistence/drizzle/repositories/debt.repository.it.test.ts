@@ -16,19 +16,24 @@ import { isOk } from "@/shared/errors/result";
 import { closeDb, getDb } from "../client";
 
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-debt-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-debt-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const repo = new DebtRepository();
 let userId: string;
+let profileId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 });
 
 afterEach(async () => {
@@ -56,6 +61,7 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}financing`,
     kind: "financing",
     status: "active",
@@ -83,6 +89,7 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}loan`,
     kind: "personal_loan",
     status: "active",
@@ -108,6 +115,7 @@ function makeCreditCard(overrides: Partial<CreditCardDebt> = {}): CreditCardDebt
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}card`,
     kind: "credit_card",
     status: "active",
@@ -137,6 +145,7 @@ function makeOverdraft(overrides: Partial<OverdraftDebt> = {}): OverdraftDebt {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}overdraft`,
     kind: "overdraft",
     status: "active",
@@ -182,12 +191,12 @@ describe("DebtRepository (integration)", () => {
     await repo.create(makeCreditCard());
     await repo.create(makeOverdraft({ status: "paid_off" }));
 
-    const all = await repo.listForUser(userId);
+    const all = await repo.listForProfile(userId);
     expect(all).toHaveLength(4);
     const kinds = new Set(all.map((d) => d.kind));
     expect(kinds).toEqual(new Set(["financing", "personal_loan", "credit_card", "overdraft"]));
 
-    const onlyActive = await repo.listForUser(userId, { status: "active" });
+    const onlyActive = await repo.listForProfile(userId, { status: "active" });
     expect(onlyActive).toHaveLength(3);
     expect(onlyActive.every((d) => d.status === "active")).toBe(true);
   });

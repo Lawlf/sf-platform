@@ -7,7 +7,7 @@ export interface ListTransactionsByAccountDeps {
 
 export async function listTransactionsByAccount(
   deps: ListTransactionsByAccountDeps,
-  input: { userId: string; accountId: string },
+  input: { profileId: string; accountId: string },
 ): Promise<TransactionEntity[]> {
-  return deps.transactions.listByAccount(input.accountId, input.userId);
+  return deps.transactions.listByAccount(input.accountId, input.profileId);
 }

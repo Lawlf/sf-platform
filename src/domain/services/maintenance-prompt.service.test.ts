@@ -9,6 +9,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "a1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Nubank",
     currentValue: Money.fromCents(10_000_00n),

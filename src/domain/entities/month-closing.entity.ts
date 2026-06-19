@@ -2,6 +2,7 @@ import type { ReconciliationStatus } from "@/domain/services/reconciliation.serv
 
 export interface MonthClosingEntity {
   userId: string;
+  profileId: string;
   /** Primeiro dia do mes (UTC). */
   month: Date;
   baselineNetWorthCents: bigint;

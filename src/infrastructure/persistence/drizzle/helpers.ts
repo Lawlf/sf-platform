@@ -14,6 +14,17 @@ export function ownedBy(table: OwnedTable, userId: string): SQL {
   return cond;
 }
 
+type ProfileScopedTable = {
+  profileId: AnyPgColumn;
+  deletedAt: AnyPgColumn;
+};
+
+export function scopedToProfile(table: ProfileScopedTable, profileId: string): SQL {
+  const cond = and(eq(table.profileId, profileId), isNull(table.deletedAt));
+  if (!cond) throw new Error("scopedToProfile: condição vazia");
+  return cond;
+}
+
 export function moneyFromRow(cents: bigint, currency?: string | null): Money {
   return Money.fromCents(cents, (currency ?? "BRL") as Currency);
 }

@@ -5,6 +5,7 @@ import { Skeleton } from "@/app/components/ui/skeleton";
 import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 
@@ -47,6 +48,7 @@ function greetingFor(hour: number): string {
 
 export default async function DashboardPage() {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const now = new Date();
   const greeting = greetingFor(now.getHours());
@@ -75,10 +77,10 @@ export default async function DashboardPage() {
     getPrescription(),
     getMonthlyConsumo(
       { transactions: repos.transactions },
-      { userId: user.id, from: consumoFrom, to: consumoTo },
+      { profileId, from: consumoFrom, to: consumoTo },
     ),
     fetchOutOfMonthSummary(),
-    repos.assets.listExternalAccountKeys(user.id),
+    repos.assets.listExternalAccountKeys(profileId),
     repos.mcpConnections.listForUser(user.id),
   ]);
 

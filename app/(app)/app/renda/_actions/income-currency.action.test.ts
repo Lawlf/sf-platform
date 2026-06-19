@@ -18,6 +18,10 @@ vi.mock("@/presentation/http/middleware/cached-current-user", () => ({
   requireUser: vi.fn(async () => ({ id: "user-1" })),
 }));
 
+vi.mock("@/presentation/http/middleware/active-profile", () => ({
+  getActiveProfileId: vi.fn(async () => "profile-1"),
+}));
+
 vi.mock("@/infrastructure/clock/system-clock", () => ({
   SystemClock: class {
     now() {

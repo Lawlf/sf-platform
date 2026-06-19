@@ -2,6 +2,7 @@ import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { loadSimPrefill } from "@/application/use-cases/simulation/load-sim-prefill.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 
 
 import { text } from "./mcp-response";
@@ -9,7 +10,8 @@ import { assertScope, requireCtxFromExtra } from "./require-mcp-context";
 import { serialize } from "./serialize";
 import { SIMULATOR_TOOLS } from "./simulator-registry";
 
-function buildPrefill(userId: string) {
+async function buildPrefill(userId: string) {
+  const profileId = await resolvePfProfileId(userId);
   return loadSimPrefill(
     {
       assets: repos.assets,
@@ -20,7 +22,7 @@ function buildPrefill(userId: string) {
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
     },
-    { userId },
+    { userId, profileId },
   );
 }
 

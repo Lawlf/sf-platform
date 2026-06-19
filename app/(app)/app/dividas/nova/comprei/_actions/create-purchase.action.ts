@@ -49,6 +49,7 @@ export interface NewCreditCardInput {
 
 export interface ExecutePurchaseInput {
   userId: string;
+  profileId: string;
   name: string;
   valueCents: bigint;
   category: PurchaseCategory;
@@ -160,6 +161,7 @@ async function onboardCashAsset(
   }
   const cashCreateResult = await createAsset(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     category: "cash",
     label: cashName,
     currentValueCents: input.currentBalanceCents,
@@ -226,6 +228,7 @@ async function createPurchaseAsset(
 
   const assetResult = await createAsset(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     category: cfg.assetCategory,
     label: name,
     currentValueCents: input.valueCents,
@@ -294,6 +297,7 @@ async function applyCreditCardPurchase(
     }
     const debtResult = await registerDebt(deps, {
       userId: input.userId,
+      profileId: input.profileId,
       label: cardLabel,
       notes: null,
       startDate: now,
@@ -342,6 +346,7 @@ async function createLoanDebt(
   }
   const debtResult = await registerDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     label: name,
     notes: null,
     startDate: now,
@@ -386,6 +391,7 @@ async function createFinancingDebt(
   }
   const debtResult = await registerDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     label: name,
     notes: null,
     startDate: now,
@@ -412,6 +418,7 @@ async function linkPurchaseToDebt(
 ): Promise<string | undefined> {
   const linkResult = await linkAssetToDebt(deps, {
     userId: input.userId,
+    profileId: input.profileId,
     assetId,
     debtId,
     allocationOriginalCents: input.valueCents,
@@ -432,14 +439,14 @@ async function reduceCashAssetBalance(
   if (!cashAssetSourceId) return undefined;
   const cashAsset: AssetEntity | null = await deps.assets.findById(
     cashAssetSourceId,
-    input.userId,
+    input.profileId,
   );
   if (!cashAsset || cashAsset.category !== "cash") return undefined;
   const currentCents = cashAsset.currentValue.toCents();
   const nextCents = currentCents - input.valueCents;
   const clampedCents = nextCents < 0n ? 0n : nextCents;
   const updateResult = await updateAsset(deps, {
-    userId: input.userId,
+    profileId: input.profileId,
     assetId: cashAsset.id,
     currentValueCents: clampedCents,
   });
@@ -563,7 +570,7 @@ export type CreatePurchaseActionInput = z.input<typeof inputSchema>;
 export const createPurchaseAction = action({
   schema: inputSchema,
   revalidates: ["home", "assets", "debts"],
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     const valueCents = BigInt(v.valueCents);
 
     const monthlyPaymentCents =
@@ -593,6 +600,7 @@ export const createPurchaseAction = action({
 
     const result = await executePurchase(deps, {
       userId,
+      profileId,
       name: v.name,
       valueCents,
       category: v.category,

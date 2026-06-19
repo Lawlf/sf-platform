@@ -2,10 +2,10 @@
 
 import { z } from "zod";
 
-
 import { simulateExtraPayment } from "@/application/use-cases/simulation/simulate-extra-payment.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -33,10 +33,13 @@ export async function runExtraAction(formData: FormData): Promise<ExtraActionRes
   if (!parsed.success)
     return { ok: false, message: parsed.error.issues[0]?.message ?? "Entrada inválida." };
 
+  const profileId = await getActiveProfileId();
+
   const r = await simulateExtraPayment(
     { debts: repos.debts, clock },
     {
       userId: user.id,
+      profileId,
       debtId: parsed.data.debtId,
       monthlyPayment: Money.fromCents(parsed.data.monthlyPaymentCents),
       extraPayment: Money.fromCents(parsed.data.extraPaymentCents),

@@ -11,7 +11,7 @@ export interface MarkAssetReviewedDeps {
 }
 
 export interface MarkAssetReviewedInput {
-  userId: string;
+  profileId: string;
   assetId: string;
 }
 
@@ -26,7 +26,7 @@ export async function markAssetReviewed(
   deps: MarkAssetReviewedDeps,
   input: MarkAssetReviewedInput,
 ): Promise<Result<AssetEntity, MarkAssetReviewedError>> {
-  const existing = await deps.assets.findById(input.assetId, input.userId);
+  const existing = await deps.assets.findById(input.assetId, input.profileId);
   if (!existing) return err(new AssetNotFound("Ativo não encontrado."));
   if (!isAssetActive(existing)) {
     return err(new AssetDeactivated("Ativo desativado não pode ser revisado."));

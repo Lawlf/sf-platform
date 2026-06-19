@@ -66,11 +66,11 @@ export type PreviewMonthClosingResult =
  */
 export async function computeMonthClosing(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<ComputedMonthClosing | null> {
   const open = await getOpenMonth(
     { closings: deps.closings, clock: deps.clock },
-    { userId: input.userId },
+    { profileId: input.profileId },
   );
   if (!open) return null;
 
@@ -82,7 +82,7 @@ export async function computeMonthClosing(
       rates: deps.rates,
       overrides: deps.overrides,
     },
-    { userId: input.userId },
+    { userId: input.userId, profileId: input.profileId },
   );
   const theoreticalFreeCashFlowCents = isOk(snapshotResult)
     ? snapshotResult.value.monthlyFreeCashFlow.toCents()
@@ -97,7 +97,7 @@ export async function computeMonthClosing(
       overrides: deps.overrides,
       clock: deps.clock,
     },
-    { userId: input.userId },
+    { userId: input.userId, profileId: input.profileId },
   );
   const endNetWorthCents = isOk(netWorthResult)
     ? netWorthResult.value.netWorth.toCents()
@@ -110,12 +110,12 @@ export async function computeMonthClosing(
     ? clampCommittedBps(snapshotResult.value.incomeCommittedPct)
     : 0;
 
-  const assetsForReserve = await deps.assets.findActiveByUser(input.userId);
+  const assetsForReserve = await deps.assets.findActiveByProfile(input.profileId);
   const endReserveCents = assetsForReserve
     .filter((a) => a.category === "cash")
     .reduce((sum, a) => sum + a.currentValue.toCents(), 0n);
 
-  const baselineNetWorthCents = await resolveBaseline(deps, input.userId, open.openMonthIso);
+  const baselineNetWorthCents = await resolveBaseline(deps, input.userId, input.profileId, open.openMonthIso);
 
   const { leakCents, status } = ReconciliationService.compute({
     theoreticalFreeCashFlowCents,
@@ -152,22 +152,23 @@ function clampCommittedBps(fraction: number): number {
 async function resolveBaseline(
   deps: MonthClosingDeps,
   userId: string,
+  profileId: string,
   openMonthIso: string,
 ): Promise<bigint> {
-  const latest = await deps.closings.latest(userId);
+  const latest = await deps.closings.latest(profileId);
   if (latest && MonthYear.fromDate(latest.month).next().toIso() === openMonthIso) {
     return latest.endNetWorthCents;
   }
 
   const prevMonth = MonthYear.fromIso(openMonthIso).previous();
   const [incomes, debts, payments, assets] = await Promise.all([
-    deps.incomes.listForUser(userId),
-    deps.debts.listForUser(userId, { status: "all" }),
-    deps.payments.listForUserInRange(userId, {
+    deps.incomes.listForProfile(profileId),
+    deps.debts.listForProfile(profileId, { status: "all" }),
+    deps.payments.listForProfileInRange(profileId, {
       from: prevMonth.firstDay(),
       to: prevMonth.lastDay(),
     }),
-    deps.assets.findActiveByUser(userId),
+    deps.assets.findActiveByProfile(profileId),
   ]);
 
   const convertedIncomes: IncomeEntity[] = [];
@@ -212,7 +213,7 @@ async function resolveBaseline(
 
 export async function previewMonthClosing(
   deps: MonthClosingDeps,
-  input: { userId: string },
+  input: { userId: string; profileId: string },
 ): Promise<PreviewMonthClosingResult> {
   const computed = await computeMonthClosing(deps, input);
   if (!computed) return { open: false };

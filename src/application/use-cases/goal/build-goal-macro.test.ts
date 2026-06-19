@@ -37,6 +37,7 @@ function makePersonalLoan({
   return {
     id,
     userId: "user-1",
+    profileId: "profile-1",
     kind: "personal_loan",
     dueDay: null,
     label: "Emprestimo",
@@ -69,13 +70,13 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(async () => []),
+    findActiveByProfile: vi.fn(async () => []),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -93,11 +94,11 @@ function buildDeps({
 
   const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: DebtStatus | "all" }) => {
-      const ofUser = debts.filter((d) => d.userId === userId);
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: DebtStatus | "all" }) => {
+      const ofProfile = debts.filter((d) => (d.profileId ?? d.userId) === profileId);
       const status = opts?.status;
-      if (!status || status === "all") return ofUser;
-      return ofUser.filter((d) => d.status === status);
+      if (!status || status === "all") return ofProfile;
+      return ofProfile.filter((d) => d.status === status);
     }),
     create: vi.fn(),
     update: vi.fn(),
@@ -111,7 +112,7 @@ function buildDeps({
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    listForUser: vi.fn(async () => []),
+    listForProfile: vi.fn(async () => []),
     setActive: vi.fn(),
     softDelete: vi.fn(),
     restore: vi.fn(),
@@ -145,7 +146,7 @@ describe("buildGoalMacro", () => {
     });
     const deps = buildDeps({ debts: [debt], rate: "5.00" });
 
-    const macro = await buildGoalMacro(deps, { userId: "user-1" });
+    const macro = await buildGoalMacro(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(macro.debts).toHaveLength(1);
     expect(macro.debts[0]?.originalPrincipalCents).toBe(500_000n);
@@ -162,7 +163,7 @@ describe("buildGoalMacro", () => {
     });
     const deps = buildDeps({ debts: [debt] });
 
-    const macro = await buildGoalMacro(deps, { userId: "user-1" });
+    const macro = await buildGoalMacro(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(macro.debts[0]?.originalPrincipalCents).toBe(100_000n);
     expect(macro.debts[0]?.currentBalanceCents).toBe(80_000n);

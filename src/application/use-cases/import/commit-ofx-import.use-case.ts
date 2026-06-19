@@ -26,6 +26,7 @@ export interface CommitOfxImportDeps {
 
 export interface CommitOfxImportInput {
   userId: string;
+  profileId: string;
   contents: string[];
   acceptedIncomeFitIds: string[];
   acceptedDebtFitIds: string[];
@@ -59,7 +60,7 @@ export async function commitOfxImport(
   const st = mergedR.value;
 
   if (!input.isPro) {
-    const connectedKeys = (await deps.assets.listExternalAccountKeys(input.userId)).filter(
+    const connectedKeys = (await deps.assets.listExternalAccountKeys(input.profileId)).filter(
       (k) => !k.endsWith(":reserve"),
     );
     const alreadyConnected = connectedKeys.includes(st.accountKey);
@@ -72,7 +73,7 @@ export async function commitOfxImport(
 
   const bankId = st.accountKey.split(":")[0] ?? st.accountKey;
   const bankName = bankNameFromId(bankId);
-  const existing = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+  const existing = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
   let assetId: string;
 
   if (existing) {
@@ -88,6 +89,7 @@ export async function commitOfxImport(
     const asset: AssetEntity = {
       id: newId,
       userId: input.userId,
+      profileId: input.profileId,
       category: "cash",
       label: bankName ?? `Conta ${bankId}`,
       currentValue: Money.fromCents(st.ledgerBalanceCents),
@@ -113,12 +115,12 @@ export async function commitOfxImport(
     // Sob corrida de double-commit o create pode ter virado no-op (índice único
     // por external_account_key); re-busca pela chave para anexar as transações à
     // conta vencedora em vez de a um id que não foi persistido.
-    const persisted = await deps.assets.findByExternalAccountKey(input.userId, st.accountKey);
+    const persisted = await deps.assets.findByExternalAccountKey(input.profileId, st.accountKey);
     assetId = persisted?.id ?? newId;
   }
 
   const allFitIds = st.transactions.map((t) => t.fitId).filter((id) => id.length > 0);
-  const seen = new Set(await deps.transactions.existingExternalIds(input.userId, allFitIds));
+  const seen = new Set(await deps.transactions.existingExternalIds(input.profileId, allFitIds));
   const newTxns = st.transactions.filter((t) => !seen.has(t.fitId));
 
   const movement = findInternalTransfers(newTxns);
@@ -136,6 +138,7 @@ export async function commitOfxImport(
     await deps.transactions.create({
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       direction: t.direction,
       amount: Money.fromCents(t.amountCents),
       description: t.memo,
@@ -167,6 +170,7 @@ export async function commitOfxImport(
     const entity: IncomeEntity = {
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       label,
       amount: Money.fromCents(amountCents),
       frequency: "monthly",
@@ -201,6 +205,7 @@ export async function commitOfxImport(
     const entity: DebtEntity = {
       id: crypto.randomUUID(),
       userId: input.userId,
+      profileId: input.profileId,
       label,
       status: "active",
       kind: "personal_loan",
@@ -227,7 +232,7 @@ export async function commitOfxImport(
   let reserveValueCents: bigint | null = null;
   if (input.reserveTotalCents != null) {
     const reserveKey = `${st.accountKey}:reserve`;
-    const existingReserve = await deps.assets.findByExternalAccountKey(input.userId, reserveKey);
+    const existingReserve = await deps.assets.findByExternalAccountKey(input.profileId, reserveKey);
     const reserveValue = Money.fromCents(input.reserveTotalCents);
     if (existingReserve) {
       await deps.assets.update({ ...existingReserve, currentValue: reserveValue, updatedAt: now });
@@ -235,6 +240,7 @@ export async function commitOfxImport(
       await deps.assets.create({
         id: crypto.randomUUID(),
         userId: input.userId,
+        profileId: input.profileId,
         category: "cash",
         label: `Reserva ${bankName ?? bankId}`,
         currentValue: reserveValue,

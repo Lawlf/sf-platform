@@ -19,6 +19,7 @@ export interface PerformMcpWriteDeps {
 
 export interface PerformMcpWriteInput {
   ctx: McpContext;
+  profileId: string;
   toolName: string;
   args: Record<string, unknown>;
   maxAmountCents: number;
@@ -88,6 +89,7 @@ export async function performMcpWrite(
   const result = await executeWrite(deps.executor, {
     toolName: input.toolName,
     userId: input.ctx.userId,
+    profileId: input.profileId,
     isPro: input.ctx.isPro,
     args: input.args,
   });

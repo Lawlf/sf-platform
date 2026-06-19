@@ -32,6 +32,7 @@ function makeAsset(
   return {
     id: overrides.id,
     userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
     category: overrides.category ?? "vehicle",
     label: overrides.label ?? "Test asset",
     currentValue: Money.fromCents(overrides.currentValueCents, overrides.currency ?? "BRL"),
@@ -61,6 +62,7 @@ function makeFinancing({
   currentBalanceCents,
   status = "active",
   userId = "user-1",
+  profileId = "profile-1",
   currency = "BRL",
 }: {
   id: string;
@@ -68,11 +70,13 @@ function makeFinancing({
   currentBalanceCents: bigint;
   status?: DebtStatus;
   userId?: string;
+  profileId?: string;
   currency?: Currency;
 }): FinancingDebt {
   return {
     id,
     userId,
+    profileId,
     kind: "financing",
     label: "Financiamento",
     status,
@@ -123,15 +127,15 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(async (userId: string) =>
-      assets.filter((a) => a.userId === userId && a.deactivatedAt === null && a.deletedAt === null),
+    findActiveByProfile: vi.fn(async (profileId: string) =>
+      assets.filter((a) => a.profileId === profileId && a.deactivatedAt === null && a.deletedAt === null),
     ),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -149,11 +153,11 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
 
   const debtRepo: DebtRepositoryPort = {
     findById: vi.fn(),
-    listForUser: vi.fn(async (userId: string, opts?: { status?: DebtStatus | "all" }) => {
-      const ofUser = debts.filter((d) => d.userId === userId);
+    listForProfile: vi.fn(async (profileId: string, opts?: { status?: DebtStatus | "all" }) => {
+      const ofProfile = debts.filter((d) => (d.profileId ?? d.userId) === profileId);
       const status = opts?.status;
-      if (!status || status === "all") return ofUser;
-      return ofUser.filter((d) => d.status === status);
+      if (!status || status === "all") return ofProfile;
+      return ofProfile.filter((d) => d.status === status);
     }),
     create: vi.fn(),
     update: vi.fn(),
@@ -195,7 +199,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -220,7 +224,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -243,7 +247,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -269,7 +273,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -300,7 +304,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", allocs]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -331,7 +335,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -359,7 +363,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -370,7 +374,7 @@ describe("getNetWorth", () => {
     }
   });
 
-  it("ativo desativado nao entra no snapshot (findActiveByUser filtra)", async () => {
+  it("ativo desativado nao entra no snapshot (findActiveByProfile filtra)", async () => {
     const active = makeAsset({ id: "a1", currentValueCents: 5_000_000n });
     const dead = makeAsset({
       id: "a2",
@@ -384,7 +388,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -417,7 +421,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -455,7 +459,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map([["a1", [alloc]]]),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -472,6 +476,7 @@ describe("getNetWorth", () => {
       id: "a2",
       currentValueCents: 9_000_000n,
       userId: "other",
+      profileId: "other-profile",
     });
     const myDebt = makeFinancing({
       id: "d1",
@@ -483,6 +488,7 @@ describe("getNetWorth", () => {
       originalPrincipalCents: 2_000_000n,
       currentBalanceCents: 1_500_000n,
       userId: "other",
+      profileId: "other-profile",
     });
     const deps = buildDeps({
       assets: [mine, theirs],
@@ -490,7 +496,7 @@ describe("getNetWorth", () => {
       allocationsByAsset: new Map(),
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -508,7 +514,7 @@ describe("getNetWorth", () => {
       rate: "5.00",
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -533,7 +539,7 @@ describe("getNetWorth", () => {
       rate: "5.00",
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
@@ -553,7 +559,7 @@ describe("getNetWorth", () => {
       rate: null,
     });
 
-    const result = await getNetWorth(deps, { userId: "user-1" });
+    const result = await getNetWorth(deps, { userId: "user-1", profileId: "profile-1" });
 
     expect(isErr(result)).toBe(true);
   });

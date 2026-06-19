@@ -8,7 +8,7 @@ import { listDebts } from "./list-debts.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -22,23 +22,23 @@ describe("listDebts", () => {
   it("returns the list and passes through no opts when status is undefined", async () => {
     const debts = makeDebtRepo();
     const data = [{ id: "a" }, { id: "b" }];
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue(data);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue(data);
 
-    const result = await listDebts({ debts }, { userId: "user-1" });
+    const result = await listDebts({ debts }, { profileId: "profile-1" });
 
     expect(result._tag).toBe("ok");
     if (isOk(result)) {
       expect(result.value).toBe(data);
     }
-    expect(debts.listForUser).toHaveBeenCalledWith("user-1", undefined);
+    expect(debts.listForProfile).toHaveBeenCalledWith("profile-1", undefined);
   });
 
   it("forwards status filter to the repository when provided", async () => {
     const debts = makeDebtRepo();
-    (debts.listForUser as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
 
-    await listDebts({ debts }, { userId: "user-1", status: "active" });
+    await listDebts({ debts }, { profileId: "profile-1", status: "active" });
 
-    expect(debts.listForUser).toHaveBeenCalledWith("user-1", { status: "active" });
+    expect(debts.listForProfile).toHaveBeenCalledWith("profile-1", { status: "active" });
   });
 });

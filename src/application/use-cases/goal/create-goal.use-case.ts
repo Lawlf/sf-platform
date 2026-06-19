@@ -31,12 +31,13 @@ export async function createGoal(
   { goals }: CreateGoalDeps,
   {
     userId,
+    profileId,
     isPro,
     input,
-  }: { userId: string; isPro: boolean; input: CreateGoalInput },
+  }: { userId: string; profileId: string; isPro: boolean; input: CreateGoalInput },
 ): Promise<CreateGoalResult> {
   if (!isPro) {
-    const active = await goals.countActive(userId);
+    const active = await goals.countActive(profileId);
     if (active >= 1) {
       return {
         ok: false,
@@ -46,7 +47,7 @@ export async function createGoal(
   }
 
   if (input.type === "debt_payoff" && input.linkedDebtId) {
-    const active = await goals.listForUser(userId, { status: "active" });
+    const active = await goals.listForProfile(profileId, { status: "active" });
     const dup = active.some(
       (g) => g.type === "debt_payoff" && g.linkedDebtId === input.linkedDebtId,
     );
@@ -63,6 +64,8 @@ export async function createGoal(
   const goal = await goals.create({
     id: crypto.randomUUID(),
     userId,
+    profileId,
+    householdId: null,
     status: "active",
     type: input.type,
     title: input.title,
@@ -78,7 +81,7 @@ export async function createGoal(
  */
 function normalizeFields(input: CreateGoalInput): Omit<
   GoalEntity,
-  "id" | "userId" | "status" | "type" | "title" | "createdAt" | "updatedAt"
+  "id" | "userId" | "profileId" | "householdId" | "status" | "type" | "title" | "createdAt" | "updatedAt"
 > {
   const base = {
     targetCents: null,

@@ -14,7 +14,7 @@ const inputSchema = z.object({
 export const refreshCryptoQuoteAction = action({
   schema: inputSchema,
   revalidates: ["assets", "debts", "timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { profileId }) => {
     const quote = unwrap(
       await refreshCryptoQuote(
         {
@@ -22,7 +22,7 @@ export const refreshCryptoQuoteAction = action({
           quotes: new CoinGeckoQuoteAdapter(),
           clock,
         },
-        { userId, assetId: input.assetId },
+        { profileId, assetId: input.assetId },
       ),
     );
 

@@ -11,6 +11,7 @@ import {
 } from "drizzle-orm/pg-core";
 
 import { debts } from "./debts.schema";
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 // Tipo de ajuste no valor mensal de uma dívida ao longo do tempo:
@@ -32,6 +33,7 @@ export const debtAmountAdjustments = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     kind: debtAmountAdjustmentKind("kind").notNull(),
     // Formato YYYY-MM para todos os campos de mês.
     // Para kind=period: startMonth obrigatório, endMonth null = aberto.
@@ -53,6 +55,7 @@ export const debtAmountAdjustments = pgTable(
     debtIdx: index("debt_amount_adjustments_debt_id_idx").on(table.debtId),
     userIdx: index("debt_amount_adjustments_user_id_idx").on(table.userId),
     debtKindIdx: index("debt_amount_adjustments_debt_id_kind_idx").on(table.debtId, table.kind),
+    profileIdx: index("debt_amount_adjustments_profile_id_idx").on(table.profileId),
     periodShape: check(
       "debt_amount_adjustments_period_shape",
       sql`(kind = 'period' AND start_month IS NOT NULL AND month IS NULL)

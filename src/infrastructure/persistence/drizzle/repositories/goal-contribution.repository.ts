@@ -14,6 +14,7 @@ function rowToEntity(row: GoalContributionRow): GoalContributionEntity {
     id: row.id,
     goalId: row.goalId,
     userId: row.userId,
+    profileId: row.profileId,
     amountCents: row.amountCents,
     createdAt: row.createdAt,
   };
@@ -27,6 +28,7 @@ export class GoalContributionRepository
       id: contribution.id,
       goalId: contribution.goalId,
       userId: contribution.userId,
+      profileId: contribution.profileId,
       amountCents: contribution.amountCents,
       createdAt: contribution.createdAt,
     });

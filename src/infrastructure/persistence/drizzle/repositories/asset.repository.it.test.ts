@@ -14,29 +14,35 @@ import { closeDb, getDb } from "../client";
 import { AssetDebtAllocationRepository } from "./asset-debt-allocation.repository";
 import { AssetRepository } from "./asset.repository";
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-asset-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-asset-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const debts = new DebtRepository();
 const allocations = new AssetDebtAllocationRepository();
 const repo = new AssetRepository();
 
 let userId: string;
+let profileId: string;
 let debtId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   const annual = InterestRate.fromAnnual(0.12);
   if (!isOk(annual)) throw new Error("rate fixture");
   const debt: PersonalLoanDebt = {
     id: randomUUID(),
     userId,
+    profileId,
     label: `${LABEL_PREFIX}loan`,
     kind: "personal_loan",
     dueDay: null,
@@ -75,6 +81,7 @@ function makeVehicle(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     category: "vehicle",
     label: `${LABEL_PREFIX}civic`,
     currentValue: Money.fromCents(8_000_000n),
@@ -103,6 +110,7 @@ function makeRealEstate(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: randomUUID(),
     userId,
+    profileId,
     category: "real_estate",
     label: `${LABEL_PREFIX}apt`,
     currentValue: Money.fromCents(45_000_000n),
@@ -162,7 +170,7 @@ describe("AssetRepository (integration)", () => {
     }
   });
 
-  it("findActiveByUser excludes deactivated assets", async () => {
+  it("findActiveByProfile excludes deactivated assets", async () => {
     const active = makeVehicle();
     const inactive = makeRealEstate({
       deactivatedAt: new Date("2024-05-01T00:00:00Z"),
@@ -171,12 +179,12 @@ describe("AssetRepository (integration)", () => {
     await repo.create(active);
     await repo.create(inactive);
 
-    const list = await repo.findActiveByUser(userId);
+    const list = await repo.findActiveByProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.id).toBe(active.id);
   });
 
-  it("findActiveByUserAndCategory filters by both category and active", async () => {
+  it("findActiveByProfileAndCategory filters by both category and active", async () => {
     await repo.create(makeVehicle());
     await repo.create(makeRealEstate());
     await repo.create(
@@ -187,11 +195,11 @@ describe("AssetRepository (integration)", () => {
       }),
     );
 
-    const vehicles = await repo.findActiveByUserAndCategory(userId, "vehicle");
+    const vehicles = await repo.findActiveByProfileAndCategory(userId, "vehicle");
     expect(vehicles).toHaveLength(1);
     expect(vehicles[0]?.category).toBe("vehicle");
 
-    const realEstate = await repo.findActiveByUserAndCategory(userId, "real_estate");
+    const realEstate = await repo.findActiveByProfileAndCategory(userId, "real_estate");
     expect(realEstate).toHaveLength(1);
     expect(realEstate[0]?.category).toBe("real_estate");
   });

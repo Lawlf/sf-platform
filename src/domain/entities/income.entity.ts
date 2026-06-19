@@ -5,6 +5,7 @@ export type IncomeFrequency = "monthly" | "weekly" | "one_off";
 export interface IncomeEntity {
   id: string;
   userId: string;
+  profileId: string;
   label: string;
   amount: Money;
   frequency: IncomeFrequency;

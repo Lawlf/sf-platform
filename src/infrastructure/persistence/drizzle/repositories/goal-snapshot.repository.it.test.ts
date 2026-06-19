@@ -9,24 +9,31 @@ import { closeDb, getDb } from "../client";
 
 import { GoalSnapshotRepository } from "./goal-snapshot.repository";
 import { GoalRepository } from "./goal.repository";
+import { ProfileRepository } from "./profile.repository";
 import { UserRepository } from "./user.repository";
 
 const TEST_EMAIL = "it-test-goal-snapshot-user@saborfinanceiro.com.br";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const goalRepo = new GoalRepository();
 const repo = new GoalSnapshotRepository();
 let userId: string;
+let profileId: string;
 let goalId: string;
 
 beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   const goal = await goalRepo.create({
     id: randomUUID(),
     userId,
+    profileId,
+    householdId: null,
     type: "savings",
     title: "Meta snapshot test",
     status: "active",
@@ -112,6 +119,8 @@ describe("GoalSnapshotRepository (integration)", () => {
     const other = await goalRepo.create({
       id: randomUUID(),
       userId,
+      profileId,
+      householdId: null,
       type: "emergency_fund",
       title: "Fundo emergencia",
       status: "active",

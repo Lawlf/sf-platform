@@ -17,6 +17,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -50,17 +51,17 @@ function makeRepoBackedByMap() {
     update: vi.fn(async (a: AssetEntity) => {
       store.set(a.id, a);
     }),
-    findById: vi.fn(async (id: string, userId: string) => {
+    findById: vi.fn(async (id: string, profileId: string) => {
       const a = store.get(id);
-      return a && a.userId === userId ? a : null;
+      return a && (a.profileId ?? a.userId) === profileId ? a : null;
     }),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -81,7 +82,7 @@ describe("deactivateAsset", () => {
     const result = await deactivateAsset(
       { assets: repo, clock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         kind: "sold",
         salePriceCents: 4_500_000n,
@@ -106,7 +107,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "lost" },
+      { profileId: "profile-1", assetId: "asset-1", kind: "lost" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -124,7 +125,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "donated", reason: "Doei pra ONG" },
+      { profileId: "profile-1", assetId: "asset-1", kind: "donated", reason: "Doei pra ONG" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -142,7 +143,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "not_specified" },
+      { profileId: "profile-1", assetId: "asset-1", kind: "not_specified" },
     );
 
     expect(isOk(result)).toBe(true);
@@ -159,7 +160,7 @@ describe("deactivateAsset", () => {
     const result = await deactivateAsset(
       { assets: repo, clock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         kind: "donated",
         salePriceCents: 999n,
@@ -179,7 +180,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "sold" },
+      { profileId: "profile-1", assetId: "asset-1", kind: "sold" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -195,7 +196,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "sold", salePriceCents: -1n },
+      { profileId: "profile-1", assetId: "asset-1", kind: "sold", salePriceCents: -1n },
     );
 
     expect(isErr(result)).toBe(true);
@@ -211,10 +212,10 @@ describe("deactivateAsset", () => {
 
     await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "sold", salePriceCents: 100n },
+      { profileId: "profile-1", assetId: "asset-1", kind: "sold", salePriceCents: 100n },
     );
 
-    const found = await repo.findById("asset-1", "user-1");
+    const found = await repo.findById("asset-1", "profile-1");
     expect(found).not.toBeNull();
     expect(found?.deactivatedAt).not.toBeNull();
     expect(store.has("asset-1")).toBe(true);
@@ -227,7 +228,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "intruder", assetId: "asset-1", kind: "lost" },
+      { profileId: "intruder", assetId: "asset-1", kind: "lost" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -249,7 +250,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "lost" },
+      { profileId: "profile-1", assetId: "asset-1", kind: "lost" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -266,7 +267,7 @@ describe("deactivateAsset", () => {
     const result = await deactivateAsset(
       { assets: repo, clock },
       {
-        userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         kind: "lost",
         reason: "x".repeat(501),
@@ -286,7 +287,7 @@ describe("deactivateAsset", () => {
 
     const result = await deactivateAsset(
       { assets: repo, clock },
-      { userId: "user-1", assetId: "asset-1", kind: "lost", reason: "   " },
+      { profileId: "profile-1", assetId: "asset-1", kind: "lost", reason: "   " },
     );
 
     expect(isOk(result)).toBe(true);

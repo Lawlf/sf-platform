@@ -52,18 +52,34 @@ function makeUserRepo(pro: UserEntity[]): UserRepositoryPort {
   };
 }
 
+function makeProfiles() {
+  return {
+    ensurePfProfile: vi.fn(async (userId: string) => ({
+      id: `profile-${userId}`,
+      userId,
+      type: "PF" as const,
+      linkedProfileId: null,
+      displayName: null,
+      isPrimary: true,
+      taxClassification: null,
+      createdAt: new Date("2026-01-01"),
+      updatedAt: new Date("2026-01-01"),
+    })),
+  };
+}
+
 function makeAssetRepo(byUser: Record<string, string[]>): AssetRepositoryPort {
   return {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async (userId: string) => byUser[userId] ?? []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async (profileId: string) => byUser[profileId] ?? []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -114,9 +130,10 @@ describe("refreshAllUserStocks", () => {
   it("returns zeroed result when there are no Pro users", async () => {
     const users = makeUserRepo([]);
     const assets = makeAssetRepo({});
+    const profiles = makeProfiles();
     const { repo: catalog, upsertMany } = makeCatalogRepo();
     const { quotes, fetchQuotes } = makeQuotes([]);
-    const r = await refreshAllUserStocks({ users, assets, catalog, quotes, clock: CLOCK });
+    const r = await refreshAllUserStocks({ users, profiles, assets, catalog, quotes, clock: CLOCK });
     expect(r).toEqual({ tickers: 0, updated: 0, failed: 0 });
     expect(fetchQuotes).not.toHaveBeenCalled();
     expect(upsertMany).not.toHaveBeenCalled();
@@ -124,10 +141,11 @@ describe("refreshAllUserStocks", () => {
 
   it("returns zeroed result when Pro users hold no stocks", async () => {
     const users = makeUserRepo([makeUser("u1"), makeUser("u2")]);
-    const assets = makeAssetRepo({ u1: [], u2: [] });
+    const assets = makeAssetRepo({ "profile-u1": [], "profile-u2": [] });
+    const profiles = makeProfiles();
     const { repo: catalog } = makeCatalogRepo();
     const { quotes, fetchQuotes } = makeQuotes([]);
-    const r = await refreshAllUserStocks({ users, assets, catalog, quotes, clock: CLOCK });
+    const r = await refreshAllUserStocks({ users, profiles, assets, catalog, quotes, clock: CLOCK });
     expect(r).toEqual({ tickers: 0, updated: 0, failed: 0 });
     expect(fetchQuotes).not.toHaveBeenCalled();
   });
@@ -135,13 +153,14 @@ describe("refreshAllUserStocks", () => {
   it("deduplicates tickers across Pro users before fetching", async () => {
     const users = makeUserRepo([makeUser("u1"), makeUser("u2"), makeUser("u3")]);
     const assets = makeAssetRepo({
-      u1: ["PETR4", "VALE3"],
-      u2: ["PETR4", "ITUB4"],
-      u3: ["vale3"],
+      "profile-u1": ["PETR4", "VALE3"],
+      "profile-u2": ["PETR4", "ITUB4"],
+      "profile-u3": ["vale3"],
     });
+    const profiles = makeProfiles();
     const { repo: catalog, upsertMany } = makeCatalogRepo();
     const { quotes, fetchQuotes } = makeQuotes([[quote("ITUB4"), quote("PETR4"), quote("VALE3")]]);
-    const r = await refreshAllUserStocks({ users, assets, catalog, quotes, clock: CLOCK });
+    const r = await refreshAllUserStocks({ users, profiles, assets, catalog, quotes, clock: CLOCK });
     expect(r).toEqual({ tickers: 3, updated: 3, failed: 0 });
     expect(fetchQuotes).toHaveBeenCalledTimes(1);
     // tickers ordered alphabetically after sort
@@ -152,24 +171,26 @@ describe("refreshAllUserStocks", () => {
   it("batches more than 10 unique tickers into multiple calls", async () => {
     const tickerLists = Array.from({ length: 23 }, (_, i) => `T${String(i).padStart(2, "0")}`);
     const users = makeUserRepo([makeUser("u1")]);
-    const assets = makeAssetRepo({ u1: tickerLists });
+    const assets = makeAssetRepo({ "profile-u1": tickerLists });
+    const profiles = makeProfiles();
     const { repo: catalog } = makeCatalogRepo();
     const { quotes, fetchQuotes } = makeQuotes([
       tickerLists.slice(0, 10).map((t) => quote(t)),
       tickerLists.slice(10, 20).map((t) => quote(t)),
       tickerLists.slice(20, 23).map((t) => quote(t)),
     ]);
-    const r = await refreshAllUserStocks({ users, assets, catalog, quotes, clock: CLOCK });
+    const r = await refreshAllUserStocks({ users, profiles, assets, catalog, quotes, clock: CLOCK });
     expect(r).toEqual({ tickers: 23, updated: 23, failed: 0 });
     expect(fetchQuotes).toHaveBeenCalledTimes(3);
   });
 
   it("propagates partial failures from refreshStockCatalog", async () => {
     const users = makeUserRepo([makeUser("u1")]);
-    const assets = makeAssetRepo({ u1: ["PETR4", "BADX"] });
+    const assets = makeAssetRepo({ "profile-u1": ["PETR4", "BADX"] });
+    const profiles = makeProfiles();
     const { repo: catalog } = makeCatalogRepo();
     const { quotes } = makeQuotes([[quote("PETR4")]]);
-    const r = await refreshAllUserStocks({ users, assets, catalog, quotes, clock: CLOCK });
+    const r = await refreshAllUserStocks({ users, profiles, assets, catalog, quotes, clock: CLOCK });
     expect(r).toEqual({ tickers: 2, updated: 1, failed: 1 });
   });
 });

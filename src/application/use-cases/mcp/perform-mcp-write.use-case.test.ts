@@ -61,6 +61,7 @@ describe("performMcpWrite", () => {
 
     const out = await performMcpWrite(deps, {
       ctx,
+      profileId: "profile-1",
       toolName: "income_create",
       args: { label: "Salário", amountCents: 100000 },
       maxAmountCents: 100000,
@@ -79,6 +80,7 @@ describe("performMcpWrite", () => {
 
     const out = await performMcpWrite(deps, {
       ctx,
+      profileId: "profile-1",
       toolName: "goal_delete",
       args: { goalId: "g1" },
       maxAmountCents: 0,
@@ -101,6 +103,7 @@ describe("performMcpWrite", () => {
 
     const out = await performMcpWrite(deps, {
       ctx,
+      profileId: "profile-1",
       toolName: "income_create",
       args: { label: "Bônus", amountCents: 600000 },
       maxAmountCents: 600000,
@@ -122,6 +125,7 @@ describe("performMcpWrite", () => {
 
     const out = await performMcpWrite(deps, {
       ctx,
+      profileId: "profile-1",
       toolName: "income_create",
       args: { label: "Salário", amountCents: 100000 },
       maxAmountCents: 100000,
@@ -149,6 +153,7 @@ describe("performMcpWrite", () => {
 
     await performMcpWrite(deps, {
       ctx,
+      profileId: "profile-1",
       toolName: "income_create",
       args: { label: "Salário", amountCents: 100000 },
       maxAmountCents: 100000,

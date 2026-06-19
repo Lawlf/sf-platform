@@ -25,13 +25,13 @@ function makeAssetRepo(): AssetRepositoryPort {
     create: vi.fn(),
     update: vi.fn(),
     findById: vi.fn(),
-    findActiveByUser: vi.fn(),
+    findActiveByProfile: vi.fn(),
     createDefaultWallet: vi.fn(),
-    findActiveByUserAndCategory: vi.fn(),
+    findActiveByProfileAndCategory: vi.fn(),
     findByIdWithAllocations: vi.fn(),
     findActiveWithAllocations: vi.fn(),
-    listStockTickersForUser: vi.fn(async () => []),
-    listCryptoTickersForUser: vi.fn(async () => []),
+    listStockTickersForProfile: vi.fn(async () => []),
+    listCryptoTickersForProfile: vi.fn(async () => []),
     softDelete: vi.fn(),
     findByExternalAccountKey: vi.fn(),
     listExternalAccountKeys: vi.fn(async () => []),
@@ -53,7 +53,7 @@ function makeAllocRepo(sumExcludingCents = 0n): AssetDebtAllocationRepositoryPor
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -83,6 +83,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
   return {
     id: "asset-1",
     userId: "user-1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Civic",
     currentValue: Money.fromCents(5_000_000n),
@@ -112,6 +113,7 @@ function makeDebt(overrides: Partial<PersonalLoanDebt> = {}): PersonalLoanDebt {
   return {
     id: "debt-1",
     userId: "user-1",
+    profileId: "profile-1",
     label: "Emprestimo",
     status: "active",
     originalPrincipal: principal,
@@ -147,6 +149,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 500_000n,
@@ -173,6 +176,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 0n,
@@ -197,6 +201,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "missing",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -222,6 +227,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -246,6 +252,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "missing",
         allocationOriginalCents: 100n,
@@ -258,18 +265,19 @@ describe("linkAssetToDebt", () => {
     }
   });
 
-  it("returns Forbidden when debt belongs to another user", async () => {
+  it("returns Forbidden when debt belongs to another profile", async () => {
     const assets = makeAssetRepo();
     const allocations = makeAllocRepo();
     const debts = makeDebtRepo();
     const clock = makeClock();
     (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset());
-    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "other" }));
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "other", profileId: "profile-2" }));
 
     const result = await linkAssetToDebt(
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -296,6 +304,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 100n,
@@ -322,6 +331,7 @@ describe("linkAssetToDebt", () => {
       { assets, allocations, debts, clock },
       {
         userId: "user-1",
+        profileId: "profile-1",
         assetId: "asset-1",
         debtId: "debt-1",
         allocationOriginalCents: 250_000n,

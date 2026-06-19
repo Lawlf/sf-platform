@@ -34,20 +34,21 @@ export async function getGoalDetail(
   deps: GetGoalDetailDeps,
   {
     userId,
+    profileId,
     goalId,
     isPro,
-  }: { userId: string; goalId: string; isPro: boolean },
+  }: { userId: string; profileId: string; goalId: string; isPro: boolean },
 ): Promise<GoalDetailResult | null> {
   const goal = await deps.goals.findById(goalId);
-  if (!goal || goal.userId !== userId) return null;
+  if (!goal || goal.profileId !== profileId || goal.householdId !== null) return null;
 
   const [macro, snapshotList, contributionList] = await Promise.all([
-    buildGoalMacro(deps, { userId }),
+    buildGoalMacro(deps, { userId, profileId }),
     deps.snapshots.listForGoal(goalId),
     deps.contributions.listForGoal(goalId, CONTRIBUTIONS_LIMIT),
   ]);
 
-  const resolved = await resolveLinkedAsset(deps, goal);
+  const resolved = await resolveLinkedAsset(deps, goal, profileId);
   const rawProgress = GoalProgressService.compute(resolved, macro);
 
   const { progress, etaLocked } = isPro
@@ -64,6 +65,7 @@ export async function getGoalDetail(
 async function resolveLinkedAsset(
   deps: GetGoalDetailDeps,
   goal: GoalEntity,
+  profileId: string,
 ): Promise<GoalEntity> {
   if (
     goal.type !== "savings" ||
@@ -73,7 +75,7 @@ async function resolveLinkedAsset(
     return goal;
   }
 
-  const asset = await deps.assets.findById(goal.linkedAssetId, goal.userId);
+  const asset = await deps.assets.findById(goal.linkedAssetId, profileId);
   if (!asset) return goal;
 
   return { ...goal, manualSavedCents: asset.currentValue.toCents() };

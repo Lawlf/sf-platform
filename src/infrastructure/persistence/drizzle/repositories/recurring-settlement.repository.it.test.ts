@@ -10,6 +10,7 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { closeDb, getDb } from "../client";
 
 import { DebtRepository } from "./debt.repository";
+import { ProfileRepository } from "./profile.repository";
 import { RecurringSettlementRepository } from "./recurring-settlement.repository";
 import { UserRepository } from "./user.repository";
 
@@ -17,16 +18,19 @@ const TEST_EMAIL = "it-test-recurring-settlement-user@saborfinanceiro.com.br";
 const LABEL_PREFIX = "it-test-recurring-settlement-";
 
 const users = new UserRepository();
+const profiles = new ProfileRepository();
 const debts = new DebtRepository();
 const repo = new RecurringSettlementRepository();
 
 let userId: string;
+let profileId: string;
 let debtId: string;
 
 function makeRecurringDebt(id: string, label: string): RecurringDebt {
   return {
     id,
     userId,
+    profileId,
     label,
     kind: "recurring",
     status: "active",
@@ -49,6 +53,8 @@ beforeAll(async () => {
   if (!process.env.DATABASE_URL) throw new Error("DATABASE_URL required");
   const u = await users.create({ email: TEST_EMAIL, emailVerified: true });
   userId = u.id;
+  const profile = await profiles.ensurePfProfile(userId, new Date());
+  profileId = profile.id;
 
   debtId = randomUUID();
   await debts.create(makeRecurringDebt(debtId, `${LABEL_PREFIX}commitment`));
@@ -70,6 +76,7 @@ function makeSettlement(
 ): RecurringSettlementEntity {
   return {
     userId,
+    profileId,
     debtId,
     month: new Date("2026-03-01T00:00:00Z"),
     status: "converted_to_debt",
@@ -80,10 +87,10 @@ function makeSettlement(
 }
 
 describe("RecurringSettlementRepository (integration)", () => {
-  it("upsert inserts and listForUser returns it", async () => {
+  it("upsert inserts and listForProfile returns it", async () => {
     await repo.upsert(makeSettlement());
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.userId).toBe(userId);
     expect(list[0]?.debtId).toBe(debtId);
@@ -97,23 +104,23 @@ describe("RecurringSettlementRepository (integration)", () => {
     await debts.create(makeRecurringDebt(createdDebtId, `${LABEL_PREFIX}created`));
     await repo.upsert(makeSettlement({ status: "cancelled", createdDebtId }));
 
-    const list = await repo.listForUser(userId);
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(1);
     expect(list[0]?.status).toBe("cancelled");
     expect(list[0]?.createdDebtId).toBe(createdDebtId);
   });
 
-  it("listForUserMonth returns only settlements of that month", async () => {
+  it("listForProfileMonth returns only settlements of that month", async () => {
     await repo.upsert(makeSettlement({ month: new Date("2026-03-01T00:00:00Z") }));
     await repo.upsert(makeSettlement({ month: new Date("2026-04-01T00:00:00Z") }));
 
-    const march = await repo.listForUserMonth(userId, new Date("2026-03-01T00:00:00Z"));
+    const march = await repo.listForProfileMonth(userId, new Date("2026-03-01T00:00:00Z"));
     expect(march).toHaveLength(1);
     expect(march[0]?.month.getTime()).toBe(new Date("2026-03-01T00:00:00Z").getTime());
   });
 
-  it("listForUser returns empty when the user has no settlements", async () => {
-    const list = await repo.listForUser(userId);
+  it("listForProfile returns empty when the user has no settlements", async () => {
+    const list = await repo.listForProfile(userId);
     expect(list).toHaveLength(0);
   });
 });

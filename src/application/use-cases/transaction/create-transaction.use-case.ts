@@ -18,13 +18,14 @@ export interface CreateTransactionDeps {
   transactions: Pick<TransactionRepositoryPort, "create">;
   assets: Pick<
     AssetRepositoryPort,
-    "findById" | "findActiveByUserAndCategory" | "createDefaultWallet" | "update"
+    "findById" | "findActiveByProfileAndCategory" | "createDefaultWallet" | "update"
   >;
   clock: Clock;
 }
 
 export interface CreateTransactionInput {
   userId: string;
+  profileId: string;
   direction: TransactionDirection;
   amount: Money;
   description: string;
@@ -39,20 +40,19 @@ export interface CreateTransactionInput {
 async function resolveAccount(
   deps: CreateTransactionDeps,
   userId: string,
+  profileId: string,
   accountId: string | null,
 ): Promise<AssetEntity> {
   if (accountId) {
-    const found = await deps.assets.findById(accountId, userId);
+    const found = await deps.assets.findById(accountId, profileId);
     if (found && found.category === "cash") return found;
   }
-  // Sem conta escolhida, o destino padrão é a Carteira dedicada (não um cash
-  // qualquer como a Reserva). Cria se faltar.
-  const existing = await deps.assets.findActiveByUserAndCategory(userId, "cash");
+  const existing = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
   const carteira = existing.find((a) => a.label === "Carteira");
   if (carteira) return carteira;
-  const wallet = buildDefaultWallet(userId, crypto.randomUUID(), deps.clock.now());
+  const wallet = buildDefaultWallet(userId, profileId, crypto.randomUUID(), deps.clock.now());
   await deps.assets.createDefaultWallet(wallet);
-  const after = await deps.assets.findActiveByUserAndCategory(userId, "cash");
+  const after = await deps.assets.findActiveByProfileAndCategory(profileId, "cash");
   return after.find((a) => a.label === "Carteira") ?? wallet;
 }
 
@@ -61,7 +61,7 @@ export async function createTransaction(
   input: CreateTransactionInput,
 ): Promise<Result<TransactionEntity, never>> {
   const status = input.status ?? "paid";
-  const account = await resolveAccount(deps, input.userId, input.accountId);
+  const account = await resolveAccount(deps, input.userId, input.profileId, input.accountId);
 
   const amount =
     input.amount.currency === account.currentValue.currency
@@ -79,6 +79,7 @@ export async function createTransaction(
   const persisted = await deps.transactions.create({
     id: crypto.randomUUID(),
     userId: input.userId,
+    profileId: input.profileId,
     direction: input.direction,
     amount,
     description: input.description,

@@ -19,6 +19,7 @@ export interface ComparePayoffStrategiesDeps {
 
 export interface ComparePayoffStrategiesInput {
   userId: string;
+  profileId: string;
   debtIds: string[];
   monthlyBudget: Money;
 }
@@ -27,7 +28,7 @@ export async function comparePayoffStrategies(
   deps: ComparePayoffStrategiesDeps,
   input: ComparePayoffStrategiesInput,
 ): Promise<Result<PayoffComparison, DebtNotFound | Forbidden | InvalidAmortizationParamsError>> {
-  const allActive = await deps.debts.listForUser(input.userId, { status: "active" });
+  const allActive = await deps.debts.listForProfile(input.profileId, { status: "active" });
   let selected = allActive;
   if (input.debtIds.length > 0) {
     selected = allActive.filter((d) => input.debtIds.includes(d.id));

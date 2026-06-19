@@ -1,6 +1,7 @@
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 
 import { repos } from "@/infrastructure/container";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { serialize } from "@/presentation/http/mcp/serialize";
 
 import { registerMcpReadTools } from "./mcp-read-tools";
@@ -17,7 +18,8 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "assets:read");
       await enforceUsageOrThrow(ctx);
-      const assets = await repos.assets.findActiveByUser(ctx.userId);
+      const profileId = await resolvePfProfileId(ctx.userId);
+      const assets = await repos.assets.findActiveByProfile(profileId);
       return text(serialize(assets));
     },
   );
@@ -29,7 +31,8 @@ export function registerMcpTools(server: McpServer): void {
       const ctx = requireCtxFromExtra(extra);
       assertScope(ctx, "incomes:read");
       await enforceUsageOrThrow(ctx);
-      const incomes = await repos.incomes.listForUser(ctx.userId);
+      const profileId = await resolvePfProfileId(ctx.userId);
+      const incomes = await repos.incomes.listForProfile(profileId);
       return text(serialize(incomes));
     },
   );

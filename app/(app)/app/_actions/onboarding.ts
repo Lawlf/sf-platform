@@ -10,11 +10,13 @@ import {
 import { markWizardSeen } from "@/application/use-cases/onboarding/mark-wizard-seen.use-case";
 import { setOnboardingFocus } from "@/application/use-cases/onboarding/set-onboarding-focus.use-case";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export async function fetchOnboardingState(): Promise<OnboardingState> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
   const users = repos.users;
   const incomes = repos.incomes;
   const debts = repos.debts;
@@ -22,20 +24,20 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
   const goals = repos.goals;
 
   const counts = {
-    async hasIncome(userId: string): Promise<boolean> {
-      const list = await incomes.listForUser(userId, { onlyActive: true });
+    async hasIncome(_userId: string): Promise<boolean> {
+      const list = await incomes.listForProfile(profileId, { onlyActive: true });
       return list.length > 0;
     },
-    async hasDebt(userId: string): Promise<boolean> {
-      const list = await debts.listForUser(userId, { status: "active" });
+    async hasDebt(_userId: string): Promise<boolean> {
+      const list = await debts.listForProfile(profileId, { status: "active" });
       return list.length > 0;
     },
-    async hasAsset(userId: string): Promise<boolean> {
-      const list = await assets.findActiveByUser(userId);
+    async hasAsset(_userId: string): Promise<boolean> {
+      const list = await assets.findActiveByProfile(profileId);
       return list.length > 0;
     },
-    async hasGoal(userId: string): Promise<boolean> {
-      const list = await goals.listForUser(userId, { status: "active" });
+    async hasGoal(_userId: string): Promise<boolean> {
+      const list = await goals.listForProfile(profileId, { status: "active" });
       return list.length > 0;
     },
   };

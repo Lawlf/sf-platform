@@ -15,7 +15,7 @@ import { recordPayment } from "./record-payment.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -28,7 +28,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makePaymentsRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
-    listForUserInRange: vi.fn(),
+    listForProfileInRange: vi.fn(),
     create: vi.fn(),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -64,6 +64,7 @@ function makeDebt(opts: { userId?: string; currentBalance?: number } = {}): Pers
   return {
     id: "debt-1",
     userId: opts.userId ?? "user-1",
+    profileId: "profile-1",
     label: "Emprestimo",
     status: "active",
     originalPrincipal: principal,
@@ -102,6 +103,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount,
         principalPortion,
@@ -138,6 +140,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "missing",
         amount: makeMoney(100),
         principalPortion: makeMoney(80),
@@ -165,6 +168,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "intruder",
+        profileId: "profile-2",
         debtId: "debt-1",
         amount: makeMoney(100),
         principalPortion: makeMoney(80),
@@ -192,6 +196,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(1000), // 750 + 200 = 950, not 1000
         principalPortion: makeMoney(750),
@@ -224,6 +229,7 @@ describe("recordPayment", () => {
       { debts, payments, clock, lock: makeLock() },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(550),
         principalPortion: makeMoney(500),
@@ -275,6 +281,7 @@ describe("recordPayment", () => {
       },
       {
         userId: "user-1",
+        profileId: "profile-1",
         debtId: "debt-1",
         amount: makeMoney(950),
         principalPortion: makeMoney(750),

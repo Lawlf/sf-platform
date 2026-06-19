@@ -69,6 +69,7 @@ export type AssetMetadata =
 export interface AssetEntity {
   id: string;
   userId: string;
+  profileId: string;
   category: AssetCategory;
   label: string;
   currentValue: Money;

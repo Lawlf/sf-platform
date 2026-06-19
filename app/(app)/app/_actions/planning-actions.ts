@@ -10,19 +10,20 @@ import { setLiquidBucket } from "@/application/use-cases/planning/set-liquid-buc
 import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 export const setLiquidBucketAction = action({
   schema: z.string().nullable(),
   revalidates: ["timeline", "home"],
-  handler: async (assetId, { userId }) => {
+  handler: async (assetId, { userId, profileId }) => {
     const result = await setLiquidBucket(
       {
         assets: repos.assets,
         settings: repos.financialPlanningSettings,
       },
-      { userId, assetId },
+      { userId, profileId, assetId },
     );
     if (!result.ok) throw new ActionError(result.message);
   },
@@ -32,6 +33,7 @@ export const closeMonthAction = action({
   schema: z.void(),
   revalidates: ["home"],
   handler: async (_input, { userId }) => {
+    const profileId = await getActiveProfileId();
     const result = await closeMonth(
       {
         closings: repos.monthClosings,
@@ -44,7 +46,7 @@ export const closeMonthAction = action({
         rates: repos.exchangeRates,
         overrides: repos.userFxOverrides,
       },
-      { userId },
+      { userId, profileId },
     );
     if (!result.ok) throw new ActionError(result.message);
     const leakAbsCents = result.leakCents < 0n ? -result.leakCents : result.leakCents;
@@ -64,7 +66,7 @@ const settleRecurringCommitmentSchema = z.object({
 export const settleRecurringCommitmentAction = action({
   schema: settleRecurringCommitmentSchema,
   revalidates: ["timeline", "home"],
-  handler: async ({ debtId, monthIso, action: settleAction }, { userId }) => {
+  handler: async ({ debtId, monthIso, action: settleAction }, { userId, profileId }) => {
     unwrap(
       await settleRecurringCommitment(
         {
@@ -72,7 +74,7 @@ export const settleRecurringCommitmentAction = action({
           settlements: repos.recurringSettlements,
           clock,
         },
-        { userId, debtId, monthIso, action: settleAction },
+        { userId, profileId, debtId, monthIso, action: settleAction },
       ),
     );
   },
@@ -93,7 +95,7 @@ const settleIncomeSchema = z
 export const settleIncomeAction = action({
   schema: settleIncomeSchema,
   revalidates: ["timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     unwrap(
       await settleIncome(
         {
@@ -103,6 +105,7 @@ export const settleIncomeAction = action({
         },
         {
           userId,
+          profileId,
           incomeId: input.incomeId,
           monthIso: input.monthIso,
           action: input.status,
@@ -124,12 +127,13 @@ const updateGoalCascadeConfigSchema = z.object({
 export const updateGoalCascadeConfigAction = action({
   schema: updateGoalCascadeConfigSchema,
   revalidates: ["timeline", "home"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const user = await requireUser();
     const result = await updateGoalCascadeConfig(
       { goals: repos.goals },
       {
         userId,
+        profileId,
         goalId: input.goalId,
         isPro: user.isPro,
         mode: input.mode,
@@ -154,7 +158,7 @@ const createTransactionSchema = z.object({
 export const createTransactionAction = action({
   schema: createTransactionSchema,
   revalidates: ["report"],
-  handler: async (input, { userId }) => {
+  handler: async (input, { userId, profileId }) => {
     const description = input.description.trim();
     if (description.length === 0) {
       throw new ActionError("Descreva o gasto.");
@@ -189,6 +193,7 @@ export const createTransactionAction = action({
       },
       {
         userId,
+        profileId,
         direction: input.direction ?? "out",
         amount: Money.fromCents(amountCents),
         description,

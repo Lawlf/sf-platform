@@ -7,6 +7,7 @@ import { buildOfxPreview } from "@/application/use-cases/import/build-ofx-previe
 import { commitOfxImport } from "@/application/use-cases/import/commit-ofx-import.use-case";
 import { bankNameFromId } from "@/domain/services/ofx/bank-names";
 import { clock, repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -44,6 +45,7 @@ const MAX_OFX_BYTES = 5 * 1024 * 1024;
 
 export async function previewOfxAction(formData: FormData): Promise<PreviewResult> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const files = formData.getAll("file").filter((f): f is File => f instanceof File);
   if (files.length === 0) {
@@ -62,7 +64,7 @@ export async function previewOfxAction(formData: FormData): Promise<PreviewResul
       assets: repos.assets,
       transactions: repos.transactions,
     },
-    { userId: user.id, contents },
+    { userId: user.id, profileId, contents },
   );
 
   if (isErr(result)) {
@@ -130,6 +132,7 @@ export async function commitOfxAction(input: {
   reserveTotalCents?: number | null;
 }): Promise<CommitResult> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
 
   const totalLen = input.contents.reduce((acc, c) => acc + c.length, 0);
   if (totalLen > MAX_OFX_BYTES) {
@@ -146,6 +149,7 @@ export async function commitOfxAction(input: {
     },
     {
       userId: user.id,
+      profileId,
       contents: input.contents,
       acceptedIncomeFitIds: input.acceptedIncomeFitIds,
       acceptedDebtFitIds: input.acceptedDebtFitIds,

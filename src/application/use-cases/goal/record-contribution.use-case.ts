@@ -27,16 +27,16 @@ function firstOfMonth(date: Date): Date {
 
 export async function recordContribution(
   deps: RecordContributionDeps,
-  input: { userId: string; goalId: string; amountCents: bigint },
+  input: { userId: string; profileId: string; goalId: string; amountCents: bigint },
 ): Promise<RecordContributionResult> {
-  const { userId, goalId, amountCents } = input;
+  const { userId, profileId, goalId, amountCents } = input;
 
   if (amountCents <= 0n) {
     return { ok: false, message: "O valor a guardar deve ser maior que zero." };
   }
 
   const goal = await deps.goals.findById(goalId);
-  if (!goal || goal.userId !== userId) {
+  if (!goal || goal.profileId !== profileId) {
     return { ok: false, message: "Meta não encontrada." };
   }
 
@@ -61,6 +61,7 @@ export async function recordContribution(
     id: deps.newId(),
     goalId,
     userId,
+    profileId: goal.profileId,
     amountCents,
     createdAt: deps.clock.now(),
   });
@@ -76,7 +77,7 @@ async function applyToReserve(
   amountCents: bigint,
 ): Promise<void> {
   const linked = goal.linkedAssetId
-    ? await deps.assets.findById(goal.linkedAssetId, goal.userId)
+    ? await deps.assets.findById(goal.linkedAssetId, goal.profileId)
     : null;
 
   if (linked && linked.category === "cash") {
@@ -92,6 +93,7 @@ async function applyToReserve(
   const created: AssetEntity = {
     id: deps.newId(),
     userId: goal.userId,
+    profileId: goal.profileId,
     category: "cash",
     label: "Reserva de emergência",
     currentValue: Money.fromCents(amountCents),

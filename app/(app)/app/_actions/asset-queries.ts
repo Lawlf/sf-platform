@@ -6,6 +6,7 @@ import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { assetNetWorth } from "@/domain/services/patrimony.service";
 import { clock, repos } from "@/infrastructure/container";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -34,6 +35,7 @@ export interface NetWorthPayload {
 export async function fetchNetWorth(): Promise<NetWorthPayload | null> {
   const userId = await authedUserId();
   if (!userId) return null;
+  const profileId = await getActiveProfileId();
   const result = await getNetWorth(
     {
       assets: repos.assets,
@@ -43,7 +45,7 @@ export async function fetchNetWorth(): Promise<NetWorthPayload | null> {
       overrides: repos.userFxOverrides,
       clock,
     },
-    { userId },
+    { userId, profileId },
   );
   if (!isOk(result)) return null;
   const s = result.value;
@@ -75,11 +77,12 @@ export interface AssetWithNetWorthPayload {
 export async function fetchAssetsWithAllocations(): Promise<AssetWithNetWorthPayload[]> {
   const userId = await authedUserId();
   if (!userId) return [];
+  const profileId = await getActiveProfileId();
   const assetsRepo = repos.assets;
   const debtsRepo = repos.debts;
 
-  const assetsWithAllocs = await assetsRepo.findActiveWithAllocations(userId);
-  const activeDebts = await debtsRepo.listForUser(userId, { status: "active" });
+  const assetsWithAllocs = await assetsRepo.findActiveWithAllocations(profileId);
+  const activeDebts = await debtsRepo.listForProfile(profileId, { status: "active" });
   const debtsById = new Map<string, DebtEntity>(activeDebts.map((d) => [d.id, d]));
 
   return assetsWithAllocs

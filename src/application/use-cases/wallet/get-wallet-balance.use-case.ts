@@ -16,23 +16,24 @@ import { ok, type Result } from "@/shared/errors/result";
 
 export interface GetWalletBalanceDeps {
   assets: {
-    findActiveByUserAndCategory(userId: string, category: "cash"): Promise<AssetEntity[]>;
+    findActiveByProfileAndCategory(profileId: string, category: "cash"): Promise<AssetEntity[]>;
     createDefaultWallet(asset: AssetEntity): Promise<void>;
   };
-  incomes: { listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
-  debts: { listForUser(userId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
-  settlements: { listForUserMonth(userId: string, month: Date): Promise<RecurringSettlementEntity[]> };
-  incomeSettlements: { listForUserMonth(userId: string, month: Date): Promise<IncomeSettlementEntity[]> };
+  incomes: { listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> };
+  debts: { listForProfile(profileId: string, opts?: { status?: "active" }): Promise<DebtEntity[]> };
+  settlements: { listForProfileMonth(profileId: string, month: Date): Promise<RecurringSettlementEntity[]> };
+  incomeSettlements: { listForProfileMonth(profileId: string, month: Date): Promise<IncomeSettlementEntity[]> };
   debtPayments: {
-    listForUserInRange(userId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
+    listForProfileInRange(profileId: string, range: { from: Date; to: Date }): Promise<DebtPaymentEntity[]>;
   };
-  transactions: { listForUserInRange(userId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
-  debtAmountAdjustments: { listForUser(userId: string): Promise<DebtAmountAdjustmentEntity[]> };
+  transactions: { listForProfileInRange(profileId: string, from: Date, to: Date): Promise<TransactionEntity[]> };
+  debtAmountAdjustments: { listForProfile(profileId: string): Promise<DebtAmountAdjustmentEntity[]> };
   clock: { now(): Date };
 }
 
 export interface GetWalletBalanceInput {
   userId: string;
+  profileId: string;
 }
 
 export interface WalletBalanceResult {
@@ -75,15 +76,15 @@ export async function getWalletBalance(
   deps: GetWalletBalanceDeps,
   input: GetWalletBalanceInput,
 ): Promise<Result<WalletBalanceResult, NoWalletError>> {
-  const cash = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+  const cash = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
   // A Carteira é um ativo DEDICADO (label "Carteira"). Nunca caímos no primeiro
   // cash qualquer (ex.: Reserva), senão editar a Reserva mexeria no saldo da
   // Carteira. Se não existe, cria a Carteira vazia (idempotente) e usa ela.
   let walletAsset = cash.find((a) => a.label === "Carteira");
   if (!walletAsset) {
-    const fresh = buildDefaultWallet(input.userId, crypto.randomUUID(), deps.clock.now());
+    const fresh = buildDefaultWallet(input.userId, input.profileId, crypto.randomUUID(), deps.clock.now());
     await deps.assets.createDefaultWallet(fresh);
-    const after = await deps.assets.findActiveByUserAndCategory(input.userId, "cash");
+    const after = await deps.assets.findActiveByProfileAndCategory(input.profileId, "cash");
     walletAsset = after.find((a) => a.label === "Carteira") ?? fresh;
   }
 
@@ -92,17 +93,17 @@ export async function getWalletBalance(
   const window: EventWindow = { from: anchorAt, to: endOfMonthUtc(asOf) };
 
   const [incomes, debts, transactions, payments, adjustments] = await Promise.all([
-    deps.incomes.listForUser(input.userId, { onlyActive: true }),
-    deps.debts.listForUser(input.userId, { status: "active" }),
-    deps.transactions.listForUserInRange(input.userId, anchorAt, endOfMonthUtc(asOf)),
-    deps.debtPayments.listForUserInRange(input.userId, { from: anchorAt, to: endOfMonthUtc(asOf) }),
-    deps.debtAmountAdjustments.listForUser(input.userId),
+    deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
+    deps.debts.listForProfile(input.profileId, { status: "active" }),
+    deps.transactions.listForProfileInRange(input.profileId, anchorAt, endOfMonthUtc(asOf)),
+    deps.debtPayments.listForProfileInRange(input.profileId, { from: anchorAt, to: endOfMonthUtc(asOf) }),
+    deps.debtAmountAdjustments.listForProfile(input.profileId),
   ]);
 
   const months = monthsInWindow(window);
   const [settlementLists, incomeSettlementLists] = await Promise.all([
-    Promise.all(months.map((month) => deps.settlements.listForUserMonth(input.userId, month))),
-    Promise.all(months.map((month) => deps.incomeSettlements.listForUserMonth(input.userId, month))),
+    Promise.all(months.map((month) => deps.settlements.listForProfileMonth(input.profileId, month))),
+    Promise.all(months.map((month) => deps.incomeSettlements.listForProfileMonth(input.profileId, month))),
   ]);
   const settlements = settlementLists.flat();
   const incomeSettlements = incomeSettlementLists.flat();

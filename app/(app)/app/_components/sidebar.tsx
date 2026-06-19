@@ -1,33 +1,41 @@
 "use client";
 
 import {
+  Building2,
   Check,
   ChevronsUpDown,
   Coins,
+  FileText,
   HomeIcon,
   LineChart,
+  LogOut,
   PanelRightClose,
   PanelRightOpen,
+  Plus,
   PlusCircle,
   Search,
   Settings,
+  SlidersHorizontal,
   Target,
   TrendingUp,
-  UserPlus,
   UserRound,
   Wallet,
 } from "lucide-react";
 import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { useEffect, useRef, useState } from "react";
+import { usePathname, useRouter } from "next/navigation";
+import { useEffect, useRef, useState, useTransition } from "react";
 
+import { Button } from "@/app/components/ui/button";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
+import type { SerializedProfile } from "../_actions/profile-queries";
+import { switchProfileAction } from "../_actions/switch-profile.action";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
+import { CreateProfileSheet } from "./create-profile-sheet.client";
 import { UserAvatar } from "./user-avatar";
 
 interface NavItem {
@@ -42,28 +50,52 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const NAV_GROUPS: NavGroup[] = [
-  {
-    label: "",
-    items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
-  },
-  {
-    label: "Minhas finanças",
-    items: [
-      { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
-      { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
-      { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
-      { href: "/app/metas" as Route, label: "Metas", icon: Target },
-    ],
-  },
-  {
-    label: "Ferramentas",
-    items: [
-      { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", icon: LineChart },
-      { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle },
-    ],
-  },
-];
+const HOME_GROUP: NavGroup = {
+  label: "",
+  items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
+};
+
+const TOOLS_GROUP: NavGroup = {
+  label: "Ferramentas",
+  items: [
+    { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", icon: LineChart },
+    { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle },
+  ],
+};
+
+const PF_FINANCE_GROUP: NavGroup = {
+  label: "Minhas finanças",
+  items: [
+    { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
+    { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
+    { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
+    { href: "/app/metas" as Route, label: "Metas", icon: Target },
+  ],
+};
+
+const PJ_FINANCE_GROUP: NavGroup = {
+  label: "Minha empresa",
+  items: [
+    { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
+    { href: "/app/mei" as Route, label: "Meu salário", icon: Building2 },
+    { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
+    { href: "/app/metas" as Route, label: "Metas", icon: Target },
+  ],
+};
+
+const LAR_GROUP: NavGroup = {
+  label: "Lar",
+  items: [
+    { href: "/app/lar" as Route, label: "Visão geral", icon: HomeIcon, exact: true },
+    { href: "/app/lar/metas" as Route, label: "Metas da família", icon: Target },
+  ],
+};
+
+function buildNavGroups(activeIsPj: boolean, hasHousehold: boolean): NavGroup[] {
+  const groups: NavGroup[] = [HOME_GROUP, activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP, TOOLS_GROUP];
+  if (hasHousehold) groups.push(LAR_GROUP);
+  return groups;
+}
 
 function isActive(pathname: string, item: NavItem): boolean {
   if (item.exact) return pathname === item.href;
@@ -76,15 +108,21 @@ export interface SidebarProps {
   displayName: string;
   avatarUrl?: string | null | undefined;
   isPro: boolean;
+  profiles: SerializedProfile[];
+  activeProfileId: string;
+  hasHousehold: boolean;
 }
 
-export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
     pathname.startsWith("/app/conteudo/livros") ||
     pathname.startsWith("/app/conteudo/ritmo");
   const [collapsed, setCollapsed] = useState(false);
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+  const activeIsPj = activeProfile?.type === "PJ_MEI";
+  const navGroups = buildNavGroups(activeIsPj, hasHousehold);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -190,7 +228,7 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
           <ImmersiveSidebar activeTrilha={null} />
         ) : (
           <nav className="flex flex-col gap-5">
-            {NAV_GROUPS.map((group) => (
+            {navGroups.map((group) => (
             <div key={group.label || "main"} className="flex flex-col gap-1">
               {!collapsed && group.label ? (
                 <span className="px-3 pb-1 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
@@ -235,9 +273,17 @@ export function Sidebar({ displayName, avatarUrl, isPro }: SidebarProps) {
         avatarUrl={avatarUrl}
         isPro={isPro}
         collapsed={collapsed}
+        profiles={profiles}
+        activeProfileId={activeProfileId}
       />
     </aside>
   );
+}
+
+function profileSubtitle(profile: SerializedProfile): string {
+  if (profile.type === "PF") return "Pessoal";
+  if (profile.taxClassification === "mei") return "Empresa · MEI";
+  return "Empresa";
 }
 
 function AccountZone({
@@ -245,14 +291,31 @@ function AccountZone({
   avatarUrl,
   isPro,
   collapsed,
+  profiles,
+  activeProfileId,
 }: {
   displayName: string;
   avatarUrl?: string | null | undefined;
   isPro: boolean;
   collapsed: boolean;
+  profiles: SerializedProfile[];
+  activeProfileId: string;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
+
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+
+  function handleSwitch(profileId: string) {
+    startTransition(async () => {
+      await switchProfileAction({ profileId });
+      setOpen(false);
+      router.refresh();
+    });
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -312,7 +375,9 @@ function AccountZone({
             </span>
           ) : null}
         </span>
-        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Conta pessoal</span>
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+          {activeProfile ? profileSubtitle(activeProfile) : "Conta pessoal"}
+        </span>
       </span>
       <ChevronsUpDown
         size={15}
@@ -321,6 +386,58 @@ function AccountZone({
         className="flex-none text-[color:var(--text-muted)]"
       />
     </button>
+  );
+
+  const single = profiles.length <= 1;
+
+  const menuLinkClass =
+    "focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]";
+
+  const criarRow = (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => { setOpen(false); setSheetOpen(true); }}
+      className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-[color:var(--surface-2)]"
+    >
+      <span className="flex h-7 w-7 flex-none items-center justify-center rounded-md border border-dashed border-[color:var(--border-strong)] text-[color:var(--text-muted)]">
+        <Plus size={15} strokeWidth={2} aria-hidden />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col items-start">
+        <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">Criar perfil</span>
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Separe o dinheiro de uma empresa MEI do seu pessoal.</span>
+      </span>
+    </button>
+  );
+
+  const accountLinks = (
+    <>
+      <Link href={"/app/perfil" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <UserRound size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Perfil e conta
+      </Link>
+      <Link href={"/app/configuracoes" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <Settings size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Configurações
+      </Link>
+      <Link href={"/app/configuracoes/documentos" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <FileText size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Meus documentos
+      </Link>
+    </>
+  );
+
+  const sairForm = (
+    <form action="/api/auth/sign-out" method="post">
+      <button
+        type="submit"
+        role="menuitem"
+        className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--semantic-negative)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.10]"
+      >
+        <LogOut size={16} strokeWidth={1.75} aria-hidden />
+        Sair
+      </button>
+    </form>
   );
 
   return (
@@ -333,77 +450,104 @@ function AccountZone({
           role="menu"
           className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)]"
         >
-          <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Trocar conta
-          </p>
-          <button
-            type="button"
-            role="menuitemradio"
-            aria-checked="true"
-            className="focus-ring flex w-full items-center gap-2.5 rounded-lg bg-[color:var(--surface-2)] px-2.5 py-2 transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <UserAvatar
-              dataUrl={avatarUrl}
-              displayName={displayName}
-              className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
-            />
-            <span className="min-w-0 flex-1 truncate text-left text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-              {displayName}
-            </span>
-            <Check
-              size={15}
-              strokeWidth={2.25}
-              aria-hidden
-              className="flex-none text-[color:var(--color-brand-800)]"
-            />
-          </button>
+          {single ? (
+            <>
+              {accountLinks}
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              {criarRow}
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              {sairForm}
+            </>
+          ) : (
+            <>
+              <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
+                Perfil ativo
+              </p>
 
-          <div
-            aria-disabled="true"
-            className="mt-0.5 flex cursor-default items-center gap-2.5 rounded-lg px-2.5 py-2 opacity-55"
-          >
-            <UserPlus
-              size={16}
-              strokeWidth={1.75}
-              aria-hidden
-              className="flex-none text-[color:var(--text-muted)]"
-            />
-            <span className="flex-1 text-[0.8125rem] font-medium text-[color:var(--text-secondary)]">
-              Adicionar conta
-            </span>
-            <span className="rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
-              1/1
-            </span>
-          </div>
+              {profiles.map((profile) => {
+                const active = profile.id === activeProfileId;
+                const subtitle = profileSubtitle(profile);
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
+                    disabled={pending || active}
+                    onClick={() => handleSwitch(profile.id)}
+                    className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
+                  >
+                    <UserAvatar
+                      dataUrl={active ? avatarUrl : undefined}
+                      displayName={displayName}
+                      className={`flex h-7 w-7 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.625rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col items-start">
+                      <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+                        {profile.displayName ?? displayName}
+                      </span>
+                      <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                    </span>
+                    {active ? (
+                      <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
+                    ) : null}
+                  </button>
+                );
+              })}
 
-          <div className="my-1.5 h-px bg-[color:var(--border-soft)]" />
-          <Link
-            href={"/app/perfil" as Route}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <UserRound size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
-            Perfil e conta
-          </Link>
-          <Link
-            href={"/app/configuracoes" as Route}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <Settings size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
-            Configurações
-          </Link>
+              {criarRow}
+
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+
+              <Button asChild variant="glass" size="sm" className="w-full gap-2">
+                <Link href={"/app/configuracoes/perfis" as Route} role="menuitem" onClick={() => setOpen(false)}>
+                  <SlidersHorizontal size={15} strokeWidth={1.75} aria-hidden />
+                  Gerenciar perfis
+                </Link>
+              </Button>
+
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+
+              {accountLinks}
+
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+
+              {sairForm}
+            </>
+          )}
         </div>
       ) : null}
 
+      <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+
       {collapsed ? (
-        <SimpleTooltip label="Conta" side="right">
-          {collapsedCard}
-        </SimpleTooltip>
+        <div className="flex flex-col items-stretch gap-1.5">
+          <SimpleTooltip label="Conta" side="right">
+            {collapsedCard}
+          </SimpleTooltip>
+          <SimpleTooltip label="Configurações" side="right">
+            <Link
+              href={"/app/configuracoes" as Route}
+              aria-label="Configurações"
+              className="focus-ring flex w-full items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-2 text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
+            >
+              <Settings size={16} strokeWidth={1.75} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        </div>
       ) : (
-        expandedCard
+        <div className="flex items-center gap-1.5">
+          <div className="min-w-0 flex-1">{expandedCard}</div>
+          <SimpleTooltip label="Configurações" side="top">
+            <Link
+              href={"/app/configuracoes" as Route}
+              aria-label="Configurações"
+              className="focus-ring flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
+            >
+              <Settings size={16} strokeWidth={1.75} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        </div>
       )}
     </div>
   );

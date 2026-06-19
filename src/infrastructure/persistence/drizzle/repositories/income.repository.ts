@@ -6,13 +6,14 @@ import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.re
 import { Money, type Currency } from "@/domain/value-objects/money.vo";
 
 import { getDb } from "../client";
-import { ownedBy } from "../helpers";
+import { scopedToProfile } from "../helpers";
 import { incomes, type IncomeRow, type NewIncomeRow } from "../schema/incomes.schema";
 
 function rowToEntity(row: IncomeRow): IncomeEntity {
   return {
     id: row.id,
     userId: row.userId,
+    profileId: row.profileId,
     label: row.label,
     amount: Money.fromCents(row.amountCents, row.currency as Currency),
     frequency: row.frequency,
@@ -30,6 +31,7 @@ function entityToRow(entity: IncomeEntity): NewIncomeRow {
   return {
     id: entity.id,
     userId: entity.userId,
+    profileId: entity.profileId,
     label: entity.label,
     amountCents: entity.amount.toCents(),
     currency: entity.amount.currency,
@@ -54,11 +56,11 @@ export class IncomeRepository implements IncomeRepositoryPort {
     return rows[0] ? rowToEntity(rows[0]) : null;
   }
 
-  async listForUser(userId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> {
+  async listForProfile(profileId: string, opts?: { onlyActive?: boolean }): Promise<IncomeEntity[]> {
     const cond =
       opts?.onlyActive === true
-        ? and(eq(incomes.userId, userId), eq(incomes.isActive, true), isNull(incomes.deletedAt))
-        : and(ownedBy(incomes, userId));
+        ? and(eq(incomes.profileId, profileId), eq(incomes.isActive, true), isNull(incomes.deletedAt))
+        : and(scopedToProfile(incomes, profileId));
     const rows = await getDb().select().from(incomes).where(cond).orderBy(desc(incomes.createdAt));
     return rows.map(rowToEntity);
   }

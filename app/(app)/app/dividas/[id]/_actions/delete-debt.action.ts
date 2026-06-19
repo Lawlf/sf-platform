@@ -12,7 +12,7 @@ import { purgeEntityBestEffort } from "../../../_actions/_purge-entity";
 export const deleteDebtAction = action({
   schema: z.string(),
   revalidates: ["debts", "timeline", "notifications", "home", "assets"],
-  handler: async (debtId, { userId }) => {
+  handler: async (debtId, { userId, profileId }) => {
     unwrap(
       await deleteDebt(
         {
@@ -21,7 +21,7 @@ export const deleteDebtAction = action({
           allocations: repos.assetDebtAllocations,
           clock,
         },
-        { userId, debtId },
+        { userId, profileId, debtId },
       ),
     );
     await purgeEntityBestEffort(userId, "debt", debtId);

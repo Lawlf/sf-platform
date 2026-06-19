@@ -14,6 +14,7 @@ function asset(partial: Partial<AssetEntity> & Pick<AssetEntity, "metadata">): A
   return {
     id: "a1",
     userId: "u1",
+    profileId: "profile-1",
     category: "cash",
     label: "Reserva",
     currentValue: Money.fromCents(0n),

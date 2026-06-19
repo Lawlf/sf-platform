@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../../../_components/page-shell";
@@ -23,7 +24,7 @@ interface PageProps {
 
 export default async function AccountMovementsPage({ params }: PageProps) {
   const { id } = await params;
-  const user = await requireUser();
+  const [user, profileId] = await Promise.all([requireUser(), getActiveProfileId()]);
 
   const detail = await getAssetDetail(
     {
@@ -31,7 +32,7 @@ export default async function AccountMovementsPage({ params }: PageProps) {
       allocations: repos.assetDebtAllocations,
       debts: repos.debts,
     },
-    { userId: user.id, assetId: id },
+    { profileId, assetId: id },
   );
   if (!isOk(detail)) notFound();
 

@@ -11,6 +11,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
 export const debtKind = pgEnum("debt_kind", [
@@ -31,6 +32,7 @@ export const debts = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
     label: text("label").notNull(),
     kind: debtKind("kind").notNull(),
     status: debtStatus("status").notNull().default("active"),
@@ -84,6 +86,7 @@ export const debts = pgTable(
     userIdx: index("debts_user_id_idx").on(table.userId),
     userStatusIdx: index("debts_user_id_status_idx").on(table.userId, table.status),
     userDeletedIdx: index("debts_user_deleted_idx").on(table.userId, table.deletedAt),
+    profileIdx: index("debts_profile_id_idx").on(table.profileId),
   }),
 );
 

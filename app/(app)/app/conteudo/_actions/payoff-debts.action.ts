@@ -2,6 +2,7 @@
 
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
@@ -15,9 +16,10 @@ export interface PayoffDebt {
  *  Espelha o carregamento da página /app/simular/quitacao. */
 export async function fetchPayoffDebts(): Promise<PayoffDebt[]> {
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
   const listed = await listDebts(
     { debts: repos.debts },
-    { userId: user.id, status: "active" },
+    { profileId, status: "active" },
   );
   if (!isOk(listed)) return [];
   return listed.value.map((d) => ({

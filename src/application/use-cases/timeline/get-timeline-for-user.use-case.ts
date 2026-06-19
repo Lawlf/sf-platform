@@ -28,6 +28,7 @@ export type TimelineShow = "all" | "highlights" | "with-payments";
 
 export interface GetTimelineForUserInput {
   userId: string;
+  profileId: string;
   /**
    * Mês mais recente INCLUÍDO nessa página (cursor descendente). A página
    * cobre `limit` meses terminando em `before` (inclusivo).
@@ -57,12 +58,12 @@ export interface TimelinePageResult {
 
 export interface GetTimelineForUserDeps extends ConvertEntityDeps {
   incomes: IncomeRepositoryPort;
-  debts: DebtRepositoryPort;
-  debtPayments: DebtPaymentRepositoryPort;
+  debts: Pick<DebtRepositoryPort, "listForProfile">;
+  debtPayments: Pick<DebtPaymentRepositoryPort, "listForProfileInRange">;
   assets: AssetRepositoryPort;
   // Opcional para preservar compat com testes legados que mockam só os 4 acima.
   // Quando ausente, a timeline é calculada sem ajustes históricos (valor base).
-  debtAmountAdjustments?: DebtAmountAdjustmentRepositoryPort;
+  debtAmountAdjustments?: Pick<DebtAmountAdjustmentRepositoryPort, "listForProfile">;
 }
 
 function findOldestUserDate(
@@ -132,14 +133,14 @@ export async function getTimelineForUser(
   // Busca um mês a mais (antes de `from`) para contexto de stories (diff vs prev).
   const fetchFrom = from.previous();
   const [incomes, debts, payments, assets, adjustments] = await Promise.all([
-    deps.incomes.listForUser(input.userId),
-    deps.debts.listForUser(input.userId, { status: "all" }),
-    deps.debtPayments.listForUserInRange(input.userId, {
+    deps.incomes.listForProfile(input.profileId),
+    deps.debts.listForProfile(input.profileId, { status: "all" }),
+    deps.debtPayments.listForProfileInRange(input.profileId, {
       from: fetchFrom.firstDay(),
       to: to.lastDay(),
     }),
-    deps.assets.findActiveByUser(input.userId),
-    deps.debtAmountAdjustments ? deps.debtAmountAdjustments.listForUser(input.userId) : Promise.resolve([]),
+    deps.assets.findActiveByProfile(input.profileId),
+    deps.debtAmountAdjustments ? deps.debtAmountAdjustments.listForProfile(input.profileId) : Promise.resolve([]),
   ]);
 
   const convertedIncomes: IncomeEntity[] = [];

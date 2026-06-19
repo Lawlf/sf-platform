@@ -22,6 +22,7 @@ function makeAsset(currentValueCents: bigint): AssetEntity {
   return {
     id: "asset-1",
     userId: "u1",
+    profileId: "profile-1",
     category: "vehicle",
     label: "Carro",
     currentValue: Money.fromCents(currentValueCents),
@@ -49,6 +50,7 @@ function makeIncome(amountReais: number): IncomeEntity {
   return {
     id: "income-1",
     userId: "u1",
+    profileId: "profile-1",
     label: "Salario",
     amount: Money.fromCents(BigInt(Math.round(amountReais * 100))),
     frequency: "monthly",
@@ -65,6 +67,7 @@ function makeIncome(amountReais: number): IncomeEntity {
 function makeClosing(monthIso: string): MonthClosingEntity {
   return {
     userId: "u1",
+    profileId: "profile-1",
     month: MonthYear.fromIso(monthIso).firstDay(),
     baselineNetWorthCents: 0n,
     endNetWorthCents: 0n,
@@ -84,7 +87,7 @@ function makeDeps(args: {
 
   const closings: MonthClosingRepositoryPort = {
     upsert,
-    listForUser: async () => closingsStore,
+    listForProfile: async () => closingsStore,
     latest: async () => {
       if (closingsStore.length === 0) return null;
       return [...closingsStore].sort((a, b) => b.month.getTime() - a.month.getTime())[0]!;
@@ -92,19 +95,19 @@ function makeDeps(args: {
   };
 
   const assets = {
-    findActiveByUser: async () => args.assets ?? [],
+    findActiveByProfile: async () => args.assets ?? [],
   } as unknown as AssetRepositoryPort;
   const allocations = {
     findByAsset: async () => [],
   } as unknown as AssetDebtAllocationRepositoryPort;
   const debts = {
-    listForUser: async () => [],
+    listForProfile: async () => [],
   } as unknown as DebtRepositoryPort;
   const incomes = {
-    listForUser: async () => args.incomes ?? [],
+    listForProfile: async () => args.incomes ?? [],
   } as unknown as IncomeRepositoryPort;
   const payments = {
-    listForUserInRange: async () => [],
+    listForProfileInRange: async () => [],
   } as unknown as DebtPaymentRepositoryPort;
   const rates = {
     findLatest: async () => null,
@@ -127,12 +130,13 @@ describe("closeMonth", () => {
       incomes: [makeIncome(1000)],
     });
 
-    const r = await closeMonth(deps, { userId: "u1" });
+    const r = await closeMonth(deps, { userId: "u1", profileId: "profile-1" });
 
     expect(r).toEqual({ ok: true, leakCents: 100_000n, status: "leaked" });
     expect(upsert).toHaveBeenCalledTimes(1);
     expect(upsert).toHaveBeenCalledWith({
       userId: "u1",
+      profileId: "profile-1",
       month: MonthYear.fromIso("2026-05").firstDay(),
       baselineNetWorthCents: 80_000n,
       endNetWorthCents: 80_000n,
@@ -148,7 +152,7 @@ describe("closeMonth", () => {
   it("rejects when there is no open month", async () => {
     const { deps, upsert } = makeDeps({ closings: [makeClosing("2026-05")] });
 
-    const r = await closeMonth(deps, { userId: "u1" });
+    const r = await closeMonth(deps, { userId: "u1", profileId: "profile-1" });
 
     expect(r.ok).toBe(false);
     expect(upsert).not.toHaveBeenCalled();

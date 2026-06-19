@@ -145,7 +145,7 @@ async function requireOwnedDebt(debtId: string, userId: string): Promise<DebtEnt
 
 export const addPeriodAction = action({
   schema: addPeriodSchema,
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     if (v.endMonth !== null && compareMonthKey(v.endMonth, v.startMonth) < 0) {
       throw new ActionError("Mês final deve ser igual ou depois do inicial.");
     }
@@ -160,6 +160,7 @@ export const addPeriodAction = action({
       kind: "period",
       debtId: v.debtId,
       userId,
+      profileId,
       startMonth: v.startMonth,
       endMonth: v.endMonth,
       amount: Money.fromCents(amountCents),
@@ -179,7 +180,7 @@ export const addPeriodAction = action({
 
 export const addOverrideAction = action({
   schema: addOverrideSchema,
-  handler: async (v, { userId }) => {
+  handler: async (v, { userId, profileId }) => {
     if (!isValidMonthKey(v.month)) {
       throw new ActionError("Mês inválido.");
     }
@@ -194,6 +195,7 @@ export const addOverrideAction = action({
       kind: "override",
       debtId: v.debtId,
       userId,
+      profileId,
       month: v.month,
       amount: Money.fromCents(amountCents),
       note: v.note ?? null,

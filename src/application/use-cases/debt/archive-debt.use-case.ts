@@ -19,17 +19,16 @@ export async function archiveDebt(
   deps: ArchiveDebtDeps,
   input: {
     userId: string;
+    profileId: string;
     debtId: string;
     reason: "paid_off" | "written_off";
-    // Anotação livre opcional (usada ao tirar a dívida do mês). Persistida em
-    // `notes`. Não entra em nenhum cálculo.
     note?: string;
   },
 ): Promise<Result<void, DebtNotFound | Forbidden>> {
   return deps.lock.run(`debt:${input.debtId}`, 5_000, async () => {
     const existing = await deps.debts.findById(input.debtId);
     if (!existing) return err(new DebtNotFound("Dívida não encontrada."));
-    if (existing.userId !== input.userId) return err(new Forbidden("Acesso negado."));
+    if (existing.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
     if (existing.status !== "active") {
       // Idempotent: already archived. Avoid creating a duplicate closing payment

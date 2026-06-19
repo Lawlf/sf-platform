@@ -16,7 +16,7 @@ import { archiveDebt } from "./archive-debt.use-case";
 function makeDebtRepo(): DebtRepositoryPort {
   return {
     findById: vi.fn(),
-    listForUser: vi.fn(),
+    listForProfile: vi.fn(),
     create: vi.fn(),
     update: vi.fn(),
     setStatus: vi.fn(),
@@ -29,7 +29,7 @@ function makeDebtRepo(): DebtRepositoryPort {
 function makePaymentRepo(): DebtPaymentRepositoryPort {
   return {
     listForDebt: vi.fn(),
-    listForUserInRange: vi.fn(),
+    listForProfileInRange: vi.fn(),
     create: vi.fn(async (entity) => entity),
     delete: vi.fn(),
     deleteByDebtId: vi.fn(),
@@ -57,6 +57,7 @@ function makeDebt(userId = "user-1", opts?: { currentBalanceBRL?: number }): Per
   return {
     id: "debt-1",
     userId,
+    profileId: "profile-1",
     label: "Test",
     status: "active",
     originalPrincipal: originalR.value,
@@ -89,7 +90,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "paid_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -126,7 +127,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "paid_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -146,7 +147,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "written_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "written_off" },
     );
 
     expect(result._tag).toBe("ok");
@@ -166,7 +167,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "debt-1", reason: "written_off", note: "  parei em 03/2023  " },
+      { userId: "user-1", profileId: "profile-1", debtId: "debt-1", reason: "written_off", note: "  parei em 03/2023  " },
     );
 
     expect(result._tag).toBe("ok");
@@ -186,7 +187,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "user-1", debtId: "missing", reason: "written_off" },
+      { userId: "user-1", profileId: "profile-1", debtId: "missing", reason: "written_off" },
     );
 
     expect(isErr(result)).toBe(true);
@@ -205,7 +206,7 @@ describe("archiveDebt", () => {
 
     const result = await archiveDebt(
       { debts, payments, clock, lock: makeLock() },
-      { userId: "intruder", debtId: "debt-1", reason: "paid_off" },
+      { userId: "intruder", profileId: "profile-2", debtId: "debt-1", reason: "paid_off" },
     );
 
     expect(isErr(result)).toBe(true);

@@ -9,6 +9,7 @@ function txn(p: Partial<TransactionEntity>): TransactionEntity {
   return {
     id: p.id ?? "t",
     userId: "u1",
+    profileId: "profile-1",
     direction: p.direction ?? "out",
     amount: p.amount ?? Money.fromCents(1000n),
     description: p.description ?? "X",
@@ -24,7 +25,7 @@ function txn(p: Partial<TransactionEntity>): TransactionEntity {
 }
 
 function makeDeps(txns: TransactionEntity[]) {
-  return { transactions: { listForUserInRange: async () => txns } };
+  return { transactions: { listForProfileInRange: async () => txns } };
 }
 
 describe("getMonthlyConsumo", () => {
@@ -38,7 +39,7 @@ describe("getMonthlyConsumo", () => {
       txn({ description: "Compra manual", source: "manual", amount: Money.fromCents(9999n) }),
     ];
     const r = await getMonthlyConsumo(makeDeps(txns), {
-      userId: "u1",
+      profileId: "profile-1",
       from: new Date(Date.UTC(2026, 5, 1)),
       to: new Date(Date.UTC(2026, 5, 30, 23, 59, 59, 999)),
     });
@@ -55,7 +56,7 @@ describe("getMonthlyConsumo", () => {
       txn({ description: "Resgate de empréstimo", amount: Money.fromCents(131915n), category: "internal_transfer" }),
     ];
     const r = await getMonthlyConsumo(makeDeps(txns), {
-      userId: "u1",
+      profileId: "profile-1",
       from: new Date(Date.UTC(2026, 5, 1)),
       to: new Date(Date.UTC(2026, 5, 30, 23, 59, 59, 999)),
     });
@@ -64,7 +65,7 @@ describe("getMonthlyConsumo", () => {
 
   it("returns all zeros when there is no imported consumo", async () => {
     const r = await getMonthlyConsumo(makeDeps([]), {
-      userId: "u1",
+      profileId: "profile-1",
       from: new Date(Date.UTC(2026, 5, 1)),
       to: new Date(Date.UTC(2026, 5, 30)),
     });
