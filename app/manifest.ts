@@ -2,14 +2,17 @@ import type { MetadataRoute } from "next";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
+    id: "/app",
     name: "Sabor Financeiro",
     short_name: "Sabor",
     description: "O sabor de uma vida financeira saudável.",
     start_url: "/app",
+    scope: "/",
     display: "standalone",
     background_color: "#fdf8f3",
     theme_color: "#f28e25",
     lang: "pt-BR",
+    dir: "ltr",
     orientation: "portrait",
     categories: ["finance", "productivity", "education"],
     shortcuts: [
