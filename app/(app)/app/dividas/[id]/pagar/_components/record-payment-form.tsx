@@ -31,7 +31,8 @@ const formSchema = z
     isExtra: z.boolean(),
   })
   .refine(({ principalCents, interestCents }) => principalCents + interestCents > 0n, {
-    message: "Pagamento deve ser maior que zero.",
+    message: "Informe um valor maior que zero.",
+    path: ["principalCents"],
   });
 
 type FormValues = z.infer<typeof formSchema>;

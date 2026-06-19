@@ -53,7 +53,7 @@ export function ArchiveDebtButton({ debtId, label, recurring = false, valueLabel
     });
   }
 
-  const buttonLabel = recurring ? "Encerrei esse compromisso" : "Já quitei essa dívida";
+  const buttonLabel = recurring ? "Encerrei esse compromisso" : "Marcar como quitada";
   const dialogTitle = recurring ? "Encerrar esse compromisso?" : "Quitou essa dívida?";
   const named = label ? `"${label}"` : "isso";
   const dialogDescription = recurring
@@ -62,13 +62,13 @@ export function ArchiveDebtButton({ debtId, label, recurring = false, valueLabel
       } volta a ficar livre. Se voltar a pagar, é só reativar.`
     : `${
         label ? `Vamos marcar "${label}" como quitada` : "Vamos marcar como quitada"
-      } e tirar ela da sua lista de dívidas. Se foi engano, dá pra reativar depois.`;
+      } e tirar da sua lista. Não registra valor nem comprovante; pra isso, use "Registrar pagamento". Se foi engano, dá pra reativar.`;
   const confirmLabel = recurring ? "Sim, encerrei" : "Sim, quitei";
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="positive" size="sm" className="w-full sm:w-auto">
+        <Button variant="outline" size="sm" className="w-full sm:w-auto">
           {recurring ? (
             <CircleSlash size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
           ) : (

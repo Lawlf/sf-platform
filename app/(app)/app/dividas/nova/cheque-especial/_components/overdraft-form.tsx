@@ -136,7 +136,7 @@ export function OverdraftForm({ defaultCurrency = "BRL" }: { defaultCurrency?: C
       <WizardShell
         currentStep={1}
         totalSteps={3}
-        title="Quanto vocÃª deve"
+        title="Quanto você deve"
         description="Quanto está usando do cheque especial agora."
         onBack={() => router.push("/app/dividas/nova" as Route)}
         primary={{

@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
 
@@ -17,9 +18,10 @@ interface PageProps {
 export default async function PagarPage({ params }: PageProps) {
   const { id } = await params;
   const user = await requireUser();
+  const profileId = await getActiveProfileId();
   const r = await getDebtDetail(
     { debts: repos.debts, payments: repos.debtPayments },
-    { userId: user.id, debtId: id },
+    { userId: user.id, profileId, debtId: id },
   );
   if (isErr(r)) notFound();
   const { debt, amortization, payments } = r.value;
@@ -49,7 +51,13 @@ export default async function PagarPage({ params }: PageProps) {
                 principalCents: next.principal.toCents().toString(),
                 interestCents: next.interest.toCents().toString(),
               }
-            : null
+            : debt.currentBalance.isPositive()
+              ? {
+                  amountCents: debt.currentBalance.toCents().toString(),
+                  principalCents: debt.currentBalance.toCents().toString(),
+                  interestCents: "0",
+                }
+              : null
         }
         currentBalanceFormatted={debt.currentBalance.format()}
         isPro={user.isPro}
