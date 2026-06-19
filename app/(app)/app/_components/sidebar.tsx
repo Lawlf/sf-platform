@@ -2,7 +2,6 @@
 
 import {
   Building2,
-  Check,
   ChevronsUpDown,
   Coins,
   FileText,
@@ -488,9 +487,6 @@ function AccountZone({
                       </span>
                       <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
                     </span>
-                    {active ? (
-                      <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
-                    ) : null}
                   </button>
                 );
               })}
@@ -536,18 +532,7 @@ function AccountZone({
           </SimpleTooltip>
         </div>
       ) : (
-        <div className="flex items-center gap-1.5">
-          <div className="min-w-0 flex-1">{expandedCard}</div>
-          <SimpleTooltip label="Configurações" side="top">
-            <Link
-              href={"/app/configuracoes" as Route}
-              aria-label="Configurações"
-              className="focus-ring flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
-            >
-              <Settings size={16} strokeWidth={1.75} aria-hidden />
-            </Link>
-          </SimpleTooltip>
-        </div>
+        expandedCard
       )}
     </div>
   );
