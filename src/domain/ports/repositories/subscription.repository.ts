@@ -7,6 +7,11 @@ export interface SubscriptionRepositoryPort {
     providerSubscriptionId: string,
   ): Promise<Subscription | null>;
   findActiveByUserId(userId: string): Promise<Subscription | null>;
+  /**
+   * Assinaturas de um provider ainda em estado vivo (não canceladas/expiradas).
+   * Usado pelo cron de reconciliação do Google Play pra revalidar cada uma na API.
+   */
+  findLiveByProvider(provider: PaymentProvider): Promise<Subscription[]>;
   findAllByUserId(userId: string): Promise<Subscription[]>;
   countByPlanId(planId: string): Promise<number>;
   /**

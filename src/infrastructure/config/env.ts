@@ -55,6 +55,14 @@ const envSchema = z.object({
   // o PWABuilder gera no empacotamento; preencher depois do primeiro build.
   ANDROID_PACKAGE_NAME: emptyToUndefined,
   ANDROID_CERT_SHA256: emptyToUndefined,
+
+  // Google Play Billing (assinatura in-app no Android). Service account com acesso
+  // à Google Play Developer API; usada pra verificar purchaseToken e reconciliar
+  // assinaturas. SA_PRIVATE_KEY é o campo `private_key` do JSON da service account
+  // (PEM PKCS#8); aceita \n literal (normalizado na leitura). packageName reusa
+  // ANDROID_PACKAGE_NAME.
+  GOOGLE_PLAY_SA_EMAIL: emptyToUndefined,
+  GOOGLE_PLAY_SA_PRIVATE_KEY: emptyToUndefined,
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -147,6 +155,21 @@ export function requireAdminTotpKey(env: Env = loadEnv()): Buffer {
     throw new Error("ADMIN_TOTP_ENC_KEY must be canonical base64 decoding to exactly 32 bytes");
   }
   return key;
+}
+
+export interface GooglePlayConfig {
+  packageName: string;
+  serviceAccountEmail: string;
+  privateKey: string;
+}
+
+export function requireGooglePlayConfig(env: Env = loadEnv()): GooglePlayConfig {
+  const rawKey = required("GOOGLE_PLAY_SA_PRIVATE_KEY", env.GOOGLE_PLAY_SA_PRIVATE_KEY);
+  return {
+    packageName: required("ANDROID_PACKAGE_NAME", env.ANDROID_PACKAGE_NAME),
+    serviceAccountEmail: required("GOOGLE_PLAY_SA_EMAIL", env.GOOGLE_PLAY_SA_EMAIL),
+    privateKey: rawKey.replace(/\\n/g, "\n"),
+  };
 }
 
 export interface R2Config {

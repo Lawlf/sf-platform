@@ -9,11 +9,21 @@ import {
   Loader2,
   Sparkles,
 } from "lucide-react";
-import { useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useEffect, useMemo, useState, useTransition } from "react";
 
 import type { Plan } from "@/domain/entities/plan.entity";
 
 import { startCheckoutAction } from "../_actions/start-checkout.action";
+import { verifyGooglePlayPurchaseAction } from "../_actions/verify-google-play.action";
+import {
+  isAndroidTwa,
+  isPlayBillingAvailable,
+  PLAY_SKU_BY_INTERVAL,
+  purchaseSubscriptionViaPlay,
+} from "../_lib/play-billing";
+
+type Platform = "web" | "play" | "twa";
 
 interface Props {
   plans: Plan[];
@@ -85,16 +95,21 @@ export function PlanPicker({ plans }: Props) {
   const [selectedSlug, setSelectedSlug] = useState(defaultSlug);
   const [isPending, startTransition] = useTransition();
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
+  const [platform, setPlatform] = useState<Platform>("web");
+  const router = useRouter();
+
+  useEffect(() => {
+    if (isPlayBillingAvailable()) setPlatform("play");
+    else if (isAndroidTwa()) setPlatform("twa");
+  }, []);
 
   const selected = ordered.find((p) => p.slug === selectedSlug) ?? ordered[0];
   if (!selected) return null;
 
-  function handleCheckout() {
-    if (!selected) return;
-    setErrorMsg(null);
+  function handleStripeCheckout(slug: string) {
     startTransition(async () => {
       try {
-        const result = await startCheckoutAction(selected.slug);
+        const result = await startCheckoutAction(slug);
         if (result && !result.ok) {
           setErrorMsg(result.message);
         }
@@ -105,6 +120,36 @@ export function PlanPicker({ plans }: Props) {
         }
       }
     });
+  }
+
+  function handlePlayPurchase(sku: string) {
+    startTransition(async () => {
+      const result = await purchaseSubscriptionViaPlay(sku, async (purchaseToken) => {
+        const res = await verifyGooglePlayPurchaseAction({ sku, purchaseToken });
+        return res.ok && res.data.activated;
+      });
+      if (result.ok) {
+        router.refresh();
+        return;
+      }
+      if ("canceled" in result) return;
+      setErrorMsg(result.message);
+    });
+  }
+
+  function handleCheckout() {
+    if (!selected) return;
+    setErrorMsg(null);
+    if (platform === "play") {
+      const sku = PLAY_SKU_BY_INTERVAL[selected.billingInterval];
+      if (!sku) {
+        setErrorMsg("O plano vitalício não está disponível pela compra no app.");
+        return;
+      }
+      handlePlayPurchase(sku);
+      return;
+    }
+    handleStripeCheckout(selected.slug);
   }
 
   const meta = metaFor(selected, monthly);
@@ -239,31 +284,37 @@ export function PlanPicker({ plans }: Props) {
           ))}
         </ul>
 
-        <button
-          type="button"
-          onClick={handleCheckout}
-          disabled={isPending}
-          className={
-            "sf-lift focus-ring relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[0.875rem] font-bold transition-colors disabled:cursor-wait disabled:opacity-80 " +
-            (isHero
-              ? "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_14px_32px_-12px_rgba(239,122,26,0.55)]"
-              : meta.tone === "popular"
-                ? "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_12px_28px_-12px_rgba(239,122,26,0.5)]"
-                : "border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-primary)] hover:bg-[color:var(--surface-3)]")
-          }
-        >
-          {isPending ? (
-            <>
-              <Loader2 size={16} strokeWidth={2.5} className="animate-spin" aria-hidden />
-              Abrindo checkout...
-            </>
-          ) : (
-            <>
-              Assinar {meta.tabLabel}
-              <ArrowRight size={15} strokeWidth={2.5} aria-hidden />
-            </>
-          )}
-        </button>
+        {platform === "twa" ? (
+          <p className="relative mt-5 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3.5 text-center text-[0.8125rem] text-[color:var(--text-secondary)]">
+            Assinatura indisponível neste app no momento.
+          </p>
+        ) : (
+          <button
+            type="button"
+            onClick={handleCheckout}
+            disabled={isPending}
+            className={
+              "sf-lift focus-ring relative mt-5 inline-flex w-full items-center justify-center gap-2 rounded-2xl px-5 py-3.5 text-[0.875rem] font-bold transition-colors disabled:cursor-wait disabled:opacity-80 " +
+              (isHero
+                ? "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_14px_32px_-12px_rgba(239,122,26,0.55)]"
+                : meta.tone === "popular"
+                  ? "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_12px_28px_-12px_rgba(239,122,26,0.5)]"
+                  : "border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-primary)] hover:bg-[color:var(--surface-3)]")
+            }
+          >
+            {isPending ? (
+              <>
+                <Loader2 size={16} strokeWidth={2.5} className="animate-spin" aria-hidden />
+                {platform === "play" ? "Abrindo compra..." : "Abrindo checkout..."}
+              </>
+            ) : (
+              <>
+                {platform === "play" ? "Assinar pelo Google Play" : `Assinar ${meta.tabLabel}`}
+                <ArrowRight size={15} strokeWidth={2.5} aria-hidden />
+              </>
+            )}
+          </button>
+        )}
 
         {errorMsg && (
           <div className="relative mt-3 flex items-start gap-2 rounded-xl border border-red-500/30 bg-red-500/10 px-3 py-2.5 text-[0.78125rem] text-red-700 dark:text-red-300">
@@ -274,7 +325,9 @@ export function PlanPicker({ plans }: Props) {
       </div>
 
       <p className="mt-4 text-center text-[0.6875rem] leading-relaxed text-[color:var(--text-muted)]">
-        Pagamento seguro. Cartão de crédito ou débito, Apple Pay e Google Pay.
+        {platform === "play"
+          ? "Pagamento processado com segurança pelo Google Play."
+          : "Pagamento seguro. Cartão de crédito ou débito, Apple Pay e Google Pay."}
       </p>
     </section>
   );

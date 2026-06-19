@@ -512,6 +512,13 @@
       "when": 1781836162056,
       "tag": "0072_next_smasher",
       "breakpoints": true
+    },
+    {
+      "idx": 73,
+      "version": "7",
+      "when": 1781900715311,
+      "tag": "0073_first_spiral",
+      "breakpoints": true
     }
   ]
 }
