@@ -14,6 +14,7 @@ function rowToEntity(row: ProfileRow): ProfileEntity {
     linkedProfileId: row.linkedProfileId ?? null,
     displayName: row.displayName ?? null,
     isPrimary: row.isPrimary,
+    taxClassification: row.taxClassification ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -58,12 +59,22 @@ export class ProfileRepository implements ProfileRepositoryPort {
     return rowToEntity(row);
   }
 
+  async findByLinkedProfileId(linkedProfileId: string): Promise<ProfileEntity | null> {
+    const rows = await getDb()
+      .select()
+      .from(profiles)
+      .where(eq(profiles.linkedProfileId, linkedProfileId))
+      .limit(1);
+    return rows[0] ? rowToEntity(rows[0]) : null;
+  }
+
   async create(input: {
     userId: string;
     type: ProfileEntity["type"];
     linkedProfileId: string | null;
     displayName: string | null;
     isPrimary: boolean;
+    taxClassification: ProfileEntity["taxClassification"];
     now: Date;
   }): Promise<ProfileEntity> {
     const rows = await getDb()
@@ -74,6 +85,7 @@ export class ProfileRepository implements ProfileRepositoryPort {
         linkedProfileId: input.linkedProfileId,
         displayName: input.displayName,
         isPrimary: input.isPrimary,
+        taxClassification: input.taxClassification ?? undefined,
         createdAt: input.now,
         updatedAt: input.now,
       })
@@ -83,7 +95,18 @@ export class ProfileRepository implements ProfileRepositoryPort {
     return rowToEntity(row);
   }
 
-  async setLinkedProfile(profileId: string, linkedProfileId: string): Promise<void> {
+  async rename(profileId: string, displayName: string): Promise<void> {
+    await getDb()
+      .update(profiles)
+      .set({ displayName, updatedAt: sql`now()` })
+      .where(eq(profiles.id, profileId));
+  }
+
+  async delete(profileId: string): Promise<void> {
+    await getDb().delete(profiles).where(eq(profiles.id, profileId));
+  }
+
+  async setLinkedProfile(profileId: string, linkedProfileId: string | null): Promise<void> {
     await getDb()
       .update(profiles)
       .set({ linkedProfileId, updatedAt: sql`now()` })

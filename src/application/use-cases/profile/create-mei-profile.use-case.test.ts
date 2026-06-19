@@ -22,6 +22,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     linkedProfileId: null,
     displayName: null,
     isPrimary: true,
+    taxClassification: null,
     createdAt: NOW,
     updatedAt: NOW,
     ...over,
@@ -30,10 +31,10 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
 
 function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort & {
   _profiles: ProfileEntity[];
-  _linkedUpdates: Array<{ profileId: string; linkedProfileId: string }>;
+  _linkedUpdates: Array<{ profileId: string; linkedProfileId: string | null }>;
 } {
   const store: ProfileEntity[] = [...initial];
-  const linkedUpdates: Array<{ profileId: string; linkedProfileId: string }> = [];
+  const linkedUpdates: Array<{ profileId: string; linkedProfileId: string | null }> = [];
 
   return {
     _profiles: store,
@@ -41,6 +42,7 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
     listForUser: vi.fn(async (_userId: string) => [...store]),
     findById: vi.fn(async (id: string) => store.find((p) => p.id === id) ?? null),
     findPrimaryPf: vi.fn(async (userId: string) => store.find((p) => p.userId === userId && p.isPrimary) ?? null),
+    findByLinkedProfileId: vi.fn(async (linkedId: string) => store.find((p) => p.linkedProfileId === linkedId) ?? null),
     ensurePfProfile: vi.fn(async (_userId: string, _now: Date) => {
       const existing = store.find((p) => p.type === "PF" && p.isPrimary);
       if (existing) return existing;
@@ -55,12 +57,21 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
         linkedProfileId: input.linkedProfileId,
         displayName: input.displayName,
         isPrimary: input.isPrimary,
+        taxClassification: input.taxClassification,
         userId: input.userId,
       });
       store.push(entity);
       return entity;
     }),
-    setLinkedProfile: vi.fn(async (profileId: string, linkedProfileId: string) => {
+    rename: vi.fn(async (profileId: string, displayName: string) => {
+      const idx = store.findIndex((p) => p.id === profileId);
+      if (idx >= 0) store[idx] = { ...store[idx]!, displayName };
+    }),
+    delete: vi.fn(async (profileId: string) => {
+      const idx = store.findIndex((p) => p.id === profileId);
+      if (idx >= 0) store.splice(idx, 1);
+    }),
+    setLinkedProfile: vi.fn(async (profileId: string, linkedProfileId: string | null) => {
       linkedUpdates.push({ profileId, linkedProfileId });
       const idx = store.findIndex((p) => p.id === profileId);
       if (idx >= 0) store[idx] = { ...store[idx]!, linkedProfileId };

@@ -40,6 +40,7 @@ export async function createMeiProfile(
     linkedProfileId: pf.id,
     displayName: null,
     isPrimary: false,
+    taxClassification: "mei",
     now,
   });
 

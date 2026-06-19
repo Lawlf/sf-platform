@@ -28,6 +28,7 @@ function makeProfile(userId = "u1"): ProfileEntity {
     linkedProfileId: null,
     displayName: null,
     isPrimary: true,
+    taxClassification: null,
     createdAt: NOW,
     updatedAt: NOW,
   };
@@ -63,8 +64,11 @@ function makeProfilesRepo(profile: ProfileEntity | null): ProfileRepositoryPort 
     listForUser: vi.fn(),
     findById: vi.fn(async () => profile),
     findPrimaryPf: vi.fn(),
+    findByLinkedProfileId: vi.fn(async () => null),
     ensurePfProfile: vi.fn(),
     create: vi.fn(),
+    rename: vi.fn(),
+    delete: vi.fn(),
     setLinkedProfile: vi.fn(),
   };
 }

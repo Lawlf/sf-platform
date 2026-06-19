@@ -505,6 +505,13 @@
       "when": 1781825451767,
       "tag": "0071_solid_smiling_tiger",
       "breakpoints": true
+    },
+    {
+      "idx": 72,
+      "version": "7",
+      "when": 1781836162056,
+      "tag": "0072_next_smasher",
+      "breakpoints": true
     }
   ]
 }

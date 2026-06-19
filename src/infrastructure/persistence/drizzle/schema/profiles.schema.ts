@@ -4,6 +4,7 @@ import { boolean, index, pgEnum, pgTable, text, timestamp, uniqueIndex, uuid } f
 import { users } from "./users.schema";
 
 export const profileType = pgEnum("profile_type", ["PF", "PJ_MEI"]);
+export const profileTaxClassification = pgEnum("profile_tax_classification", ["mei", "manual"]);
 
 export const profiles = pgTable(
   "profiles",
@@ -16,6 +17,7 @@ export const profiles = pgTable(
     linkedProfileId: uuid("linked_profile_id"),
     displayName: text("display_name"),
     isPrimary: boolean("is_primary").notNull().default(false),
+    taxClassification: profileTaxClassification("tax_classification"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

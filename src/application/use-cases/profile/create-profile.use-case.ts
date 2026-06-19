@@ -1,4 +1,4 @@
-import type { ProfileEntity, ProfileType } from "@/domain/entities/profile.entity";
+import type { ProfileEntity, ProfileTaxClassification, ProfileType } from "@/domain/entities/profile.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
 import { ok, type Result } from "@/shared/errors/result";
@@ -12,6 +12,7 @@ export interface CreateProfileInput {
   userId: string;
   type: ProfileType;
   displayName: string | null;
+  taxClassification?: ProfileTaxClassification | null;
 }
 
 export async function createProfile(
@@ -25,6 +26,7 @@ export async function createProfile(
     linkedProfileId: null,
     displayName: input.displayName,
     isPrimary: false,
+    taxClassification: input.taxClassification ?? null,
     now,
   });
   return ok(profile);
