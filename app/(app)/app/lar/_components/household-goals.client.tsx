@@ -1,9 +1,12 @@
 "use client";
 
 import { Target } from "lucide-react";
-import { useRef, useState, useTransition } from "react";
+import { useRef, useState, useTransition, type KeyboardEvent, type ChangeEvent } from "react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { Spinner } from "@/app/components/ui/spinner";
+import { formatCents } from "@/shared/format/money-format";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import {
   contributeHouseholdGoalAction,
@@ -14,6 +17,57 @@ import type { SerializedHouseholdGoal } from "../../_actions/household-queries";
 interface Props {
   householdId: string;
   goals: SerializedHouseholdGoal[];
+}
+
+const MAX_CENTS = 999_999_999_99n;
+
+function useBrlInput() {
+  const [cents, setCents] = useState(0n);
+
+  const display = cents === 0n ? "" : formatCents(cents);
+
+  function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
+    if (e.metaKey || e.ctrlKey) return;
+    if (e.key === "Backspace") {
+      e.preventDefault();
+      setCents((c) => c / 10n);
+      return;
+    }
+    if (e.key === "Delete") {
+      e.preventDefault();
+      setCents(0n);
+      return;
+    }
+    if (/^[0-9]$/.test(e.key)) {
+      e.preventDefault();
+      const digit = BigInt(e.key);
+      setCents((c) => {
+        const next = c * 10n + digit;
+        return next > MAX_CENTS ? c : next;
+      });
+      return;
+    }
+    if (["Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
+      return;
+    }
+    e.preventDefault();
+  }
+
+  function handleChange(e: ChangeEvent<HTMLInputElement>) {
+    const raw = e.target.value.replace(/[^\d]/g, "");
+    if (raw === "") {
+      setCents(0n);
+      return;
+    }
+    const next = BigInt(raw);
+    if (next <= MAX_CENTS) setCents(next);
+  }
+
+  function reset() {
+    setCents(0n);
+  }
+
+  return { cents, display, handleKeyDown, handleChange, reset };
 }
 
 function ProgressBar({ pct }: { pct: number }) {
@@ -42,27 +96,25 @@ interface GoalCardProps {
 function GoalCard({ householdId, goal }: GoalCardProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const brl = useBrlInput();
 
   function handleContribute() {
-    const raw = inputRef.current?.value ?? "";
-    const parsed = parseFloat(raw.replace(",", "."));
-    if (isNaN(parsed) || parsed <= 0) {
+    if (brl.cents <= 0n) {
       setError("Informe um valor maior que zero.");
       return;
     }
-    const cents = BigInt(Math.round(parsed * 100));
     setError(null);
+    const amountCents = brl.cents;
     startTransition(async () => {
       const result = await contributeHouseholdGoalAction({
         householdId,
         goalId: goal.id,
-        amountCents: cents,
+        amountCents,
       });
       if (!result.ok) {
         setError(result.message);
       } else {
-        if (inputRef.current) inputRef.current.value = "";
+        brl.reset();
       }
     });
   }
@@ -99,13 +151,15 @@ function GoalCard({ householdId, goal }: GoalCardProps) {
 
       <div className="flex items-center gap-2">
         <input
-          ref={inputRef}
-          type="number"
-          min="0.01"
-          step="0.01"
-          placeholder="Valor (R$)"
+          type="text"
+          inputMode="numeric"
+          autoComplete="off"
+          placeholder="R$ 0,00"
           aria-label={`Valor para guardar na meta ${goal.title}`}
-          className="min-w-0 flex-1 rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+          value={brl.display}
+          onKeyDown={brl.handleKeyDown}
+          onChange={brl.handleChange}
+          className="min-w-0 flex-1 rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-1.5 text-[0.8125rem] tabular-nums text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
         />
         <button
           type="button"
@@ -133,7 +187,7 @@ function CreateGoalForm({ householdId }: CreateGoalFormProps) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const labelRef = useRef<HTMLInputElement>(null);
-  const targetRef = useRef<HTMLInputElement>(null);
+  const brl = useBrlInput();
 
   function handleCreate() {
     const label = labelRef.current?.value.trim() ?? "";
@@ -141,32 +195,30 @@ function CreateGoalForm({ householdId }: CreateGoalFormProps) {
       setError("Dê um nome à meta.");
       return;
     }
-    const raw = targetRef.current?.value ?? "";
-    const parsed = parseFloat(raw.replace(",", "."));
-    if (isNaN(parsed) || parsed <= 0) {
+    if (brl.cents <= 0n) {
       setError("Informe um valor alvo maior que zero.");
       return;
     }
-    const cents = BigInt(Math.round(parsed * 100));
+    const targetCents = brl.cents;
     setError(null);
     startTransition(async () => {
       const result = await createHouseholdGoalAction({
         householdId,
         label,
-        targetCents: cents,
+        targetCents,
       });
       if (!result.ok) {
         setError(result.message);
       } else {
         if (labelRef.current) labelRef.current.value = "";
-        if (targetRef.current) targetRef.current.value = "";
+        brl.reset();
       }
     });
   }
 
   return (
     <div className="flex flex-col gap-2 rounded-2xl border-[1.5px] border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
+      <h3 className="text-[0.75rem] font-semibold text-[color:var(--text-muted)]">
         Nova meta
       </h3>
       <input
@@ -178,13 +230,15 @@ function CreateGoalForm({ householdId }: CreateGoalFormProps) {
         className="w-full rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
       />
       <input
-        ref={targetRef}
-        type="number"
-        min="0.01"
-        step="0.01"
-        placeholder="Valor alvo (R$)"
+        type="text"
+        inputMode="numeric"
+        autoComplete="off"
+        placeholder="R$ 0,00"
         aria-label="Valor alvo da meta do lar"
-        className="w-full rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+        value={brl.display}
+        onKeyDown={brl.handleKeyDown}
+        onChange={brl.handleChange}
+        className="w-full rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-1.5 text-[0.8125rem] tabular-nums text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
       />
       {error ? (
         <p className="text-[0.75rem] text-[color:var(--semantic-negative)]">{error}</p>
@@ -225,5 +279,94 @@ export function HouseholdGoals({ householdId, goals }: Props) {
 
       <CreateGoalForm householdId={householdId} />
     </div>
+  );
+}
+
+interface FeaturedGoalProps {
+  householdId: string;
+  goal: SerializedHouseholdGoal;
+}
+
+export function HouseholdFeaturedGoal({ householdId, goal }: FeaturedGoalProps) {
+  return (
+    <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 flex-1 items-center gap-2">
+          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+            <Target size={15} strokeWidth={1.75} aria-hidden />
+          </span>
+          <span className="min-w-0 flex-1 truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
+            {goal.title}
+          </span>
+        </div>
+        {goal.progressPct !== null ? (
+          <span className="shrink-0 text-[0.875rem] font-bold tabular-nums text-[color:var(--color-brand-800)]">
+            {Math.round(goal.progressPct)}%
+          </span>
+        ) : null}
+      </div>
+
+      {goal.progressPct !== null ? (
+        <div
+          className="h-[9px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]"
+          role="progressbar"
+          aria-valuenow={Math.round(goal.progressPct)}
+          aria-valuemin={0}
+          aria-valuemax={100}
+        >
+          <div
+            className="h-full rounded-full bg-[color:var(--color-brand-500)] transition-[width]"
+            style={{ width: `${Math.min(100, Math.max(0, goal.progressPct))}%` }}
+          />
+        </div>
+      ) : null}
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-[0.75rem] text-[color:var(--text-secondary)]">
+          <span className="font-semibold tabular-nums text-[color:var(--text-primary)]">
+            <HideableValue>{goal.savedBrl}</HideableValue>
+          </span>
+          {goal.targetBrl ? (
+            <>
+              {" "}de{" "}
+              <span className="tabular-nums">
+                <HideableValue>{goal.targetBrl}</HideableValue>
+              </span>
+            </>
+          ) : null}
+        </span>
+        <Link
+          href={`/app/lar/metas` as Route}
+          className="focus-ring shrink-0 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] hover:opacity-80"
+        >
+          Ver metas da casa
+        </Link>
+      </div>
+    </section>
+  );
+}
+
+interface NoGoalsTeaser {
+  householdId: string;
+}
+
+export function HouseholdGoalsTeaser({ householdId: _ }: NoGoalsTeaser) {
+  return (
+    <section className="flex items-center justify-between gap-3 rounded-2xl border border-dashed border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3">
+      <div className="flex min-w-0 items-center gap-2">
+        <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+          <Target size={15} strokeWidth={1.75} aria-hidden />
+        </span>
+        <span className="text-[0.8125rem] text-[color:var(--text-muted)]">
+          Nenhuma meta definida ainda.
+        </span>
+      </div>
+      <Link
+        href={`/app/lar/metas` as Route}
+        className="focus-ring shrink-0 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] hover:opacity-80"
+      >
+        Criar meta
+      </Link>
+    </section>
   );
 }

@@ -2,6 +2,7 @@
 
 import { ChevronDown, ChevronUp, TrendingDown, TrendingUp, Wallet, Users } from "lucide-react";
 import { useState, useTransition } from "react";
+import type { ReactNode } from "react";
 
 import { Spinner } from "@/app/components/ui/spinner";
 import type {
@@ -14,12 +15,6 @@ import { fetchSharedProfileDetail } from "../../_actions/household-queries";
 interface Props {
   householdId: string;
   snapshot: HouseholdSnapshotPayload;
-}
-
-function committedColor(pct: number): string {
-  if (pct >= 80) return "text-[color:var(--semantic-negative)]";
-  if (pct >= 60) return "text-[color:var(--semantic-warning,#d97706)]";
-  return "text-[color:var(--semantic-positive,#16a34a)]";
 }
 
 function frequencyLabel(frequency: string): string {
@@ -93,13 +88,13 @@ function ProfileDetailRow({ householdId, contribution }: ProfileDetailRowProps) 
         <div className="mt-1 flex flex-col gap-1 pl-4">
           {detail.incomes.length > 0 ? (
             <div className="flex flex-col gap-1">
-              <h5 className="mt-1 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
+              <h5 className="mt-1 text-[0.75rem] font-semibold text-[color:var(--text-muted)]">
                 Rendas
               </h5>
               {detail.incomes.map((inc) => (
                 <div
                   key={inc.id}
-                  className="flex items-center gap-2 rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2"
+                  className="flex items-center gap-2 px-1 py-1"
                 >
                   <TrendingUp size={13} strokeWidth={2} className="shrink-0 text-[color:var(--semantic-positive,#16a34a)]" aria-hidden />
                   <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-[color:var(--text-primary)]">
@@ -108,7 +103,7 @@ function ProfileDetailRow({ householdId, contribution }: ProfileDetailRowProps) 
                       <span className="ml-1 text-[0.6875rem] text-[color:var(--text-muted)]">(estimado)</span>
                     ) : null}
                   </span>
-                  <span className="shrink-0 text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+                  <span className="shrink-0 text-[0.8125rem] tabular-nums text-[color:var(--text-primary)]">
                     {inc.amountBrl}
                     <span className="ml-1 text-[0.6875rem] font-normal text-[color:var(--text-muted)]">
                       / {frequencyLabel(inc.frequency)}
@@ -121,19 +116,19 @@ function ProfileDetailRow({ householdId, contribution }: ProfileDetailRowProps) 
 
           {detail.debts.length > 0 ? (
             <div className="flex flex-col gap-1">
-              <h5 className="mt-1 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
+              <h5 className="mt-1 text-[0.75rem] font-semibold text-[color:var(--text-muted)]">
                 Dívidas ativas
               </h5>
               {detail.debts.map((debt) => (
                 <div
                   key={debt.id}
-                  className="flex items-center gap-2 rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2"
+                  className="flex items-center gap-2 px-1 py-1"
                 >
                   <TrendingDown size={13} strokeWidth={2} className="shrink-0 text-[color:var(--semantic-negative)]" aria-hidden />
                   <span className="min-w-0 flex-1 truncate text-[0.8125rem] text-[color:var(--text-primary)]">
                     {debt.label}
                   </span>
-                  <span className="shrink-0 text-[0.8125rem] font-semibold text-[color:var(--semantic-negative)]">
+                  <span className="shrink-0 text-[0.8125rem] tabular-nums text-[color:var(--semantic-negative)]">
                     {debt.balanceBrl}
                   </span>
                 </div>
@@ -179,6 +174,41 @@ function AggregateRow({ contribution }: AggregateRowProps) {
   );
 }
 
+function CollapsibleContributions({
+  householdId,
+  contributions,
+}: {
+  householdId: string;
+  contributions: SerializedContribution[];
+}): ReactNode {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="focus-ring flex items-center justify-between rounded-lg px-1 py-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] hover:opacity-80"
+        aria-expanded={open ? "true" : "false"}
+      >
+        <span>Ver quem contribui</span>
+        {open ? <ChevronUp size={14} aria-hidden /> : <ChevronDown size={14} aria-hidden />}
+      </button>
+      {open ? (
+        <div className="flex flex-col gap-1 pt-1">
+          {contributions.map((c) =>
+            c.shareLevel === "detail" ? (
+              <ProfileDetailRow key={c.profileId} householdId={householdId} contribution={c} />
+            ) : (
+              <AggregateRow key={c.profileId} contribution={c} />
+            ),
+          )}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 export function HouseholdJointView({ householdId, snapshot }: Props) {
   const hasContributions = snapshot.contributions.length > 0;
 
@@ -189,77 +219,48 @@ export function HouseholdJointView({ householdId, snapshot }: Props) {
           <Wallet size={18} strokeWidth={1.75} aria-hidden />
         </span>
         <div className="min-w-0 flex-1">
-          <h2 className="text-base font-bold text-[color:var(--text-primary)]">Visão conjunta</h2>
+          <h2 className="text-base font-bold text-[color:var(--text-primary)]">Totais da casa</h2>
           <span className="text-[0.75rem] text-[color:var(--text-muted)]">
-            Totais somados dos perfis compartilhados
+            Soma dos perfis compartilhados
           </span>
         </div>
       </div>
 
-      <div className="rounded-2xl bg-[color:var(--surface-2)] p-4 text-center">
-        <p className="mb-0.5 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-          Renda da casa
-        </p>
-        <p className="text-3xl font-bold tabular-nums text-[color:var(--text-primary)]">
-          {snapshot.totalIncomeBrl}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-2 gap-3">
-        <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
-          <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Quanto a casa deve
+      <div className="grid grid-cols-3 gap-2">
+        <div className="flex flex-col gap-0.5 rounded-xl bg-[color:var(--surface-2)] px-3 py-2.5">
+          <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+            Renda
           </span>
-          <span className="text-lg font-bold tabular-nums text-[color:var(--text-primary)]">
-            {snapshot.totalDebtBalanceBrl}
+          <span className="text-[0.9375rem] font-bold tabular-nums text-[color:var(--text-primary)]">
+            {snapshot.totalIncomeBrl}
           </span>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
-          <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Parcelas da casa por mês
+        <div className="flex flex-col gap-0.5 rounded-xl bg-[color:var(--surface-2)] px-3 py-2.5">
+          <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+            Parcelas/mês
           </span>
-          <span className="text-lg font-bold tabular-nums text-[color:var(--text-primary)]">
+          <span className="text-[0.9375rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             {snapshot.totalMonthlyServiceBrl}
           </span>
         </div>
 
-        <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
-          <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Comprometido da casa
+        <div className="flex flex-col gap-0.5 rounded-xl bg-[color:var(--surface-2)] px-3 py-2.5">
+          <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+            Patrimônio
           </span>
-          <span className={`text-lg font-bold tabular-nums ${committedColor(snapshot.committedPct)}`}>
-            {snapshot.committedPct}%
-          </span>
-        </div>
-
-        <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
-          <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Patrimônio conjunto
-          </span>
-          <span className="text-lg font-bold tabular-nums text-[color:var(--text-primary)]">
+          <span className="text-[0.9375rem] font-bold tabular-nums text-[color:var(--text-primary)]">
             {snapshot.netWorthBrl}
           </span>
         </div>
       </div>
 
       <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
-        Soma dos perfis compartilhados. Cada um edita no próprio perfil.
+        Cada um edita no próprio perfil.
       </p>
 
       {hasContributions ? (
-        <div className="flex flex-col gap-1">
-          <h3 className="mb-1 text-[0.6875rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Contribuições
-          </h3>
-          {snapshot.contributions.map((c) =>
-            c.shareLevel === "detail" ? (
-              <ProfileDetailRow key={c.profileId} householdId={householdId} contribution={c} />
-            ) : (
-              <AggregateRow key={c.profileId} contribution={c} />
-            ),
-          )}
-        </div>
+        <CollapsibleContributions householdId={householdId} contributions={snapshot.contributions} />
       ) : (
         <p className="text-center text-[0.875rem] text-[color:var(--text-muted)]">
           Nenhum perfil compartilhado neste lar ainda.
