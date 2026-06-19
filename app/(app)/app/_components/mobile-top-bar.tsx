@@ -20,7 +20,7 @@ export interface MobileTopBarProps {
 
 export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId }: MobileTopBarProps) {
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
-  const profileBadge = activeProfile?.type === "PJ_MEI" ? "MEI" : activeProfile ? "PF" : null;
+  const profileBadge = activeProfile?.type === "PJ_MEI" ? "PJ" : activeProfile ? "PF" : null;
   const hasNotifications = notificationCount > 0;
   const badgeLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 

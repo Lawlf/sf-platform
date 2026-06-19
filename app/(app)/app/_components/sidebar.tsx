@@ -7,12 +7,12 @@ import {
   Coins,
   HomeIcon,
   LineChart,
-  Loader2,
   PanelRightClose,
   PanelRightOpen,
   PlusCircle,
   Search,
   Settings,
+  SlidersHorizontal,
   Target,
   TrendingUp,
   UserPlus,
@@ -23,17 +23,16 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
-import { createMeiProfileAction } from "../perfil/_actions/create-mei-profile.action";
-import { createProfileAction } from "../_actions/create-profile.action";
 import { switchProfileAction } from "../_actions/switch-profile.action";
 import type { SerializedProfile } from "../_actions/profile-queries";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
+import { CreateProfileSheet } from "./create-profile-sheet.client";
 import { UserAvatar } from "./user-avatar";
 
 interface NavItem {
@@ -266,6 +265,17 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
   );
 }
 
+function profileBadge(type: SerializedProfile["type"]): string {
+  return type === "PJ_MEI" ? "PJ" : "PF";
+}
+
+function profileSubtitle(profile: SerializedProfile): string {
+  if (profile.type === "PF") return "Pessoa física";
+  if (profile.taxClassification === "mei") return "Empresa · MEI";
+  if (profile.taxClassification === "manual") return "Empresa · Outro";
+  return "Empresa";
+}
+
 function AccountZone({
   displayName,
   avatarUrl,
@@ -283,53 +293,17 @@ function AccountZone({
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [createOpen, setCreateOpen] = useState(false);
-  const [createName, setCreateName] = useState("");
-  const [createType, setCreateType] = useState<"PF" | "PJ_MEI">("PJ_MEI");
+  const [sheetOpen, setSheetOpen] = useState(false);
   const [pending, startTransition] = useTransition();
   const ref = useRef<HTMLDivElement>(null);
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
-  const hasPj = profiles.some((p) => p.type === "PJ_MEI");
-
-  function profileLabel(type: SerializedProfile["type"]): string {
-    return type === "PJ_MEI" ? "MEI" : "PF";
-  }
-
-  function profileSubtitle(type: SerializedProfile["type"]): string {
-    return type === "PJ_MEI" ? "Empresa (MEI)" : "Pessoa física";
-  }
 
   function handleSwitch(profileId: string) {
     startTransition(async () => {
       await switchProfileAction({ profileId });
       setOpen(false);
       router.refresh();
-    });
-  }
-
-  function handleCreateProfile(e: FormEvent) {
-    e.preventDefault();
-    if (!createName.trim()) return;
-    startTransition(async () => {
-      const result = await createProfileAction({ type: createType, displayName: createName.trim() });
-      if (result.ok) {
-        setCreateOpen(false);
-        setCreateName("");
-        setCreateType("PJ_MEI");
-        setOpen(false);
-        router.refresh();
-      }
-    });
-  }
-
-  function handleCreateMei() {
-    startTransition(async () => {
-      const result = await createMeiProfileAction({});
-      if (result.ok) {
-        setOpen(false);
-        router.refresh();
-      }
     });
   }
 
@@ -392,7 +366,7 @@ function AccountZone({
           ) : null}
         </span>
         <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
-          {activeProfile ? profileSubtitle(activeProfile.type) : "Conta pessoal"}
+          {activeProfile ? profileSubtitle(activeProfile) : "Conta pessoal"}
         </span>
       </span>
       <ChevronsUpDown
@@ -419,113 +393,64 @@ function AccountZone({
           </p>
 
           {profiles.map((profile) => {
-            const isActive = profile.id === activeProfileId;
-            const label = profileLabel(profile.type);
-            const subtitle = profileSubtitle(profile.type);
+            const active = profile.id === activeProfileId;
+            const badge = profileBadge(profile.type);
+            const subtitle = profileSubtitle(profile);
             return (
               <button
                 key={profile.id}
                 type="button"
                 role="menuitemradio"
-                aria-checked={isActive}
-                disabled={pending || isActive}
+                aria-checked={active}
+                disabled={pending || active}
                 onClick={() => handleSwitch(profile.id)}
-                className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${isActive ? "bg-[color:var(--surface-2)]" : "hover:bg-[color:var(--color-brand-500)]/[0.10]"}`}
+                className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--surface-2)]" : "hover:bg-[color:var(--color-brand-500)]/[0.10]"}`}
               >
                 <UserAvatar
-                  dataUrl={isActive ? avatarUrl : undefined}
+                  dataUrl={active ? avatarUrl : undefined}
                   displayName={displayName}
                   className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
                 />
                 <span className="flex min-w-0 flex-1 flex-col items-start">
                   <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-                    {displayName}
+                    {profile.displayName ?? displayName}
                   </span>
                   <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
                 </span>
                 <span className="flex-none rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
-                  {label}
+                  {badge}
                 </span>
-                {isActive ? (
+                {active ? (
                   <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
                 ) : null}
               </button>
             );
           })}
 
-          {!hasPj ? (
-            <button
-              type="button"
-              role="menuitem"
-              disabled={pending}
-              onClick={handleCreateMei}
-              className="focus-ring mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10] disabled:opacity-60"
-            >
-              {pending ? (
-                <Loader2 size={16} strokeWidth={1.75} aria-hidden className="flex-none animate-spin text-[color:var(--text-muted)]" />
-              ) : (
-                <Building2 size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-              )}
-              <span className="flex-1 text-left">Sou MEI / tenho CNPJ</span>
-            </button>
-          ) : null}
+          <div className="my-1 h-px bg-[color:var(--border-soft)]" />
 
-          {!createOpen ? (
-            <button
-              type="button"
-              role="menuitem"
-              disabled={pending}
-              onClick={() => setCreateOpen(true)}
-              className="focus-ring mt-0.5 flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10] disabled:opacity-60"
-            >
-              <UserPlus size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-              <span className="flex-1 text-left">Criar perfil</span>
-            </button>
-          ) : (
-            <form onSubmit={handleCreateProfile} className="mt-1 flex flex-col gap-2 px-1">
-              <input
-                autoFocus
-                type="text"
-                placeholder="Nome do perfil"
-                value={createName}
-                onChange={(e) => setCreateName(e.target.value)}
-                maxLength={60}
-                disabled={pending}
-                className="w-full rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-2.5 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] placeholder:text-[color:var(--text-muted)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-500)] disabled:opacity-60"
-              />
-              <select
-                value={createType}
-                onChange={(e) => setCreateType(e.target.value as "PF" | "PJ_MEI")}
-                disabled={pending}
-                className="w-full rounded-lg border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-2.5 py-1.5 text-[0.8125rem] text-[color:var(--text-primary)] focus:outline-none focus:ring-1 focus:ring-[color:var(--color-brand-500)] disabled:opacity-60"
-              >
-                <option value="PJ_MEI">Empresa (PJ / MEI)</option>
-                <option value="PF">Pessoa física</option>
-              </select>
-              <div className="flex gap-1.5">
-                <button
-                  type="submit"
-                  disabled={pending || !createName.trim()}
-                  className="focus-ring flex flex-1 items-center justify-center gap-1.5 rounded-lg bg-[color:var(--color-brand-500)] px-3 py-1.5 text-[0.8125rem] font-semibold text-white transition-colors hover:bg-[color:var(--color-brand-600)] disabled:opacity-60"
-                >
-                  {pending ? (
-                    <Loader2 size={14} strokeWidth={1.75} aria-hidden className="animate-spin" />
-                  ) : null}
-                  Criar
-                </button>
-                <button
-                  type="button"
-                  disabled={pending}
-                  onClick={() => { setCreateOpen(false); setCreateName(""); }}
-                  className="focus-ring rounded-lg border border-[color:var(--border-strong)] px-3 py-1.5 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] disabled:opacity-60"
-                >
-                  Cancelar
-                </button>
-              </div>
-            </form>
-          )}
+          <button
+            type="button"
+            role="menuitem"
+            onClick={() => { setOpen(false); setSheetOpen(true); }}
+            className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
+          >
+            <UserPlus size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+            <span className="flex-1 text-left">Criar perfil</span>
+          </button>
 
-          <div className="my-1.5 h-px bg-[color:var(--border-soft)]" />
+          <Link
+            href={"/app/configuracoes/perfis" as Route}
+            role="menuitem"
+            onClick={() => setOpen(false)}
+            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
+          >
+            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+            <span className="flex-1 text-left">Gerenciar perfis</span>
+          </Link>
+
+          <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+
           <Link
             href={"/app/perfil" as Route}
             role="menuitem"
@@ -546,6 +471,8 @@ function AccountZone({
           </Link>
         </div>
       ) : null}
+
+      <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} />
 
       {collapsed ? (
         <SimpleTooltip label="Conta" side="right">

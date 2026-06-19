@@ -10,6 +10,8 @@ export interface SerializedProfile {
   type: ProfileType;
   displayName: string | null;
   linkedProfileId: string | null;
+  isPrimary: boolean;
+  taxClassification: "mei" | "manual" | null;
 }
 
 export interface ProfilesPayload {
@@ -32,6 +34,8 @@ export async function fetchUserProfiles(): Promise<ProfilesPayload | null> {
       type: p.type,
       displayName: p.displayName,
       linkedProfileId: p.linkedProfileId,
+      isPrimary: p.isPrimary,
+      taxClassification: p.taxClassification,
     })),
     activeProfileId,
   };

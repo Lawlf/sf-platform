@@ -27,7 +27,7 @@ interface Props {
 
 function profileLabel(type: string, displayName: string | null, isPrimary: boolean): string {
   if (displayName) return displayName;
-  if (type === "PJ_MEI") return "MEI";
+  if (type === "PJ_MEI") return "Empresa";
   return isPrimary ? "Perfil pessoal" : "Perfil PF";
 }
 
