@@ -132,6 +132,9 @@ function makeDeps(opts: {
         opts.settlementsPerProfile?.[profileId] ?? [],
       ),
     },
+    profiles: {
+      findById: vi.fn(async () => null),
+    },
     now: () => NOW,
     ...makeFxDeps(),
   };
@@ -219,6 +222,7 @@ describe("buildHouseholdGap", () => {
       debts: { listForProfile: vi.fn(async () => []) },
       incomes: { listForProfile },
       incomeSettlements: { listForProfileMonth: vi.fn(async () => []) },
+      profiles: { findById: vi.fn(async () => null) },
       now: () => NOW,
       ...makeFxDeps(),
     };

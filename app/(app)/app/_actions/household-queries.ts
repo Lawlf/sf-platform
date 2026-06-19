@@ -451,6 +451,7 @@ export async function fetchHouseholdGap(householdId: string): Promise<HouseholdG
       debts: repos.debts,
       incomes: repos.incomes,
       incomeSettlements: repos.incomeSettlements,
+      profiles: repos.profiles,
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
       clock,

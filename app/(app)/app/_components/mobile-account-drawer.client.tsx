@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Settings, SlidersHorizontal, UserPlus, UserRound } from "lucide-react";
+import { Check, SlidersHorizontal, UserPlus } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -113,24 +113,6 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
             >
               <SlidersHorizontal size={18} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
               <span className="flex-1 text-left">Gerenciar perfis</span>
-            </Link>
-
-            <Link
-              href={"/app/perfil" as Route}
-              onClick={() => onOpenChange(false)}
-              className="focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-[0.9375rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-            >
-              <UserRound size={18} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-              <span className="flex-1 text-left">Perfil e conta</span>
-            </Link>
-
-            <Link
-              href={"/app/configuracoes" as Route}
-              onClick={() => onOpenChange(false)}
-              className="focus-ring flex items-center gap-3 rounded-xl px-3 py-3 text-[0.9375rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-            >
-              <Settings size={18} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-              <span className="flex-1 text-left">Configurações</span>
             </Link>
           </div>
         </SheetContent>

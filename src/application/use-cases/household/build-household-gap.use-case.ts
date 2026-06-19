@@ -12,6 +12,7 @@ import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.reposi
 import type { HouseholdRepositoryPort } from "@/domain/ports/repositories/household.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
+import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
 import {
   monthGapPieces,
   type MonthGapPieces,
@@ -26,6 +27,7 @@ export interface BuildHouseholdGapDeps extends ConvertEntityDeps {
   debts: Pick<DebtRepositoryPort, "listForProfile">;
   incomes: Pick<IncomeRepositoryPort, "listForProfile">;
   incomeSettlements: Pick<IncomeSettlementRepositoryPort, "listForProfileMonth">;
+  profiles: Pick<ProfileRepositoryPort, "findById">;
   now: () => Date;
 }
 
@@ -109,9 +111,11 @@ export async function buildHouseholdGap(
     totalAReceberConfirmado += pieces.aReceberConfirmadoCents;
     totalAReceberEstimado += pieces.aReceberEstimadoCents;
 
+    const profile = await deps.profiles.findById(share.profileId);
+
     porMembro.push({
       profileId: share.profileId,
-      displayName: null,
+      displayName: profile?.displayName ?? null,
       jaRecebidoCents: pieces.jaRecebidoCents,
       aReceberConfirmadoCents: pieces.aReceberConfirmadoCents,
     });

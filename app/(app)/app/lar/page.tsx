@@ -2,6 +2,7 @@ import type { Metadata, Route } from "next";
 
 import { PageShell } from "../_components/page-shell";
 import {
+  fetchHouseholdGap,
   fetchHouseholdGoals,
   fetchHouseholdInsight,
   fetchHouseholdMembers,
@@ -12,6 +13,7 @@ import {
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
 import { HouseholdContextHeader } from "./_components/household-context-header";
+import { HouseholdGapHero } from "./_components/household-gap-hero";
 import { HouseholdFeaturedGoal, HouseholdGoalsTeaser } from "./_components/household-goals.client";
 import { HouseholdInsightCard } from "./_components/household-insight-card";
 import { HouseholdJointEmpty } from "./_components/household-joint-empty";
@@ -29,11 +31,12 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, snapshot, insight, goals] = await Promise.all([
+      const [members, snapshot, insight, goals, gap] = await Promise.all([
         fetchHouseholdMembers(h.id),
         fetchHouseholdSnapshot(h.id),
         fetchHouseholdInsight(h.id),
         fetchHouseholdGoals(h.id),
+        fetchHouseholdGap(h.id),
       ]);
       return {
         household: h,
@@ -41,6 +44,7 @@ export default async function LarPage() {
         snapshot,
         insight,
         goals: goals ?? [],
+        gap,
       };
     }),
   );
@@ -53,9 +57,13 @@ export default async function LarPage() {
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, snapshot, insight, goals }) => (
+      {householdData.map(({ household, members, snapshot, insight, goals, gap }) => (
         <div key={household.id} className="flex flex-col gap-4">
           <HouseholdContextHeader household={household} members={members} mode="view" />
+
+          {gap && !gap.gated ? (
+            <HouseholdGapHero gap={gap.gap} />
+          ) : null}
 
           {snapshot && !snapshot.gated ? (
             <>
