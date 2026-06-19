@@ -14,7 +14,7 @@ export default function manifest(): MetadataRoute.Manifest {
     start_url: "/app",
     scope: "/",
     display: "standalone",
-    display_override: ["standalone"],
+    display_override: ["window-controls-overlay", "standalone"],
     launch_handler: { client_mode: "navigate-existing" },
     background_color: "#fdf8f3",
     theme_color: "#f28e25",
