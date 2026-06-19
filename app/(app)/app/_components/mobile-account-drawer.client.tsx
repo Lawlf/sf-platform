@@ -1,6 +1,6 @@
 "use client";
 
-import { Check, Plus, SlidersHorizontal } from "lucide-react";
+import { Plus, SlidersHorizontal } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -76,9 +76,6 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
                     </span>
                     <span className="text-[0.75rem] text-[color:var(--text-muted)]">{profileSubtitle(profile)}</span>
                   </span>
-                  {active ? (
-                    <Check size={18} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
-                  ) : null}
                 </button>
               );
             })}

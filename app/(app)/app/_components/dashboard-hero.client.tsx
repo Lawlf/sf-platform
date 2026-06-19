@@ -98,6 +98,8 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     monthDetail.payments.every((p) => p.dateIso);
 
   const realizedTodayCents = BigInt(monthDetail.totals.realizedFree.cents);
+  const todayCents = useWallet ? BigInt(walletBal.reactiveBalance.cents) : realizedTodayCents;
+  const projectionIsFlat = projCents === todayCents;
 
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
@@ -147,7 +149,9 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     ? `${stateText}. ${nudgeText}`
     : noIncome
       ? `Ver detalhes de ${month.format()}. ${bigFormatted}. ${nudgeText}`
-      : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
+      : projectionIsFlat
+        ? `Ver detalhes de ${month.format()}. ${bigFormatted}. Nada previsto mexe nele até o fim de ${CURRENT_MONTH_NAME}.`
+        : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
     <div className="relative">
@@ -195,8 +199,14 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
                 <span
                   className={`mt-3 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}
                 >
-                  Se nada mudar, {verb} <HideableValue>{projFormatted}</HideableValue> no fim de{" "}
-                  {CURRENT_MONTH_NAME}
+                  {projectionIsFlat ? (
+                    <>Nada previsto mexe nele até o fim de {CURRENT_MONTH_NAME}.</>
+                  ) : (
+                    <>
+                      Se nada mudar, {verb} <HideableValue>{projFormatted}</HideableValue> no fim de{" "}
+                      {CURRENT_MONTH_NAME}
+                    </>
+                  )}
                 </span>
               </>
             ) : null}
