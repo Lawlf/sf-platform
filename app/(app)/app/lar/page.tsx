@@ -1,32 +1,27 @@
 import type { Metadata, Route } from "next";
 
-import { requireUser } from "@/presentation/http/middleware/cached-current-user";
-
 import { PageShell } from "../_components/page-shell";
 import {
   fetchHouseholdGoals,
   fetchHouseholdInsight,
   fetchHouseholdMembers,
-  fetchHouseholdPendingInvites,
   fetchHouseholdSnapshot,
   fetchMyHouseholds,
   fetchMyPendingInvites,
-  fetchMyShares,
 } from "../_actions/household-queries";
 
 import { CreateHouseholdForm } from "./_components/create-household-form.client";
+import { HouseholdContextHeader } from "./_components/household-context-header";
 import { HouseholdGoals } from "./_components/household-goals.client";
 import { HouseholdInsightCard } from "./_components/household-insight-card";
+import { HouseholdJointEmpty } from "./_components/household-joint-empty";
 import { HouseholdJointView } from "./_components/household-joint-view.client";
-import { HouseholdPanel } from "./_components/household-panel.client";
-import { MyProfileSharing } from "./_components/my-profile-sharing.client";
+import { HouseholdPaywallCard } from "./_components/household-paywall-card";
 import { PendingInvitesPanel } from "./_components/pending-invites-panel.client";
 
-export const metadata: Metadata = { title: "Lar" };
+export const metadata: Metadata = { title: "Nosso lar" };
 
 export default async function LarPage() {
-  const user = await requireUser();
-
   const [households, pendingInvites] = await Promise.all([
     fetchMyHouseholds(),
     fetchMyPendingInvites(),
@@ -34,10 +29,8 @@ export default async function LarPage() {
 
   const householdData = await Promise.all(
     households.map(async (h) => {
-      const [members, adminPendingInvites, myShares, snapshot, goals, insight] = await Promise.all([
+      const [members, snapshot, goals, insight] = await Promise.all([
         fetchHouseholdMembers(h.id),
-        fetchHouseholdPendingInvites(h.id),
-        fetchMyShares(h.id),
         fetchHouseholdSnapshot(h.id),
         fetchHouseholdGoals(h.id),
         fetchHouseholdInsight(h.id),
@@ -45,8 +38,6 @@ export default async function LarPage() {
       return {
         household: h,
         members: members ?? [],
-        pendingInvites: adminPendingInvites ?? [],
-        myShares,
         snapshot,
         goals: goals ?? [],
         insight,
@@ -56,29 +47,25 @@ export default async function LarPage() {
 
   return (
     <PageShell
-      title="Lar"
-      description="Gerencie sua família financeira no Sabor Financeiro."
+      title="Nosso lar"
+      description="A vida financeira de quem divide as contas com você, numa visão só. Você escolhe o que cada um vê."
       backHref={"/app/perfil" as Route}
     >
       <PendingInvitesPanel invites={pendingInvites} />
 
-      {householdData.map(({ household, members, pendingInvites: adminInvites, myShares, snapshot, goals, insight }) => (
+      {householdData.map(({ household, members, snapshot, goals, insight }) => (
         <div key={household.id} className="flex flex-col gap-4">
-          <HouseholdPanel
-            household={household}
-            members={members}
-            currentUserId={user.id}
-            pendingInvites={adminInvites}
-          />
-          {myShares ? (
-            <MyProfileSharing householdId={household.id} data={myShares} />
+          <HouseholdContextHeader household={household} members={members} mode="view" />
+          {snapshot && !snapshot.gated ? (
+            <>
+              <HouseholdJointView householdId={household.id} snapshot={snapshot.snapshot} />
+              {insight ? (
+                <HouseholdInsightCard insight={insight} snapshot={snapshot.snapshot} />
+              ) : null}
+            </>
           ) : null}
-          {snapshot ? (
-            <HouseholdJointView householdId={household.id} snapshot={snapshot} />
-          ) : null}
-          {insight && snapshot ? (
-            <HouseholdInsightCard insight={insight} snapshot={snapshot} />
-          ) : null}
+          {snapshot && snapshot.gated && snapshot.hasData ? <HouseholdPaywallCard /> : null}
+          {snapshot && snapshot.gated && !snapshot.hasData ? <HouseholdJointEmpty /> : null}
           <HouseholdGoals householdId={household.id} goals={goals} />
         </div>
       ))}

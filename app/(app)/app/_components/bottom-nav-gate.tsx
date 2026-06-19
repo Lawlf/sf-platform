@@ -10,11 +10,11 @@ const IMMERSIVE_PREFIXES = [
   "/app/conteudo/ritmo",
 ];
 
-export function BottomNavGate() {
+export function BottomNavGate({ activeIsPj }: { activeIsPj: boolean }) {
   const pathname = usePathname();
   const inImmersive = IMMERSIVE_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
   if (inImmersive) return null;
-  return <BottomNav />;
+  return <BottomNav activeIsPj={activeIsPj} />;
 }

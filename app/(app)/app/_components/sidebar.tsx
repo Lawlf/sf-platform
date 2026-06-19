@@ -17,6 +17,7 @@ import {
   TrendingUp,
   UserPlus,
   UserRound,
+  Users,
   Wallet,
 } from "lucide-react";
 import type { Route } from "next";
@@ -47,41 +48,50 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const BASE_NAV_GROUPS: NavGroup[] = [
-  {
-    label: "",
-    items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
-  },
-  {
-    label: "Minhas finanças",
-    items: [
-      { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
-      { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
-      { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
-      { href: "/app/metas" as Route, label: "Metas", icon: Target },
-    ],
-  },
-  {
-    label: "Ferramentas",
-    items: [
-      { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", icon: LineChart },
-      { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle },
-    ],
-  },
-];
-
-const MEI_NAV_ITEM: NavItem = {
-  href: "/app/mei" as Route,
-  label: "Meu salário real",
-  icon: Building2,
+const HOME_GROUP: NavGroup = {
+  label: "",
+  items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
 };
 
-function buildNavGroups(hasPj: boolean): NavGroup[] {
-  if (!hasPj) return BASE_NAV_GROUPS;
-  return BASE_NAV_GROUPS.map((group, i) => {
-    if (i !== 1) return group;
-    return { label: group.label, items: [...group.items, MEI_NAV_ITEM] };
-  });
+const TOOLS_GROUP: NavGroup = {
+  label: "Ferramentas",
+  items: [
+    { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", icon: LineChart },
+    { href: "/app/simular" as Route, label: "Simular", icon: PlusCircle },
+  ],
+};
+
+const PF_FINANCE_GROUP: NavGroup = {
+  label: "Minhas finanças",
+  items: [
+    { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
+    { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
+    { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
+    { href: "/app/metas" as Route, label: "Metas", icon: Target },
+  ],
+};
+
+const PJ_FINANCE_GROUP: NavGroup = {
+  label: "Minha empresa",
+  items: [
+    { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
+    { href: "/app/mei" as Route, label: "Meu salário real", icon: Building2 },
+    { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
+    { href: "/app/metas" as Route, label: "Metas", icon: Target },
+  ],
+};
+
+const HOUSEHOLD_NAV_ITEM: NavItem = {
+  href: "/app/lar" as Route,
+  label: "Nosso lar",
+  icon: Users,
+};
+
+function buildNavGroups(activeIsPj: boolean, hasHousehold: boolean): NavGroup[] {
+  const tools = hasHousehold
+    ? { label: TOOLS_GROUP.label, items: [...TOOLS_GROUP.items, HOUSEHOLD_NAV_ITEM] }
+    : TOOLS_GROUP;
+  return [HOME_GROUP, activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP, tools];
 }
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -97,17 +107,19 @@ export interface SidebarProps {
   isPro: boolean;
   profiles: SerializedProfile[];
   activeProfileId: string;
+  hasHousehold: boolean;
 }
 
-export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
     pathname.startsWith("/app/conteudo/livros") ||
     pathname.startsWith("/app/conteudo/ritmo");
   const [collapsed, setCollapsed] = useState(false);
-  const hasPj = profiles.some((p) => p.type === "PJ_MEI");
-  const navGroups = buildNavGroups(hasPj);
+  const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
+  const activeIsPj = activeProfile?.type === "PJ_MEI";
+  const navGroups = buildNavGroups(activeIsPj, hasHousehold);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);

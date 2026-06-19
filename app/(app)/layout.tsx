@@ -25,6 +25,7 @@ import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
 import { UsageHeartbeat } from "./app/_components/usage-heartbeat.client";
 import { fetchUnreadNotificationsCount } from "./app/notificacoes/_actions/list-notifications.action";
+import { fetchMyHouseholds } from "./app/_actions/household-queries";
 import { fetchUserProfiles } from "./app/_actions/profile-queries";
 
 export const metadata: Metadata = {
@@ -58,15 +59,21 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
   const notificationCount = await fetchUnreadNotificationsCount();
 
   const credsRepo = repos.userCredentials;
-  const [creds, passkeys, avatarUrl, profilesPayload] = await Promise.all([
+  const [creds, passkeys, avatarUrl, profilesPayload, households] = await Promise.all([
     credsRepo.find(user.id),
     credsRepo.listWebauthn(user.id),
     repos.userAvatars.get(user.id),
     fetchUserProfiles(),
+    fetchMyHouseholds(),
   ]);
   const appLockEnabled = creds?.appLockEnabled ?? false;
   const appLockTimeout = creds?.appLockTimeout ?? 60;
   const hasPasskey = passkeys.length > 0;
+  const hasHousehold = households.length > 0;
+
+  const activeIsPj =
+    profilesPayload?.profiles.find((p) => p.id === profilesPayload.activeProfileId)?.type ===
+    "PJ_MEI";
 
   const hideValues = (await cookies()).get("sf_hide_values")?.value === "1";
 
@@ -84,6 +91,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               isPro={user.isPro}
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
+              hasHousehold={hasHousehold}
             />
             <Topbar notificationCount={notificationCount} />
             <MobileTopBar
@@ -92,6 +100,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               notificationCount={notificationCount}
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
+              hasHousehold={hasHousehold}
             />
 
             <UsageHeartbeat />
@@ -102,7 +111,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             {children}
 
             <div className="md:hidden">
-              <BottomNavGate />
+              <BottomNavGate activeIsPj={activeIsPj} />
             </div>
           </div>
           </InstallProvider>

@@ -43,6 +43,6 @@ export async function switchProfileAction(
     maxAge: 365 * 24 * 60 * 60,
   });
 
-  revalidatePath("/app");
+  revalidatePath("/app", "layout");
   return { ok: true, data: undefined };
 }

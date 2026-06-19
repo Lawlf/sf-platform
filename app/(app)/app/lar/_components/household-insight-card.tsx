@@ -8,9 +8,9 @@ interface Props {
 }
 
 const STATE_LABEL: Record<string, string> = {
-  bleeding: "Casa sangrando",
-  tight: "Casa apertada",
-  no_cushion: "Sem colchão",
+  bleeding: "Casa no aperto",
+  tight: "Casa no limite",
+  no_cushion: "Casa sem reserva",
   ready_to_grow: "Pronta para crescer",
 };
 
@@ -44,7 +44,7 @@ export function HouseholdInsightCard({ insight, snapshot }: Props) {
         </div>
         <div className="shrink-0 text-right">
           <span className="block text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Comprometido
+            Comprometido da casa
           </span>
           <span className={`text-base font-bold tabular-nums ${committedColor(snapshot.committedPct)}`}>
             {snapshot.committedPct}%

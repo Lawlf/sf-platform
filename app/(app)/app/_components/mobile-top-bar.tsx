@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, Settings } from "lucide-react";
+import { Bell, Settings, Users } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -16,9 +16,10 @@ export interface MobileTopBarProps {
   notificationCount?: number;
   profiles?: SerializedProfile[];
   activeProfileId?: string;
+  hasHousehold?: boolean;
 }
 
-export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId }: MobileTopBarProps) {
+export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId, hasHousehold = false }: MobileTopBarProps) {
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
   const profileBadge = activeProfile?.type === "PJ_MEI" ? "PJ" : activeProfile ? "PF" : null;
   const hasNotifications = notificationCount > 0;
@@ -51,6 +52,17 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
 
       <div className="flex items-center gap-2.5">
         <HideValuesToggle size={22} />
+        {hasHousehold ? (
+          <SimpleTooltip label="Nosso lar" side="bottom">
+            <Link
+              href={"/app/lar" as Route}
+              aria-label="Nosso lar"
+              className="focus-ring flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--surface-1)] text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
+            >
+              <Users size={22} strokeWidth={1.75} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        ) : null}
         <SimpleTooltip label="Notificações" side="bottom">
           <Link
             href={"/app/notificacoes" as Route}

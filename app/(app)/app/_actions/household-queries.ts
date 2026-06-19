@@ -4,6 +4,7 @@ import type { HouseholdInviteEntity, HouseholdMemberEntity, HouseholdShareLevel 
 import type { ProfileType } from "@/domain/entities/profile.entity";
 import { buildHouseholdSnapshot } from "@/application/use-cases/household/build-household-snapshot.use-case";
 import { buildHouseholdPrescription } from "@/application/use-cases/household/build-household-prescription.use-case";
+import { checkHouseholdHasPro } from "@/application/use-cases/household/check-household-has-pro.use-case";
 import { getSharedProfileDetail } from "@/application/use-cases/household/get-shared-profile-detail.use-case";
 import { listHouseholdGoals } from "@/application/use-cases/household/list-household-goals.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
@@ -199,11 +200,29 @@ export interface HouseholdSnapshotPayload {
   contributions: SerializedContribution[];
 }
 
+export type HouseholdSnapshotResult =
+  | { gated: false; snapshot: HouseholdSnapshotPayload }
+  | { gated: true; hasData: boolean }
+  | null;
+
 export async function fetchHouseholdSnapshot(
   householdId: string,
-): Promise<HouseholdSnapshotPayload | null> {
+): Promise<HouseholdSnapshotResult> {
   const user = await getCurrentUser();
   if (!user) return null;
+
+  const membership = await repos.households.findMembership(householdId, user.id);
+  if (!membership) return null;
+
+  const hasPro = await checkHouseholdHasPro(
+    { households: repos.households, users: repos.users },
+    { householdId },
+  );
+
+  if (!hasPro) {
+    const sharedProfiles = await repos.households.listSharedProfiles(householdId);
+    return { gated: true, hasData: sharedProfiles.length > 0 };
+  }
 
   const result = await buildHouseholdSnapshot(
     {
@@ -227,23 +246,26 @@ export async function fetchHouseholdSnapshot(
   const v = result.value;
 
   return {
-    totalIncomeBrl: formatCents(v.totalIncomeCents),
-    totalDebtBalanceBrl: formatCents(v.totalDebtBalanceCents),
-    totalMonthlyServiceBrl: formatCents(v.totalMonthlyServiceCents),
-    freeBrl: formatCents(v.freeCents),
-    committedPct:
-      v.totalIncomeCents === 0n
-        ? 0
-        : Math.round(Number(v.committedPctBps) / 100),
-    netWorthBrl: formatCents(v.netWorthCents),
-    contributions: v.contributions.map((c) => ({
-      profileId: c.profileId,
-      displayName: c.displayName,
-      shareLevel: c.shareLevel,
-      incomeBrl: formatCents(c.incomeCents),
-      debtBalanceBrl: formatCents(c.debtBalanceCents),
-      netWorthBrl: formatCents(c.netWorthCents),
-    })),
+    gated: false,
+    snapshot: {
+      totalIncomeBrl: formatCents(v.totalIncomeCents),
+      totalDebtBalanceBrl: formatCents(v.totalDebtBalanceCents),
+      totalMonthlyServiceBrl: formatCents(v.totalMonthlyServiceCents),
+      freeBrl: formatCents(v.freeCents),
+      committedPct:
+        v.totalIncomeCents === 0n
+          ? 0
+          : Math.round(Number(v.committedPctBps) / 100),
+      netWorthBrl: formatCents(v.netWorthCents),
+      contributions: v.contributions.map((c) => ({
+        profileId: c.profileId,
+        displayName: c.displayName,
+        shareLevel: c.shareLevel,
+        incomeBrl: formatCents(c.incomeCents),
+        debtBalanceBrl: formatCents(c.debtBalanceCents),
+        netWorthBrl: formatCents(c.netWorthCents),
+      })),
+    },
   };
 }
 
@@ -337,6 +359,45 @@ export async function fetchHouseholdGoals(
   }));
 }
 
+export interface SerializedHouseholdGoalForPersonalView {
+  id: string;
+  householdId: string;
+  householdName: string;
+  title: string;
+  savedBrl: string;
+  targetBrl: string | null;
+  progressPct: number | null;
+}
+
+export async function fetchMyHouseholdGoals(): Promise<SerializedHouseholdGoalForPersonalView[]> {
+  const user = await getCurrentUser();
+  if (!user) return [];
+
+  const households = await repos.households.listHouseholdsForUser(user.id);
+  if (households.length === 0) return [];
+
+  const perHousehold = await Promise.all(
+    households.map(async (h) => {
+      const result = await listHouseholdGoals(
+        { households: repos.households, goals: repos.goals, contributions: repos.goalContributions },
+        { householdId: h.id, userId: user.id },
+      );
+      if (!isOk(result)) return [];
+      return result.value.map(({ goal, savedCents, targetCents, progressPct }) => ({
+        id: goal.id,
+        householdId: h.id,
+        householdName: h.name,
+        title: goal.title,
+        savedBrl: formatCents(savedCents),
+        targetBrl: targetCents !== null ? formatCents(targetCents) : null,
+        progressPct,
+      }));
+    }),
+  );
+
+  return perHousehold.flat();
+}
+
 export interface HouseholdInsightPayload {
   state: PrescriptionState;
   dominantType: MoveType | null;
@@ -349,6 +410,15 @@ export async function fetchHouseholdInsight(
 ): Promise<HouseholdInsightPayload | null> {
   const user = await getCurrentUser();
   if (!user) return null;
+
+  const membership = await repos.households.findMembership(householdId, user.id);
+  if (!membership) return null;
+
+  const hasPro = await checkHouseholdHasPro(
+    { households: repos.households, users: repos.users },
+    { householdId },
+  );
+  if (!hasPro) return null;
 
   const result = await buildHouseholdPrescription(
     {

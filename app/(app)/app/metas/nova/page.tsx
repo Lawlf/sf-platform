@@ -14,6 +14,7 @@ import { parseGoalSeed } from "../../simular/_lib/goal-seed";
 import { loadSimPrefill } from "../../simular/_lib/sim-prefill";
 import { fetchGoalsWithProgress } from "../_actions/goal-queries";
 
+import { HouseholdGoalNudge } from "./_components/household-goal-nudge";
 import { NewGoal } from "./_components/new-goal.client";
 
 export const metadata: Metadata = { title: "Nova meta" };
@@ -110,6 +111,7 @@ export default async function NovaMetaPage({
   return (
     <PageShell title="Nova meta" backHref={"/app/metas" as Route}>
       <NewGoal prefill={prefill} debts={debtList} assets={assetList} seed={seed} />
+      <HouseholdGoalNudge />
     </PageShell>
   );
 }

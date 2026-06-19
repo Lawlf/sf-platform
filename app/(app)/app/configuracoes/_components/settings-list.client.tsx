@@ -21,6 +21,7 @@ import {
   SlidersHorizontal,
   Tag,
   UserCog,
+  Users,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -54,6 +55,12 @@ const SECTIONS: SettingSection[] = [
         label: "Perfis",
         description: "Separe renda, dívidas e patrimônio por contexto.",
         icon: SlidersHorizontal,
+      },
+      {
+        href: "/app/lar" as Route,
+        label: "Nosso lar",
+        description: "Convites e o que você compartilha com quem divide as contas.",
+        icon: Users,
       },
       {
         href: "/app/configuracoes/estilo" as Route,

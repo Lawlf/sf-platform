@@ -217,7 +217,7 @@ export function HouseholdJointView({ householdId, snapshot }: Props) {
 
         <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
           <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Parcelas por mês
+            Parcelas da casa por mês
           </span>
           <span className="text-lg font-bold tabular-nums text-[color:var(--text-primary)]">
             {snapshot.totalMonthlyServiceBrl}
@@ -226,7 +226,7 @@ export function HouseholdJointView({ householdId, snapshot }: Props) {
 
         <div className="flex flex-col gap-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-3">
           <span className="text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Comprometido
+            Comprometido da casa
           </span>
           <span className={`text-lg font-bold tabular-nums ${committedColor(snapshot.committedPct)}`}>
             {snapshot.committedPct}%
@@ -242,6 +242,10 @@ export function HouseholdJointView({ householdId, snapshot }: Props) {
           </span>
         </div>
       </div>
+
+      <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+        Soma dos perfis compartilhados. Cada um edita no próprio perfil.
+      </p>
 
       {hasContributions ? (
         <div className="flex flex-col gap-1">

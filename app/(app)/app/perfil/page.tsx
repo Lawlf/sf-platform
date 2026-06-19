@@ -15,9 +15,11 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 import { isOk } from "@/shared/errors/result";
 
 import { PageShell } from "../_components/page-shell";
+import { fetchMyHouseholds } from "../_actions/household-queries";
 
 import { AdminPanelButton } from "./_components/admin-panel-button.client";
 import { FlairPicker } from "./_components/flair-picker.client";
+import { HouseholdEntryCard } from "./_components/household-entry-card";
 import { PerfilAchievements } from "./_components/perfil-achievements";
 import { PerfilHero } from "./_components/perfil-hero";
 import { PerfilStats } from "./_components/perfil-stats";
@@ -33,6 +35,7 @@ export default async function PerfilPage({
   const { stepup } = await searchParams;
   const avatarUrl = await repos.userAvatars.get(user.id);
   const unlockedAchievements = await repos.userAchievements.listForUser(user.id);
+  const households = await fetchMyHouseholds();
 
   const username = await ensureUsername({ users: repos.users }, { userId: user.id });
   const activeMonths = await repos.usage.listActiveMonthIsos(user.id);
@@ -72,6 +75,7 @@ export default async function PerfilPage({
         <PerfilStatsSection userId={user.id} />
       </Suspense>
       <PerfilAchievements unlocked={unlockedAchievements} />
+      <HouseholdEntryCard hasHousehold={households.length > 0} />
     </PageShell>
   );
 }
