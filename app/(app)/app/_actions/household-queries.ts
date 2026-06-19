@@ -4,6 +4,7 @@ import type { HouseholdInviteEntity, HouseholdMemberEntity, HouseholdShareLevel 
 import type { ProfileType } from "@/domain/entities/profile.entity";
 import { buildHouseholdSnapshot } from "@/application/use-cases/household/build-household-snapshot.use-case";
 import { buildHouseholdPrescription } from "@/application/use-cases/household/build-household-prescription.use-case";
+import { buildHouseholdGap } from "@/application/use-cases/household/build-household-gap.use-case";
 import { checkHouseholdHasPro } from "@/application/use-cases/household/check-household-has-pro.use-case";
 import { getSharedProfileDetail } from "@/application/use-cases/household/get-shared-profile-detail.use-case";
 import { listHouseholdGoals } from "@/application/use-cases/household/list-household-goals.use-case";
@@ -403,6 +404,81 @@ export interface HouseholdInsightPayload {
   dominantType: MoveType | null;
   dominantHeadline: string | null;
   dominantImpact: string | null;
+}
+
+export interface HouseholdGapMemberPayload {
+  profileId: string;
+  displayName: string | null;
+  jaRecebidoBrl: string;
+  aReceberConfirmadoBrl: string;
+}
+
+export interface HouseholdGapPayload {
+  custosGarantidosBrl: string;
+  jaRecebidoBrl: string;
+  aReceberConfirmadoBrl: string;
+  aReceberEstimadoBrl: string;
+  gapBrl: string;
+  gapCents: string;
+  porMembro: HouseholdGapMemberPayload[];
+}
+
+export type HouseholdGapResult =
+  | { gated: false; gap: HouseholdGapPayload }
+  | { gated: true; hasData: boolean }
+  | null;
+
+export async function fetchHouseholdGap(householdId: string): Promise<HouseholdGapResult> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+
+  const membership = await repos.households.findMembership(householdId, user.id);
+  if (!membership) return null;
+
+  const hasPro = await checkHouseholdHasPro(
+    { households: repos.households, users: repos.users },
+    { householdId },
+  );
+
+  if (!hasPro) {
+    const sharedProfiles = await repos.households.listSharedProfiles(householdId);
+    return { gated: true, hasData: sharedProfiles.length > 0 };
+  }
+
+  const result = await buildHouseholdGap(
+    {
+      households: repos.households,
+      debts: repos.debts,
+      incomes: repos.incomes,
+      incomeSettlements: repos.incomeSettlements,
+      rates: repos.exchangeRates,
+      overrides: repos.userFxOverrides,
+      clock,
+      now: () => clock.now(),
+    },
+    { householdId, userId: user.id },
+  );
+
+  if (!isOk(result)) return null;
+  const g = result.value;
+
+  return {
+    gated: false,
+    gap: {
+      custosGarantidosBrl: formatCents(g.custosGarantidosCents),
+      jaRecebidoBrl: formatCents(g.jaRecebidoCents),
+      aReceberConfirmadoBrl: formatCents(g.aReceberConfirmadoCents),
+      aReceberEstimadoBrl: formatCents(g.aReceberEstimadoCents),
+      gapBrl: formatCents(g.gapCents < 0n ? -g.gapCents : g.gapCents),
+      gapCents: g.gapCents.toString(),
+      porMembro: g.porMembro.map((pm) => ({
+        profileId: pm.profileId,
+        displayName: pm.displayName,
+        jaRecebidoBrl: formatCents(pm.jaRecebidoCents),
+        aReceberConfirmadoBrl: formatCents(pm.aReceberConfirmadoCents),
+      })),
+    },
+  };
 }
 
 export async function fetchHouseholdInsight(

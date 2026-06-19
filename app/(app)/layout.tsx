@@ -100,7 +100,6 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               notificationCount={notificationCount}
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
-              hasHousehold={hasHousehold}
             />
 
             <UsageHeartbeat />
