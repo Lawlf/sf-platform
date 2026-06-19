@@ -28,7 +28,7 @@ const PF_NAV_ITEMS: NavItem[] = [
 const PJ_NAV_ITEMS: NavItem[] = [
   { href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true },
   { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
-  { href: "/app/mei" as Route, label: "Salário real", icon: Building2 },
+  { href: "/app/mei" as Route, label: "Salário", icon: Building2 },
   { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
 ];
 

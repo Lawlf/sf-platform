@@ -30,11 +30,13 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
 
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
   const multiProfile = profiles.length > 1;
-  const contextLabel = activeProfile ? (activeProfile.type === "PJ_MEI" ? "Minha empresa" : "Pessoal") : null;
+  const isBusiness = activeProfile?.type === "PJ_MEI";
+  const contextLabel = activeProfile ? (isBusiness ? "Minha empresa" : "Pessoal") : null;
   const hasNotifications = notificationCount > 0;
   const notificationLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 
   function startPress() {
+    if (!multiProfile) return;
     longPressFired.current = false;
     timer.current = setTimeout(() => {
       longPressFired.current = true;
@@ -54,7 +56,9 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
       aria-label="Barra superior"
       className="fixed inset-x-0 top-0 z-30 flex h-[72px] items-center justify-between border-b border-[color:var(--border-soft)] bg-[color:var(--bg-app)]/85 px-3 backdrop-blur-md md:hidden"
     >
-      <div className="flex min-w-0 items-center gap-2">
+      <div
+        className={`flex min-w-0 items-center ${multiProfile ? "gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.12] p-1" : ""}`}
+      >
         <SimpleTooltip label="Ir para perfil" side="bottom">
           <Link
             href={"/app/perfil" as Route}
@@ -85,10 +89,10 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
             onClick={() => setDrawerOpen(true)}
             aria-haspopup="dialog"
             aria-label={`Contexto: ${contextLabel}. Tocar para trocar de perfil`}
-            className="focus-ring flex min-w-0 items-center gap-1 rounded-full bg-[color:var(--surface-1)] py-1.5 pl-3 pr-2 text-[0.8125rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
+            className="focus-ring inline-flex min-w-0 items-center gap-1 self-stretch rounded-full pl-1.5 pr-3 text-[0.8125rem] font-semibold leading-none text-[color:var(--color-brand-800)] transition-colors"
           >
             <span className="truncate">{contextLabel}</span>
-            <ChevronDown size={15} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+            <ChevronDown size={14} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]/70" />
           </button>
         ) : null}
       </div>

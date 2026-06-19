@@ -1,6 +1,6 @@
 "use client";
 
-import { Pencil, Trash2, UserPlus } from "lucide-react";
+import { Pencil, Plus, Trash2 } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -13,10 +13,11 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
+
+import { renameProfileAction, deleteProfileAction } from "../../../_actions/profile-mgmt-actions";
+import { CreateProfileSheet } from "../../../_components/create-profile-sheet.client";
 import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
 
-import { CreateProfileSheet } from "../../../_components/create-profile-sheet.client";
-import { renameProfileAction, deleteProfileAction } from "../../../_actions/profile-mgmt-actions";
 
 interface ProfileItem {
   id: string;
@@ -28,24 +29,20 @@ interface ProfileItem {
 
 interface Props {
   profiles: ProfileItem[];
+  activeProfileId: string;
 }
 
-function profileBadge(type: ProfileItem["type"]): string {
-  return type === "PJ_MEI" ? "PJ" : "PF";
+function profileTypeLabel(profile: ProfileItem): string {
+  if (profile.type === "PF") return "Pessoal";
+  if (profile.taxClassification === "mei") return "Empresa · MEI";
+  return "Empresa";
 }
 
-function profileLabel(type: ProfileItem["type"]): string {
-  return type === "PJ_MEI" ? "Empresa" : "Pessoa física";
+function isMei(profile: ProfileItem): boolean {
+  return profile.type === "PJ_MEI" && profile.taxClassification === "mei";
 }
 
-function profileClassification(profile: ProfileItem): string | null {
-  if (profile.type === "PF") return null;
-  if (profile.taxClassification === "mei") return "MEI";
-  if (profile.taxClassification === "manual") return "Outro";
-  return null;
-}
-
-export function ProfilesManager({ profiles }: Props) {
+export function ProfilesManager({ profiles, activeProfileId }: Props) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [renameTarget, setRenameTarget] = useState<ProfileItem | null>(null);
@@ -99,17 +96,20 @@ export function ProfilesManager({ profiles }: Props) {
     });
   }
 
-  const deleteTargetName = deleteTarget?.displayName ?? (deleteTarget?.type === "PJ_MEI" ? "Empresa" : "Pessoa física");
+  const deleteTargetName = deleteTarget?.displayName ?? (deleteTarget?.type === "PJ_MEI" ? "Empresa" : "Pessoal");
   const deleteConfirmMatch = deleteConfirm.trim() === deleteTargetName;
 
   return (
     <>
       <div className="flex flex-col gap-3">
+        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)] backdrop-blur-xl">
+          Cada perfil é um conjunto separado de dinheiro: renda, dívidas e patrimônio. Você troca de perfil no topo do app, e os números mudam junto. A maioria das pessoas usa só um. Se você tem uma empresa MEI, dá pra separar o dinheiro dela aqui.
+        </div>
+
         {profiles.map((profile) => {
-          const badge = profileBadge(profile.type);
-          const label = profileLabel(profile.type);
-          const classification = profileClassification(profile);
-          const name = profile.displayName ?? label;
+          const typeLabel = profileTypeLabel(profile);
+          const name = profile.displayName ?? typeLabel;
+          const active = profile.id === activeProfileId;
           return (
             <div
               key={profile.id}
@@ -117,21 +117,21 @@ export function ProfilesManager({ profiles }: Props) {
             >
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
-                  <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
+                  <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                     {name}
                   </span>
-                  {profile.isPrimary ? (
-                    <span className="rounded bg-[color:var(--color-brand-500)]/[0.16] px-1.5 py-px text-[0.5625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
-                      Principal
+                  {active ? (
+                    <span className="flex-none rounded bg-[color:var(--color-brand-500)]/[0.16] px-1.5 py-px text-[0.5625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+                      Em uso agora
                     </span>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-1.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-                  <span className="rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
-                    {badge}
+                <span className="text-[0.75rem] text-[color:var(--text-secondary)]">{typeLabel}</span>
+                {isMei(profile) ? (
+                  <span className="mt-1 text-[0.75rem] text-[color:var(--text-muted)]">
+                    Boleto do MEI (R$ 76,90/mês) já cadastrado aqui.
                   </span>
-                  <span>{label}{classification ? ` · ${classification}` : ""}</span>
-                </div>
+                ) : null}
               </div>
               <div className="flex items-center gap-1.5">
                 <button
@@ -160,10 +160,15 @@ export function ProfilesManager({ profiles }: Props) {
         <button
           type="button"
           onClick={() => setCreateOpen(true)}
-          className="focus-ring flex items-center gap-3 rounded-2xl border border-dashed border-[color:var(--border-soft)] bg-transparent px-4 py-3 text-[0.875rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:bg-[color:var(--color-brand-500)]/[0.06] hover:text-[color:var(--color-brand-800)]"
+          className="focus-ring flex items-center gap-3 rounded-2xl border border-dashed border-[color:var(--border-soft)] bg-transparent px-4 py-3 text-left transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:bg-[color:var(--color-brand-500)]/[0.06]"
         >
-          <UserPlus size={16} strokeWidth={1.75} aria-hidden className="flex-none" />
-          Criar perfil
+          <span className="flex h-9 w-9 flex-none items-center justify-center rounded-lg border border-dashed border-[color:var(--border-strong)] text-[color:var(--text-muted)]">
+            <Plus size={18} strokeWidth={2} aria-hidden />
+          </span>
+          <span className="flex min-w-0 flex-col">
+            <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">Criar perfil</span>
+            <span className="text-[0.75rem] text-[color:var(--text-muted)]">Separe o dinheiro de uma empresa MEI do seu pessoal.</span>
+          </span>
         </button>
       </div>
 
@@ -174,7 +179,7 @@ export function ProfilesManager({ profiles }: Props) {
           <SheetHeader>
             <SheetTitle>Renomear perfil</SheetTitle>
             <SheetDescription>
-              Escolha um nome que identifique esse contexto.
+              Dá um nome que você reconheça. Ex: Pessoal, Minha empresa, Loja.
             </SheetDescription>
           </SheetHeader>
 
@@ -236,7 +241,7 @@ export function ProfilesManager({ profiles }: Props) {
           <SheetHeader>
             <SheetTitle className="text-[color:var(--semantic-negative)]">Excluir perfil</SheetTitle>
             <SheetDescription>
-              Isso apaga toda a renda, dívidas, patrimônio e metas desse perfil e remove ele de qualquer lar compartilhado. Não tem volta.
+              Some a renda, as dívidas, o patrimônio e as metas deste perfil. Seus outros perfis e o dinheiro deles continuam intactos. Isso não tem volta.
             </SheetDescription>
           </SheetHeader>
 

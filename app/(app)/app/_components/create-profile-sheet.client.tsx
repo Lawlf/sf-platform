@@ -13,9 +13,10 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/app/components/ui/sheet";
-import { wizardInputClass } from "../dividas/nova/_components/wizard-field";
 
 import { createProfileAction } from "../_actions/create-profile.action";
+import { wizardInputClass } from "../dividas/nova/_components/wizard-field";
+
 
 type ProfileType = "PF" | "Empresa";
 type TaxClassification = "mei" | "manual";
@@ -68,7 +69,7 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
         <SheetHeader>
           <SheetTitle>Criar perfil</SheetTitle>
           <SheetDescription>
-            Separe as finanças de cada contexto da sua vida.
+            Separe o dinheiro do seu pessoal e o de uma empresa MEI.
           </SheetDescription>
         </SheetHeader>
 
@@ -80,7 +81,7 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
             <div role="group" aria-label="Tipo de perfil" className="grid grid-cols-2 gap-2">
               {(
                 [
-                  { value: "PF" as const, label: "Pessoa física", icon: UserRound },
+                  { value: "PF" as const, label: "Pessoal", icon: UserRound },
                   { value: "Empresa" as const, label: "Empresa", icon: Building2 },
                 ] as const
               ).map(({ value, label, icon: Icon }) => {
@@ -167,7 +168,7 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
                   {(
                     [
                       { value: "mei" as const, label: "MEI" },
-                      { value: "manual" as const, label: "Outro" },
+                      { value: "manual" as const, label: "Outro tipo" },
                     ] as const
                   ).map(({ value, label }) => {
                     const active = taxClassification === value;
@@ -190,8 +191,8 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
                 </div>
                 <p className="mt-2 text-[0.75rem] leading-relaxed text-[color:var(--text-secondary)]">
                   {taxClassification === "mei"
-                    ? "MEI: cadastramos o DAS (R 76,90/mês) automaticamente pra você."
-                    : "Outro: você lança os impostos manualmente como lançamento."}
+                    ? "A gente já cadastra o boleto do MEI (R 76,90/mês) pra você."
+                    : "Você lança os impostos como um gasto normal, quando quiser."}
                 </p>
               </div>
             </>

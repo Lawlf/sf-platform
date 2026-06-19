@@ -5,17 +5,19 @@ import {
   Check,
   ChevronsUpDown,
   Coins,
+  FileText,
   HomeIcon,
   LineChart,
+  LogOut,
   PanelRightClose,
   PanelRightOpen,
+  Plus,
   PlusCircle,
   Search,
   Settings,
   SlidersHorizontal,
   Target,
   TrendingUp,
-  UserPlus,
   UserRound,
   Wallet,
 } from "lucide-react";
@@ -25,10 +27,11 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useRef, useState, useTransition } from "react";
 
+import { Button } from "@/app/components/ui/button";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
-import { switchProfileAction } from "../_actions/switch-profile.action";
 import type { SerializedProfile } from "../_actions/profile-queries";
+import { switchProfileAction } from "../_actions/switch-profile.action";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
@@ -74,7 +77,7 @@ const PJ_FINANCE_GROUP: NavGroup = {
   label: "Minha empresa",
   items: [
     { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
-    { href: "/app/mei" as Route, label: "Meu salário real", icon: Building2 },
+    { href: "/app/mei" as Route, label: "Meu salário", icon: Building2 },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
     { href: "/app/metas" as Route, label: "Metas", icon: Target },
   ],
@@ -277,14 +280,9 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
   );
 }
 
-function profileBadge(type: SerializedProfile["type"]): string {
-  return type === "PJ_MEI" ? "PJ" : "PF";
-}
-
 function profileSubtitle(profile: SerializedProfile): string {
-  if (profile.type === "PF") return "Pessoa física";
+  if (profile.type === "PF") return "Pessoal";
   if (profile.taxClassification === "mei") return "Empresa · MEI";
-  if (profile.taxClassification === "manual") return "Empresa · Outro";
   return "Empresa";
 }
 
@@ -390,6 +388,58 @@ function AccountZone({
     </button>
   );
 
+  const single = profiles.length <= 1;
+
+  const menuLinkClass =
+    "focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]";
+
+  const criarRow = (
+    <button
+      type="button"
+      role="menuitem"
+      onClick={() => { setOpen(false); setSheetOpen(true); }}
+      className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-left transition-colors hover:bg-[color:var(--surface-2)]"
+    >
+      <span className="flex h-7 w-7 flex-none items-center justify-center rounded-md border border-dashed border-[color:var(--border-strong)] text-[color:var(--text-muted)]">
+        <Plus size={15} strokeWidth={2} aria-hidden />
+      </span>
+      <span className="flex min-w-0 flex-1 flex-col items-start">
+        <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">Criar perfil</span>
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Separe o dinheiro de uma empresa MEI do seu pessoal.</span>
+      </span>
+    </button>
+  );
+
+  const accountLinks = (
+    <>
+      <Link href={"/app/perfil" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <UserRound size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Perfil e conta
+      </Link>
+      <Link href={"/app/configuracoes" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <Settings size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Configurações
+      </Link>
+      <Link href={"/app/configuracoes/documentos" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <FileText size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Meus documentos
+      </Link>
+    </>
+  );
+
+  const sairForm = (
+    <form action="/api/auth/sign-out" method="post">
+      <button
+        type="submit"
+        role="menuitem"
+        className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--semantic-negative)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.10]"
+      >
+        <LogOut size={16} strokeWidth={1.75} aria-hidden />
+        Sair
+      </button>
+    </form>
+  );
+
   return (
     <div
       ref={ref}
@@ -400,98 +450,104 @@ function AccountZone({
           role="menu"
           className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)]"
         >
-          <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
-            Perfil ativo
-          </p>
+          {single ? (
+            <>
+              {accountLinks}
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              {criarRow}
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              {sairForm}
+            </>
+          ) : (
+            <>
+              <p className="px-2.5 pb-1.5 pt-2 text-[0.625rem] font-bold uppercase tracking-[0.1em] text-[color:var(--text-muted)]">
+                Perfil ativo
+              </p>
 
-          {profiles.map((profile) => {
-            const active = profile.id === activeProfileId;
-            const badge = profileBadge(profile.type);
-            const subtitle = profileSubtitle(profile);
-            return (
-              <button
-                key={profile.id}
-                type="button"
-                role="menuitemradio"
-                aria-checked={active}
-                disabled={pending || active}
-                onClick={() => handleSwitch(profile.id)}
-                className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--surface-2)]" : "hover:bg-[color:var(--color-brand-500)]/[0.10]"}`}
-              >
-                <UserAvatar
-                  dataUrl={active ? avatarUrl : undefined}
-                  displayName={displayName}
-                  className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.5625rem] font-bold text-white"
-                />
-                <span className="flex min-w-0 flex-1 flex-col items-start">
-                  <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-                    {profile.displayName ?? displayName}
-                  </span>
-                  <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
-                </span>
-                <span className="flex-none rounded bg-[color:var(--surface-2)] px-1.5 py-px text-[0.625rem] font-bold text-[color:var(--text-muted)]">
-                  {badge}
-                </span>
-                {active ? (
-                  <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
-                ) : null}
-              </button>
-            );
-          })}
+              {profiles.map((profile) => {
+                const active = profile.id === activeProfileId;
+                const subtitle = profileSubtitle(profile);
+                return (
+                  <button
+                    key={profile.id}
+                    type="button"
+                    role="menuitemradio"
+                    aria-checked={active}
+                    disabled={pending || active}
+                    onClick={() => handleSwitch(profile.id)}
+                    className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
+                  >
+                    <UserAvatar
+                      dataUrl={active ? avatarUrl : undefined}
+                      displayName={displayName}
+                      className={`flex h-7 w-7 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.625rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
+                    />
+                    <span className="flex min-w-0 flex-1 flex-col items-start">
+                      <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+                        {profile.displayName ?? displayName}
+                      </span>
+                      <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                    </span>
+                    {active ? (
+                      <Check size={15} strokeWidth={2.25} aria-hidden className="flex-none text-[color:var(--color-brand-800)]" />
+                    ) : null}
+                  </button>
+                );
+              })}
 
-          <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              {criarRow}
 
-          <button
-            type="button"
-            role="menuitem"
-            onClick={() => { setOpen(false); setSheetOpen(true); }}
-            className="focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <UserPlus size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-            <span className="flex-1 text-left">Criar perfil</span>
-          </button>
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
 
-          <Link
-            href={"/app/configuracoes/perfis" as Route}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <SlidersHorizontal size={16} strokeWidth={1.75} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-            <span className="flex-1 text-left">Gerenciar perfis</span>
-          </Link>
+              <Button asChild variant="glass" size="sm" className="w-full gap-2">
+                <Link href={"/app/configuracoes/perfis" as Route} role="menuitem" onClick={() => setOpen(false)}>
+                  <SlidersHorizontal size={15} strokeWidth={1.75} aria-hidden />
+                  Gerenciar perfis
+                </Link>
+              </Button>
 
-          <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
 
-          <Link
-            href={"/app/perfil" as Route}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <UserRound size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
-            Perfil e conta
-          </Link>
-          <Link
-            href={"/app/configuracoes" as Route}
-            role="menuitem"
-            onClick={() => setOpen(false)}
-            className="focus-ring flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-[0.8125rem] font-medium text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.10]"
-          >
-            <Settings size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
-            Configurações
-          </Link>
+              {accountLinks}
+
+              <div className="my-1 h-px bg-[color:var(--border-soft)]" />
+
+              {sairForm}
+            </>
+          )}
         </div>
       ) : null}
 
       <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} />
 
       {collapsed ? (
-        <SimpleTooltip label="Conta" side="right">
-          {collapsedCard}
-        </SimpleTooltip>
+        <div className="flex flex-col items-stretch gap-1.5">
+          <SimpleTooltip label="Conta" side="right">
+            {collapsedCard}
+          </SimpleTooltip>
+          <SimpleTooltip label="Configurações" side="right">
+            <Link
+              href={"/app/configuracoes" as Route}
+              aria-label="Configurações"
+              className="focus-ring flex w-full items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-2 text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
+            >
+              <Settings size={16} strokeWidth={1.75} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        </div>
       ) : (
-        expandedCard
+        <div className="flex items-center gap-1.5">
+          <div className="min-w-0 flex-1">{expandedCard}</div>
+          <SimpleTooltip label="Configurações" side="top">
+            <Link
+              href={"/app/configuracoes" as Route}
+              aria-label="Configurações"
+              className="focus-ring flex h-9 w-9 flex-none items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
+            >
+              <Settings size={16} strokeWidth={1.75} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        </div>
       )}
     </div>
   );
