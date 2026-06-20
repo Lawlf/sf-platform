@@ -6,7 +6,7 @@ import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/de
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { IncomeCommittedService } from "@/domain/services/income-committed.service";
-import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
+import { monthlyIncomeCents } from "@/domain/services/income-monthly";
 import {
   StoryDetectionService,
   type StoryCardKind,
@@ -302,13 +302,9 @@ export async function fetchMonthDetail(input: {
     } else {
       date = dateInMonthFromDay(inc.paymentDay ?? inc.startDate.getUTCDate());
     }
-    const effectiveCents = effectiveIncomeCentsForMonth(
-      inc.id,
-      inc.amount.toCents(),
-      monthTarget,
-      incomeSettlementsRaw,
-    );
-    const notReceived = effectiveCents === 0n && inc.amount.toCents() > 0n;
+    const effectiveCents = monthlyIncomeCents(inc, monthTarget, incomeSettlementsRaw);
+    const baseCents = monthlyIncomeCents(inc, monthTarget, []);
+    const notReceived = effectiveCents === 0n && baseCents > 0n;
     return {
       id: inc.id,
       label: inc.label,

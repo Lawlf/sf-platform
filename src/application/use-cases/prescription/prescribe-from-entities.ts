@@ -6,8 +6,7 @@ import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
-import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
-import { WEEKS_PER_MONTH } from "@/domain/services/monthly-frequency";
+import { monthlyIncomeCents } from "@/domain/services/income-monthly";
 import { PrescriptionEngine } from "@/domain/services/prescription/prescription-engine.service";
 import type { Prescription } from "@/domain/services/prescription/prescription.types";
 import { monthlyDebtOutflow, type TimelineSettlement } from "@/domain/services/timeline.service";
@@ -77,31 +76,11 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
   });
 }
 
-function baseMonthlyIncomeReais(i: IncomeEntity, now: Date): number {
-  const amount = i.amount.toNumber();
-  switch (i.frequency) {
-    case "monthly":
-      return amount;
-    case "weekly":
-      return amount * WEEKS_PER_MONTH;
-    case "one_off":
-      return i.startDate.getTime() <= now.getTime() &&
-        i.startDate.getUTCFullYear() === now.getUTCFullYear() &&
-        i.startDate.getUTCMonth() === now.getUTCMonth()
-        ? amount
-        : 0;
-  }
-}
-
 function monthlyIncomeOf(
   i: IncomeEntity,
   now: Date,
   incomeSettlements: IncomeSettlementEntity[],
 ): number {
-  const baseReais = baseMonthlyIncomeReais(i, now);
-  if (baseReais <= 0) return 0;
-  const baseCents = BigInt(Math.round(baseReais * 100));
   const target = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
-  const effectiveCents = effectiveIncomeCentsForMonth(i.id, baseCents, target, incomeSettlements);
-  return Number(effectiveCents) / 100;
+  return Number(monthlyIncomeCents(i, target, incomeSettlements)) / 100;
 }
