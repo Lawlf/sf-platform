@@ -705,6 +705,43 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
     expect(feb?.totalDebtPayments.toCents()).toBe(250_000n);
   });
 
+  it("income with isActive=false does not contribute to totalIncome", async () => {
+    const incomes = makeIncomeRepo();
+    const debts = makeDebtRepo();
+    const debtPayments = makePaymentsRepo();
+    const assets = makeAssetRepo();
+
+    const activeIncome = makeIncome({ id: "inc-active", amount: makeMoney(4000) });
+    const archivedIncome = makeIncome({
+      id: "inc-archived",
+      amount: makeMoney(2000),
+      isActive: false,
+    });
+
+    (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([
+      activeIncome,
+      archivedIncome,
+    ]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+    (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockResolvedValue([]);
+
+    const result = await getTimelineForUser(
+      { incomes, debts, debtPayments, assets, ...makeFx() },
+      {
+        userId: "user-1",
+        profileId: "profile-1",
+        before: MonthYear.from(2026, 3),
+        limit: 1,
+      },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    const [point] = result.value.points;
+    expect(point?.totalIncome.toCents()).toBe(makeMoney(4000).toCents());
+  });
+
   it("returns isErr when a foreign entity has no available rate", async () => {
     const incomes = makeIncomeRepo();
     const debts = makeDebtRepo();

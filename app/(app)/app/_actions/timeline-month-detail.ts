@@ -238,7 +238,7 @@ export async function fetchMonthDetail(input: {
   ] = await Promise.all([
     debtPayments.listForProfileInRange(profileId, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForProfile(profileId, { status: "all" }),
-    incomes.listForProfile(profileId),
+    incomes.listForProfile(profileId, { onlyActive: true }),
     assets.findActiveByProfile(profileId),
     debtPayments.listForProfileInRange(profileId, {
       from: windowFrom.firstDay(),
@@ -283,6 +283,7 @@ export async function fetchMonthDetail(input: {
   });
 
   const activeIncomes = incomesRaw.filter((inc) => {
+    if (!inc.isActive) return false;
     const startMonth = MonthYear.fromDate(inc.startDate);
     if (month.isBefore(startMonth)) return false;
     if (inc.endDate) {
