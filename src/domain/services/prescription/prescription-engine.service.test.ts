@@ -47,7 +47,7 @@ function personalLoan(opts: { id?: string; label?: string; balanceReais: number;
 function baseSnapshot(over: Partial<PrescriptionSnapshot>): PrescriptionSnapshot {
   return {
     now: NOW, debts: [], monthlyIncomeReais: 5000, monthlyEssentialReais: 2000,
-    freeBalanceReais: 1000, committedPct: 30, reserveReais: 10000, config: PRESCRIPTION_CONFIG, ...over,
+    freeBalanceReais: 1000, committedPct: 30, reserveReais: 10000, hasEstimatedIncome: false, config: PRESCRIPTION_CONFIG, ...over,
   };
 }
 
@@ -104,7 +104,7 @@ describe("PrescriptionEngine — state classification", () => {
   it("free balance exactly zero is tight, never ready_to_grow (no hollow zero invest)", () => {
     const p = PrescriptionEngine.prescribe({
       now: NOW, debts: [], monthlyIncomeReais: 3000, monthlyEssentialReais: 0,
-      freeBalanceReais: 0, committedPct: 0, reserveReais: 999999, config: PRESCRIPTION_CONFIG,
+      freeBalanceReais: 0, committedPct: 0, reserveReais: 999999, hasEstimatedIncome: false, config: PRESCRIPTION_CONFIG,
     });
     expect(p.state).toBe("tight");
   });
@@ -186,6 +186,29 @@ describe("PrescriptionEngine — ranked alternatives", () => {
   it("drops zero-impact alternatives", () => {
     const out = PrescriptionEngine.prescribe(baseSnapshot({ debts: [], reserveReais: 6000, freeBalanceReais: 1000 }));
     expect(out.alternatives.every((m) => m.rankImpactReais > 0)).toBe(true);
+  });
+});
+
+describe("PrescriptionEngine — estimated income cautious branch", () => {
+  it("estimated income with surplus does NOT yield invest as dominant (yields build_reserve)", () => {
+    const p = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [], monthlyIncomeReais: 5000, monthlyEssentialReais: 0,
+      freeBalanceReais: 2000, committedPct: 0, reserveReais: 999999, hasEstimatedIncome: true,
+    }));
+    expect(p.dominant?.type).not.toBe("invest");
+    expect(p.dominant?.type).toBe("build_reserve");
+  });
+
+  it("firm income in ready_to_grow still yields invest", () => {
+    const p = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [], reserveReais: 6000, freeBalanceReais: 1000, hasEstimatedIncome: false,
+    }));
+    expect(p.dominant?.type).toBe("invest");
+  });
+
+  it("hasEstimatedIncome propagates to the Prescription output", () => {
+    const p = PrescriptionEngine.prescribe(baseSnapshot({ hasEstimatedIncome: true }));
+    expect(p.hasEstimatedIncome).toBe(true);
   });
 });
 

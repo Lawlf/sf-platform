@@ -64,6 +64,8 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
     .filter((a) => a.category === "cash")
     .reduce((sum, a) => sum + a.currentValue.toNumber(), 0);
 
+  const hasEstimatedIncome = incomes.some((i) => i.isEstimated);
+
   return PrescriptionEngine.prescribe({
     now,
     debts,
@@ -72,6 +74,7 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
     freeBalanceReais,
     committedPct,
     reserveReais,
+    hasEstimatedIncome,
     config: PRESCRIPTION_CONFIG,
   });
 }

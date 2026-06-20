@@ -22,6 +22,7 @@ export class PrescriptionEngine {
         state: "incomplete",
         committedPct: snapshot.committedPct,
         freeBalanceReais: snapshot.freeBalanceReais,
+        hasEstimatedIncome: snapshot.hasEstimatedIncome,
         dominant: null,
         alternatives: [],
         timeline: [],
@@ -38,6 +39,7 @@ export class PrescriptionEngine {
       state,
       committedPct: s.committedPct,
       freeBalanceReais: s.freeBalanceReais,
+      hasEstimatedIncome: s.hasEstimatedIncome,
       dominant,
       alternatives,
       timeline,
@@ -129,7 +131,7 @@ function buildDominant(
     case "no_cushion":
       return buildReserveMove(s);
     case "ready_to_grow":
-      return buildInvest(s);
+      return s.hasEstimatedIncome ? buildReserveMove(s) : buildInvest(s);
   }
 }
 

@@ -19,6 +19,8 @@ export interface PrescriptionViewPayload {
   prescription: Prescription | null;
   /** indica que existe plano sem revelar conteúdo (free + pro). */
   teaser: { hasPlan: boolean; missing: Prescription["completeness"]["missing"] };
+  /** true quando alguma renda do mês tem isEstimated=true (renda variável/irregular). */
+  hasEstimatedIncome: boolean;
   /** resposta concreta liberada pro free (sem números): qual movimento e dívida. */
   freeMove: { type: MoveType; targetDebtLabel: string | null; targetDebtId: string | null } | null;
   /** isca da timeline pro free: nome da 1ª dívida que quita, mês escondido (paywall). */
@@ -60,6 +62,7 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
     state: p.state,
     committedPct: p.committedPct,
     freeBalanceReais: p.freeBalanceReais,
+    hasEstimatedIncome: p.hasEstimatedIncome,
     prescription: user.isPro ? p : null, // paywall: números só pra Pro
     teaser: { hasPlan, missing: p.completeness.missing },
     // Movimento concreto sem números: liberado pro free (qual dívida atacar).

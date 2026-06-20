@@ -9,7 +9,7 @@ import { getPrescription } from "../_lib/prescription-cache";
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
-import { microEduFor, presentMove, presentTimeline, tightKindOf, type TightKind } from "./prescription-copy";
+import { ESTIMATED_INCOME_NOTE, microEduFor, presentMove, presentTimeline, tightKindOf, type TightKind } from "./prescription-copy";
 
 const CARD_TITLE = "O movimento do mês";
 
@@ -150,7 +150,7 @@ export async function NextStepCard() {
           </Link>
         )}
         <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-          A gente mostra a conta, a decisão é sua.
+          {data.hasEstimatedIncome ? ESTIMATED_INCOME_NOTE : "A gente mostra a conta, a decisão é sua."}
         </p>
       </section>
     );
@@ -212,9 +212,11 @@ export async function NextStepCard() {
         />
       </div>
       <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-        {p.dominant.type === "invest"
-          ? "Isto é educação financeira, não recomendação de investimento."
-          : "A gente mostra a conta, a decisão é sua."}
+        {p.hasEstimatedIncome
+          ? ESTIMATED_INCOME_NOTE
+          : p.dominant.type === "invest"
+            ? "Isto é educação financeira, não recomendação de investimento."
+            : "A gente mostra a conta, a decisão é sua."}
       </p>
     </section>
   );

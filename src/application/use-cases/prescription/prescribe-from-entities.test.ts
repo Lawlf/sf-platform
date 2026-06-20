@@ -237,4 +237,30 @@ describe("prescribeFromEntities", () => {
     expect(Math.round(result.committedPct)).toBe(20);
     expect(result.freeBalanceReais).toBeCloseTo(4000, 0);
   });
+
+  it("hasEstimatedIncome is false when no income has isEstimated", () => {
+    const result = prescribeFromEntities({
+      debts: [],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+    });
+    expect(result.hasEstimatedIncome).toBe(false);
+  });
+
+  it("hasEstimatedIncome is true when any income has isEstimated", () => {
+    const estimatedIncome: IncomeEntity = {
+      ...baseIncome,
+      id: "i2",
+      isEstimated: true,
+      sourceBreakdown: null,
+    };
+    const result = prescribeFromEntities({
+      debts: [],
+      incomes: [baseIncome, estimatedIncome],
+      assets: [cashAsset],
+      now: NOW,
+    });
+    expect(result.hasEstimatedIncome).toBe(true);
+  });
 });

@@ -62,6 +62,8 @@ export interface PrescriptionSnapshot {
   committedPct: number;
   /** total de ativos da categoria "cash" (reserva/liquidez), em reais. */
   reserveReais: number;
+  /** true quando alguma renda do mês tem isEstimated=true (renda variável/irregular). */
+  hasEstimatedIncome: boolean;
   config: PrescriptionConfig;
 }
 
@@ -77,6 +79,8 @@ export interface Prescription {
   freeBalanceReais: number;
   /** soma(monthlyDebtService)/renda*100. métrica estrutural estável (não cai com pagamento parcial do mês). */
   committedPct: number;
+  /** true quando alguma renda do mês tem isEstimated=true (renda variável/irregular). */
+  hasEstimatedIncome: boolean;
   /** null somente quando state === "incomplete". */
   dominant: PrescriptionMove | null;
   /** itens 2 e 3 do "ver mais" (máx 2). dominant + alternatives ≤ 3. */

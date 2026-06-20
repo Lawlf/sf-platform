@@ -6,6 +6,8 @@ import type {
 
 import { DEBT_RATE_ESTIMATES } from "../dividas/nova/_lib/debt-rate-estimates";
 
+export const ESTIMATED_INCOME_NOTE = "Baseado em renda estimada, pode variar no mês.";
+
 export interface TimelineLine {
   text: string;
   strong: boolean;

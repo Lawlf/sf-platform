@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { presentMove, tightKindOf } from "./prescription-copy";
+import { ESTIMATED_INCOME_NOTE, presentMove, tightKindOf } from "./prescription-copy";
+
+describe("ESTIMATED_INCOME_NOTE", () => {
+  it("is exported and non-empty", () => {
+    expect(typeof ESTIMATED_INCOME_NOTE).toBe("string");
+    expect(ESTIMATED_INCOME_NOTE.length).toBeGreaterThan(0);
+  });
+});
 
 describe("presentMove", () => {
   it("pay_debt (amortizing) shows reais saved + months", () => {
