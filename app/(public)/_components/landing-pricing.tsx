@@ -26,12 +26,14 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  "Tudo do Free",
-  "Histórico completo da linha do tempo, todos os meses",
-  "Aviso de vencimento no celular, por push e email",
-  "Acompanhe ações da B3 e criptomoedas: você diz o que tem, a gente puxa o preço e soma no patrimônio (com valorização e desvalorização automática)",
-  "Comparar financiamentos lado a lado (parcela fixa, parcela decrescente, banco A vs B)",
-  "Comparar ofertas de empréstimo",
+  "No ritmo atual, o plano mês a mês: em que mês cada dívida sai e pra onde vai sua sobra",
+  "Histórico de todos os meses, pra renda que sobe e desce fazer sentido junta",
+  "Lembrete no celular pra você abrir e fechar o mês, todo começo de mês",
+  "Aviso de vencimento no celular, pra não tomar juros de novo",
+  "Tudo do Free, com o painel e os simuladores completos",
+  "Se você investe: ações da B3 e cripto somando no patrimônio, com preço puxado sozinho",
+  "Se vocês são dois: visão conjunta do casal ou família, com renda e dívida somadas",
+  "Se for o seu caso: comparar financiamentos e ofertas de empréstimo lado a lado",
 ];
 
 export function LandingPricing() {
@@ -51,10 +53,15 @@ export function LandingPricing() {
             <span className="mb-3 block text-2xl font-bold text-[color:var(--text-secondary)] sm:text-3xl">
               Grátis pra sempre.
             </span>
-            R$ 19,90 só quando quiser histórico.
+            R$ 19,90 só quando quiser o plano mês a mês.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--text-secondary)] sm:text-lg">
             Se até aqui fez sentido, o resto da decisão é só preço.
+          </p>
+          <p className="mx-auto mt-4 max-w-xl text-[15px] leading-relaxed text-[color:var(--text-secondary)]">
+            Lembra dos R$ 3.840 que apareceram ali em cima? Calcular isso é de
+            graça. O Pro entra quando você quiser o plano inteiro: em que mês
+            cada dívida sai e pra onde vai sua sobra.
           </p>
 
           <div
@@ -127,7 +134,7 @@ export function LandingPricing() {
                     .replace(".", ",")} por mês)`
                 : "Cobrado mensalmente. Cancele quando quiser."
             }
-            description="Sua trajetória mês a mês, lembrete de vencimento no celular, ações e cripto somadas no patrimônio."
+            description="O plano de saída mês a mês: no ritmo atual, em que mês cada dívida sai e quando abre espaço pra guardar."
             ctaLabel="Começar com o Pro"
             ctaHref={`/cadastrar?plan=pro&billing=${billing}` as Route}
             ctaVariant="brand"
@@ -258,6 +265,12 @@ function PlanCard({
       >
         {ctaLabel}
       </Link>
+
+      {isPro && (
+        <p className="relative z-10 mt-3 text-center text-[12.5px] text-[color:var(--text-muted)]">
+          Cancela quando quiser e volta pro Free sem perder seus dados.
+        </p>
+      )}
 
       <div className="relative z-10 mt-7 h-px bg-[color:var(--border-soft)]" />
 

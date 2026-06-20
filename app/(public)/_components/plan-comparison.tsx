@@ -73,6 +73,12 @@ const GROUPS: Group[] = [
         pro: true,
       },
       {
+        feature: "Plano de saída mês a mês",
+        hint: "No ritmo atual, em que mês cada dívida sai e pra onde vai sua sobra, mês a mês até o fim.",
+        free: false,
+        pro: true,
+      },
+      {
         feature: "Simulador: pagar mais por mês",
         free: true,
         pro: true,
@@ -134,6 +140,23 @@ const GROUPS: Group[] = [
       {
         feature: "Aviso de vencimento no celular",
         hint: "O lembrete chega por push e email, sem precisar abrir o app.",
+        free: false,
+        pro: true,
+      },
+      {
+        feature: "Lembrete pra fechar o mês",
+        hint: "Todo começo de mês, um aviso no celular pra você abrir e atualizar o que mudou.",
+        free: false,
+        pro: true,
+      },
+    ],
+  },
+  {
+    label: "Em conjunto",
+    rows: [
+      {
+        feature: "Visão conjunta do casal ou da família",
+        hint: "Convide alguém e vejam renda, dívida e patrimônio somados, no nível de detalhe que escolherem.",
         free: false,
         pro: true,
       },
