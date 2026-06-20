@@ -22,7 +22,7 @@ export default async function ValorHoraPage() {
     >
       <SimHowItWorks
         topic="valor-hora"
-        summary="A partir da sua renda mensal e da jornada por semana, a gente mostra quanto vale a sua hora e o seu dia. Serve pra decidir se um freela, hora extra ou corte de horas compensa."
+        summary="Dois caminhos: parta da sua renda mensal pra ver quanto vale a sua hora, ou informe as diárias e horas que você faz pra estimar quanto fecha no mês e salvar como renda."
       />
       <HourlyRateClient prefill={{ netMonthlyCents: prefill.incomeCents }} />
     </PageShell>

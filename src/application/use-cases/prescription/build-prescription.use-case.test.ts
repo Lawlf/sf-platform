@@ -24,9 +24,7 @@ const mUsd = (r: number) => {
 const fxDeps = (rateDecimal: string | null) => ({
   rates: {
     upsertDaily: vi.fn(),
-    findLatest: vi.fn().mockResolvedValue(
-      rateDecimal ? { rateDecimal, asOf: NOW } : null,
-    ),
+    findLatest: vi.fn().mockResolvedValue(rateDecimal ? { rateDecimal, asOf: NOW } : null),
   },
   overrides: {
     find: vi.fn().mockResolvedValue(null),
@@ -53,6 +51,7 @@ const income: IncomeEntity = {
   paymentDay: null,
   endDate: null,
   isEstimated: false,
+  sourceBreakdown: null,
   isActive: true,
   createdAt: NOW,
   deletedAt: null,
@@ -114,7 +113,10 @@ describe("buildPrescription", () => {
       now: () => NOW,
       ...fxDeps("5.00"),
     };
-    const r = await buildPrescription(fxConverted as never, { userId: "u1", profileId: "profile-1" });
+    const r = await buildPrescription(fxConverted as never, {
+      userId: "u1",
+      profileId: "profile-1",
+    });
     expect(isOk(r)).toBe(true);
     if (!isOk(r)) return;
     expect(r.value.dominant?.type).toBe("invest");

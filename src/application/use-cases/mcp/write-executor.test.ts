@@ -15,7 +15,9 @@ function rate(annual: number): InterestRate {
   return r.value;
 }
 
-function makeDeps(overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> = {}): WriteExecutorDeps {
+function makeDeps(
+  overrides: Partial<Record<keyof WriteExecutorDeps, unknown>> = {},
+): WriteExecutorDeps {
   const incomes = {
     findById: vi.fn(async () => null),
     listForProfile: vi.fn(),
@@ -96,7 +98,12 @@ describe("executeWrite", () => {
       userId: "u1",
       profileId: "p1",
       isPro: true,
-      args: { label: "Salário", amountCents: 500000, frequency: "monthly", startDate: "2026-06-01" },
+      args: {
+        label: "Salário",
+        amountCents: 500000,
+        frequency: "monthly",
+        startDate: "2026-06-01",
+      },
     });
 
     expect(r.entityType).toBe("income");
@@ -193,13 +200,16 @@ describe("executeWrite", () => {
       paymentDay: null,
       endDate: null,
       isEstimated: false,
+      sourceBreakdown: null,
       isActive: true,
       createdAt: new Date("2026-06-01"),
       deletedAt: null,
     };
     const deps = makeDeps();
     (deps.incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
-    (deps.incomes.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+    (deps.incomes.update as ReturnType<typeof vi.fn>).mockImplementation(
+      async (e: IncomeEntity) => e,
+    );
 
     const r = await executeWrite(deps, {
       toolName: "income_update",
@@ -262,13 +272,16 @@ describe("executeWrite", () => {
       paymentDay: null,
       endDate: null,
       isEstimated: false,
+      sourceBreakdown: null,
       isActive: true,
       createdAt: new Date("2026-06-01"),
       deletedAt: null,
     };
     const deps = makeDeps();
     (deps.incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
-    (deps.incomes.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+    (deps.incomes.update as ReturnType<typeof vi.fn>).mockImplementation(
+      async (e: IncomeEntity) => e,
+    );
 
     const r = await executeWrite(deps, {
       toolName: "income_update",

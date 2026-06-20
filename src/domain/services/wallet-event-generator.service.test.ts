@@ -30,6 +30,7 @@ function income(over: Partial<IncomeEntity>): IncomeEntity {
     startDate: utc(2026, 1, 1),
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     paymentDay: 5,
     createdAt: utc(2026, 1, 1),
@@ -52,10 +53,13 @@ describe("WalletEventGenerator.incomeEvents", () => {
   });
 
   it("falls back to startDate day when paymentDay is null", () => {
-    const events = WalletEventGenerator.incomeEvents([income({ paymentDay: null, startDate: utc(2026, 1, 12) })], {
-      from: utc(2026, 6, 1),
-      to: utc(2026, 6, 30),
-    });
+    const events = WalletEventGenerator.incomeEvents(
+      [income({ paymentDay: null, startDate: utc(2026, 1, 12) })],
+      {
+        from: utc(2026, 6, 1),
+        to: utc(2026, 6, 30),
+      },
+    );
     expect(events[0]!.date).toEqual(utc(2026, 6, 12));
   });
 
@@ -68,10 +72,13 @@ describe("WalletEventGenerator.incomeEvents", () => {
   });
 
   it("weekly income credits its monthly-equivalent (x4.33)", () => {
-    const events = WalletEventGenerator.incomeEvents([income({ frequency: "weekly", amount: moneyOf(1000) })], {
-      from: utc(2026, 6, 1),
-      to: utc(2026, 6, 30),
-    });
+    const events = WalletEventGenerator.incomeEvents(
+      [income({ frequency: "weekly", amount: moneyOf(1000) })],
+      {
+        from: utc(2026, 6, 1),
+        to: utc(2026, 6, 30),
+      },
+    );
     expect(events[0]!.amount.toNumber()).toBeCloseTo(4330, 0);
   });
 
@@ -208,21 +215,30 @@ describe("WalletEventGenerator.transactionEvents", () => {
   });
 
   it("keeps an in transaction as in", () => {
-    const events = WalletEventGenerator.transactionEvents([txn({ direction: "in", amount: moneyOf(200) })], "wallet-1");
+    const events = WalletEventGenerator.transactionEvents(
+      [txn({ direction: "in", amount: moneyOf(200) })],
+      "wallet-1",
+    );
     expect(events[0]!.direction).toBe("in");
     expect(events[0]!.amount.toNumber()).toBe(200);
   });
 
   it("ignores transactions on other accounts", () => {
-    expect(WalletEventGenerator.transactionEvents([txn({ accountId: "other" })], "wallet-1")).toHaveLength(0);
+    expect(
+      WalletEventGenerator.transactionEvents([txn({ accountId: "other" })], "wallet-1"),
+    ).toHaveLength(0);
   });
 
   it("ignores scheduled (unpaid) transactions", () => {
-    expect(WalletEventGenerator.transactionEvents([txn({ status: "scheduled" })], "wallet-1")).toHaveLength(0);
+    expect(
+      WalletEventGenerator.transactionEvents([txn({ status: "scheduled" })], "wallet-1"),
+    ).toHaveLength(0);
   });
 
   it("ignores soft-deleted transactions", () => {
-    expect(WalletEventGenerator.transactionEvents([txn({ deletedAt: utc(2026, 6, 8) })], "wallet-1")).toHaveLength(0);
+    expect(
+      WalletEventGenerator.transactionEvents([txn({ deletedAt: utc(2026, 6, 8) })], "wallet-1"),
+    ).toHaveLength(0);
   });
 });
 
@@ -312,10 +328,15 @@ describe("WalletEventGenerator.debtEvents", () => {
   });
 
   it("skips inactive debts", () => {
-    const events = WalletEventGenerator.debtEvents([recurringDebt({ status: "paid_off" })], [], [], {
-      from: utc(2026, 5, 1),
-      to: utc(2026, 6, 30),
-    });
+    const events = WalletEventGenerator.debtEvents(
+      [recurringDebt({ status: "paid_off" })],
+      [],
+      [],
+      {
+        from: utc(2026, 5, 1),
+        to: utc(2026, 6, 30),
+      },
+    );
     expect(events).toHaveLength(0);
   });
 
@@ -359,10 +380,17 @@ describe("WalletEventGenerator.debtEvents", () => {
   });
 
   it("non-recurring debt with no payment projects its monthly obligation", () => {
-    const events = WalletEventGenerator.debtEvents([loanDebt({})], [], [], {
-      from: utc(2026, 5, 1),
-      to: utc(2026, 5, 31),
-    }, [], MonthYear.from(2026, 5));
+    const events = WalletEventGenerator.debtEvents(
+      [loanDebt({})],
+      [],
+      [],
+      {
+        from: utc(2026, 5, 1),
+        to: utc(2026, 5, 31),
+      },
+      [],
+      MonthYear.from(2026, 5),
+    );
     expect(events).toHaveLength(1);
     expect(events[0]!.direction).toBe("out");
     expect(events[0]!.amount.toNumber()).toBe(500);

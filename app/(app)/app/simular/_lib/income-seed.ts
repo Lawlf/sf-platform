@@ -4,6 +4,7 @@ export interface IncomeSeed {
   amountCents: string;
   frequency: IncomeSeedFrequency;
   label: string;
+  breakdownJson?: string;
 }
 
 export type IncomeSearchParamsLike = Record<string, string | string[] | undefined>;
@@ -25,6 +26,7 @@ export function buildIncomeSeedQuery(seed: IncomeSeed): string {
   p.set("amountCents", seed.amountCents);
   p.set("frequency", seed.frequency);
   p.set("label", seed.label);
+  if (seed.breakdownJson) p.set("breakdown", seed.breakdownJson);
   return p.toString();
 }
 
@@ -37,5 +39,6 @@ export function parseIncomeSeed(sp: IncomeSearchParamsLike): IncomeSeed | null {
     ? (freqRaw as IncomeSeedFrequency)
     : "monthly";
   const label = (first(sp.label) ?? "").slice(0, 120);
-  return { amountCents, frequency, label };
+  const breakdownJson = first(sp.breakdown) ?? undefined;
+  return { amountCents, frequency, label, ...(breakdownJson ? { breakdownJson } : {}) };
 }

@@ -1,3 +1,5 @@
+import type { IncomeSourceBreakdown } from "@/domain/entities/income.entity";
+
 export interface HourlyRateInput {
   /** Renda líquida mensal (centavos). */
   netMonthlyCents: bigint;
@@ -36,6 +38,30 @@ export class HourlyRateService {
       perWorkdayCents: reaisToCents(perWorkday),
       monthlyHours,
     };
+  }
+
+  static project(breakdown: IncomeSourceBreakdown): {
+    monthCents: bigint;
+    hourlyCents: bigint | null;
+  } {
+    if (breakdown.basis === "hourly") {
+      const hourly = Math.max(0, breakdown.hourlyCents) / 100;
+      const hoursWeek = Math.max(0, breakdown.hoursPerWeek);
+      const month = hourly * hoursWeek * WEEKS_PER_MONTH;
+      return { monthCents: reaisToCents(month), hourlyCents: reaisToCents(hourly) };
+    }
+
+    let monthCents = 0n;
+    let totalHours = 0;
+    for (const line of breakdown.lines) {
+      const count = Math.max(0, line.count);
+      const value = Math.max(0, line.valuePerShiftCents);
+      monthCents += BigInt(Math.round(count * value));
+      totalHours += count * Math.max(0, line.hoursPerShift ?? 0);
+    }
+    const hourlyCents =
+      totalHours > 0 ? BigInt(Math.round(Number(monthCents) / totalHours)) : null;
+    return { monthCents, hourlyCents };
   }
 }
 

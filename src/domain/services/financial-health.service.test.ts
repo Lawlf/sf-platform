@@ -6,7 +6,11 @@ import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { FinancialHealthService, monthlyDebtService, monthlyRateFor } from "./financial-health.service";
+import {
+  FinancialHealthService,
+  monthlyDebtService,
+  monthlyRateFor,
+} from "./financial-health.service";
 
 function moneyOf(n: number): Money {
   const r = Money.from(n);
@@ -38,6 +42,7 @@ function income(over: Partial<IncomeEntity> = {}): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: new Date("2024-01-01"),
     deletedAt: null,

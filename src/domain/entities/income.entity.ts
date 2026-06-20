@@ -2,6 +2,17 @@ import type { Money } from "@/domain/value-objects/money.vo";
 
 export type IncomeFrequency = "monthly" | "weekly" | "one_off";
 
+export interface DailyShiftLine {
+  label?: string;
+  count: number;
+  valuePerShiftCents: number;
+  hoursPerShift?: number;
+}
+
+export type IncomeSourceBreakdown =
+  | { basis: "daily"; lines: DailyShiftLine[] }
+  | { basis: "hourly"; hourlyCents: number; hoursPerWeek: number };
+
 export interface IncomeEntity {
   id: string;
   userId: string;
@@ -24,6 +35,12 @@ export interface IncomeEntity {
    * receita garantida.
    */
   isEstimated: boolean;
+  /**
+   * Detalhe de como a renda foi estimada (diárias ou horas). Auxiliar: o valor
+   * do mês segue em `amount`. Permite reabrir o projetor e recalcular. `null`
+   * para rendas cadastradas à mão.
+   */
+  sourceBreakdown: IncomeSourceBreakdown | null;
   /**
    * Momento em que a renda foi cadastrada no sistema. Distinto de `startDate`
    * (data em que a renda começa a valer pro usuário), permite que a linha do

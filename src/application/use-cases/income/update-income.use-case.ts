@@ -1,4 +1,8 @@
-import type { IncomeEntity, IncomeFrequency } from "@/domain/entities/income.entity";
+import type {
+  IncomeEntity,
+  IncomeFrequency,
+  IncomeSourceBreakdown,
+} from "@/domain/entities/income.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { IncomeNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
@@ -22,6 +26,7 @@ export interface UpdateIncomeInput {
   endDate?: Date | null;
   paymentDay?: number | null;
   isEstimated?: boolean;
+  sourceBreakdown?: IncomeSourceBreakdown | null;
 }
 
 export async function updateIncome(
@@ -42,6 +47,7 @@ export async function updateIncome(
     ...(input.endDate !== undefined && { endDate: input.endDate }),
     ...(input.paymentDay !== undefined && { paymentDay: input.paymentDay }),
     ...(input.isEstimated !== undefined && { isEstimated: input.isEstimated }),
+    ...(input.sourceBreakdown !== undefined && { sourceBreakdown: input.sourceBreakdown }),
   };
   const persisted = await deps.incomes.update(updated);
   return ok(persisted);

@@ -104,6 +104,7 @@ describe("registerIncome", () => {
       paymentDay: null,
       endDate: null,
       isEstimated: false,
+      sourceBreakdown: null,
       isActive: true,
       createdAt: new Date("2026-01-15T10:00:00Z"),
       deletedAt: null,
@@ -127,5 +128,34 @@ describe("registerIncome", () => {
     if (isOk(result)) {
       expect(result.value).toBe(persisted);
     }
+  });
+
+  it("persiste o sourceBreakdown quando fornecido", async () => {
+    const incomes = makeIncomeRepo();
+    const clock = makeClock();
+    const amount = makeAmount(4800);
+    (incomes.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: IncomeEntity) => e);
+
+    await registerIncome(
+      { incomes, clock },
+      {
+        userId: "user-1",
+        profileId: "profile-1",
+        label: "Plantões",
+        amount,
+        frequency: "monthly",
+        startDate: new Date("2026-01-01"),
+        endDate: null,
+        isEstimated: true,
+        sourceBreakdown: { basis: "daily", lines: [{ count: 8, valuePerShiftCents: 60000 }] },
+      },
+    );
+
+    const arg = (incomes.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as IncomeEntity;
+    expect(arg.sourceBreakdown).toEqual({
+      basis: "daily",
+      lines: [{ count: 8, valuePerShiftCents: 60000 }],
+    });
+    expect(arg.isEstimated).toBe(true);
   });
 });
