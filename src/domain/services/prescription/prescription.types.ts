@@ -75,7 +75,7 @@ export interface Prescription {
   state: PrescriptionState;
   /** renda do mês menos a saída de dívida do mês (monthlyDebtOutflow). pode ser negativo. */
   freeBalanceReais: number;
-  /** soma(monthlyDebtService)/renda*100. 0-100+. espelha o card de comprometido. */
+  /** soma(monthlyDebtService)/renda*100. métrica estrutural estável (não cai com pagamento parcial do mês). */
   committedPct: number;
   /** null somente quando state === "incomplete". */
   dominant: PrescriptionMove | null;

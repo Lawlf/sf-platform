@@ -65,7 +65,7 @@ export type TightKind = "deficit" | "over_committed" | "squeezed";
 
 export function tightKindOf(args: { committedPct: number; freeBalanceReais: number }): TightKind {
   if (args.freeBalanceReais < 0) return "deficit";
-  if (args.committedPct >= 100) return "over_committed";
+  if (args.committedPct >= 100 && args.freeBalanceReais <= 0) return "over_committed";
   return "squeezed";
 }
 

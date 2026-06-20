@@ -60,14 +60,20 @@ describe("tightKindOf", () => {
   it("negative free balance is deficit", () => {
     expect(tightKindOf({ committedPct: 40, freeBalanceReais: -200 })).toBe("deficit");
   });
-  it("committed >= 100 with non-negative free is over_committed", () => {
-    expect(tightKindOf({ committedPct: 111, freeBalanceReais: 50 })).toBe("over_committed");
+  it("committed >= 100 with positive free is squeezed, not over_committed", () => {
+    expect(tightKindOf({ committedPct: 111, freeBalanceReais: 50 })).toBe("squeezed");
   });
   it("committed 50-100 with positive free is squeezed", () => {
     expect(tightKindOf({ committedPct: 70, freeBalanceReais: 150 })).toBe("squeezed");
   });
   it("committed exactly 100 with zero free is over_committed", () => {
     expect(tightKindOf({ committedPct: 100, freeBalanceReais: 0 })).toBe("over_committed");
+  });
+  it("committed >= 100 but positive free is squeezed, not over_committed (no contradiction)", () => {
+    expect(tightKindOf({ committedPct: 110, freeBalanceReais: 950 })).toBe("squeezed");
+  });
+  it("committed >= 100 with non-positive free is over_committed", () => {
+    expect(tightKindOf({ committedPct: 110, freeBalanceReais: 0 })).toBe("over_committed");
   });
 });
 
