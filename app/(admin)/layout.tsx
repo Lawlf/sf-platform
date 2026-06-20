@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { requireElevatedAdmin } from "@/presentation/http/middleware/require-elevated-admin";
 
 import { AdminSidebar } from "./admin/_components/admin-sidebar";
+import { countOpenFeedback } from "./admin/suporte/_actions/feedback-queries";
 
 export const metadata: Metadata = {
   robots: { index: false, follow: false, nocache: true },
@@ -13,9 +14,10 @@ export const metadata: Metadata = {
 export default async function AdminLayout({ children }: { children: ReactNode }) {
   const pathname = (await headers()).get("x-pathname") ?? "/admin";
   await requireElevatedAdmin(pathname);
+  const openFeedback = await countOpenFeedback();
   return (
     <div className="flex min-h-screen">
-      <AdminSidebar />
+      <AdminSidebar openFeedback={openFeedback} />
       <main className="flex-1 overflow-x-hidden p-6 md:p-8">{children}</main>
     </div>
   );

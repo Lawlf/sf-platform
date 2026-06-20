@@ -1,3 +1,5 @@
+import type { PwaOs } from "./platform";
+
 export interface GatingState {
   installed: boolean;
   standalone: boolean;
@@ -7,11 +9,24 @@ export interface GatingState {
   shownInCycle: number;
   cycleStart: number | null;
   lastDismissedAt: number | null;
+  os?: PwaOs | undefined;
 }
 
 export const MAX_SHOWS_PER_CYCLE = 2;
 export const CYCLE_MS = 30 * 24 * 60 * 60 * 1000;
 export const DISMISS_COOLDOWN_MS = 14 * 24 * 60 * 60 * 1000;
+
+// iOS não tem prompt nativo, só o tutorial: precisa de mais janela pra ser visto.
+const IOS_MAX_SHOWS_PER_CYCLE = 3;
+const IOS_DISMISS_COOLDOWN_MS = 7 * 24 * 60 * 60 * 1000;
+
+function maxShowsFor(os: PwaOs | undefined): number {
+  return os === "ios" ? IOS_MAX_SHOWS_PER_CYCLE : MAX_SHOWS_PER_CYCLE;
+}
+
+function dismissCooldownFor(os: PwaOs | undefined): number {
+  return os === "ios" ? IOS_DISMISS_COOLDOWN_MS : DISMISS_COOLDOWN_MS;
+}
 
 function cycleExpired(state: GatingState, now: number): boolean {
   return state.cycleStart === null || now - state.cycleStart > CYCLE_MS;
@@ -23,12 +38,15 @@ export function shouldShowBanner(state: GatingState, now: number): boolean {
   const triggerReady = state.valueMoment || state.sessionCount >= 2;
   if (!triggerReady) return false;
 
-  if (state.lastDismissedAt !== null && now - state.lastDismissedAt < DISMISS_COOLDOWN_MS) {
+  if (
+    state.lastDismissedAt !== null &&
+    now - state.lastDismissedAt < dismissCooldownFor(state.os)
+  ) {
     return false;
   }
 
   const shown = cycleExpired(state, now) ? 0 : state.shownInCycle;
-  if (shown >= MAX_SHOWS_PER_CYCLE) return false;
+  if (shown >= maxShowsFor(state.os)) return false;
 
   return true;
 }

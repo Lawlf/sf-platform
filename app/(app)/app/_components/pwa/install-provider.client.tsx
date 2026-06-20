@@ -24,9 +24,11 @@ import {
 import { InstallBanner } from "./install-banner.client";
 import { InstallContext, type InstallContextValue } from "./install-context";
 import { IosInstallSheet } from "./ios-install-sheet.client";
+import { IosSafariHint } from "./ios-safari-hint.client";
 import {
   bumpSession,
   markInstalled,
+  markIosSafariHintDismissed,
   persistDismissed,
   persistShown,
   readPersisted,
@@ -56,6 +58,7 @@ export function InstallProvider({
   const [env, setEnv] = useState<PwaEnv | null>(null);
   const [bannerVisible, setBannerVisible] = useState(false);
   const [sheetOpen, setSheetOpen] = useState(false);
+  const [safariHintVisible, setSafariHintVisible] = useState(false);
   const deferredRef = useRef<BeforeInstallPromptEvent | null>(null);
   const sessionCountRef = useRef(0);
   const plan = isPro ? "pro" : "free";
@@ -74,6 +77,7 @@ export function InstallProvider({
       shownInCycle: p.shownInCycle,
       cycleStart: p.cycleStart,
       lastDismissedAt: p.lastDismissedAt,
+      os: currentEnv?.os,
     };
   }, []);
 
@@ -108,6 +112,10 @@ export function InstallProvider({
     const persisted = readPersisted();
     if (!persisted.valueMoment && sessionCountRef.current >= 2) {
       trackEligible(detected, plan, "second_session");
+    }
+
+    if (detected.os === "ios" && !detected.canInstallIos && !persisted.iosSafariHintDismissed) {
+      setSafariHintVisible(true);
     }
 
     function onBeforeInstallPrompt(e: Event) {
@@ -174,6 +182,11 @@ export function InstallProvider({
     [env, plan, openIosSheet],
   );
 
+  const dismissSafariHint = useCallback(() => {
+    markIosSafariHintDismissed();
+    setSafariHintVisible(false);
+  }, []);
+
   const dismissBanner = useCallback(() => {
     const now = Date.now();
     const state = registerDismissed(buildGatingState(env), now);
@@ -204,6 +217,7 @@ export function InstallProvider({
         onOpenChange={setSheetOpen}
         showProPushNote={isPro && env?.os === "ios"}
       />
+      <IosSafariHint open={safariHintVisible} onDismiss={dismissSafariHint} />
     </InstallContext.Provider>
   );
 }

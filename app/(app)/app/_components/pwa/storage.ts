@@ -9,6 +9,8 @@ interface Persisted {
   valueMoment: boolean;
   sessionCount: number;
   installed: boolean;
+  iosSafariHintDismissed: boolean;
+  sidebarInstallDismissed: boolean;
 }
 
 const DEFAULTS: Persisted = {
@@ -18,6 +20,8 @@ const DEFAULTS: Persisted = {
   valueMoment: false,
   sessionCount: 0,
   installed: false,
+  iosSafariHintDismissed: false,
+  sidebarInstallDismissed: false,
 };
 
 function read(): Persisted {
@@ -59,6 +63,14 @@ export function markValueMomentStored(): void {
 
 export function markInstalled(): void {
   write({ ...read(), installed: true });
+}
+
+export function markIosSafariHintDismissed(): void {
+  write({ ...read(), iosSafariHintDismissed: true });
+}
+
+export function markSidebarInstallDismissed(): void {
+  write({ ...read(), sidebarInstallDismissed: true });
 }
 
 export function persistShown(state: GatingState): void {
