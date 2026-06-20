@@ -26,7 +26,7 @@ const freeFeatures = [
 ];
 
 const proFeatures = [
-  "No ritmo atual, o plano mês a mês: em que mês cada dívida sai e pra onde vai sua sobra",
+  "Em que mês cada dívida sai e pra onde vai sua sobra, mês a mês até a última parcela",
   "Histórico de todos os meses, pra renda que sobe e desce fazer sentido junta",
   "Lembrete no celular pra você abrir e fechar o mês, todo começo de mês",
   "Aviso de vencimento no celular, pra não tomar juros de novo",
