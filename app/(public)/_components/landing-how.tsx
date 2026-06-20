@@ -1,4 +1,4 @@
-import { Eye, Sparkles, UserPlus, Wand2 } from "lucide-react";
+import { Check, Eye, Sparkles, UserPlus, Wand2 } from "lucide-react";
 
 import { RevealOnScroll } from "./reveal-on-scroll";
 
@@ -290,6 +290,10 @@ function Step3Visual() {
       </div>
       <p className="mt-3 text-[11px] font-medium text-[color:var(--text-secondary)]">
         6 meses a menos. R$ 3.840 de juros economizados.
+      </p>
+      <p className="mt-2 flex items-center gap-1.5 text-[11px] font-semibold text-[color:var(--color-positive)]">
+        <Check className="h-3.5 w-3.5" strokeWidth={2.5} aria-hidden />
+        Esse cálculo é grátis. Sempre foi.
       </p>
     </div>
   );

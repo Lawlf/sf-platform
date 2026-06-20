@@ -325,7 +325,7 @@ export function NotificationSettings({
         <SectionGroup title="Resumos" showProLink={!isPro}>
           <PrefRow
             label="Resumo mensal"
-            description="No início do mês, um panorama do patrimônio e dívida."
+            description="No início do mês, um aviso pra você abrir e atualizar o que mudou."
             channels={["push", "email"]}
             checked={isPro ? prefs.monthlySummaryEnabled : false}
             onToggle={() => togglePref("monthlySummaryEnabled")}
