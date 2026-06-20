@@ -1,4 +1,4 @@
-import { Eye, Sparkles, UserPlus } from "lucide-react";
+import { Eye, Sparkles, UserPlus, Wand2 } from "lucide-react";
 
 import { RevealOnScroll } from "./reveal-on-scroll";
 
@@ -45,6 +45,17 @@ export function LandingHow() {
               O cadastro inteiro cabe em uma sessão de café. Você sai com um
               mapa do buraco e a primeira simulação rodando.
             </p>
+            <div className="mt-6 flex max-w-md items-start gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+              <Wand2
+                className="mt-0.5 h-4 w-4 shrink-0 text-[color:var(--color-brand-700)]"
+                strokeWidth={2}
+                aria-hidden
+              />
+              <p className="text-[14px] leading-relaxed text-[color:var(--text-primary)]">
+                Não sabe de cabeça o juros do cartão? Lança o que souber, a gente
+                ajuda a estimar o resto, e você ajusta quando quiser.
+              </p>
+            </div>
           </RevealOnScroll>
 
           <RevealOnScroll stagger as="ol" className="relative space-y-4">
@@ -118,7 +129,7 @@ function Step1Visual() {
         <MockField label="Nome" value="Cartão Nubank" />
         <div className="grid grid-cols-2 gap-2">
           <MockField label="Saldo atual" value="R$ 4.820,00" />
-          <MockField label="Juros ao mês" value="14,8%" />
+          <MockField label="Juros ao mês" value="14,8%" hint="estimado" />
         </div>
       </div>
       <button
@@ -132,7 +143,15 @@ function Step1Visual() {
   );
 }
 
-function MockField({ label, value }: { label: string; value: string }) {
+function MockField({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+}) {
   return (
     <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2">
       <p className="text-[9px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
@@ -140,6 +159,11 @@ function MockField({ label, value }: { label: string; value: string }) {
       </p>
       <p className="text-[13px] font-bold text-[color:var(--text-primary)]">
         {value}
+        {hint && (
+          <span className="ml-1.5 text-[9px] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            {hint}
+          </span>
+        )}
       </p>
     </div>
   );
