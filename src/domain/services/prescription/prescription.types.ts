@@ -56,7 +56,7 @@ export interface PrescriptionSnapshot {
   monthlyIncomeReais: number;
   /** soma do monthlyDebtService das dívidas recorrentes (gastos essenciais). */
   monthlyEssentialReais: number;
-  /** renda - soma(monthlyDebtService de todas as dívidas). pode ser negativo. */
+  /** renda - soma(monthlyDebtOutflow do mês corrente). pode ser negativo. */
   freeBalanceReais: number;
   /** soma(monthlyDebtService)/renda*100. 0-100+. */
   committedPct: number;
@@ -73,6 +73,10 @@ export type CascadeSegment =
 
 export interface Prescription {
   state: PrescriptionState;
+  /** renda do mês menos a saída de dívida do mês (monthlyDebtOutflow). pode ser negativo. */
+  freeBalanceReais: number;
+  /** soma(monthlyDebtService)/renda*100. 0-100+. espelha o card de comprometido. */
+  committedPct: number;
   /** null somente quando state === "incomplete". */
   dominant: PrescriptionMove | null;
   /** itens 2 e 3 do "ver mais" (máx 2). dominant + alternatives ≤ 3. */

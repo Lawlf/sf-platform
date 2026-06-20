@@ -18,7 +18,15 @@ export class PrescriptionEngine {
   static prescribe(snapshot: PrescriptionSnapshot): Prescription {
     const missing = detectMissing(snapshot);
     if (missing.length > 0) {
-      return { state: "incomplete", dominant: null, alternatives: [], timeline: [], completeness: { complete: false, missing } };
+      return {
+        state: "incomplete",
+        committedPct: snapshot.committedPct,
+        freeBalanceReais: snapshot.freeBalanceReais,
+        dominant: null,
+        alternatives: [],
+        timeline: [],
+        completeness: { complete: false, missing },
+      };
     }
     const { debts, estimatedRateIds } = applyRateEstimates(snapshot.debts, snapshot.config);
     const s: PrescriptionSnapshot = { ...snapshot, debts };
@@ -26,7 +34,15 @@ export class PrescriptionEngine {
     const dominant = buildDominant(state, s, estimatedRateIds);
     const alternatives = buildAlternatives(state, s, dominant, estimatedRateIds);
     const timeline = buildTimeline(state, s);
-    return { state, dominant, alternatives, timeline, completeness: { complete: true, missing: [] } };
+    return {
+      state,
+      committedPct: s.committedPct,
+      freeBalanceReais: s.freeBalanceReais,
+      dominant,
+      alternatives,
+      timeline,
+      completeness: { complete: true, missing: [] },
+    };
   }
 }
 

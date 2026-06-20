@@ -1,26 +1,37 @@
 import { PRESCRIPTION_CONFIG } from "@/domain/config/prescription-config";
+import type { DebtAmountAdjustmentEntity } from "@/domain/entities/debt-amount-adjustment.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
+import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
+import { WEEKS_PER_MONTH } from "@/domain/services/monthly-frequency";
 import { PrescriptionEngine } from "@/domain/services/prescription/prescription-engine.service";
 import type { Prescription } from "@/domain/services/prescription/prescription.types";
+import { monthlyDebtOutflow, type TimelineSettlement } from "@/domain/services/timeline.service";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { isOk } from "@/shared/errors/result";
-
-const WEEKS_PER_MONTH = 52 / 12;
 
 export interface PrescribeFromEntitiesInput {
   debts: DebtEntity[];
   incomes: IncomeEntity[];
   assets: AssetEntity[];
   now: Date;
+  incomeSettlements?: IncomeSettlementEntity[];
+  paymentsThisMonth?: DebtPaymentEntity[];
+  adjustments?: DebtAmountAdjustmentEntity[];
+  settlements?: TimelineSettlement[];
 }
 
 export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescription {
   const { debts, incomes, assets, now } = input;
 
+  const incomeSettlements = input.incomeSettlements ?? [];
+
   const monthlyIncomeReais = incomes.reduce(
-    (sum, i) => sum + monthlyIncomeOf(i, now),
+    (sum, i) => sum + monthlyIncomeOf(i, now, incomeSettlements),
     0,
   );
 
@@ -33,7 +44,18 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
     if (d.kind === "recurring") monthlyEssential += v;
   }
 
-  const freeBalanceReais = monthlyIncomeReais - monthlyDebtTotal;
+  const month = MonthYear.fromDate(now);
+  const outflowItems = monthlyDebtOutflow({
+    debts,
+    paymentsThisMonth: input.paymentsThisMonth ?? [],
+    month,
+    currentMonth: month,
+    adjustments: input.adjustments ?? [],
+    settlements: input.settlements ?? [],
+  });
+  const monthlyOutflowReais = outflowItems.reduce((sum, it) => sum + it.amount.toNumber(), 0);
+  const freeBalanceReais = monthlyIncomeReais - monthlyOutflowReais;
+
   const committedPct =
     monthlyIncomeReais > 0
       ? (monthlyDebtTotal / monthlyIncomeReais) * 100
@@ -55,7 +77,7 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
   });
 }
 
-function monthlyIncomeOf(i: IncomeEntity, now: Date): number {
+function baseMonthlyIncomeReais(i: IncomeEntity, now: Date): number {
   const amount = i.amount.toNumber();
   switch (i.frequency) {
     case "monthly":
@@ -69,4 +91,17 @@ function monthlyIncomeOf(i: IncomeEntity, now: Date): number {
         ? amount
         : 0;
   }
+}
+
+function monthlyIncomeOf(
+  i: IncomeEntity,
+  now: Date,
+  incomeSettlements: IncomeSettlementEntity[],
+): number {
+  const baseReais = baseMonthlyIncomeReais(i, now);
+  if (baseReais <= 0) return 0;
+  const baseCents = BigInt(Math.round(baseReais * 100));
+  const target = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
+  const effectiveCents = effectiveIncomeCentsForMonth(i.id, baseCents, target, incomeSettlements);
+  return Number(effectiveCents) / 100;
 }

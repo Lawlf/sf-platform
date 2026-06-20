@@ -10,7 +10,7 @@ import { awardEventAchievement } from "../../_actions/_achievements";
 
 export const createIncomeAction = action({
   schema: incomeFormSchema,
-  revalidates: ["incomes"],
+  revalidates: ["incomes", "home", "timeline"],
   handler: async (data, { userId, profileId }) => {
     const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 

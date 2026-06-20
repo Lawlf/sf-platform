@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 
 import type { AssetEntity } from "@/domain/entities/asset.entity";
+import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -158,5 +160,81 @@ describe("prescribeFromEntities", () => {
     );
     expect(typeof noCashResult.state).toBe("string");
     expect(typeof withCashResult.state).toBe("string");
+  });
+
+  it("applies income settlement (adjusted) to the prescription income base", () => {
+    const settlement = {
+      id: "s1",
+      profileId: "p1",
+      incomeId: "i1",
+      month: new Date(Date.UTC(2026, 5, 1)),
+      status: "adjusted",
+      adjustedAmountCents: 100000n,
+      createdAt: NOW,
+    } as unknown as IncomeSettlementEntity;
+
+    const baseline = prescribeFromEntities({
+      debts: [expensiveCard],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+    });
+
+    const adjusted = prescribeFromEntities({
+      debts: [expensiveCard],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+      incomeSettlements: [settlement],
+    });
+
+    expect(adjusted.state).toBe("tight");
+    expect(adjusted.dominant?.type).toBe("reduce_commitment");
+    expect(baseline.state).not.toBe("tight");
+  });
+
+  it("free balance reflects real payments via monthlyDebtOutflow", () => {
+    const cheapCard = {
+      ...expensiveCard,
+      currentStatement: m(400),
+      revolvingMonthlyRate: rate(0.02),
+    } as unknown as DebtEntity;
+    const payment = {
+      id: "pay1",
+      debtId: "card1",
+      amount: m(50),
+      paidAt: new Date(Date.UTC(2026, 5, 5)),
+      isClosingPayment: false,
+    } as unknown as DebtPaymentEntity;
+
+    const noPayment = prescribeFromEntities({
+      debts: [cheapCard],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+    });
+    const withPayment = prescribeFromEntities({
+      debts: [cheapCard],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+      paymentsThisMonth: [payment],
+    });
+
+    const contrib = (p: typeof noPayment) =>
+      p.dominant?.metrics.monthlyContributionReais ?? 0;
+    expect(contrib(withPayment)).toBeGreaterThan(contrib(noPayment));
+  });
+
+  it("exposes committedPct and freeBalanceReais on the prescription output", () => {
+    const result = prescribeFromEntities({
+      debts: [expensiveCard],
+      incomes: [baseIncome],
+      assets: [cashAsset],
+      now: NOW,
+    });
+
+    expect(Math.round(result.committedPct)).toBe(20);
+    expect(result.freeBalanceReais).toBeCloseTo(4000, 0);
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { FinancingDebt, OverdraftDebt, PersonalLoanDebt } from "@/domain/entities/debt.entity";
+import type { DebtEntity, FinancingDebt, OverdraftDebt, PersonalLoanDebt } from "@/domain/entities/debt.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
@@ -29,6 +29,7 @@ function rateMonthly(n: number): InterestRate {
 }
 
 const ASOF = new Date("2024-06-15T00:00:00Z");
+const NOW = new Date("2026-06-18T10:00:00Z");
 
 function income(over: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
@@ -319,5 +320,69 @@ describe("debt mappers (exported for prescription engine)", () => {
   it("monthlyDebtService returns the monthly installment in reais for a personal loan", () => {
     const r = monthlyDebtService(personalLoanDebt());
     expect(isOk(r) && r.value).toBe(500);
+  });
+
+  it("credit card with no statement counts open installments", () => {
+    const card = {
+      id: "c1",
+      userId: "u1",
+      kind: "credit_card",
+      status: "active",
+      label: "Cartao",
+      currentBalance: moneyOf(0),
+      originalPrincipal: moneyOf(0),
+      creditLimit: moneyOf(6000),
+      statementDay: 1,
+      dueDay: 10,
+      currentStatement: moneyOf(0),
+      revolvingBalance: moneyOf(0),
+      revolvingMonthlyRate: null,
+      installmentPurchases: [
+        {
+          description: "Geladeira",
+          total: moneyOf(2400),
+          installmentsTotal: 12,
+          installmentsRemaining: 8,
+          monthlyValue: moneyOf(200),
+        },
+      ],
+      createdAt: NOW,
+      deletedAt: null,
+    } as unknown as DebtEntity;
+
+    const svc = monthlyDebtService(card);
+    expect(isOk(svc) && svc.value).toBe(200);
+  });
+
+  it("credit card with a statement ignores installments (no double count)", () => {
+    const card = {
+      id: "c2",
+      userId: "u1",
+      kind: "credit_card",
+      status: "active",
+      label: "Cartao",
+      currentBalance: moneyOf(0),
+      originalPrincipal: moneyOf(0),
+      creditLimit: moneyOf(6000),
+      statementDay: 1,
+      dueDay: 10,
+      currentStatement: moneyOf(1000),
+      revolvingBalance: moneyOf(0),
+      revolvingMonthlyRate: null,
+      installmentPurchases: [
+        {
+          description: "Geladeira",
+          total: moneyOf(2400),
+          installmentsTotal: 12,
+          installmentsRemaining: 8,
+          monthlyValue: moneyOf(200),
+        },
+      ],
+      createdAt: NOW,
+      deletedAt: null,
+    } as unknown as DebtEntity;
+
+    const svc = monthlyDebtService(card);
+    expect(isOk(svc) && svc.value).toBe(1000);
   });
 });

@@ -7,9 +7,15 @@ import {
 } from "@/application/use-cases/fx/convert-entity-to-base";
 import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
+import type { DebtAmountAdjustmentRepositoryPort } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
+import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
 import type { Prescription } from "@/domain/services/prescription/prescription.types";
+import type { TimelineSettlement } from "@/domain/services/timeline.service";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { isErr, ok, type Result } from "@/shared/errors/result";
 
 import { prescribeFromEntities } from "./prescribe-from-entities";
@@ -19,6 +25,10 @@ export interface BuildPrescriptionDeps extends ConvertEntityDeps {
   debts: Pick<DebtRepositoryPort, "listForProfile">;
   incomes: Pick<IncomeRepositoryPort, "listForProfile">;
   assets: Pick<AssetRepositoryPort, "findActiveByProfile">;
+  incomeSettlements: Pick<IncomeSettlementRepositoryPort, "listForProfile">;
+  debtPayments: Pick<DebtPaymentRepositoryPort, "listForProfileInRange">;
+  debtAmountAdjustments: Pick<DebtAmountAdjustmentRepositoryPort, "listForProfile">;
+  recurringSettlements: Pick<RecurringSettlementRepositoryPort, "listForProfile">;
   now: () => Date;
 }
 
@@ -32,12 +42,27 @@ export async function buildPrescription(
   input: BuildPrescriptionInput,
 ): Promise<Result<Prescription, FxRateUnavailableError>> {
   const now = deps.now();
+  const month = MonthYear.fromDate(now);
 
-  const [rawDebts, rawIncomes, rawAssets] = await Promise.all([
-    deps.debts.listForProfile(input.profileId, { status: "active" }),
-    deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
-    deps.assets.findActiveByProfile(input.profileId),
-  ]);
+  const [rawDebts, rawIncomes, rawAssets, incomeSettlements, paymentsThisMonth, adjustments, recurringSettlementsRaw] =
+    await Promise.all([
+      deps.debts.listForProfile(input.profileId, { status: "active" }),
+      deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
+      deps.assets.findActiveByProfile(input.profileId),
+      deps.incomeSettlements.listForProfile(input.profileId),
+      deps.debtPayments.listForProfileInRange(input.profileId, {
+        from: month.firstDay(),
+        to: month.lastDay(),
+      }),
+      deps.debtAmountAdjustments.listForProfile(input.profileId),
+      deps.recurringSettlements.listForProfile(input.profileId),
+    ]);
+
+  const settlements: TimelineSettlement[] = recurringSettlementsRaw.map((s) => ({
+    debtId: s.debtId,
+    monthIso: MonthYear.fromDate(s.month).toIso(),
+    status: s.status,
+  }));
 
   const debts: typeof rawDebts = [];
   for (const d of rawDebts) {
@@ -60,7 +85,16 @@ export async function buildPrescription(
     assets.push(r.value);
   }
 
-  const prescription = prescribeFromEntities({ debts, incomes, assets, now });
+  const prescription = prescribeFromEntities({
+    debts,
+    incomes,
+    assets,
+    now,
+    incomeSettlements,
+    paymentsThisMonth,
+    adjustments,
+    settlements,
+  });
 
   return ok(prescription);
 }
