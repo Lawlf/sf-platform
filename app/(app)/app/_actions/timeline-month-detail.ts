@@ -268,19 +268,22 @@ export async function fetchMonthDetail(input: {
     return d;
   }
 
-  const serializedPayments: SerializedPaymentRow[] = paymentsRaw.map((p) => {
-    const debt = debtById.get(p.debtId);
-    return {
-      id: p.id,
-      debtId: p.debtId,
-      debtLabel: debt?.label ?? "Dívida removida",
-      amount: serializeMoney(p.amount),
-      paidAtIso: p.paidAt.toISOString(),
-      paidAtLabel: DATE_FMT.format(p.paidAt),
-      dateIso: p.paidAt.toISOString(),
-      isClosingPayment: p.isClosingPayment,
-    };
-  });
+  const recurringIds = new Set(debtsRaw.filter((d) => d.kind === "recurring").map((d) => d.id));
+  const serializedPayments: SerializedPaymentRow[] = paymentsRaw
+    .filter((p) => !recurringIds.has(p.debtId))
+    .map((p) => {
+      const debt = debtById.get(p.debtId);
+      return {
+        id: p.id,
+        debtId: p.debtId,
+        debtLabel: debt?.label ?? "Dívida removida",
+        amount: serializeMoney(p.amount),
+        paidAtIso: p.paidAt.toISOString(),
+        paidAtLabel: DATE_FMT.format(p.paidAt),
+        dateIso: p.paidAt.toISOString(),
+        isClosingPayment: p.isClosingPayment,
+      };
+    });
 
   const activeIncomes = incomesRaw.filter((inc) => {
     if (!inc.isActive) return false;
