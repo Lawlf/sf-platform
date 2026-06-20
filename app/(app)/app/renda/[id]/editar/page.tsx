@@ -42,6 +42,7 @@ export default async function EditIncomePage({ params }: { params: Promise<{ id:
             endDateIso: income.endDate ? income.endDate.toISOString().slice(0, 10) : null,
             paymentDay: income.paymentDay,
             isEstimated: income.isEstimated,
+            sourceBreakdown: income.sourceBreakdown,
           }}
         />
       </section>

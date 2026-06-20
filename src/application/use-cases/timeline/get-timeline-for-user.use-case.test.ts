@@ -119,6 +119,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: startDate,
     deletedAt: null,
@@ -594,12 +595,14 @@ describe("getTimelineForUser (cursor pagination + stories)", () => {
       order.push("debts:end");
       return [];
     });
-    (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockImplementation(async () => {
-      order.push("payments:start");
-      await delay(20);
-      order.push("payments:end");
-      return [];
-    });
+    (debtPayments.listForProfileInRange as ReturnType<typeof vi.fn>).mockImplementation(
+      async () => {
+        order.push("payments:start");
+        await delay(20);
+        order.push("payments:end");
+        return [];
+      },
+    );
     (assets.findActiveByProfile as ReturnType<typeof vi.fn>).mockImplementation(async () => {
       order.push("assets:start");
       await delay(20);

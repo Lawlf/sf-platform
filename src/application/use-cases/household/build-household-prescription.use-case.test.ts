@@ -1,7 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { DebtEntity } from "@/domain/entities/debt.entity";
-import type { HouseholdMemberEntity, HouseholdMemberProfileEntity } from "@/domain/entities/household.entity";
+import type {
+  HouseholdMemberEntity,
+  HouseholdMemberProfileEntity,
+} from "@/domain/entities/household.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
@@ -31,9 +34,7 @@ function makeMembership(userId: string): HouseholdMemberEntity {
   return { householdId: "h1", userId, role: "member", joinedAt: NOW };
 }
 
-function makeShare(
-  opts: { profileId: string; userId: string },
-): HouseholdMemberProfileEntity {
+function makeShare(opts: { profileId: string; userId: string }): HouseholdMemberProfileEntity {
   return {
     householdId: "h1",
     profileId: opts.profileId,
@@ -56,6 +57,7 @@ function makeIncome(id: string, userId: string, profileId: string, amount: numbe
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: NOW,
     deletedAt: null,
@@ -93,14 +95,10 @@ function makeDeps(opts: {
       listMembers: vi.fn(async () => members),
     },
     debts: {
-      listForProfile: vi.fn(async (profileId: string) =>
-        opts.debtsPerProfile?.[profileId] ?? [],
-      ),
+      listForProfile: vi.fn(async (profileId: string) => opts.debtsPerProfile?.[profileId] ?? []),
     },
     incomes: {
-      listForProfile: vi.fn(async (profileId: string) =>
-        opts.incomesPerProfile?.[profileId] ?? [],
-      ),
+      listForProfile: vi.fn(async (profileId: string) => opts.incomesPerProfile?.[profileId] ?? []),
     },
     assets: {
       findActiveByProfile: vi.fn(async () => []),

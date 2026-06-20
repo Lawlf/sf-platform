@@ -158,6 +158,7 @@ function deserializeIncome(s: Record<string, unknown>): IncomeEntity {
     endDate: optDate(s.endDate),
     paymentDay: optNum(s.paymentDay),
     isEstimated: typeof s.isEstimated === "boolean" ? s.isEstimated : false,
+    sourceBreakdown: null,
     isActive: bool(s.isActive),
     createdAt: date(s.createdAt),
     deletedAt: optDate(s.deletedAt),

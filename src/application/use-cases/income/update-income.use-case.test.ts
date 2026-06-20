@@ -43,6 +43,7 @@ function makeExisting(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     deletedAt: null,
@@ -61,7 +62,13 @@ describe("updateIncome", () => {
     const newAmount = makeAmount(6000);
     const result = await updateIncome(
       { incomes, clock },
-      { userId: "user-1", profileId: "profile-1", incomeId: "income-1", label: "Salario novo", amount: newAmount },
+      {
+        userId: "user-1",
+        profileId: "profile-1",
+        incomeId: "income-1",
+        label: "Salario novo",
+        amount: newAmount,
+      },
     );
 
     expect(result._tag).toBe("ok");

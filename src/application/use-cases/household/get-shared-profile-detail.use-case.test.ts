@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { HouseholdMemberEntity, HouseholdMemberProfileEntity } from "@/domain/entities/household.entity";
+import type {
+  HouseholdMemberEntity,
+  HouseholdMemberProfileEntity,
+} from "@/domain/entities/household.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import { Forbidden } from "@/domain/errors/auth-errors";
@@ -45,6 +48,7 @@ function makeIncome(profileId: string): IncomeEntity {
     isActive: true,
     paymentDay: null,
     isEstimated: false,
+    sourceBreakdown: null,
     createdAt: NOW,
     deletedAt: null,
   };

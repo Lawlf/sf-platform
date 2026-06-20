@@ -32,6 +32,7 @@ export const updateIncomeAction = action({
           endDate: data.endDate,
           paymentDay: data.paymentDay,
           isEstimated: data.isEstimated,
+          sourceBreakdown: data.sourceBreakdown,
         },
       ),
     );

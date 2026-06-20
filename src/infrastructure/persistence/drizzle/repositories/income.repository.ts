@@ -22,6 +22,7 @@ function rowToEntity(row: IncomeRow): IncomeEntity {
     endDate: row.endDate,
     isActive: row.isActive,
     isEstimated: row.isEstimated,
+    sourceBreakdown: row.sourceBreakdown ?? null,
     createdAt: row.createdAt,
     deletedAt: row.deletedAt ?? null,
   };
@@ -41,6 +42,7 @@ function entityToRow(entity: IncomeEntity): NewIncomeRow {
     endDate: entity.endDate,
     isActive: entity.isActive,
     isEstimated: entity.isEstimated,
+    sourceBreakdown: entity.sourceBreakdown,
     createdAt: entity.createdAt,
     deletedAt: entity.deletedAt,
   };

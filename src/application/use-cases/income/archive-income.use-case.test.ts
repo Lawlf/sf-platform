@@ -35,6 +35,7 @@ function makeExisting(userId = "user-1"): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     deletedAt: null,
@@ -47,7 +48,10 @@ describe("archiveIncome", () => {
     (incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeExisting("user-1"));
     (incomes.setActive as ReturnType<typeof vi.fn>).mockResolvedValue(undefined);
 
-    const result = await archiveIncome({ incomes }, { userId: "user-1", profileId: "profile-1", incomeId: "income-1" });
+    const result = await archiveIncome(
+      { incomes },
+      { userId: "user-1", profileId: "profile-1", incomeId: "income-1" },
+    );
 
     expect(result._tag).toBe("ok");
     expect(incomes.setActive).toHaveBeenCalledWith("income-1", false);
@@ -57,7 +61,10 @@ describe("archiveIncome", () => {
     const incomes = makeIncomeRepo();
     (incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(null);
 
-    const result = await archiveIncome({ incomes }, { userId: "user-1", profileId: "profile-1", incomeId: "missing" });
+    const result = await archiveIncome(
+      { incomes },
+      { userId: "user-1", profileId: "profile-1", incomeId: "missing" },
+    );
 
     expect(isErr(result)).toBe(true);
     if (isErr(result)) {
@@ -70,7 +77,10 @@ describe("archiveIncome", () => {
     const incomes = makeIncomeRepo();
     (incomes.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeExisting("owner"));
 
-    const result = await archiveIncome({ incomes }, { userId: "intruder", profileId: "profile-2", incomeId: "income-1" });
+    const result = await archiveIncome(
+      { incomes },
+      { userId: "intruder", profileId: "profile-2", incomeId: "income-1" },
+    );
 
     expect(isErr(result)).toBe(true);
     if (isErr(result)) {

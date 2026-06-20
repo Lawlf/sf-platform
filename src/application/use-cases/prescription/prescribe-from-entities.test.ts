@@ -34,6 +34,7 @@ const baseIncome: IncomeEntity = {
   paymentDay: null,
   endDate: null,
   isEstimated: false,
+  sourceBreakdown: null,
   isActive: true,
   createdAt: NOW,
   deletedAt: null,
@@ -152,7 +153,9 @@ describe("prescribeFromEntities", () => {
       now: NOW,
     });
 
-    expect(withCashResult.state).toBe(noCashResult.state === "no_cushion" ? "no_cushion" : withCashResult.state);
+    expect(withCashResult.state).toBe(
+      noCashResult.state === "no_cushion" ? "no_cushion" : withCashResult.state,
+    );
     expect(typeof noCashResult.state).toBe("string");
     expect(typeof withCashResult.state).toBe("string");
   });

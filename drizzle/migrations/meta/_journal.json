@@ -519,6 +519,13 @@
       "when": 1781931360973,
       "tag": "0073_blushing_tarot",
       "breakpoints": true
+    },
+    {
+      "idx": 74,
+      "version": "7",
+      "when": 1781938399559,
+      "tag": "0074_foamy_otto_octavius",
+      "breakpoints": true
     }
   ]
 }

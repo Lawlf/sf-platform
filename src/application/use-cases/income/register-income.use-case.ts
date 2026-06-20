@@ -1,4 +1,8 @@
-import type { IncomeEntity, IncomeFrequency } from "@/domain/entities/income.entity";
+import type {
+  IncomeEntity,
+  IncomeFrequency,
+  IncomeSourceBreakdown,
+} from "@/domain/entities/income.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import type { Money } from "@/domain/value-objects/money.vo";
@@ -19,6 +23,7 @@ export interface RegisterIncomeInput {
   endDate: Date | null;
   paymentDay?: number | null;
   isEstimated?: boolean;
+  sourceBreakdown?: IncomeSourceBreakdown | null;
 }
 
 export async function registerIncome(
@@ -37,6 +42,7 @@ export async function registerIncome(
     endDate: input.endDate,
     paymentDay: input.frequency === "monthly" ? (input.paymentDay ?? null) : null,
     isEstimated: input.isEstimated ?? false,
+    sourceBreakdown: input.sourceBreakdown ?? null,
     isActive: true,
     createdAt: now,
     deletedAt: null,

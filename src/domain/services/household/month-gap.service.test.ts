@@ -23,10 +23,7 @@ function rate(monthly: number): InterestRate {
   return r.value;
 }
 
-function makeIncome(
-  id: string,
-  opts: Partial<IncomeEntity> = {},
-): IncomeEntity {
+function makeIncome(id: string, opts: Partial<IncomeEntity> = {}): IncomeEntity {
   return {
     id,
     userId: "u1",
@@ -38,6 +35,7 @@ function makeIncome(
     endDate: null,
     isActive: true,
     isEstimated: false,
+    sourceBreakdown: null,
     paymentDay: null,
     createdAt: NOW,
     deletedAt: null,
@@ -120,10 +118,7 @@ describe("monthGapPieces", () => {
   });
 
   it("custos = sum of active debt monthly service", () => {
-    const debts = [
-      makeRecurringDebt("d1", 200),
-      makePersonalLoan("d2", 500),
-    ];
+    const debts = [makeRecurringDebt("d1", 200), makePersonalLoan("d2", 500)];
     const result = monthGapPieces({ debts, incomes: [], settlements: [], now: NOW });
     expect(result.custosGarantidosCents).toBe(70000n);
   });
@@ -137,7 +132,12 @@ describe("monthGapPieces", () => {
   it("income with received settlement goes to jaRecebido", () => {
     const income = makeIncome("i1", { amount: m(5000) });
     const settlement = makeSettlement("i1", "received");
-    const result = monthGapPieces({ debts: [], incomes: [income], settlements: [settlement], now: NOW });
+    const result = monthGapPieces({
+      debts: [],
+      incomes: [income],
+      settlements: [settlement],
+      now: NOW,
+    });
     expect(result.jaRecebidoCents).toBe(500000n);
     expect(result.aReceberConfirmadoCents).toBe(0n);
     expect(result.aReceberEstimadoCents).toBe(0n);
@@ -146,14 +146,24 @@ describe("monthGapPieces", () => {
   it("income with adjusted settlement uses adjustedAmountCents", () => {
     const income = makeIncome("i1", { amount: m(5000) });
     const settlement = makeSettlement("i1", "adjusted", 420000n);
-    const result = monthGapPieces({ debts: [], incomes: [income], settlements: [settlement], now: NOW });
+    const result = monthGapPieces({
+      debts: [],
+      incomes: [income],
+      settlements: [settlement],
+      now: NOW,
+    });
     expect(result.jaRecebidoCents).toBe(420000n);
   });
 
   it("income with not_received settlement contributes nothing", () => {
     const income = makeIncome("i1", { amount: m(4000) });
     const settlement = makeSettlement("i1", "not_received");
-    const result = monthGapPieces({ debts: [], incomes: [income], settlements: [settlement], now: NOW });
+    const result = monthGapPieces({
+      debts: [],
+      incomes: [income],
+      settlements: [settlement],
+      now: NOW,
+    });
     expect(result.jaRecebidoCents).toBe(0n);
     expect(result.aReceberConfirmadoCents).toBe(0n);
     expect(result.aReceberEstimadoCents).toBe(0n);
@@ -207,7 +217,10 @@ describe("monthGapPieces", () => {
   });
 
   it("deleted income is excluded", () => {
-    const income = makeIncome("i1", { amount: m(5000), deletedAt: new Date("2026-05-01T00:00:00Z") });
+    const income = makeIncome("i1", {
+      amount: m(5000),
+      deletedAt: new Date("2026-05-01T00:00:00Z"),
+    });
     const result = monthGapPieces({ debts: [], incomes: [income], settlements: [], now: NOW });
     expect(result.aReceberConfirmadoCents).toBe(0n);
   });
@@ -223,7 +236,12 @@ describe("monthGapPieces", () => {
       adjustedAmountCents: null,
       createdAt: NOW,
     };
-    const result = monthGapPieces({ debts: [], incomes: [income], settlements: [wrongMonthSettlement], now: NOW });
+    const result = monthGapPieces({
+      debts: [],
+      incomes: [income],
+      settlements: [wrongMonthSettlement],
+      now: NOW,
+    });
     expect(result.jaRecebidoCents).toBe(0n);
     expect(result.aReceberConfirmadoCents).toBe(400000n);
   });

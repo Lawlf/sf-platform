@@ -1,0 +1,1 @@
+ALTER TABLE "incomes" ADD COLUMN "source_breakdown" jsonb;

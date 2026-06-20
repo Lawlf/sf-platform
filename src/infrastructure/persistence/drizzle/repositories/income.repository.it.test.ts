@@ -50,6 +50,7 @@ function makeIncome(overrides: Partial<IncomeEntity> = {}): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     deletedAt: null,

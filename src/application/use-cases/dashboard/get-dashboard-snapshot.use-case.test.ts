@@ -19,9 +19,7 @@ const NOW = new Date("2026-05-19T10:00:00Z");
 function makeRates(rate: string | null = null): ExchangeRateRepositoryPort {
   return {
     upsertDaily: vi.fn(),
-    findLatest: vi.fn(async () =>
-      rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null,
-    ),
+    findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
   };
 }
 
@@ -139,6 +137,7 @@ function makeIncome(userId = "user-1"): IncomeEntity {
     paymentDay: null,
     endDate: null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: true,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     deletedAt: null,
@@ -190,7 +189,11 @@ describe("getDashboardSnapshot", () => {
       status: "paid_off" as const,
       currentBalance: makeMoney(0),
     };
-    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([active, outOfMonth, paid]);
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([
+      active,
+      outOfMonth,
+      paid,
+    ]);
     (incomes.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([makeIncome()]);
 
     const result = await getDashboardSnapshot(

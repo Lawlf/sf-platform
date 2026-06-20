@@ -4,12 +4,15 @@ import {
   boolean,
   index,
   integer,
+  jsonb,
   pgEnum,
   pgTable,
   text,
   timestamp,
   uuid,
 } from "drizzle-orm/pg-core";
+
+import type { IncomeSourceBreakdown } from "@/domain/entities/income.entity";
 
 import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
@@ -39,6 +42,9 @@ export const incomes = pgTable(
     // numero so (media), a flag so marca que e estimativa pra UI e prescricao
     // nao tratarem como receita garantida.
     isEstimated: boolean("is_estimated").notNull().default(false),
+    // Detalhe de como a renda foi estimada (diarias/horas). Auxiliar: o mes
+    // segue em amount_cents. null = renda cadastrada a mao.
+    sourceBreakdown: jsonb("source_breakdown").$type<IncomeSourceBreakdown>(),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

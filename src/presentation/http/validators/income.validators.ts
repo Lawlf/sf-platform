@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import { parseBreakdownJson } from "./income-breakdown.validators";
 import { currencyEnum, nullableDate } from "./shared.validators";
 
 export const incomeFormSchema = z.object({
@@ -22,6 +23,10 @@ export const incomeFormSchema = z.object({
     .union([z.boolean(), z.literal("true"), z.literal("false"), z.literal("")])
     .optional()
     .transform((v) => v === true || v === "true"),
+  sourceBreakdown: z
+    .union([z.string(), z.null()])
+    .optional()
+    .transform((v) => parseBreakdownJson(v ?? null)),
 });
 
 export type IncomeFormInput = z.infer<typeof incomeFormSchema>;

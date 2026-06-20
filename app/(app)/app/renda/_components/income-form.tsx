@@ -51,6 +51,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
   // Vindo de um simulador (ex: salário-CLT, 13º, férias, rescisão): pré-preenche
   // valor/frequência/rótulo para a pessoa só conferir e salvar.
   const seed = parseIncomeSeed(Object.fromEntries(searchParams.entries()));
+  const seedBreakdown = seed?.breakdownJson ?? null;
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -62,7 +63,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       startDate: TODAY,
       endDate: null,
       paymentDay: 5,
-      isEstimated: false,
+      isEstimated: seedBreakdown != null,
     },
   });
 
@@ -87,7 +88,8 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       "paymentDay",
       values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
     );
-    if (values.isEstimated) fd.set("isEstimated", "true");
+    if (values.isEstimated || seedBreakdown != null) fd.set("isEstimated", "true");
+    if (seedBreakdown != null) fd.set("sourceBreakdown", seedBreakdown);
     startTransition(async () => {
       const r = await createIncomeAction(fd);
       if (!r.ok) {
@@ -237,20 +239,22 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
             </button>
           )}
 
-          <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
-            <input
-              type="checkbox"
-              {...form.register("isEstimated")}
-              className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
-            />
-            <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
-              Esse valor varia mês a mês (é uma média)
-              <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
-                Pra comissão, freela ou renda de PJ. Tratamos como estimativa,
-                não como receita garantida.
+          {seedBreakdown != null ? null : (
+            <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
+              <input
+                type="checkbox"
+                {...form.register("isEstimated")}
+                className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
+              />
+              <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
+                Esse valor varia mês a mês (é uma média)
+                <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
+                  Pra comissão, freela ou renda de PJ. Tratamos como estimativa,
+                  não como receita garantida.
+                </span>
               </span>
-            </span>
-          </label>
+            </label>
+          )}
         </>
       ) : (
         <button
@@ -261,6 +265,13 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
           Cai todo mês? Ajustar frequência e prazo
         </button>
       )}
+
+      {seedBreakdown != null ? (
+        <p className="rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.8125rem] leading-snug text-[color:var(--text-muted)]">
+          Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a
+          conta muda. Você recalcula quando quiser.
+        </p>
+      ) : null}
 
       {serverError ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">

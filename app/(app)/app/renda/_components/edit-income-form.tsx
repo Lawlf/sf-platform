@@ -8,10 +8,15 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Spinner } from "@/app/components/ui/spinner";
+import type { IncomeSourceBreakdown } from "@/domain/entities/income.entity";
 import { type Currency, CURRENCIES } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../_components/money-input";
 import { queryKeys } from "../../_lib/query-keys";
+import {
+  WorkBreakdownFields,
+  type WorkBreakdownValue,
+} from "../../simular/valor-hora/_components/work-breakdown-fields";
 import { updateIncomeAction } from "../_actions/update-income.action";
 
 const formSchema = z.object({
@@ -33,6 +38,10 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
 
+function brl(cents: bigint): string {
+  return (Number(cents) / 100).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
 export interface EditIncomeFormProps {
   income: {
     id: string;
@@ -44,6 +53,7 @@ export interface EditIncomeFormProps {
     endDateIso: string | null;
     paymentDay: number | null;
     isEstimated: boolean;
+    sourceBreakdown: IncomeSourceBreakdown | null;
   };
 }
 
@@ -52,6 +62,8 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const hasBreakdown = income.sourceBreakdown != null;
+  const [work, setWork] = useState<WorkBreakdownValue | null>(null);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -80,7 +92,10 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
     const fd = new FormData();
     fd.set("incomeId", income.id);
     fd.set("label", values.label);
-    fd.set("amountCents", values.amountCents.toString());
+    fd.set(
+      "amountCents",
+      hasBreakdown && work ? work.monthCents.toString() : values.amountCents.toString(),
+    );
     fd.set("currency", values.currency);
     fd.set("frequency", values.frequency);
     fd.set("startDate", values.startDate);
@@ -89,7 +104,8 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
       "paymentDay",
       values.frequency === "monthly" && values.paymentDay ? String(values.paymentDay) : "",
     );
-    if (values.isEstimated) fd.set("isEstimated", "true");
+    if (values.isEstimated || hasBreakdown) fd.set("isEstimated", "true");
+    if (hasBreakdown && work) fd.set("sourceBreakdown", JSON.stringify(work.breakdown));
     startTransition(async () => {
       const r = await updateIncomeAction(fd);
       if (!r.ok) {
@@ -123,13 +139,28 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         ) : null}
       </div>
 
-      <MoneyInput
-        control={form.control}
-        name="amountCents"
-        label="Valor"
-        required
-        currency={currency}
-      />
+      {hasBreakdown && income.sourceBreakdown ? (
+        <div className="flex flex-col gap-2">
+          <WorkBreakdownFields initial={income.sourceBreakdown} onChange={setWork} />
+          {work && work.monthCents > 0n ? (
+            <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)]">
+              Estimativa do mês: {brl(work.monthCents)}
+            </p>
+          ) : null}
+          <p className="rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.8125rem] leading-snug text-[color:var(--text-muted)]">
+            Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a
+            conta muda. Você recalcula quando quiser.
+          </p>
+        </div>
+      ) : (
+        <MoneyInput
+          control={form.control}
+          name="amountCents"
+          label="Valor"
+          required
+          currency={currency}
+        />
+      )}
 
       <div className="grid gap-3 sm:grid-cols-2">
         <div>
@@ -221,20 +252,22 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         </button>
       )}
 
-      <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
-        <input
-          type="checkbox"
-          {...form.register("isEstimated")}
-          className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
-        />
-        <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
-          Esse valor varia mês a mês (é uma média)
-          <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
-            Pra comissão, freela ou renda de PJ. Tratamos como estimativa, não
-            como receita garantida.
+      {hasBreakdown ? null : (
+        <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
+          <input
+            type="checkbox"
+            {...form.register("isEstimated")}
+            className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
+          />
+          <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
+            Esse valor varia mês a mês (é uma média)
+            <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
+              Pra comissão, freela ou renda de PJ. Tratamos como estimativa, não
+              como receita garantida.
+            </span>
           </span>
-        </span>
-      </label>
+        </label>
+      )}
 
       {serverError ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">

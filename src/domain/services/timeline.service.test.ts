@@ -52,6 +52,7 @@ function makeIncome(overrides: {
     paymentDay: null,
     endDate: overrides.endDate ?? null,
     isEstimated: false,
+    sourceBreakdown: null,
     isActive: overrides.isActive ?? true,
     createdAt: overrides.createdAt ?? startDate,
     deletedAt: null,
@@ -769,9 +770,7 @@ describe("TimelineService.buildTimeline com settlements (anti double-count)", ()
       assets: [],
       from: MonthYear.from(2026, 3),
       to: MonthYear.from(2026, 3),
-      settlements: [
-        { debtId: "rent-1", monthIso: "2026-03", status: "converted_to_debt" },
-      ],
+      settlements: [{ debtId: "rent-1", monthIso: "2026-03", status: "converted_to_debt" }],
     });
     expect(tl.points).toHaveLength(1);
     // Saída zerada no mês convertido => debtPayments 0, saldo livre = renda cheia.
@@ -792,9 +791,7 @@ describe("TimelineService.buildTimeline com settlements (anti double-count)", ()
       assets: [],
       from: MonthYear.from(2026, 3),
       to: MonthYear.from(2026, 5),
-      settlements: [
-        { debtId: "rent-1", monthIso: "2026-04", status: "converted_to_debt" },
-      ],
+      settlements: [{ debtId: "rent-1", monthIso: "2026-04", status: "converted_to_debt" }],
     });
     const cents = tl.points.map((p) => p.totalDebtPayments.toCents());
     // mar normal, abr zerado (convertido), mai normal.
@@ -832,9 +829,7 @@ describe("TimelineService.buildTimeline com settlements (anti double-count)", ()
       assets: [],
       from: MonthYear.from(2026, 3),
       to: MonthYear.from(2026, 3),
-      settlements: [
-        { debtId: "other-debt", monthIso: "2026-03", status: "converted_to_debt" },
-      ],
+      settlements: [{ debtId: "other-debt", monthIso: "2026-03", status: "converted_to_debt" }],
     });
     expect(tl.points[0]?.totalDebtPayments.toCents()).toBe(150_000n);
   });
