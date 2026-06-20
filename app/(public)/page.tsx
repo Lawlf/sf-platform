@@ -38,10 +38,10 @@ export default function HomePage() {
         <LandingPillars />
         <LandingFeatures />
         <LandingHow />
-        <LandingMcp />
         <LandingPrivacy />
         <LandingPricing />
         <LandingFounder />
+        <LandingMcp />
         <LandingFaq />
         <LandingFinalCta />
       </main>
