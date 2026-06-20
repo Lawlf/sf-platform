@@ -8,6 +8,7 @@ import {
   HomeIcon,
   LineChart,
   LogOut,
+  MessageCircle,
   PanelRightClose,
   PanelRightOpen,
   Plus,
@@ -35,6 +36,7 @@ import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
 import { openSearch } from "./command-palette.client";
 import { CreateProfileSheet } from "./create-profile-sheet.client";
+import { InstallSidebarNudge } from "./pwa/install-sidebar-nudge.client";
 import { UserAvatar } from "./user-avatar";
 
 interface NavItem {
@@ -267,6 +269,8 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
         )}
       </div>
 
+      <InstallSidebarNudge collapsed={collapsed} />
+
       <AccountZone
         displayName={displayName}
         avatarUrl={avatarUrl}
@@ -422,6 +426,10 @@ function AccountZone({
       <Link href={"/app/configuracoes/documentos" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
         <FileText size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
         Meus documentos
+      </Link>
+      <Link href={"/app/falar-com-a-gente" as Route} role="menuitem" onClick={() => setOpen(false)} className={menuLinkClass}>
+        <MessageCircle size={16} strokeWidth={1.75} aria-hidden className="text-[color:var(--text-muted)]" />
+        Falar com a gente
       </Link>
     </>
   );

@@ -59,6 +59,10 @@ export function LandingFooter() {
               anotar cada cafezinho.
             </p>
             <p className="mt-4 text-xs text-[color:var(--text-muted)]">
+              Funciona no navegador, no celular e no computador. App para Android
+              chegando.
+            </p>
+            <p className="mt-2 text-xs text-[color:var(--text-muted)]">
               Feito no Brasil. Servidores em São Paulo.
             </p>
           </div>

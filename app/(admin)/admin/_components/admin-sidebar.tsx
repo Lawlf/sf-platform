@@ -1,6 +1,12 @@
 "use client";
 
-import { Activity, DollarSign, LayoutDashboard, Users } from "lucide-react";
+import {
+  Activity,
+  DollarSign,
+  LayoutDashboard,
+  MessageCircle,
+  Users,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -10,6 +16,7 @@ interface NavItem {
   label: string;
   icon: typeof LayoutDashboard;
   exact?: boolean;
+  showFeedbackBadge?: boolean;
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -17,6 +24,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/faturamento" as Route, label: "Faturamento", icon: DollarSign },
   { href: "/admin/uso" as Route, label: "Uso", icon: Activity },
   { href: "/admin/usuarios" as Route, label: "Usuários", icon: Users },
+  { href: "/admin/suporte" as Route, label: "Suporte", icon: MessageCircle, showFeedbackBadge: true },
 ];
 
 function isActive(pathname: string, item: NavItem): boolean {
@@ -24,7 +32,7 @@ function isActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-export function AdminSidebar() {
+export function AdminSidebar({ openFeedback = 0 }: { openFeedback?: number }) {
   const pathname = usePathname();
   return (
     <aside
@@ -50,7 +58,12 @@ export function AdminSidebar() {
               }`}
             >
               <Icon size={16} strokeWidth={2.2} aria-hidden />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.showFeedbackBadge && openFeedback > 0 ? (
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[color:var(--semantic-negative)] px-1.5 text-[0.625rem] font-bold text-white">
+                  {openFeedback > 99 ? "99+" : openFeedback}
+                </span>
+              ) : null}
             </Link>
           );
         })}

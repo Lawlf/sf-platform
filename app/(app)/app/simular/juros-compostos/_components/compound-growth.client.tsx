@@ -6,6 +6,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import { CompoundGrowthService } from "@/domain/services/compound-growth.service";
 
+import { FeedbackThumbs } from "../../../_components/feedback/feedback-thumbs.client";
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
@@ -158,6 +159,8 @@ export function CompoundGrowthClient({ prefill }: PrefillProps) {
           }}
         />
       ) : null}
+
+      <FeedbackThumbs surface="sim:juros-compostos" />
     </div>
   );
 }

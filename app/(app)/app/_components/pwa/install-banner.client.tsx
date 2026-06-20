@@ -8,6 +8,8 @@ export function InstallBanner() {
   const ctx = useInstall();
   if (!ctx || !ctx.bannerVisible) return null;
 
+  const ctaLabel = ctx.canPromptNative ? "Instalar na tela" : "Te mostro como";
+
   return (
     <div className="fixed inset-x-3 bottom-3 z-[90] mx-auto max-w-md rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-4 shadow-[0_20px_50px_-20px_rgba(31,29,28,0.45)] backdrop-blur-xl md:bottom-4 md:left-auto md:right-4 md:mx-0">
       <div className="flex items-start gap-3">
@@ -27,7 +29,7 @@ export function InstallBanner() {
               onClick={() => ctx.promptInstall("dashboard_banner")}
               className="sf-lift focus-ring inline-flex h-9 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 text-[0.8125rem] font-bold text-white shadow-[0_8px_18px_-8px_rgba(239,122,26,0.5)]"
             >
-              Instalar na tela
+              {ctaLabel}
             </button>
             <button
               type="button"

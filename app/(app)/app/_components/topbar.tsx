@@ -34,6 +34,8 @@ const SEGMENT_LABELS: Record<string, string> = {
   conta: "Conta",
   mercado: "Mercado",
   ajuda: "Ajuda",
+  "falar-com-a-gente": "Falar com a gente",
+  mensagens: "Suas mensagens",
   renda: "Renda",
   "linha-do-tempo": "Linha do tempo",
   comprei: "Comprei algo",

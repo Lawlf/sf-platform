@@ -13,6 +13,7 @@ import { EmailSendRepository } from "@/infrastructure/persistence/drizzle/reposi
 import { EntityAttachmentRepository } from "@/infrastructure/persistence/drizzle/repositories/entity-attachment.repository";
 import { EntityNoteRepository } from "@/infrastructure/persistence/drizzle/repositories/entity-note.repository";
 import { ExchangeRateRepository } from "@/infrastructure/persistence/drizzle/repositories/exchange-rate.repository";
+import { FeedbackEventRepository } from "@/infrastructure/persistence/drizzle/repositories/feedback-event.repository";
 import { FinancialPlanningSettingsRepository } from "@/infrastructure/persistence/drizzle/repositories/financial-planning-settings.repository";
 import { GoalContributionRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-contribution.repository";
 import { GoalSnapshotRepository } from "@/infrastructure/persistence/drizzle/repositories/goal-snapshot.repository";
@@ -70,6 +71,7 @@ export const repos = {
   entityAttachments: new EntityAttachmentRepository(),
   entityNotes: new EntityNoteRepository(),
   exchangeRates: new ExchangeRateRepository(),
+  feedbackEvents: new FeedbackEventRepository(),
   financialPlanningSettings: new FinancialPlanningSettingsRepository(),
   goalContributions: new GoalContributionRepository(),
   goalSnapshots: new GoalSnapshotRepository(),
