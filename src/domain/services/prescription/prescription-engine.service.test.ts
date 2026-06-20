@@ -190,13 +190,23 @@ describe("PrescriptionEngine — ranked alternatives", () => {
 });
 
 describe("PrescriptionEngine — estimated income cautious branch", () => {
-  it("estimated income with surplus does NOT yield invest as dominant (yields build_reserve)", () => {
+  it("estimated income with surplus and full reserve yields keep_buffer_estimated, not invest", () => {
     const p = PrescriptionEngine.prescribe(baseSnapshot({
       debts: [], monthlyIncomeReais: 5000, monthlyEssentialReais: 0,
       freeBalanceReais: 2000, committedPct: 0, reserveReais: 999999, hasEstimatedIncome: true,
     }));
-    expect(p.dominant?.type).not.toBe("invest");
     expect(p.dominant?.type).toBe("build_reserve");
+    expect(p.dominant?.reasonCode).toBe("keep_buffer_estimated");
+  });
+
+  it("keep_buffer_estimated move has no hollow number metrics", () => {
+    const p = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [], monthlyIncomeReais: 5000, monthlyEssentialReais: 2000,
+      freeBalanceReais: 1000, committedPct: 0, reserveReais: 999999, hasEstimatedIncome: true,
+    }));
+    expect(p.dominant?.reasonCode).toBe("keep_buffer_estimated");
+    expect(p.dominant?.metrics.reserveGapReais).toBeUndefined();
+    expect(p.dominant?.metrics.monthlyContributionReais).toBeUndefined();
   });
 
   it("firm income in ready_to_grow still yields invest", () => {

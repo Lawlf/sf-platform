@@ -17,7 +17,8 @@ export type ReasonCode =
   | "below_min_safety" // reserva abaixo do colchão mínimo (guard-rail)
   | "no_expensive_debt_reserve_ok" // pronto pra crescer
   | "negative_free_balance" // saldo livre negativo
-  | "income_over_committed"; // renda comprometida alta
+  | "income_over_committed" // renda comprometida alta
+  | "keep_buffer_estimated"; // renda variável: manter folga em vez de investir
 
 export type MissingInput = "income" | "debt_rate";
 

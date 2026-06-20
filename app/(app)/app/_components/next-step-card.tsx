@@ -44,6 +44,12 @@ const TEASER_FALLBACK: StateTeaser = {
   cta: "Ver meu movimento deste mês",
 };
 
+const TEASER_ESTIMATED_HOLD: StateTeaser = {
+  line1: "Sua renda varia, então o passo é segurar a folga.",
+  line2: "Deixe o que sobra acessível para os meses mais fracos.",
+  cta: "Ver meu movimento deste mês",
+};
+
 const TEASER_BY_TIGHT_KIND: Record<TightKind, StateTeaser> = {
   deficit: {
     line1: "Este mês sai mais do que entra.",
@@ -98,7 +104,9 @@ export async function NextStepCard() {
         ? TEASER_BY_TIGHT_KIND[
             tightKindOf({ committedPct: data.committedPct, freeBalanceReais: data.freeBalanceReais })
           ]
-        : (TEASER_BY_STATE[data.state] ?? TEASER_FALLBACK);
+        : data.hasEstimatedIncome && data.state === "ready_to_grow"
+          ? TEASER_ESTIMATED_HOLD
+          : (TEASER_BY_STATE[data.state] ?? TEASER_FALLBACK);
     const fm = data.freeMove;
     // Linha concreta, não borrada: nomeia a dívida quando há label.
     const answer = fm?.targetDebtLabel

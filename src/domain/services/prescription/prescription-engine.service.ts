@@ -131,7 +131,7 @@ function buildDominant(
     case "no_cushion":
       return buildReserveMove(s);
     case "ready_to_grow":
-      return s.hasEstimatedIncome ? buildReserveMove(s) : buildInvest(s);
+      return s.hasEstimatedIncome ? buildKeepBuffer(s) : buildInvest(s);
   }
 }
 
@@ -194,6 +194,15 @@ export function buildPayDebt(
       ...(rateEstimated ? { rateEstimated: true } : {}),
     },
     rankImpactReais,
+  };
+}
+
+function buildKeepBuffer(_s: PrescriptionSnapshot): PrescriptionMove {
+  return {
+    type: "build_reserve",
+    reasonCode: "keep_buffer_estimated",
+    metrics: {},
+    rankImpactReais: 0,
   };
 }
 

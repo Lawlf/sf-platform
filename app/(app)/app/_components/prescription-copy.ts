@@ -6,7 +6,7 @@ import type {
 
 import { DEBT_RATE_ESTIMATES } from "../dividas/nova/_lib/debt-rate-estimates";
 
-export const ESTIMATED_INCOME_NOTE = "Baseado em renda estimada, pode variar no mês.";
+export const ESTIMATED_INCOME_NOTE = "A gente conta com folga porque sua renda varia mês a mês.";
 
 export interface TimelineLine {
   text: string;
@@ -102,6 +102,13 @@ export function presentMove(
       };
     }
     case "build_reserve": {
+      if (m.reasonCode === "keep_buffer_estimated") {
+        return {
+          headline: "Sua renda varia, então segure a folga deste mês.",
+          impact: "Antes de investir, deixe o que sobrou acessível para os meses mais fracos.",
+          reason: "Com o que você registrou, sua reserva já está ok; o passo agora é manter a folga, não travar o dinheiro.",
+        };
+      }
       const gap = m.metrics.reserveGapReais ?? 0;
       const months = m.metrics.monthsToReserve;
       const minSafety = m.reasonCode === "below_min_safety";

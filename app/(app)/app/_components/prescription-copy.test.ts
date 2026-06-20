@@ -7,6 +7,10 @@ describe("ESTIMATED_INCOME_NOTE", () => {
     expect(typeof ESTIMATED_INCOME_NOTE).toBe("string");
     expect(ESTIMATED_INCOME_NOTE.length).toBeGreaterThan(0);
   });
+
+  it("uses ICP wording about varying monthly income", () => {
+    expect(ESTIMATED_INCOME_NOTE).toContain("varia");
+  });
 });
 
 describe("presentMove", () => {
@@ -41,6 +45,19 @@ describe("presentMove", () => {
     });
     expect(c.impact).toContain("R$");
     expect(c.impact).toMatch(/5 meses/);
+  });
+
+  it("build_reserve keep_buffer_estimated contains no money figures (no hollow zero)", () => {
+    const c = presentMove({
+      type: "build_reserve", reasonCode: "keep_buffer_estimated",
+      metrics: {},
+      rankImpactReais: 0,
+    });
+    const all = `${c.headline} ${c.impact} ${c.reason}`;
+    expect(all).not.toContain("R$");
+    expect(c.headline.length).toBeGreaterThan(0);
+    expect(c.impact.length).toBeGreaterThan(0);
+    expect(c.reason.length).toBeGreaterThan(0);
   });
 
   it("invest shows monthly contribution and projected growth", () => {
