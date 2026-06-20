@@ -27,7 +27,7 @@ const heroFeature: Feature = {
   n: "01",
   label: "Projeção de quitação.",
   title: "A data prevista pra dívida acabar.",
-  body: "Mantendo o ritmo atual, o sistema projeta em que mês cada dívida sai e quando abre espaço pra guardar. Aumente o aporte e veja as datas se aproximarem.",
+  body: "No ritmo atual, em que mês cada dívida sai e quando abre espaço pra guardar. Mês fraco encurta o aporte e recalcula; mês cheio antecipa a data.",
   accent: "from-[#16a34a] to-[#0f7a37]",
 };
 
@@ -68,11 +68,11 @@ export function LandingFeatures() {
             className="text-4xl font-extrabold text-[color:var(--text-primary)] sm:text-5xl"
             style={{ letterSpacing: "-0.035em" }}
           >
-            Quatro coisas que viram saldo em trajetória.
+            Um plano de saída, e o que o sustenta.
           </h2>
           <p className="mx-auto mt-5 max-w-xl text-base text-[color:var(--text-secondary)] sm:text-lg">
-            Pilares pensados pro brasileiro que sangra em juros compostos e não
-            enxerga o tamanho do buraco.
+            Mês a mês: em que mês as dívidas saem, o custo real dos juros, e
+            tudo o que você tem somando junto.
           </p>
         </RevealOnScroll>
 
@@ -212,12 +212,12 @@ function TimelineMock() {
         <PlanStep
           color="var(--color-negative)"
           label="Cartão Nubank"
-          month="sai em mar/2027"
+          month="mar/2027"
         />
         <PlanStep
           color="var(--color-warning)"
           label="Financiamento do carro"
-          month="sai em ago/2028"
+          month="ago/2028"
         />
         <PlanStep
           color="var(--color-positive)"
@@ -227,8 +227,7 @@ function TimelineMock() {
         />
       </ul>
       <p className="mt-4 text-[11px] leading-relaxed text-[color:var(--text-muted)]">
-        Exemplo ilustrativo. Atualizou a renda do mês? O plano recalcula no ritmo
-        novo.
+        Exemplo ilustrativo, no ritmo atual.
       </p>
     </div>
   );
