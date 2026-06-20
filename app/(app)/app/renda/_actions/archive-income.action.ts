@@ -8,7 +8,7 @@ import { action, unwrap } from "@/presentation/actions/action";
 
 export const archiveIncomeAction = action({
   schema: z.string(),
-  revalidates: ["incomes"],
+  revalidates: ["incomes", "home", "timeline"],
   handler: async (incomeId, { userId, profileId }) => {
     unwrap(await archiveIncome({ incomes: repos.incomes }, { userId, profileId, incomeId }));
   },
