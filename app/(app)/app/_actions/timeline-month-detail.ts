@@ -1,5 +1,10 @@
 "use server";
 
+import {
+  BASE_CURRENCY,
+  convertDebtToBase,
+  convertIncomeToBase,
+} from "@/application/use-cases/fx/convert-entity-to-base";
 import { normalizeLegacyExpenseCategory } from "@/domain/categories/default-categories";
 import type { AssetCategory, AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity, DebtKind, ExpenseCategory } from "@/domain/entities/debt.entity";
@@ -19,10 +24,10 @@ import {
 } from "@/domain/services/timeline.service";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { repos } from "@/infrastructure/container";
+import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
-import { isOk } from "@/shared/errors/result";
+import { isErr, isOk } from "@/shared/errors/result";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
@@ -255,7 +260,24 @@ export async function fetchMonthDetail(input: {
     status: s.status,
   }));
 
-  const debtById = new Map(debtsRaw.map((d) => [d.id, d] as const));
+  const fxDeps = { rates: repos.exchangeRates, overrides: repos.userFxOverrides, clock };
+  const now = new Date();
+
+  const debtsConverted: typeof debtsRaw = [];
+  for (const d of debtsRaw) {
+    const r = await convertDebtToBase(fxDeps, user.id, d, BASE_CURRENCY, now);
+    if (isErr(r)) return null;
+    debtsConverted.push(r.value);
+  }
+
+  const incomesConverted: typeof incomesRaw = [];
+  for (const i of incomesRaw) {
+    const r = await convertIncomeToBase(fxDeps, user.id, i, BASE_CURRENCY, now);
+    if (isErr(r)) return null;
+    incomesConverted.push(r.value);
+  }
+
+  const debtById = new Map(debtsConverted.map((d) => [d.id, d] as const));
 
   const firstDay = month.firstDay();
   const lastDay = month.lastDay();
@@ -268,7 +290,7 @@ export async function fetchMonthDetail(input: {
     return d;
   }
 
-  const recurringIds = new Set(debtsRaw.filter((d) => d.kind === "recurring").map((d) => d.id));
+  const recurringIds = new Set(debtsConverted.filter((d) => d.kind === "recurring").map((d) => d.id));
   const serializedPayments: SerializedPaymentRow[] = paymentsRaw
     .filter((p) => !recurringIds.has(p.debtId))
     .map((p) => {
@@ -285,7 +307,7 @@ export async function fetchMonthDetail(input: {
       };
     });
 
-  const activeIncomes = incomesRaw.filter((inc) => {
+  const activeIncomes = incomesConverted.filter((inc) => {
     if (!inc.isActive) return false;
     const startMonth = MonthYear.fromDate(inc.startDate);
     if (month.isBefore(startMonth)) return false;
@@ -325,7 +347,7 @@ export async function fetchMonthDetail(input: {
   // saem em `serializedPayments`; aqui só as obrigações.
   const currentMonth = MonthYear.fromDate(new Date());
   const outflowItems = monthlyDebtOutflow({
-    debts: debtsRaw,
+    debts: debtsConverted,
     paymentsThisMonth: paymentsRaw,
     month,
     currentMonth,
@@ -354,8 +376,8 @@ export async function fetchMonthDetail(input: {
     });
 
   const timeline = TimelineService.buildTimeline({
-    incomes: incomesRaw,
-    debts: debtsRaw,
+    incomes: incomesConverted,
+    debts: debtsConverted,
     payments: paymentsForTimeline,
     assets: assetsRaw,
     from: windowFrom,
@@ -404,7 +426,7 @@ export async function fetchMonthDetail(input: {
   // como linha de despesa do mês, e quitadas/baixadas já têm payment rows na
   // timeline (com `isClosingPayment` quando aplicável); emitir o event de
   // criação duplicaria a informação.
-  for (const debt of debtsRaw) {
+  for (const debt of debtsConverted) {
     if (debt.status !== "active") continue;
     if (debt.kind === "recurring") continue;
     const createdMonth = MonthYear.fromDate(debt.createdAt);
@@ -446,7 +468,7 @@ export async function fetchMonthDetail(input: {
     incomes: serializedIncomes,
     expenses: serializedExpenses,
     payments: serializedPayments,
-    activeDebts: debtsRaw.filter((d) => d.status === "active"),
+    activeDebts: debtsConverted.filter((d) => d.status === "active"),
   });
 
   return {
