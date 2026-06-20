@@ -25,6 +25,10 @@ export const faqItems: FaqItem[] = [
     a: "Sim. Você instala direto pelo navegador (Chrome no Android, Safari no iPhone) e fica com o ícone na tela inicial igual app de loja. Sem precisar baixar nada, sem aprovar atualização toda hora.",
   },
   {
+    q: "Dá pra usar junto com meu parceiro ou minha família?",
+    a: "Dá. Você convida alguém e veem a renda de vocês somada, no nível de detalhe que escolherem. Cada um lança o seu, o painel mostra o conjunto.",
+  },
+  {
     q: "Sabor Financeiro substitui meu banco ou meu app de gastos?",
     a: "Não substitui. Complementa. Banco mostra saldo do dia. App de gastos mostra onde foi o dinheiro. Sabor mostra trajetória, custo real da dívida e o caminho pra sair dela. Lente macro, não microscópio.",
   },

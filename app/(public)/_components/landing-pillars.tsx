@@ -21,7 +21,7 @@ const pillars = [
     icon: TrendingUp,
     name: "Renda",
     promise: "O que entra no mês.",
-    body: "Salário, freela, aluguel recebido, comissão, bônus, 13º, restituição. Recorrente, pontual ou variável. A gente entende que o brasileiro raramente tem só salário.",
+    body: "Salário, freela, aluguel recebido, comissão, bônus, 13º, restituição. Recorrente, pontual ou variável. A gente entende que o brasileiro raramente tem só salário. Separa o que é seu do que é da sua PJ, se você tira pró-labore.",
     color: "var(--color-brand-700)",
   },
 ];
@@ -88,8 +88,7 @@ export function LandingPillars() {
               está indo.
             </span>
           </p>
-          <p className="mx-auto mt-4 inline-flex items-center gap-2 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-4 py-1.5 text-[12px] font-medium text-[color:var(--text-secondary)] backdrop-blur">
-            <span aria-hidden className="h-1 w-1 rounded-full bg-[color:var(--color-brand-500)]" />
+          <p className="mt-3 text-[13px] text-[color:var(--text-muted)]">
             Uma vez por mês. Cinco minutos. A gente faz o resto.
           </p>
         </RevealOnScroll>
