@@ -74,6 +74,38 @@ describe("monthlyIncomeCents", () => {
     expect(cents).toBe(0n);
   });
 
+  it("monthly income before its start month returns 0 (future income not counted)", () => {
+    const inc: IncomeEntity = {
+      ...baseIncome,
+      frequency: "monthly",
+      amount: m(2479.66),
+      startDate: new Date("2026-07-01T00:00:00Z"), // starts after TARGET (May)
+    };
+    expect(monthlyIncomeCents(inc, TARGET, [])).toBe(0n);
+  });
+
+  it("monthly income after its end month returns 0 (ended income not counted)", () => {
+    const inc: IncomeEntity = {
+      ...baseIncome,
+      frequency: "monthly",
+      amount: m(2479.66),
+      startDate: new Date("2026-01-01T00:00:00Z"),
+      endDate: new Date("2026-04-30T00:00:00Z"), // ended before TARGET (May)
+    };
+    expect(monthlyIncomeCents(inc, TARGET, [])).toBe(0n);
+  });
+
+  it("monthly income active in the target month still counts (boundary)", () => {
+    const inc: IncomeEntity = {
+      ...baseIncome,
+      frequency: "monthly",
+      amount: m(1000),
+      startDate: new Date("2026-05-31T00:00:00Z"), // starts within TARGET month
+      endDate: new Date("2026-05-01T00:00:00Z"), // ends within TARGET month
+    };
+    expect(monthlyIncomeCents(inc, TARGET, [])).toBe(100000n);
+  });
+
   it("applies not_received settlement to zero", () => {
     const inc: IncomeEntity = { ...baseIncome, frequency: "monthly", amount: m(5000) };
     const settlement: IncomeSettlementEntity = {
