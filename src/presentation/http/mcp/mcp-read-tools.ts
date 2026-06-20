@@ -72,6 +72,10 @@ export function registerMcpReadTools(server: McpServer): void {
           clock,
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,
+          incomeSettlements: repos.incomeSettlements,
+          debtPayments: repos.debtPayments,
+          debtAmountAdjustments: repos.debtAmountAdjustments,
+          recurringSettlements: repos.recurringSettlements,
         },
         { userId: ctx.userId, profileId },
       );
