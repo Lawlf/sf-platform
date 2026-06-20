@@ -87,12 +87,20 @@ const cashAsset = {
   deletedAt: null,
 } as unknown as AssetEntity;
 
+const extraDeps = {
+  incomeSettlements: { listForProfile: async () => [] },
+  debtPayments: { listForProfileInRange: async () => [] },
+  debtAmountAdjustments: { listForProfile: async () => [] },
+  recurringSettlements: { listForProfile: async () => [] },
+};
+
 const deps = {
   debts: { listForProfile: async () => [dearCard] },
   incomes: { listForProfile: async () => [income] },
   assets: { findActiveByProfile: async () => [cashAsset] },
   now: () => NOW,
   ...fxDeps(null),
+  ...extraDeps,
 };
 
 describe("buildPrescription", () => {
@@ -112,6 +120,7 @@ describe("buildPrescription", () => {
       assets: { findActiveByProfile: async () => [] },
       now: () => NOW,
       ...fxDeps("5.00"),
+      ...extraDeps,
     };
     const r = await buildPrescription(fxConverted as never, {
       userId: "u1",
@@ -131,6 +140,7 @@ describe("buildPrescription", () => {
       assets: { findActiveByProfile: async () => [usdAsset] },
       now: () => NOW,
       ...fxDeps(null),
+      ...extraDeps,
     };
     const r = await buildPrescription(noRate as never, { userId: "u1", profileId: "profile-1" });
     expect(isErr(r)).toBe(true);

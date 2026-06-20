@@ -11,11 +11,20 @@ import type {
   InvalidAmortizationParamsError,
 } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
+import type { DebtAmountAdjustmentRepositoryPort } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { ExchangeRateRepositoryPort } from "@/domain/ports/repositories/exchange-rate.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
+import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
 import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
+import { IncomeCommittedService } from "@/domain/services/income-committed.service";
+import { monthlyIncomeCents } from "@/domain/services/income-monthly";
+import { monthlyDebtOutflow, type TimelineSettlement } from "@/domain/services/timeline.service";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { Money } from "@/domain/value-objects/money.vo";
 import { err, isErr, isOk, ok, type Result } from "@/shared/errors/result";
 
 export interface GetDashboardSnapshotDeps {
@@ -24,6 +33,11 @@ export interface GetDashboardSnapshotDeps {
   clock: Clock;
   rates: ExchangeRateRepositoryPort;
   overrides: UserFxOverrideRepositoryPort;
+  /** Repos opcionais para renda e saida settlement-aware (paridade com home/prescrição). */
+  incomeSettlements?: Pick<IncomeSettlementRepositoryPort, "listForProfile">;
+  debtPayments?: Pick<DebtPaymentRepositoryPort, "listForProfileInRange">;
+  debtAmountAdjustments?: Pick<DebtAmountAdjustmentRepositoryPort, "listForProfile">;
+  recurringSettlements?: Pick<RecurringSettlementRepositoryPort, "listForProfile">;
 }
 
 /**
@@ -71,5 +85,61 @@ export async function getDashboardSnapshot(
     asOfDate: now,
   });
   if (!isOk(r)) return err(r.error);
-  return ok(r.value);
+
+  const baseSnapshot = r.value;
+
+  if (
+    deps.incomeSettlements &&
+    deps.debtPayments &&
+    deps.debtAmountAdjustments &&
+    deps.recurringSettlements
+  ) {
+    const month = MonthYear.fromDate(now);
+    const activeDebts = convertedDebts.filter((d) => d.status === "active");
+
+    const [incomeSettlements, paymentsThisMonth, adjustments, recurringSettlementsRaw] =
+      await Promise.all([
+        deps.incomeSettlements.listForProfile(input.profileId),
+        deps.debtPayments.listForProfileInRange(input.profileId, {
+          from: month.firstDay(),
+          to: month.lastDay(),
+        }),
+        deps.debtAmountAdjustments.listForProfile(input.profileId),
+        deps.recurringSettlements.listForProfile(input.profileId),
+      ]);
+
+    const settlements: TimelineSettlement[] = recurringSettlementsRaw.map((s) => ({
+      debtId: s.debtId,
+      monthIso: MonthYear.fromDate(s.month).toIso(),
+      status: s.status,
+    }));
+
+    const target = { year: now.getUTCFullYear(), month: now.getUTCMonth() };
+    const totalIncomeCents = convertedIncomes
+      .filter((i) => i.isActive)
+      .reduce((sum, i) => sum + monthlyIncomeCents(i, target, incomeSettlements), 0n);
+
+    const outflowItems = monthlyDebtOutflow({
+      debts: activeDebts,
+      paymentsThisMonth,
+      month,
+      currentMonth: month,
+      adjustments,
+      settlements,
+    });
+    const totalOutflowCents = outflowItems.reduce((sum, it) => sum + it.amount.toCents(), 0n);
+
+    return ok({
+      ...baseSnapshot,
+      totalIncome: Money.fromCents(totalIncomeCents),
+      totalMonthlyService: Money.fromCents(totalOutflowCents),
+      monthlyFreeCashFlow: Money.fromCents(totalIncomeCents - totalOutflowCents),
+      incomeCommittedPct: IncomeCommittedService.compute({
+        totalMonthlyIncome: Money.fromCents(totalIncomeCents),
+        totalMonthlyDebtService: Money.fromCents(totalOutflowCents),
+      }),
+    });
+  }
+
+  return ok(baseSnapshot);
 }

@@ -9,7 +9,7 @@ import { getPrescription } from "../_lib/prescription-cache";
 import { MaskMoneyText } from "./money-visibility/mask-money-text.client";
 import { moveCtaFor } from "./move-cta";
 import { VerMais } from "./next-step-card.client";
-import { microEduFor, presentMove, presentTimeline } from "./prescription-copy";
+import { ESTIMATED_INCOME_NOTE, microEduFor, presentMove, presentTimeline, tightKindOf, type TightKind } from "./prescription-copy";
 
 const CARD_TITLE = "O movimento do mês";
 
@@ -36,17 +36,36 @@ const TEASER_BY_STATE: Record<string, StateTeaser> = {
     line2: "Em 12 meses, cerca de R$ •••.",
     cta: "Ver quanto sua sobra rende",
   },
-  tight: {
-    line1: "Dá para reequilibrar suas contas este mês.",
-    line2: "Cortar cerca de R$ ••• por mês já resolve.",
-    cta: "Ver o que ajustar este mês",
-  },
 };
 
 const TEASER_FALLBACK: StateTeaser = {
   line1: "Tem um movimento certo para você este mês.",
   line2: "Veja o plano completo com seus números.",
   cta: "Ver meu movimento deste mês",
+};
+
+const TEASER_ESTIMATED_HOLD: StateTeaser = {
+  line1: "Sua renda varia, então o passo é segurar a folga.",
+  line2: "Deixe o que sobra acessível para os meses mais fracos.",
+  cta: "Ver meu movimento deste mês",
+};
+
+const TEASER_BY_TIGHT_KIND: Record<TightKind, StateTeaser> = {
+  deficit: {
+    line1: "Este mês sai mais do que entra.",
+    line2: "Faltam R$ ••• pra fechar o mês.",
+    cta: "Ver minhas parcelas",
+  },
+  over_committed: {
+    line1: "Suas parcelas sozinhas já passam a renda.",
+    line2: "Cortar R$ ••• por mês deixa a renda cobrir as parcelas.",
+    cta: "Ver qual parcela renegociar",
+  },
+  squeezed: {
+    line1: "Você fecha o mês, mas no limite.",
+    line2: "Sobram só R$ ••• neste mês.",
+    cta: "Ver o que ajustar este mês",
+  },
 };
 
 export async function NextStepCard() {
@@ -80,7 +99,14 @@ export async function NextStepCard() {
   // Free: resposta concreta liberada (qual movimento/dívida) + ação. Só os
   // números (economia, meses) ficam borrados como prévia do Pro.
   if (!data.isPro) {
-    const teaser = TEASER_BY_STATE[data.state] ?? TEASER_FALLBACK;
+    const teaser =
+      data.state === "tight"
+        ? TEASER_BY_TIGHT_KIND[
+            tightKindOf({ committedPct: data.committedPct, freeBalanceReais: data.freeBalanceReais })
+          ]
+        : data.hasEstimatedIncome && data.state === "ready_to_grow"
+          ? TEASER_ESTIMATED_HOLD
+          : (TEASER_BY_STATE[data.state] ?? TEASER_FALLBACK);
     const fm = data.freeMove;
     // Linha concreta, não borrada: nomeia a dívida quando há label.
     const answer = fm?.targetDebtLabel
@@ -132,7 +158,7 @@ export async function NextStepCard() {
           </Link>
         )}
         <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-          A gente mostra a conta, a decisão é sua.
+          {data.hasEstimatedIncome ? ESTIMATED_INCOME_NOTE : "A gente mostra a conta, a decisão é sua."}
         </p>
       </section>
     );
@@ -141,8 +167,9 @@ export async function NextStepCard() {
   // Pro: ação dominante + ver mais.
   const p = data.prescription;
   if (!p || !p.dominant) return null;
-  const dominant = presentMove(p.dominant);
-  const more = p.alternatives.map(presentMove);
+  const ctx = { committedPct: p.committedPct, freeBalanceReais: p.freeBalanceReais };
+  const dominant = presentMove(p.dominant, ctx);
+  const more = p.alternatives.map((mv) => presentMove(mv, ctx));
 
   return (
     <section
@@ -193,9 +220,11 @@ export async function NextStepCard() {
         />
       </div>
       <p className="mt-3 text-[0.6875rem] text-[color:var(--text-muted)]">
-        {p.dominant.type === "invest"
-          ? "Isto é educação financeira, não recomendação de investimento."
-          : "A gente mostra a conta, a decisão é sua."}
+        {p.hasEstimatedIncome
+          ? ESTIMATED_INCOME_NOTE
+          : p.dominant.type === "invest"
+            ? "Isto é educação financeira, não recomendação de investimento."
+            : "A gente mostra a conta, a decisão é sua."}
       </p>
     </section>
   );

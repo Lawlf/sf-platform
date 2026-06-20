@@ -6,6 +6,8 @@ import type {
 
 import { DEBT_RATE_ESTIMATES } from "../dividas/nova/_lib/debt-rate-estimates";
 
+export const ESTIMATED_INCOME_NOTE = "A gente conta com folga porque sua renda varia mês a mês.";
+
 export interface TimelineLine {
   text: string;
   strong: boolean;
@@ -61,7 +63,18 @@ const brl = (reais: number): string =>
 
 const monthsLabel = (n: number): string => (n === 1 ? "1 mês" : `${n} meses`);
 
-export function presentMove(m: PrescriptionMove): MoveCopy {
+export type TightKind = "deficit" | "over_committed" | "squeezed";
+
+export function tightKindOf(args: { committedPct: number; freeBalanceReais: number }): TightKind {
+  if (args.freeBalanceReais < 0) return "deficit";
+  if (args.committedPct >= 100 && args.freeBalanceReais <= 0) return "over_committed";
+  return "squeezed";
+}
+
+export function presentMove(
+  m: PrescriptionMove,
+  ctx?: { committedPct?: number; freeBalanceReais?: number },
+): MoveCopy {
   switch (m.type) {
     case "pay_debt": {
       const label = m.targetDebtLabel ?? "sua dívida mais cara";
@@ -89,6 +102,13 @@ export function presentMove(m: PrescriptionMove): MoveCopy {
       };
     }
     case "build_reserve": {
+      if (m.reasonCode === "keep_buffer_estimated") {
+        return {
+          headline: "Sua renda varia, então segure a folga deste mês.",
+          impact: "Antes de investir, deixe o que sobrou acessível para os meses mais fracos.",
+          reason: "Com o que você registrou, sua reserva já está ok; o passo agora é manter a folga, não travar o dinheiro.",
+        };
+      }
       const gap = m.metrics.reserveGapReais ?? 0;
       const months = m.metrics.monthsToReserve;
       const minSafety = m.reasonCode === "below_min_safety";
@@ -116,15 +136,29 @@ export function presentMove(m: PrescriptionMove): MoveCopy {
     }
     case "reduce_commitment": {
       const cut = m.metrics.targetReductionReais ?? 0;
-      const negative = m.reasonCode === "negative_free_balance";
+      const free = ctx?.freeBalanceReais ?? (m.reasonCode === "negative_free_balance" ? -1 : 0);
+      const kind = tightKindOf({ committedPct: ctx?.committedPct ?? 0, freeBalanceReais: free });
+      if (kind === "deficit") {
+        return {
+          headline: "Este mês sai mais do que entra.",
+          impact: `Faltam ${brl(cut)} pra fechar o mês. Cortar ou renegociar a maior parcela já alivia tudo.`,
+          reason: "Com o que você registrou, o passo agora é reduzir um gasto fixo para o mês fechar.",
+        };
+      }
+      if (kind === "over_committed") {
+        return {
+          headline: "Suas parcelas sozinhas já passam a renda.",
+          impact: `Cortar cerca de ${brl(cut)} por mês deixa a renda cobrir as parcelas de novo.`,
+          reason: "Com o que você registrou, renegociar prazo ou juros de uma parcela alivia todo mês.",
+        };
+      }
       return {
-        headline: negative
-          ? "Corte um gasto fixo: hoje sai mais do que entra."
-          : "Corte um gasto fixo para sobrar mais no mês.",
-        impact: `Cortar cerca de ${brl(cut)} por mês já reequilibra suas contas.`,
-        reason: negative
-          ? "Com os dados que você registrou, suas saídas passam da sua renda."
-          : "Com os dados que você registrou, boa parte da sua renda já está presa em parcelas fixas.",
+        headline: "Você fecha o mês, mas no limite.",
+        impact:
+          free > 0
+            ? `Sobram só ${brl(free)} neste mês. Cortar uma parcela muda esse número todo mês.`
+            : "O mês fecha quase no zero. Cortar uma parcela já abre uma folga real.",
+        reason: "Com o que você registrou, vale abrir um pouco de folga antes de pensar em guardar.",
       };
     }
   }

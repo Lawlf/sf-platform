@@ -167,8 +167,15 @@ export function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmor
       // Fatura cheia = o que vence este mês. O mínimo (15%) vive em monthlyMinimumPayment.
       const stmt = debt.currentStatement.toNumber();
       if (stmt > 0) return ok(stmt);
+      // Sem fatura importada: a obrigação do mês são as parcelas em aberto mais o
+      // juro do rotativo (sobre currentBalance, como já fazia este ramo), pra o
+      // cartão não "sumir" da conta enquanto não há fatura fechada.
+      const installmentReais = debt.installmentPurchases
+        .filter((p) => p.installmentsRemaining > 0)
+        .reduce((sum, p) => sum + p.monthlyValue.toNumber(), 0);
       const monthlyRate = debt.revolvingMonthlyRate?.toDecimal() ?? 0;
-      return ok(Math.max(0, debt.currentBalance.toNumber() * monthlyRate));
+      const revolvingReais = Math.max(0, debt.currentBalance.toNumber() * monthlyRate);
+      return ok(installmentReais + revolvingReais);
     }
     case "overdraft":
       return ok(debt.currentBalance.toNumber() * debt.monthlyRate.toDecimal());

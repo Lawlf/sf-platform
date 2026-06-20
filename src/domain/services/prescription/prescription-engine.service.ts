@@ -18,7 +18,16 @@ export class PrescriptionEngine {
   static prescribe(snapshot: PrescriptionSnapshot): Prescription {
     const missing = detectMissing(snapshot);
     if (missing.length > 0) {
-      return { state: "incomplete", dominant: null, alternatives: [], timeline: [], completeness: { complete: false, missing } };
+      return {
+        state: "incomplete",
+        committedPct: snapshot.committedPct,
+        freeBalanceReais: snapshot.freeBalanceReais,
+        hasEstimatedIncome: snapshot.hasEstimatedIncome,
+        dominant: null,
+        alternatives: [],
+        timeline: [],
+        completeness: { complete: false, missing },
+      };
     }
     const { debts, estimatedRateIds } = applyRateEstimates(snapshot.debts, snapshot.config);
     const s: PrescriptionSnapshot = { ...snapshot, debts };
@@ -26,7 +35,16 @@ export class PrescriptionEngine {
     const dominant = buildDominant(state, s, estimatedRateIds);
     const alternatives = buildAlternatives(state, s, dominant, estimatedRateIds);
     const timeline = buildTimeline(state, s);
-    return { state, dominant, alternatives, timeline, completeness: { complete: true, missing: [] } };
+    return {
+      state,
+      committedPct: s.committedPct,
+      freeBalanceReais: s.freeBalanceReais,
+      hasEstimatedIncome: s.hasEstimatedIncome,
+      dominant,
+      alternatives,
+      timeline,
+      completeness: { complete: true, missing: [] },
+    };
   }
 }
 
@@ -75,7 +93,7 @@ function applyRateEstimates(
 type CompleteState = "tight" | "bleeding" | "no_cushion" | "ready_to_grow";
 
 function classify(s: PrescriptionSnapshot): CompleteState {
-  if (s.freeBalanceReais < 0 || s.committedPct > s.config.committedHeavyPct) return "tight";
+  if (s.freeBalanceReais <= 0 || s.committedPct > s.config.committedHeavyPct) return "tight";
   const reserveFloor = s.monthlyEssentialReais * s.config.reserveFloorMonths;
   const minSafety = s.monthlyEssentialReais * s.config.minSafetyMonths;
   if (hasExpensiveDebt(s)) {
@@ -113,7 +131,7 @@ function buildDominant(
     case "no_cushion":
       return buildReserveMove(s);
     case "ready_to_grow":
-      return buildInvest(s);
+      return s.hasEstimatedIncome ? buildKeepBuffer(s) : buildInvest(s);
   }
 }
 
@@ -176,6 +194,15 @@ export function buildPayDebt(
       ...(rateEstimated ? { rateEstimated: true } : {}),
     },
     rankImpactReais,
+  };
+}
+
+function buildKeepBuffer(_s: PrescriptionSnapshot): PrescriptionMove {
+  return {
+    type: "build_reserve",
+    reasonCode: "keep_buffer_estimated",
+    metrics: {},
+    rankImpactReais: 0,
   };
 }
 
