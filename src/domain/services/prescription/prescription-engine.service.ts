@@ -91,7 +91,7 @@ function applyRateEstimates(
 type CompleteState = "tight" | "bleeding" | "no_cushion" | "ready_to_grow";
 
 function classify(s: PrescriptionSnapshot): CompleteState {
-  if (s.freeBalanceReais < 0 || s.committedPct > s.config.committedHeavyPct) return "tight";
+  if (s.freeBalanceReais <= 0 || s.committedPct > s.config.committedHeavyPct) return "tight";
   const reserveFloor = s.monthlyEssentialReais * s.config.reserveFloorMonths;
   const minSafety = s.monthlyEssentialReais * s.config.minSafetyMonths;
   if (hasExpensiveDebt(s)) {

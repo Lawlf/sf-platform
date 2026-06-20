@@ -101,6 +101,13 @@ describe("PrescriptionEngine — state classification", () => {
   it("ready_to_grow when no expensive debt and reserve at/above floor", () => {
     expect(PrescriptionEngine.prescribe(baseSnapshot({ debts: [], reserveReais: 6000 })).state).toBe("ready_to_grow");
   });
+  it("free balance exactly zero is tight, never ready_to_grow (no hollow zero invest)", () => {
+    const p = PrescriptionEngine.prescribe({
+      now: NOW, debts: [], monthlyIncomeReais: 3000, monthlyEssentialReais: 0,
+      freeBalanceReais: 0, committedPct: 0, reserveReais: 999999, config: PRESCRIPTION_CONFIG,
+    });
+    expect(p.state).toBe("tight");
+  });
 });
 
 describe("PrescriptionEngine — dominant move metrics", () => {
