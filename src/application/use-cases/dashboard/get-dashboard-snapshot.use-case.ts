@@ -20,6 +20,7 @@ import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories
 import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
 import type { UserFxOverrideRepositoryPort } from "@/domain/ports/repositories/user-fx-override.repository";
 import { FinancialHealthService } from "@/domain/services/financial-health.service";
+import { IncomeCommittedService } from "@/domain/services/income-committed.service";
 import { monthlyIncomeCents } from "@/domain/services/income-monthly";
 import { monthlyDebtOutflow, type TimelineSettlement } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -133,6 +134,10 @@ export async function getDashboardSnapshot(
       totalIncome: Money.fromCents(totalIncomeCents),
       totalMonthlyService: Money.fromCents(totalOutflowCents),
       monthlyFreeCashFlow: Money.fromCents(totalIncomeCents - totalOutflowCents),
+      incomeCommittedPct: IncomeCommittedService.compute({
+        totalMonthlyIncome: Money.fromCents(totalIncomeCents),
+        totalMonthlyDebtService: Money.fromCents(totalOutflowCents),
+      }),
     });
   }
 

@@ -391,6 +391,9 @@ describe("getDashboardSnapshot", () => {
     if (isOk(result)) {
       expect(result.value.totalIncome.toCents()).toBe(0n);
       expect(result.value.monthlyFreeCashFlow.toCents()).toBe(0n);
+      // incomeCommittedPct deve refletir a renda override (0), nao a renda bruta de R$8.000.
+      // Com income=0 e service=0, o servico retorna 0 (ambos zero).
+      expect(result.value.incomeCommittedPct).toBe(0);
     }
   });
 
@@ -454,6 +457,8 @@ describe("getDashboardSnapshot", () => {
       // Para recorrentes, monthlyDebtOutflow usa recurringMonthlyEquivalent, não o payment.
       // O free = 800_000 - 150_000 = 650_000
       expect(result.value.monthlyFreeCashFlow.toCents()).toBe(650_000n);
+      // incomeCommittedPct deve refletir os valores settlement-aware: 150_000 / 800_000.
+      expect(result.value.incomeCommittedPct).toBeCloseTo(150_000 / 800_000, 10);
     }
   });
 
