@@ -44,9 +44,18 @@ const CURRENT_MONTH_NAME = new Intl.DateTimeFormat("pt-BR", { month: "long" }).f
 interface Props {
   monthIso: string;
   initialData: SerializedMonthDetail | null;
+  // Sobra realizada do mes passado, pro fio de progresso ("voce melhorou?").
+  previousMonth?: { label: string; freeCents: string } | null;
+  // Marco do StoryDetection (ex: "3 meses no azul"), so quando existe.
+  milestone?: string | null;
 }
 
-export function DashboardHeroClient({ monthIso, initialData }: Props) {
+export function DashboardHeroClient({
+  monthIso,
+  initialData,
+  previousMonth = null,
+  milestone = null,
+}: Props) {
   const month = useMemo(() => MonthYear.fromIso(monthIso), [monthIso]);
   const timelineHref = `/app/linha-do-tempo/${monthIso}` as Route;
 
@@ -87,6 +96,21 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
     ? stripMinus(walletBal.monthEndProjection.formatted)
     : stripMinus(formatBrl(freeBalanceCents));
   const { verb, positive } = leftover(projCents);
+
+  // Fio de progresso: comparo a sobra realizada do mes passado com a projecao
+  // de agora. So aparece quando ha mes anterior e ha renda no mes atual.
+  const prevCents = previousMonth ? BigInt(previousMonth.freeCents) : null;
+  const showProgress = prevCents !== null && !noIncomeState;
+  const prevPositive = (prevCents ?? 0n) >= 0n;
+  const prevAbs = stripMinus(formatBrl(prevCents ?? 0n));
+  const progressText =
+    prevCents === null
+      ? ""
+      : projCents > prevCents
+        ? "Esse mês está indo melhor."
+        : projCents < prevCents
+          ? "Esse mês está mais apertado."
+          : "Esse mês está no mesmo ritmo.";
 
   // Valor "hoje" do herói, por prioridade:
   //   a) carteira ancorada → saldo reativo;
@@ -229,13 +253,26 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
                 </span>
               </>
             ) : null}
-            {showBadge ? (
-              <span
-                className={`mt-2.5 inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold backdrop-blur ${badgeClass}`}
-              >
-                {badgeLabel}
+            {showProgress ? (
+              <span className="mt-2 block text-[0.78125rem] font-medium leading-snug text-white/75">
+                {previousMonth?.label} fechou {prevPositive ? "sobrando" : "faltando"}{" "}
+                <HideableValue>{prevAbs}</HideableValue>. {progressText}
               </span>
             ) : null}
+            <div className="mt-2.5 flex flex-wrap items-center gap-2">
+              {showBadge ? (
+                <span
+                  className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[0.6875rem] font-bold backdrop-blur ${badgeClass}`}
+                >
+                  {badgeLabel}
+                </span>
+              ) : null}
+              {milestone ? (
+                <span className="inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-bold text-white backdrop-blur">
+                  {milestone}
+                </span>
+              ) : null}
+            </div>
           </div>
           <ChevronRight
             size={22}

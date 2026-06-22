@@ -46,6 +46,10 @@ function greetingFor(hour: number): string {
   return "Boa noite";
 }
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const profileId = await getActiveProfileId();
@@ -53,12 +57,19 @@ export default async function DashboardPage() {
   const now = new Date();
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
+  const prevMonthIso = MonthYear.fromDate(now).previous().toIso();
+  const prevMonthName = capitalize(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toLocaleDateString("pt-BR", {
+      month: "long",
+    }),
+  );
 
   const consumoFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
   const consumoTo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
 
   const [
     initialMonthDetail,
+    prevMonthDetail,
     initialMaintenancePrompts,
     onboardingState,
     projectionInitial,
@@ -70,6 +81,7 @@ export default async function DashboardPage() {
     mcpConnections,
   ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
+    fetchMonthDetail({ monthIso: prevMonthIso }),
     fetchMaintenancePrompts(),
     fetchOnboardingState(),
     fetchPlanningProjection(),
@@ -83,6 +95,15 @@ export default async function DashboardPage() {
     repos.assets.listExternalAccountKeys(profileId),
     repos.mcpConnections.listForUser(user.id),
   ]);
+
+  const previousMonth =
+    prevMonthDetail && BigInt(prevMonthDetail.totals.income.cents) > 0n
+      ? { label: prevMonthName, freeCents: prevMonthDetail.totals.realizedFree.cents }
+      : null;
+  const achievementStory = initialMonthDetail?.stories?.find((s) => s.kind === "achievement");
+  const milestone = achievementStory
+    ? (/\[\[(.+?)\]\]/.exec(achievementStory.line)?.[1] ?? null)
+    : null;
 
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
   const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
@@ -103,7 +124,12 @@ export default async function DashboardPage() {
     hero: (
       <div className="md:col-span-2" data-tour="hero">
         <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
-          <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
+          <DashboardHeroClient
+            monthIso={monthIso}
+            initialData={initialMonthDetail}
+            previousMonth={previousMonth}
+            milestone={milestone}
+          />
         </Suspense>
       </div>
     ),
@@ -169,6 +195,9 @@ export default async function DashboardPage() {
     ),
   };
 
+  const topKeys = new Set<HomeCardKey>(["hero", "quickAccess", "nextStep", "bringData"]);
+  const firstDetailKey = order.find((k) => !topKeys.has(k) && cardNodes[k] != null);
+
   return (
     <PageShell
       title={`${greeting}, ${user.displayName ?? "bem-vindo"}`}
@@ -188,7 +217,14 @@ export default async function DashboardPage() {
         </div>
 
         {order.map((key) => (
-          <Fragment key={key}>{cardNodes[key]}</Fragment>
+          <Fragment key={key}>
+            {key === firstDetailKey ? (
+              <h2 className="mt-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)] md:col-span-2">
+                Seu mês em detalhe
+              </h2>
+            ) : null}
+            {cardNodes[key]}
+          </Fragment>
         ))}
 
         <div className="md:col-span-2">
