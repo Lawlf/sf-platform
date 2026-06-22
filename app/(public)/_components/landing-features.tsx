@@ -37,7 +37,7 @@ const features: Feature[] = [
     n: "02",
     label: "O custo real dos juros.",
     title: "O custo real, não a taxa do anúncio.",
-    body: "Juntamos os juros de todas as suas dívidas num custo só, o Custo Efetivo Total. Você vê o número que o banco prefere esconder.",
+    body: "Juntamos os juros de todas as suas dívidas num custo só: o que você paga de verdade por ano. O número que o banco prefere esconder.",
     accent: "from-[#f28e25] to-[#ef7a1a]",
   },
   {

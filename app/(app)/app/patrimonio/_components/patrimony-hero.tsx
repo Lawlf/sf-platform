@@ -1,4 +1,6 @@
-import { Wallet } from "lucide-react";
+import { ArrowRight, Wallet } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 
 import { HowItWorksSheet } from "../../_components/how-it-works-sheet";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
@@ -50,6 +52,13 @@ export function PatrimonyHero({
           <div className="mt-0.5 font-bold"><HideableValue>{totalDebtFormatted}</HideableValue></div>
         </div>
       </div>
+      <Link
+        href={"/app/simular" as Route}
+        className="focus-ring relative mt-3 flex items-center justify-between rounded-xl bg-white/15 px-3 py-2.5 text-white transition-colors hover:bg-white/20"
+      >
+        <span className="text-[0.8125rem] font-semibold">Simular quanto isso pode render</span>
+        <ArrowRight size={15} strokeWidth={2.25} aria-hidden />
+      </Link>
     </section>
   );
 }

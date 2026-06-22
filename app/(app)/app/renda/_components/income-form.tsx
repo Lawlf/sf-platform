@@ -40,6 +40,13 @@ const fieldClass =
 const labelClass =
   "mb-1.5 block text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80";
 
+const segButtonClass = (active: boolean) =>
+  `focus-ring rounded-xl border-[1.5px] px-[14px] py-[12px] text-[0.875rem] font-semibold transition-colors ${
+    active
+      ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/10 text-[color:var(--text-primary)]"
+      : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] text-[color:var(--text-muted)]"
+  }`;
+
 export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Currency } = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -62,13 +69,14 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       frequency: seed?.frequency ?? "monthly",
       startDate: TODAY,
       endDate: null,
-      paymentDay: 5,
+      paymentDay: null,
       isEstimated: seedBreakdown != null,
     },
   });
 
   const currency = form.watch("currency");
   const frequency = form.watch("frequency");
+  const isEstimated = form.watch("isEstimated");
   const [showEnd, setShowEnd] = useState(false);
   const [showStart, setShowStart] = useState(false);
   const [showDetails, setShowDetails] = useState(
@@ -145,6 +153,36 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
         </Link>
       ) : null}
 
+      {seedBreakdown != null ? null : (
+        <div>
+          <span className={labelClass}>Esse valor é fixo ou varia?</span>
+          <div className="grid grid-cols-2 gap-2">
+            <button
+              type="button"
+              onClick={() => form.setValue("isEstimated", false)}
+              aria-pressed={!isEstimated}
+              className={segButtonClass(!isEstimated)}
+            >
+              É sempre esse
+            </button>
+            <button
+              type="button"
+              onClick={() => form.setValue("isEstimated", true)}
+              aria-pressed={isEstimated}
+              className={segButtonClass(isEstimated)}
+            >
+              Varia mês a mês
+            </button>
+          </div>
+          {isEstimated ? (
+            <p className="mt-2 text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
+              Pra comissão, freela ou renda de PJ. A gente trata como média, não
+              como receita garantida.
+            </p>
+          ) : null}
+        </div>
+      )}
+
       {frequency === "monthly" ? (
         <div>
           <label className={labelClass} htmlFor="renda-payment-day">
@@ -155,6 +193,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
             {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
             className={fieldClass}
           >
+            <option value="">Não tem dia certo</option>
             {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
               <option key={d} value={d}>
                 Dia {d}
@@ -237,23 +276,6 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
             >
               Essa renda vai acabar um dia? (ex: contrato, freela)
             </button>
-          )}
-
-          {seedBreakdown != null ? null : (
-            <label className="flex cursor-pointer items-start gap-2.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px]">
-              <input
-                type="checkbox"
-                {...form.register("isEstimated")}
-                className="mt-0.5 h-4 w-4 shrink-0 accent-[color:var(--color-brand-500)]"
-              />
-              <span className="text-[0.8125rem] leading-snug text-[color:var(--text-primary)]">
-                Esse valor varia mês a mês (é uma média)
-                <span className="mt-0.5 block text-[0.75rem] text-[color:var(--text-muted)]">
-                  Pra comissão, freela ou renda de PJ. Tratamos como estimativa,
-                  não como receita garantida.
-                </span>
-              </span>
-            </label>
           )}
         </>
       ) : (

@@ -12,7 +12,7 @@ const INVESTMENT_TYPE_OPTIONS: { id: InvestmentType; title: string; description:
   { id: "crypto", title: "Cripto", description: "BTC, ETH, stablecoins." },
   { id: "stocks", title: "Ações", description: "B3, ticker, quantidade." },
   { id: "fund", title: "Fundo", description: "Fundos imobiliários (FIIs) e outros." },
-  { id: "other", title: "Outro", description: "Qualquer outro investimento." },
+  { id: "other", title: "Não sei o tipo", description: "Só sei quanto tenho. A gente guarda só o valor." },
 ];
 
 export interface InvestmentTypeStepProps {
@@ -34,7 +34,7 @@ export function InvestmentTypeStep({
     <WizardShell
       currentStep={visualStep}
       title="Tipo de investimento"
-      description="Escolha o que mais combina. Dá pra ajustar depois."
+      description="Escolha o que mais combina. Se não souber, toque em Não sei o tipo."
       onBack={onBack}
       totalSteps={totalSteps}
     >

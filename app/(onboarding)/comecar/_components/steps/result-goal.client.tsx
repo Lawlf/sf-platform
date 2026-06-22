@@ -74,23 +74,39 @@ export function ResultGoal({
           </p>
         </div>
       ) : first ? (
-        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="font-semibold">{first.goal.title}</p>
-          <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
-            Progresso: {first.progress.pct}%
-          </p>
-          <p className="mt-3 text-[0.75rem] text-[color:var(--text-muted)]">
-            {first.etaLocked
-              ? "No Pro: a previsão de quando você conclui."
-              : first.progress.etaMonths !== null
-                ? `No ritmo atual, cerca de ${first.progress.etaMonths} meses para concluir.`
-                : "Acompanhe o progresso no início."}
-          </p>
-          {first.goal.type === "emergency_fund" && first.goal.monthlyCostCents === null && (
-            <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
-              Estimamos seu custo de vida em ~75% da sua renda para dimensionar a reserva. Você ajusta isso depois.
+        <div className="flex flex-col gap-3">
+          <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+              Seu alvo
             </p>
-          )}
+            <p className="mt-1 text-lg font-bold text-[color:var(--text-primary)]">{first.goal.title}</p>
+            <p className="mt-1 text-sm text-[color:var(--text-secondary)]">
+              {first.progress.pct > 0
+                ? `Você já está em ${first.progress.pct}%.`
+                : "Você começa do zero, e tudo bem. O primeiro real já conta."}
+            </p>
+            {first.goal.type === "emergency_fund" && first.goal.monthlyCostCents === null && (
+              <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
+                Estimamos seu custo de vida em ~75% da sua renda para dimensionar a reserva. Você ajusta isso depois.
+              </p>
+            )}
+          </div>
+
+          <div className="rounded-2xl border border-[color:var(--color-brand-500)] bg-[color:var(--surface-2)] p-4">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+              Seu próximo passo
+            </p>
+            <p className="mt-1 text-sm text-[color:var(--text-primary)]">
+              No primeiro mês que sobrar, separe um pouco aqui. Cada vez que guardar, registre e a barra anda.
+            </p>
+            <p className="mt-2 text-[0.75rem] text-[color:var(--text-muted)]">
+              {first.etaLocked
+                ? "No Pro: a previsão de quando você conclui."
+                : first.progress.etaMonths !== null
+                  ? `No ritmo atual, cerca de ${first.progress.etaMonths} meses para concluir.`
+                  : "Já tem dinheiro guardado? Cadastre como um bem no início pra contar aqui."}
+            </p>
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">

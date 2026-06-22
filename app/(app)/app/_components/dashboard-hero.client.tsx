@@ -64,7 +64,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
   if (!monthDetail) {
     return (
       <p className="text-sm text-[color:var(--text-secondary)]">
-        Cadastre renda e dívidas para ver seu saldo da Carteira.
+        Cadastre renda e dívidas para ver como seu mês fecha.
       </p>
     );
   }
@@ -104,9 +104,11 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
   const eyebrow =
-    todayMode === "projection"
-      ? `Saldo da Carteira · no fim de ${CURRENT_MONTH_NAME}`
-      : "Saldo da Carteira · hoje";
+    todayMode === "wallet"
+      ? "Saldo da Carteira · hoje"
+      : todayMode === "projection"
+        ? `Seu mês · no fim de ${CURRENT_MONTH_NAME}`
+        : "Seu mês · hoje";
 
   const bigFormatted = useWallet
     ? walletBal.reactiveBalance.formatted
@@ -117,7 +119,7 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
   // Sub-linha de projeção só nos casos a/b; no caso c o número grande já é a
   // projeção (evita duplicar). Sem renda registrada também não é déficit: nunca
   // dispara a moldura negativa nem a linha "faltam R$X"; usamos um empurrão calmo.
-  const showProjectionLine = todayMode !== "projection" && !noIncome;
+  const showProjectionLine = !noIncome;
   const showNudge = noIncome;
 
   const negative = !positive && !noIncome;
@@ -201,6 +203,12 @@ export function DashboardHeroClient({ monthIso, initialData }: Props) {
                 >
                   {projectionIsFlat ? (
                     <>Nada previsto mexe nele até o fim de {CURRENT_MONTH_NAME}.</>
+                  ) : todayMode === "projection" ? (
+                    positive ? (
+                      <>É quanto deve sobrar no fim de {CURRENT_MONTH_NAME}, se nada mudar.</>
+                    ) : (
+                      <>É quanto deve faltar no fim de {CURRENT_MONTH_NAME}, se nada mudar.</>
+                    )
                   ) : (
                     <>
                       Se nada mudar, {verb} <HideableValue>{projFormatted}</HideableValue> no fim de{" "}

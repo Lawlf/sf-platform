@@ -4,17 +4,22 @@ export type WizardStepId =
   | "focus"
   | "income"
   | "debt"
+  | "expense"
   | "goal"
   | "asset"
   | "result-prescription"
   | "result-goal"
-  | "result-networth";
+  | "result-networth"
+  | "result-month-closing";
 
 const PATHS: Record<ContentDiagnosticAnswer, WizardStepId[]> = {
   "pagar-divida": ["focus", "income", "debt", "result-prescription"],
   guardar: ["focus", "income", "goal", "result-goal"],
   investir: ["focus", "income", "asset", "result-networth"],
+  "fechar-mes": ["focus", "income", "expense", "result-month-closing"],
 };
+
+export const WIZARD_TOTAL_STEPS = Math.max(...Object.values(PATHS).map((p) => p.length));
 
 export function stepsForFocus(focus: ContentDiagnosticAnswer | null): WizardStepId[] {
   if (focus === null) return ["focus"];

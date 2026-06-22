@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, PiggyBank, TrendingUp, Wallet } from "lucide-react";
+import { ArrowRight, CalendarCheck, PiggyBank, TrendingUp, Wallet } from "lucide-react";
 import { useState, useTransition } from "react";
 
 import { setOnboardingFocusAction } from "@/app/(app)/app/_actions/onboarding";
@@ -8,9 +8,10 @@ import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_comp
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 
 const OPTIONS: { value: ContentDiagnosticAnswer; title: string; sub: string; Icon: typeof Wallet }[] = [
-  { value: "pagar-divida", title: "Pagar uma dívida", sub: "Quero saber qual quitar primeiro.", Icon: Wallet },
-  { value: "guardar", title: "Guardar pro que vier", sub: "Montar minha reserva com um alvo.", Icon: PiggyBank },
-  { value: "investir", title: "Fazer meu dinheiro render", sub: "Ver meu resumo financeiro completo.", Icon: TrendingUp },
+  { value: "fechar-mes", title: "Saber se vou fechar o mês", sub: "Ver se sobra ou falta no fim do mês.", Icon: CalendarCheck },
+  { value: "pagar-divida", title: "Pagar uma dívida", sub: "Tenho dívida e quero saber qual atacar primeiro.", Icon: Wallet },
+  { value: "guardar", title: "Guardar pro que vier", sub: "Separar dinheiro pro mês fraco ou um imprevisto.", Icon: PiggyBank },
+  { value: "investir", title: "Fazer meu dinheiro render", sub: "Ver o que já tenho e como fazer render.", Icon: TrendingUp },
 ];
 
 export function FocusStep({
@@ -47,7 +48,7 @@ export function FocusStep({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="Por onde a gente começa?"
-      description="Escolha o que mais pesa agora. Dá para mudar depois."
+      description="Escolha o que mais pesa agora. Em qualquer caminho a gente já te mostra se o mês fecha. Dá para mudar depois."
       onBack={onBack}
       primary={{
         label: "Continuar",

@@ -12,14 +12,17 @@ import { z } from "zod";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { formatCents } from "@/shared/format/money-format";
 
+import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { todayIso } from "../../../_lib/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
+import { RateEstimateHint } from "../../_components/rate-estimate-hint";
 import { SummaryList } from "../../_components/summary-list";
-import { WizardField } from "../../_components/wizard-field";
+import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
+import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";
 import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 
@@ -37,26 +40,23 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 
-// Colapsado pra 2 telas: o ICP so sabe "quanto to no vermelho". A taxa entra com
-// o teto legal do cheque especial (8%/mes) como ponto de partida honesto e
-// ajustavel depois no detalhe da divida.
-type Step = 2 | 3;
+type Step = 2 | 3 | 4;
 
-const ESSENTIAL_FIELDS = ["currentBalanceCents"] as const;
+const STEP2_FIELDS = ["label", "bankName", "currentBalanceCents"] as const;
+
+const STEP3_FIELDS = ["monthlyRatePct", "startDate"] as const;
 
 function formatAmount(cents: bigint | null | undefined, currency: Currency): string {
   return formatCents(cents ?? 0n, currency);
 }
 
-export interface OverdraftSeed {
-  currentBalanceCents: bigint;
-  bankName: string;
-}
-
-export function OverdraftForm({
+export function OverdraftFormDetailed({
   defaultCurrency = "BRL",
-  onWantDetailed,
-}: { defaultCurrency?: Currency; onWantDetailed?: (seed: OverdraftSeed) => void } = {}) {
+  seed = null,
+}: {
+  defaultCurrency?: Currency;
+  seed?: { currentBalanceCents: bigint; bankName: string } | null;
+} = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
@@ -66,15 +66,20 @@ export function OverdraftForm({
   const labelId = useId();
   const bankId = useId();
   const balanceId = useId();
+  const rateId = useId();
+  const startDateId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      label: "Cheque especial",
+      label:
+        seed?.bankName && seed.bankName !== "Banco"
+          ? `Cheque especial ${seed.bankName}`
+          : "Cheque especial",
       currency: defaultCurrency,
-      currentBalanceCents: 0n as unknown as bigint,
-      bankName: "Banco",
-      monthlyRatePct: DEBT_RATE_ESTIMATES.overdraft.valuePct,
+      currentBalanceCents: (seed?.currentBalanceCents ?? 0n) as unknown as bigint,
+      bankName: seed?.bankName && seed.bankName !== "Banco" ? seed.bankName : "",
+      monthlyRatePct: 0,
       startDate: todayIso(),
       expectedEndDate: null,
       notes: null,
@@ -97,10 +102,14 @@ export function OverdraftForm({
     return BigInt(Math.round(interest * 100));
   }, [values.currentBalanceCents, values.monthlyRatePct]);
 
-  async function goToConfirm() {
-    if (!values.bankName.trim()) form.setValue("bankName", "Banco");
-    const valid = await form.trigger(ESSENTIAL_FIELDS);
+  async function goToStep3() {
+    const valid = await form.trigger(STEP2_FIELDS);
     if (valid) setStep(3);
+  }
+
+  async function goToStep4() {
+    const valid = await form.trigger(STEP3_FIELDS);
+    if (valid) setStep(4);
   }
 
   async function handleSubmit() {
@@ -135,20 +144,46 @@ export function OverdraftForm({
     return (
       <WizardShell
         currentStep={1}
-        totalSteps={2}
-        title="Tô no vermelho"
-        description="Só me diz quanto a conta está negativa agora."
+        totalSteps={3}
+        title="Quanto você deve"
+        description="Quanto está usando do cheque especial agora."
         onBack={() => router.push("/app/dividas/nova" as Route)}
         primary={{
           label: "Continuar",
           onClick: () => {
-            void goToConfirm();
+            void goToStep3();
           },
           icon: arrowRight,
         }}
       >
+        <WizardField label="Banco" htmlFor={bankId} error={errors.bankName?.message}>
+          <BankCombobox
+            id={bankId}
+            value={values.bankName}
+            onChange={(b) => {
+              form.setValue("bankName", b, { shouldValidate: true });
+              form.setValue(
+                "label",
+                b.trim() ? `Cheque especial ${b.trim()}` : "Cheque especial",
+                { shouldValidate: true },
+              );
+            }}
+            placeholder="Ex: Itaú, Nubank, Caixa..."
+            ariaInvalid={errors.bankName ? true : undefined}
+          />
+        </WizardField>
+
+        <WizardField label="Nome" htmlFor={labelId} error={errors.label?.message}>
+          <input
+            id={labelId}
+            {...form.register("label")}
+            placeholder="Ex: Cheque especial Itaú"
+            className={wizardInputClass}
+          />
+        </WizardField>
+
         <WizardField
-          label="Quanto você está no vermelho"
+          label="Quanto ainda falta pagar"
           htmlFor={balanceId}
           error={errors.currentBalanceCents?.message}
         >
@@ -161,61 +196,71 @@ export function OverdraftForm({
             onCurrencyChange={(c) => form.setValue("currency", c)}
           />
         </WizardField>
-
-        <WizardField label="Banco (opcional)" htmlFor={bankId} error={errors.bankName?.message}>
-          <BankCombobox
-            id={bankId}
-            value={values.bankName === "Banco" ? "" : values.bankName}
-            onChange={(b) => {
-              form.setValue("bankName", b.trim() || "Banco", { shouldValidate: true });
-              form.setValue(
-                "label",
-                b.trim() ? `Cheque especial ${b.trim()}` : "Cheque especial",
-                { shouldValidate: true },
-              );
-            }}
-            placeholder="Ex: Itaú, Nubank, Caixa..."
-          />
-        </WizardField>
-
-        <input id={labelId} type="hidden" {...form.register("label")} />
-
-        <p className="text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
-          A gente já assume o teto legal de juros do cheque especial. Se souber a sua taxa, ajusta
-          depois no detalhe.
-        </p>
-
-        {onWantDetailed ? (
-          <button
-            type="button"
-            onClick={() =>
-              onWantDetailed({
-                currentBalanceCents:
-                  typeof values.currentBalanceCents === "bigint" ? values.currentBalanceCents : 0n,
-                bankName: values.bankName,
-              })
-            }
-            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-          >
-            Sabe a taxa do cheque especial? Preencher tudo
-          </button>
-        ) : null}
       </WizardShell>
     );
   }
 
-  // step 3: confirma
+  if (step === 3) {
+    return (
+      <WizardShell
+        currentStep={2}
+        totalSteps={3}
+        title="Taxa"
+        description="Taxa do banco e data de início."
+        onBack={() => setStep(2)}
+        primary={{
+          label: "Continuar",
+          onClick: () => {
+            void goToStep4();
+          },
+          icon: arrowRight,
+        }}
+      >
+        <WizardField
+          label="Taxa por mês"
+          htmlFor={rateId}
+          error={errors.monthlyRatePct?.message}
+          helpLink={<HowItWorksSheet topic="cheque-especial" variant="brand" />}
+        >
+          <WizardPercentField
+            control={form.control}
+            name="monthlyRatePct"
+            id={rateId}
+            step="0.01"
+            min={0}
+            max={1000}
+          />
+          <RateEstimateHint
+            control={form.control}
+            name="monthlyRatePct"
+            estimate={DEBT_RATE_ESTIMATES.overdraft}
+          />
+        </WizardField>
+
+        <WizardField label="Data de início" htmlFor={startDateId} error={errors.startDate?.message}>
+          <input
+            id={startDateId}
+            type="date"
+            {...form.register("startDate")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+      </WizardShell>
+    );
+  }
+
+  // step 4
   const interestText = monthlyInterestCents
     ? formatAmount(monthlyInterestCents, currency)
     : "Informe taxa para calcular";
 
   return (
     <WizardShell
-      currentStep={2}
-      totalSteps={2}
-      title="Confere e salva"
-      description="Esses são os números. Pode ajustar depois."
-      onBack={() => setStep(2)}
+      currentStep={3}
+      totalSteps={3}
+      title="Confirme os dados"
+      description="Confere os números e salva."
+      onBack={() => setStep(3)}
       primary={{
         label: "Salvar dívida",
         onClick: () => {
@@ -228,19 +273,16 @@ export function OverdraftForm({
       <ComputedCard
         label="Juros mensais nesse saldo"
         value={interestText}
-        sub="Pelo teto legal do cheque especial"
+        sub="Considerando a taxa atual"
       />
 
       <SummaryList
         items={[
+          { label: "Nome", value: values.label || "Sem nome" },
           { label: "Tipo", value: "Cheque especial" },
-          { label: "Quanto está no vermelho", value: formatAmount(values.currentBalanceCents, currency) },
-          {
-            label: "Juros estimados",
-            value: monthlyInterestCents
-              ? `${formatAmount(monthlyInterestCents, currency)}/mês (teto legal)`
-              : "Teto legal do cheque especial",
-          },
+          { label: "Banco", value: values.bankName || "Sem banco" },
+          { label: "Quanto falta pagar", value: formatAmount(values.currentBalanceCents, currency) },
+          { label: "Taxa", value: `${values.monthlyRatePct}% por mês` },
         ]}
       />
 

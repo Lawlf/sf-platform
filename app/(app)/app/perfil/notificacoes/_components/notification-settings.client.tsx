@@ -279,8 +279,8 @@ export function NotificationSettings({
         title="O que você quer receber"
         description={
           isPro
-            ? "Cada tipo pode ser ligado individualmente. O badge mostra por onde a notificação chega."
-            : "No Free você ajusta as gerais. O resto libera no Pro. O badge mostra por onde a notificação chega."
+            ? "Ligue cada aviso separado. O ícone mostra se chega no celular ou por email."
+            : "No Free você ajusta os gerais. O resto libera no Pro. O ícone mostra se chega no celular ou por email."
         }
       >
         <SectionGroup title="Geral">
@@ -324,8 +324,8 @@ export function NotificationSettings({
 
         <SectionGroup title="Resumos" showProLink={!isPro}>
           <PrefRow
-            label="Resumo mensal"
-            description="No início do mês, um aviso pra você abrir e atualizar o que mudou."
+            label="Aviso do começo do mês"
+            description="No dia 1, te falo se vai sobrar ou faltar no mês e o próximo passo."
             channels={["push", "email"]}
             checked={isPro ? prefs.monthlySummaryEnabled : false}
             onToggle={() => togglePref("monthlySummaryEnabled")}

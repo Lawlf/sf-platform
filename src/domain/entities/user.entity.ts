@@ -2,7 +2,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 
 export type UserRole = "user" | "admin";
 export type UserPlan = "free" | "pro";
-export type ContentDiagnosticAnswer = "pagar-divida" | "guardar" | "investir";
+export type ContentDiagnosticAnswer = "pagar-divida" | "guardar" | "investir" | "fechar-mes";
 
 export interface UserEntity {
   id: string;

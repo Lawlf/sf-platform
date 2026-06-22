@@ -21,7 +21,7 @@ const pillars = [
     icon: TrendingUp,
     name: "Renda",
     promise: "O que entra no mês.",
-    body: "Salário, freela, aluguel recebido, comissão, bônus, 13º, restituição. Recorrente, pontual ou variável. A gente entende que o brasileiro raramente tem só salário. Separa o que é seu do que é da sua PJ, se você tira pró-labore.",
+    body: "Salário, freela, aluguel recebido, comissão, bônus, 13º, restituição. Recorrente, pontual ou variável. A gente entende que o brasileiro raramente tem só salário. Separa o seu dinheiro do dinheiro do seu negócio, se você tem CNPJ.",
     color: "var(--color-brand-700)",
   },
 ];

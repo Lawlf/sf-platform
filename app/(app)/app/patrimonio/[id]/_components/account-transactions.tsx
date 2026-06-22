@@ -40,7 +40,7 @@ export function AccountTransactionsSection({
           href={"/app/lancar" as Route}
           className="focus-ring inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
         >
-          Lançar
+          Registrar
         </Link>
       </div>
 

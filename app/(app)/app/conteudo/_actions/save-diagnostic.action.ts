@@ -9,7 +9,12 @@ import { repos } from "@/infrastructure/container";
 import { action } from "@/presentation/actions/action";
 import { isErr } from "@/shared/errors/result";
 
-const VALID_ANSWERS: readonly ContentDiagnosticAnswer[] = ["pagar-divida", "guardar", "investir"];
+const VALID_ANSWERS: readonly ContentDiagnosticAnswer[] = [
+  "pagar-divida",
+  "guardar",
+  "investir",
+  "fechar-mes",
+];
 
 function isValidAnswer(raw: unknown): raw is ContentDiagnosticAnswer {
   return typeof raw === "string" && VALID_ANSWERS.includes(raw as ContentDiagnosticAnswer);

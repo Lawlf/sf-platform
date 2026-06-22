@@ -53,14 +53,14 @@ export function ResultNetWorth({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title={empty ? "Ainda falta seu primeiro bem" : "Seu resumo financeiro"}
+      title={empty ? "Ainda falta seu primeiro bem" : "Quanto você já juntou"}
       description={
         empty
           ? "Sem problema. Cadastre um bem ou sua reserva no início pra montar seu resumo."
-          : "Esse é seu patrimônio líquido agora. Ele cresce conforme você cadastra."
+          : "Esse é o total que é seu hoje. Ele cresce conforme você cadastra."
       }
       onBack={onBack}
-      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
+      primary={{ label: "Ver meu mês no início", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6"><Spinner size={24} /></div>
@@ -77,14 +77,25 @@ export function ResultNetWorth({
           </p>
         </div>
       ) : snap ? (
-        <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-          <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Patrimônio líquido
-          </p>
-          <p className="mt-1 text-[2rem] font-extrabold leading-none">{snap.netWorth.formatted}</p>
-          <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
-            O que você tem: {snap.totalAssets.formatted}
-          </p>
+        <div className="flex flex-col gap-3">
+          <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+              Quanto é seu hoje
+            </p>
+            <p className="mt-1 text-[2rem] font-extrabold leading-none">{snap.netWorth.formatted}</p>
+            <p className="mt-2 text-sm text-[color:var(--text-secondary)]">
+              O que você tem: {snap.totalAssets.formatted}
+            </p>
+          </div>
+          <div className="rounded-2xl border border-[color:var(--color-brand-500)] bg-[color:var(--surface-2)] p-4">
+            <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+              Seu próximo passo
+            </p>
+            <p className="mt-1 text-sm text-[color:var(--text-primary)]">
+              Dinheiro parado rende pouco. No início, em Simular, dá pra ver quanto ele renderia
+              ao longo do tempo.
+            </p>
+          </div>
         </div>
       ) : (
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">

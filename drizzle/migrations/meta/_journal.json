@@ -526,6 +526,13 @@
       "when": 1781938399559,
       "tag": "0074_foamy_otto_octavius",
       "breakpoints": true
+    },
+    {
+      "idx": 75,
+      "version": "7",
+      "when": 1782049352518,
+      "tag": "0075_ancient_dark_beast",
+      "breakpoints": true
     }
   ]
 }

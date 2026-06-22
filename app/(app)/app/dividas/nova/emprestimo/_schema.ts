@@ -19,7 +19,7 @@ export const newScenarioSchema = z
   .object({
     scenario: z.literal("new"),
     currency: z.enum(CURRENCIES),
-    label: z.string().min(1, "Informe um rótulo.").max(120),
+    label: z.string().min(1, "Informe um nome.").max(120),
     netReceivedCents: z.bigint().nonnegative("Valor recebido inválido."),
     principalCents: z.bigint().positive("Valor contratado deve ser positivo."),
     annualRatePct: z.number().min(0).max(200),
@@ -41,7 +41,7 @@ export const ongoingScenarioSchema = z
   .object({
     scenario: z.literal("ongoing"),
     currency: z.enum(CURRENCIES),
-    label: z.string().min(1, "Informe um rótulo.").max(120),
+    label: z.string().min(1, "Informe um nome.").max(120),
     // Empréstimo de parcela fixa: o usuário informa parcela + total de vezes +
     // quantas já pagou. Saldo, valor contratado e total pago são derivados.
     monthlyInstallmentCents: z.bigint().positive("Parcela deve ser positiva."),

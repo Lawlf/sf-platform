@@ -1,4 +1,4 @@
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Lock } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -129,13 +129,13 @@ export async function NextStepCard() {
         <p className="mt-1.5 text-[0.9375rem] font-bold tracking-[-0.01em] text-[color:var(--text-primary)]">
           {answer}
         </p>
-        <div className="mt-1 select-none blur-sm" aria-hidden="true">
-          <p className="text-[0.78125rem] text-[color:var(--text-secondary)]">{teaser.line2}</p>
-        </div>
+        <p className="mt-1.5 flex items-center gap-1.5 text-[0.78125rem] font-medium text-[color:var(--color-brand-800)]">
+          <Lock size={12} strokeWidth={2.25} aria-hidden />
+          Números completos no plano Pro
+        </p>
         {data.timelineTeaser ? (
           <p className="mt-2 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
-            <span aria-hidden className="select-none blur-sm">Mês •••</span>{" "}
-            essa dívida quita e a sobra muda de lugar.
+            No Pro você vê em que mês essa dívida quita e a sobra muda de lugar.
           </p>
         ) : null}
         {action ? (

@@ -71,12 +71,15 @@ interface PersonalLoanFormProps {
   initialScenario?: "new" | "ongoing";
   defaultCurrency?: Currency;
   initialLinkAssetId?: string | null;
+  // Vem do modo simples: pré-preenche o que a pessoa já digitou.
+  seed?: { label: string; monthlyInstallmentCents: bigint; remainingInstallments: number } | null;
 }
 
 export function PersonalLoanForm({
   initialScenario = "new",
   defaultCurrency = "BRL",
   initialLinkAssetId = null,
+  seed = null,
 }: PersonalLoanFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -123,12 +126,16 @@ export function PersonalLoanForm({
         : ({
             scenario: "new",
             currency: defaultCurrency,
-            label: "Empréstimo",
-            netReceivedCents: 0n as unknown as bigint,
-            principalCents: 0n as unknown as bigint,
+            label: seed?.label ?? "Empréstimo",
+            netReceivedCents: (seed
+              ? seed.monthlyInstallmentCents * BigInt(seed.remainingInstallments)
+              : 0n) as unknown as bigint,
+            principalCents: (seed
+              ? seed.monthlyInstallmentCents * BigInt(seed.remainingInstallments)
+              : 0n) as unknown as bigint,
             annualRatePct: 0,
-            termMonths: 24,
-            monthlyInstallmentCents: 0n as unknown as bigint,
+            termMonths: seed?.remainingInstallments ?? 24,
+            monthlyInstallmentCents: (seed?.monthlyInstallmentCents ?? 0n) as unknown as bigint,
             dueDay: null,
             startDate: todayIso(),
             expectedEndDate: null,
@@ -244,22 +251,26 @@ export function PersonalLoanForm({
 
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
-    // Reset shared/relevant fields when toggling scenarios to avoid leaking values.
+    // Trocar de cenário NÃO apaga o que serve pros dois (nome, parcela, taxa,
+    // dia, datas). Só os campos específicos do cenário antigo somem.
+    const shared = {
+      currency: values.currency ?? defaultCurrency,
+      label: values.label ?? "",
+      monthlyInstallmentCents: values.monthlyInstallmentCents ?? (0n as unknown as bigint),
+      annualRatePct: values.annualRatePct ?? 0,
+      dueDay: values.dueDay ?? null,
+      startDate: values.startDate ?? todayIso(),
+      expectedEndDate: values.expectedEndDate ?? null,
+      notes: values.notes ?? null,
+    };
     if (next === "new") {
       form.reset(
         {
           scenario: "new",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
+          ...shared,
           netReceivedCents: 0n as unknown as bigint,
           principalCents: 0n as unknown as bigint,
-          annualRatePct: 0,
           termMonths: 24,
-          monthlyInstallmentCents: 0n as unknown as bigint,
-          dueDay: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
           ...cashInflowDefaults,
         } as FormValues,
@@ -269,16 +280,9 @@ export function PersonalLoanForm({
       form.reset(
         {
           scenario: "ongoing",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
-          monthlyInstallmentCents: 0n as unknown as bigint,
+          ...shared,
           totalInstallments: undefined as unknown as number,
           paidInstallments: 0,
-          annualRatePct: 0,
-          dueDay: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
           // Para "ongoing" o dinheiro já caiu há tempos — não pergunta cash inflow.
           cashTarget: "spent" as const,
@@ -590,6 +594,7 @@ export function PersonalLoanForm({
               label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
+              helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
             >
               <WizardPercentField

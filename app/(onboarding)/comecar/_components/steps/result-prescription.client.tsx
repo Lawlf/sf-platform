@@ -116,7 +116,7 @@ export function ResultPrescription({
         <div className="flex flex-col gap-3">
           <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
             <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-              O total que você deve
+              {debts.length > 1 ? "O total que você deve" : "O que você deve nessa dívida"}
             </p>
             <p
               className={`mt-1 text-[2rem] font-extrabold leading-none ${
@@ -148,6 +148,13 @@ export function ResultPrescription({
                 e ajusta a ordem se precisar.
               </p>
             </div>
+          ) : null}
+
+          {debts.length === 1 ? (
+            <p className="text-[0.75rem] text-[color:var(--text-muted)]">
+              Tem mais dívida? Some empréstimo, financiamento ou cheque especial no início pra ver o
+              total real e a ordem certa de atacar.
+            </p>
           ) : null}
 
           <p className="text-[0.75rem] text-[color:var(--text-muted)]">

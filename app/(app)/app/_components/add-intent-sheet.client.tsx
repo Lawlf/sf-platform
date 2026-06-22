@@ -3,7 +3,7 @@
 import { ArrowDownUp, CreditCard, Landmark, Target, Wallet } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { Fragment, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { toast } from "sonner";
 
 import {
@@ -38,10 +38,17 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
   const t = useCopy(addHubCopy);
 
   // Hub de intenção: uma pergunta única em linguagem de leigo que roteia para as
-  // portas que continuam existindo por baixo (dívida, renda, patrimônio, meta,
-  // lançar). Não funde entidades; unifica só a entrada. "Entrou ou saiu agora"
-  // (avulso, micro) fica por último de propósito.
-  const intents: readonly IntentOption[] = [
+  // portas que continuam existindo por baixo. Não funde entidades; unifica a
+  // entrada. Ordem pela dor do ICP (renda > dívida > gasto do dia). Patrimônio e
+  // meta são setup raro, então descem para "Mais".
+  const primary: readonly IntentOption[] = [
+    {
+      id: "renda",
+      href: "/app/renda/nova" as Route,
+      title: t("income.title"),
+      description: t("income.desc"),
+      icon: <Wallet size={22} strokeWidth={2} aria-hidden />,
+    },
     {
       id: "divida",
       href: "/app/dividas/nova" as Route,
@@ -50,12 +57,15 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
       icon: <CreditCard size={22} strokeWidth={2} aria-hidden />,
     },
     {
-      id: "renda",
-      href: "/app/renda/nova" as Route,
-      title: t("income.title"),
-      description: t("income.desc"),
-      icon: <Wallet size={22} strokeWidth={2} aria-hidden />,
+      id: "lancar",
+      href: "/app/lancar" as Route,
+      title: "Um gasto ou recebimento do dia",
+      description: t("lancar.desc"),
+      icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
     },
+  ];
+
+  const more: readonly IntentOption[] = [
     {
       id: "patrimonio",
       href: "/app/patrimonio/novo" as Route,
@@ -69,14 +79,16 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
       title: "Quero juntar pra um objetivo",
       icon: <Target size={22} strokeWidth={2} aria-hidden />,
     },
-    {
-      id: "lancar",
-      href: "/app/lancar" as Route,
-      title: "Um gasto ou recebimento do dia",
-      description: t("lancar.desc"),
-      icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
-    },
   ];
+
+  function select(href: Route) {
+    onOpenChange(false);
+    if (!online) {
+      toast("Sem internet. Você registra isso quando o sinal voltar.");
+      return;
+    }
+    router.push(href);
+  }
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
@@ -86,26 +98,28 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
           <SheetDescription>Diz o que aconteceu, a gente coloca no lugar certo.</SheetDescription>
         </SheetHeader>
         <div role="list" className="flex flex-col gap-2">
-          {intents.map((intent) => (
-            <Fragment key={intent.id}>
-              {intent.id === "lancar" ? (
-                <div className="my-0.5 h-px bg-[color:var(--border-soft)]" aria-hidden />
-              ) : null}
-              <KindCard
-                icon={intent.icon}
-                title={intent.title}
-                description={intent.description}
-                selected={false}
-                onSelect={() => {
-                  onOpenChange(false);
-                  if (!online) {
-                    toast("Sem internet. Você registra isso quando o sinal voltar.");
-                    return;
-                  }
-                  router.push(intent.href);
-                }}
-              />
-            </Fragment>
+          {primary.map((intent) => (
+            <KindCard
+              key={intent.id}
+              icon={intent.icon}
+              title={intent.title}
+              description={intent.description}
+              selected={false}
+              onSelect={() => select(intent.href)}
+            />
+          ))}
+          <p className="mt-1 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+            Mais
+          </p>
+          {more.map((intent) => (
+            <KindCard
+              key={intent.id}
+              icon={intent.icon}
+              title={intent.title}
+              description={intent.description}
+              selected={false}
+              onSelect={() => select(intent.href)}
+            />
           ))}
         </div>
       </SheetContent>

@@ -43,31 +43,13 @@ interface SettingSection {
 
 const SECTIONS: SettingSection[] = [
   {
-    title: "Conta",
+    title: "Minha conta",
     items: [
       {
         href: "/app/perfil/conta" as Route,
         label: "Dados pessoais",
         description: "Nome e email.",
         icon: UserCog,
-      },
-      {
-        href: "/app/configuracoes/perfis" as Route,
-        label: "Perfis",
-        description: "Separe renda, dívidas e patrimônio por contexto.",
-        icon: SlidersHorizontal,
-      },
-      {
-        href: "/app/lar" as Route,
-        label: "Nosso lar",
-        description: "Convites e o que você compartilha com quem divide as contas.",
-        icon: Users,
-      },
-      {
-        href: "/app/configuracoes/estilo" as Route,
-        label: "Estilo com dinheiro",
-        description: "Como você lida com dinheiro.",
-        icon: Scale,
       },
       {
         href: "/app/configuracoes/planos" as Route,
@@ -81,10 +63,16 @@ const SECTIONS: SettingSection[] = [
         description: "Sessões ativas e desativar conta.",
         icon: KeyRound,
       },
+      {
+        href: "/app/lar" as Route,
+        label: "Nosso lar",
+        description: "Convites e o que você compartilha com quem divide as contas.",
+        icon: Users,
+      },
     ],
   },
   {
-    title: "Dados e conexões",
+    title: "Meus dados",
     items: [
       {
         href: "/app/configuracoes/importacao-de-dados/extrato" as Route,
@@ -107,12 +95,12 @@ const SECTIONS: SettingSection[] = [
     ],
   },
   {
-    title: "Preferências",
+    title: "Meu mês",
     items: [
       {
         href: "/app/perfil/notificacoes" as Route,
         label: "Notificações",
-        description: "Avisos push de vencimento, preços e resumo macro.",
+        description: "Quando a gente te chama: conta pra vencer e fim do mês.",
         icon: Bell,
       },
       {
@@ -127,17 +115,32 @@ const SECTIONS: SettingSection[] = [
         description: "As fatias do seu mês. Crie, renomeie ou esconda as que não usa.",
         icon: Tag,
       },
+    ],
+  },
+];
+
+const ADVANCED_SECTIONS: SettingSection[] = [
+  {
+    title: "Ajustes finos",
+    items: [
+      {
+        href: "/app/configuracoes/perfis" as Route,
+        label: "Perfis",
+        description: "Separe o dinheiro pessoal do dinheiro do seu negócio.",
+        icon: SlidersHorizontal,
+      },
+      {
+        href: "/app/configuracoes/estilo" as Route,
+        label: "Estilo com dinheiro",
+        description: "Como você lida com dinheiro.",
+        icon: Scale,
+      },
       {
         href: "/app/configuracoes/idioma-regiao" as Route,
         label: "Idioma e região",
         description: "Português (Brasil). Escolha a moeda padrão dos seus lançamentos.",
         icon: Globe,
       },
-    ],
-  },
-  {
-    title: "Experiência",
-    items: [
       {
         href: "/app/perfil/aparencia" as Route,
         label: "Aparência",
@@ -195,16 +198,29 @@ function normalize(value: string): string {
     .toLowerCase();
 }
 
+function filterSections(sections: SettingSection[], normalizedQuery: string): SettingSection[] {
+  return sections
+    .map((section) => ({
+      ...section,
+      items: section.items.filter((item) =>
+        normalize(`${item.label} ${item.description}`).includes(normalizedQuery),
+      ),
+    }))
+    .filter((section) => section.items.length > 0);
+}
+
 export function SettingsList() {
   const [query, setQuery] = useState("");
+  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const normalizedQuery = normalize(query.trim());
-  const filteredSections = SECTIONS.map((section) => ({
-    ...section,
-    items: section.items.filter((item) =>
-      normalize(`${item.label} ${item.description}`).includes(normalizedQuery),
-    ),
-  })).filter((section) => section.items.length > 0);
+  const searching = normalizedQuery.length > 0;
+  const filteredSections = filterSections(SECTIONS, normalizedQuery);
+  const filteredAdvanced = filterSections(ADVANCED_SECTIONS, normalizedQuery);
+  // Buscando: tudo junto (inclui avançado). Sem busca: avançado fica atrás do "Mais".
+  const visibleSections = searching
+    ? [...filteredSections, ...filteredAdvanced]
+    : filteredSections;
 
   return (
     <>
@@ -224,7 +240,7 @@ export function SettingsList() {
         />
       </div>
 
-      {filteredSections.length === 0 ? (
+      {visibleSections.length === 0 ? (
         <div className="flex flex-col items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-6 py-12 text-center backdrop-blur-xl">
           <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
             <SearchX size={24} strokeWidth={1.75} aria-hidden />
@@ -239,65 +255,95 @@ export function SettingsList() {
           </div>
         </div>
       ) : (
-        filteredSections.map((section) => (
-          <section key={section.title} className="flex flex-col gap-2">
-            <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-              {section.title}
-            </h2>
-            <div className="flex flex-col gap-2">
-              {section.items.map((item) => {
-                const Icon = item.icon;
-                if (item.disabled) {
-                  return (
-                    <div
-                      key={item.label}
-                      aria-disabled
-                      className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-4 opacity-60"
-                    >
-                      <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]">
-                        <Icon size={18} strokeWidth={1.75} aria-hidden />
-                      </span>
-                      <div className="flex-1">
-                        <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-                          {item.label}
-                        </div>
-                        <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-muted)]">
-                          {item.description}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                }
-                return (
-                  <Link
-                    key={item.label}
-                    href={item.href}
-                    className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl transition-colors hover:bg-[color:var(--surface-1)]"
-                  >
-                    <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-                      <Icon size={18} strokeWidth={1.75} aria-hidden />
-                    </span>
-                    <div className="flex-1">
-                      <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-                        {item.label}
-                      </div>
-                      <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
-                        {item.description}
-                      </div>
-                    </div>
-                    <ChevronRight
-                      size={18}
-                      strokeWidth={2}
-                      className="text-[color:var(--color-brand-800)]"
-                      aria-hidden
-                    />
-                  </Link>
-                );
-              })}
-            </div>
-          </section>
-        ))
+        visibleSections.map((section) => <SectionView key={section.title} section={section} />)
       )}
+
+      {!searching ? (
+        <div className="flex flex-col gap-2">
+          <button
+            type="button"
+            onClick={() => setShowAdvanced((v) => !v)}
+            aria-expanded={showAdvanced}
+            className="focus-ring flex items-center justify-between rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-left backdrop-blur-xl"
+          >
+            <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+              Mais opções
+            </span>
+            <ChevronRight
+              size={18}
+              strokeWidth={2}
+              className={`text-[color:var(--color-brand-800)] transition-transform ${showAdvanced ? "rotate-90" : ""}`}
+              aria-hidden
+            />
+          </button>
+          {showAdvanced
+            ? ADVANCED_SECTIONS.map((section) => (
+                <SectionView key={section.title} section={section} />
+              ))
+            : null}
+        </div>
+      ) : null}
     </>
+  );
+}
+
+function SectionView({ section }: { section: SettingSection }) {
+  return (
+    <section className="flex flex-col gap-2">
+      <h2 className="px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+        {section.title}
+      </h2>
+      <div className="flex flex-col gap-2">
+        {section.items.map((item) => {
+          const Icon = item.icon;
+          if (item.disabled) {
+            return (
+              <div
+                key={item.label}
+                aria-disabled
+                className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-4 opacity-60"
+              >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]">
+                  <Icon size={18} strokeWidth={1.75} aria-hidden />
+                </span>
+                <div className="flex-1">
+                  <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                    {item.label}
+                  </div>
+                  <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-muted)]">
+                    {item.description}
+                  </div>
+                </div>
+              </div>
+            );
+          }
+          return (
+            <Link
+              key={item.label}
+              href={item.href}
+              className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl transition-colors hover:bg-[color:var(--surface-1)]"
+            >
+              <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
+                <Icon size={18} strokeWidth={1.75} aria-hidden />
+              </span>
+              <div className="flex-1">
+                <div className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                  {item.label}
+                </div>
+                <div className="mt-0.5 text-[0.75rem] text-[color:var(--text-secondary)]">
+                  {item.description}
+                </div>
+              </div>
+              <ChevronRight
+                size={18}
+                strokeWidth={2}
+                className="text-[color:var(--color-brand-800)]"
+                aria-hidden
+              />
+            </Link>
+          );
+        })}
+      </div>
+    </section>
   );
 }

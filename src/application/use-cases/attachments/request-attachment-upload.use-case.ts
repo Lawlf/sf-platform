@@ -2,11 +2,19 @@ import type { FileStoragePort } from "@/domain/ports/file-storage.port";
 import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories/entity-attachment.repository";
 import { isAttachableEntityType } from "@/domain/value-objects/attachable-entity-type";
 
-import { type UploadRejectReason, validateUpload } from "./attachment-limits";
+import {
+  FREE_ATTACHMENTS_PER_ENTITY,
+  FREE_ATTACHMENTS_TOTAL,
+  type UploadRejectReason,
+  validateUpload,
+} from "./attachment-limits";
 import { buildStorageKey } from "./attachment-storage-key";
 
 export interface RequestUploadDeps {
-  attachments: Pick<EntityAttachmentRepositoryPort, "totalBytesForUser">;
+  attachments: Pick<
+    EntityAttachmentRepositoryPort,
+    "totalBytesForUser" | "listForEntity" | "listAllForUser"
+  >;
   storage: Pick<FileStoragePort, "presignUpload">;
   newId: () => string;
   isPro: boolean;
@@ -27,8 +35,21 @@ export async function requestAttachmentUpload(
     sizeBytes: number;
   },
 ): Promise<RequestUploadResult> {
-  if (!deps.isPro) return { ok: false, reason: "not_pro" };
   if (!isAttachableEntityType(input.entityType)) return { ok: false, reason: "invalid" };
+
+  // Free: 1 anexo por entidade + teto global. Acima de qualquer um, é Pro.
+  if (!deps.isPro) {
+    const [perEntity, all] = await Promise.all([
+      deps.attachments.listForEntity(input.userId, input.entityType, input.entityId),
+      deps.attachments.listAllForUser(input.userId),
+    ]);
+    if (
+      perEntity.length >= FREE_ATTACHMENTS_PER_ENTITY ||
+      all.length >= FREE_ATTACHMENTS_TOTAL
+    ) {
+      return { ok: false, reason: "not_pro" };
+    }
+  }
 
   const currentTotalBytes = await deps.attachments.totalBytesForUser(input.userId);
   const check = validateUpload({

@@ -8,7 +8,7 @@ import { lancarCopy } from "../_lib/copy/catalogs";
 import { getActiveProfileType, getCopy } from "../_lib/copy/get-copy";
 import { LogTransactionForm } from "../linha-do-tempo/_components/log-transaction-form.client";
 
-export const metadata: Metadata = { title: "Lançar" };
+export const metadata: Metadata = { title: "Registrar gasto" };
 
 export default async function LancarPage() {
   await requireUser();
@@ -16,7 +16,7 @@ export default async function LancarPage() {
 
   return (
     <PageShell
-      title="Lançar"
+      title="Registrar gasto"
       description={t("page.subtitle")}
       backHref={"/app" as Route}
     >

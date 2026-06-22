@@ -100,6 +100,17 @@ export function RendaListClient() {
             })}
           </div>
         )}
+        {active.length > 0 ? (
+          <Link
+            href={"/app/linha-do-tempo" as Route}
+            className="focus-ring mt-1 flex items-center justify-between rounded-2xl border border-[color:var(--color-brand-500)]/30 bg-[color:var(--surface-2)] p-4"
+          >
+            <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
+              Ver como seu mês fecha com essa renda
+            </span>
+            <TrendingUp size={16} strokeWidth={2.25} className="text-[color:var(--color-brand-800)]" aria-hidden />
+          </Link>
+        ) : null}
       </section>
 
       {archived.length > 0 ? (

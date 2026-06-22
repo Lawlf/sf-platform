@@ -7,6 +7,7 @@ import {
   createDebtAction,
   type CreateDebtResult,
 } from "@/app/(app)/app/dividas/_actions/create-debt.action";
+import { createRecurringDebtAction } from "@/app/(app)/app/dividas/nova/recorrente/_actions/create-recurring-debt.action";
 import { createIncomeAction } from "@/app/(app)/app/renda/_actions/create-income.action";
 import { updateIncomeAction } from "@/app/(app)/app/renda/_actions/update-income.action";
 
@@ -38,4 +39,14 @@ export async function upsertOnboardingDebtAction(formData: FormData): Promise<Cr
   }
   formData.set("kind", "credit_card");
   return createDebtAction(formData);
+}
+
+export async function upsertOnboardingExpenseAction(formData: FormData): Promise<CreateDebtResult> {
+  const debts = await fetchDebts({ status: "active" });
+  const existing = debts.find((d) => d.kind === "recurring");
+  if (existing) {
+    formData.set("debtId", existing.id);
+    return updateDebtAction(formData);
+  }
+  return createRecurringDebtAction(formData);
 }

@@ -15,7 +15,6 @@ import type { AttachmentDto } from "../../../_actions/entity-attachments.action"
 import { listAttachmentsAction } from "../../../_actions/entity-attachments.action";
 import { getEntityNoteAction } from "../../../_actions/entity-notes.action";
 import { AttachmentsList } from "../../../_components/notes-files/attachments-list";
-import { AttachmentsPaywall } from "../../../_components/notes-files/attachments-paywall";
 import { NoteField } from "../../../_components/notes-files/note-field";
 
 export interface PaymentRowData {
@@ -60,9 +59,7 @@ export function PaymentDetailSheet({
       try {
         const [note, files] = await Promise.all([
           getEntityNoteAction({ entityType: "debt_payment", entityId: paymentId }),
-          isPro
-            ? listAttachmentsAction({ entityType: "debt_payment", entityId: paymentId })
-            : Promise.resolve({ items: [], totalBytes: 0 }),
+          listAttachmentsAction({ entityType: "debt_payment", entityId: paymentId }),
         ]);
         if (!active) return;
         setDetail({ noteBody: note.body, items: files.items, totalBytes: files.totalBytes });
@@ -111,16 +108,13 @@ export function PaymentDetailSheet({
                     entityId={payment.id}
                     initialBody={detail.noteBody}
                   />
-                  {isPro ? (
-                    <AttachmentsList
-                      entityType="debt_payment"
-                      entityId={payment.id}
-                      initialItems={detail.items}
-                      initialTotalBytes={detail.totalBytes}
-                    />
-                  ) : (
-                    <AttachmentsPaywall />
-                  )}
+                  <AttachmentsList
+                    entityType="debt_payment"
+                    entityId={payment.id}
+                    initialItems={detail.items}
+                    initialTotalBytes={detail.totalBytes}
+                    isPro={isPro}
+                  />
                 </div>
               )}
             </div>
