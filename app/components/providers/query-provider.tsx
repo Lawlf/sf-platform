@@ -4,6 +4,8 @@ import { QueryClient, QueryClientProvider, isServer } from "@tanstack/react-quer
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 import type { ReactNode } from "react";
 
+import "@/shared/zod-locale";
+
 function makeQueryClient(): QueryClient {
   return new QueryClient({
     defaultOptions: {

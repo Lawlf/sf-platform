@@ -43,9 +43,22 @@ export function RendaListClient() {
           Ativas ({active.length})
         </h2>
         {active.length === 0 ? (
-          <p className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-6 text-center text-sm text-[color:var(--text-secondary)]">
-            Nenhuma renda ativa. Adicione sua primeira fonte acima.
-          </p>
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-4 py-8 text-center">
+            <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--semantic-positive)]/[0.14] text-[color:var(--semantic-positive)]">
+              <TrendingUp size={22} strokeWidth={1.75} aria-hidden />
+            </span>
+            <p className="text-sm text-[color:var(--text-secondary)]">
+              Ainda não tem renda cadastrada. Coloque o que entra todo mês pra saber se você fecha o
+              mês.
+            </p>
+            <Link
+              href={"/app/renda/nova" as Route}
+              className="focus-ring inline-flex items-center gap-1.5 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-2.5 text-[0.8125rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
+            >
+              <TrendingUp size={15} strokeWidth={2.25} aria-hidden />
+              Adicionar renda
+            </Link>
+          </div>
         ) : (
           <div className="grid gap-2 md:grid-cols-2">
             {active.map((income) => {

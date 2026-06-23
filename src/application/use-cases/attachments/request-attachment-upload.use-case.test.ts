@@ -5,15 +5,15 @@ import type { EntityAttachmentRepositoryPort } from "@/domain/ports/repositories
 
 import { requestAttachmentUpload } from "./request-attachment-upload.use-case";
 
-function makeDeps(over: { isPro?: boolean; total?: number } = {}) {
+function makeDeps(over: { isPro?: boolean; total?: number; perEntity?: number; allCount?: number } = {}) {
   const attachments: EntityAttachmentRepositoryPort = {
     add: vi.fn(),
     findById: vi.fn(),
-    listForEntity: vi.fn(),
+    listForEntity: vi.fn().mockResolvedValue(Array.from({ length: over.perEntity ?? 0 })),
     remove: vi.fn(),
     rename: vi.fn(),
     totalBytesForUser: vi.fn().mockResolvedValue(over.total ?? 0),
-    listAllForUser: vi.fn().mockResolvedValue([]),
+    listAllForUser: vi.fn().mockResolvedValue(Array.from({ length: over.allCount ?? 0 })),
     existingEntityIds: vi.fn().mockResolvedValue(new Set()),
   };
   const storage: FileStoragePort = {
@@ -25,9 +25,21 @@ function makeDeps(over: { isPro?: boolean; total?: number } = {}) {
 }
 
 describe("requestAttachmentUpload", () => {
-  it("nega para usuario nao Pro", async () => {
+  it("Free pode o primeiro anexo da entidade", async () => {
     const r = await requestAttachmentUpload(makeDeps({ isPro: false }), {
       userId: "u1", entityType: "debt", entityId: "e1", fileName: "c.pdf", contentType: "application/pdf", sizeBytes: 1000,
+    });
+    expect(r.ok).toBe(true);
+  });
+  it("nega Free com anexo ja na entidade", async () => {
+    const r = await requestAttachmentUpload(makeDeps({ isPro: false, perEntity: 1 }), {
+      userId: "u1", entityType: "debt", entityId: "e1", fileName: "c.pdf", contentType: "application/pdf", sizeBytes: 1000,
+    });
+    expect(r).toEqual({ ok: false, reason: "not_pro" });
+  });
+  it("nega Free no teto global de arquivos", async () => {
+    const r = await requestAttachmentUpload(makeDeps({ isPro: false, allCount: 5 }), {
+      userId: "u1", entityType: "debt", entityId: "e2", fileName: "c.pdf", contentType: "application/pdf", sizeBytes: 1000,
     });
     expect(r).toEqual({ ok: false, reason: "not_pro" });
   });

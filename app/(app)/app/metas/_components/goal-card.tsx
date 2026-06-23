@@ -47,6 +47,7 @@ export function GoalCard({ data }: GoalCardProps) {
   const currentCents = progress.currentCents;
   const remainingCents = Math.max(0, Number(targetCents) - Number(currentCents));
   const pct = Math.min(100, Math.max(0, progress.pct));
+  const noTarget = Number(targetCents) <= 0;
 
   const isReached = progress.reached;
 
@@ -68,9 +69,11 @@ export function GoalCard({ data }: GoalCardProps) {
             <span className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
               {goal.title}
             </span>
-            <span className="shrink-0 text-[0.875rem] font-bold tabular-nums text-[color:var(--text-primary)]">
-              {pct.toFixed(0)}%
-            </span>
+            {noTarget ? null : (
+              <span className="shrink-0 text-[0.875rem] font-bold tabular-nums text-[color:var(--text-primary)]">
+                {pct.toFixed(0)}%
+              </span>
+            )}
           </div>
           <span className="block mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
             {typeLabel}
@@ -78,20 +81,26 @@ export function GoalCard({ data }: GoalCardProps) {
         </div>
       </div>
 
-      <div className="h-[9px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
-        <div
-          className={`h-full rounded-full transition-[width] ${barColor}`}
-          style={{ width: `${pct}%` }}
-          role="progressbar"
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        />
-      </div>
+      {noTarget ? null : (
+        <div className="h-[9px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+          <div
+            className={`h-full rounded-full transition-[width] ${barColor}`}
+            style={{ width: `${pct}%` }}
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
+      )}
 
       <div className="flex items-baseline justify-between gap-2 text-[0.75rem]">
         <span className="text-[color:var(--text-secondary)]">
-          {isReached ? (
+          {noTarget ? (
+            <span className="font-semibold text-[color:var(--color-brand-800)]">
+              Defina o valor da meta
+            </span>
+          ) : isReached ? (
             <span className="font-semibold text-[color:var(--semantic-positive)]">Concluída</span>
           ) : (
             <>
