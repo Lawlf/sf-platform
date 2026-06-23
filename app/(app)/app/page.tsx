@@ -2,7 +2,6 @@ import { Fragment, type ReactNode, Suspense } from "react";
 
 
 import { Skeleton } from "@/app/components/ui/skeleton";
-import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
@@ -15,7 +14,6 @@ import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
-import { ConsumoCard } from "./_components/consumo-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
 import { HomeGoalCard } from "./_components/home-goal-card";
@@ -64,9 +62,6 @@ export default async function DashboardPage() {
     }),
   );
 
-  const consumoFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const consumoTo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
-
   const [
     initialMonthDetail,
     prevMonthDetail,
@@ -75,7 +70,6 @@ export default async function DashboardPage() {
     projectionInitial,
     monthClosingInitial,
     prescription,
-    consumo,
     outOfMonth,
     externalAccountKeys,
     mcpConnections,
@@ -87,10 +81,6 @@ export default async function DashboardPage() {
     fetchPlanningProjection(),
     fetchMonthClosing(),
     getPrescription(),
-    getMonthlyConsumo(
-      { transactions: repos.transactions },
-      { profileId, from: consumoFrom, to: consumoTo },
-    ),
     fetchOutOfMonthSummary(),
     repos.assets.listExternalAccountKeys(profileId),
     repos.mcpConnections.listForUser(user.id),
@@ -223,15 +213,6 @@ export default async function DashboardPage() {
             {cardNodes[key]}
           </Fragment>
         ))}
-
-        <div className="md:col-span-2">
-          <ConsumoCard
-            total={Number(consumo.totalCents) / 100}
-            essencial={Number(consumo.essencialCents) / 100}
-            parcelado={Number(consumo.parceladoCents) / 100}
-            resto={Number(consumo.restoCents) / 100}
-          />
-        </div>
       </div>
     </PageShell>
   );
