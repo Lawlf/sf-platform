@@ -247,13 +247,15 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
             />
           ) : null}
 
-          <button
-            type="button"
-            onClick={() => setShowDetails((v) => !v)}
-            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-          >
-            {showDetails ? "Esconder detalhes" : "Ajustar detalhes (dependentes, imposto, custos)"}
-          </button>
+          {showDetails ? null : (
+            <button
+              type="button"
+              onClick={() => setShowDetails(true)}
+              className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              Ajustar detalhes (dependentes, imposto, custos)
+            </button>
+          )}
         </div>
       </section>
 
