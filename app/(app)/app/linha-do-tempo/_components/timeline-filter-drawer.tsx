@@ -1,6 +1,5 @@
 "use client";
 
-import { Star } from "lucide-react";
 import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useState, useTransition } from "react";
@@ -30,18 +29,6 @@ const RANGE_OPTIONS = [
   { value: "all", label: "Tudo" },
 ] as const;
 
-const FOCUS_OPTIONS = [
-  { value: "balance", label: "Saldo da Carteira" },
-  { value: "networth", label: "Patrimônio" },
-  { value: "income", label: "Renda" },
-] as const;
-
-const SHOW_OPTIONS = [
-  { value: "all", label: "Tudo" },
-  { value: "highlights", label: "Só destaques", icon: Star },
-  { value: "with-payments", label: "Com pagamentos" },
-] as const;
-
 export function TimelineFilterDrawer({
   open,
   onOpenChange,
@@ -53,15 +40,11 @@ export function TimelineFilterDrawer({
 
   // Local state for editing; only commits to URL on Apply
   const [range, setRange] = useState<string>(params.get("range") ?? "all");
-  const [focus, setFocus] = useState<string>(params.get("focus") ?? "balance");
-  const [show, setShow] = useState<string>(params.get("show") ?? "all");
   const [jumpTo, setJumpTo] = useState<string | null>(params.get("jumpTo"));
 
   function apply() {
     const next = new URLSearchParams();
     if (range !== "all") next.set("range", range);
-    if (focus !== "balance") next.set("focus", focus);
-    if (show !== "all") next.set("show", show);
     if (jumpTo) next.set("jumpTo", jumpTo);
     const query = next.toString();
     const href = (
@@ -84,7 +67,7 @@ export function TimelineFilterDrawer({
         <SheetHeader className="gap-1">
           <SheetTitle>Ver de outro jeito</SheetTitle>
           <SheetDescription className="text-[0.75rem] text-[color:var(--text-secondary)]">
-            Pula pra um mês ou troca a lente: saldo, patrimônio ou renda.
+            Escolha o período ou pule direto pra um mês.
           </SheetDescription>
         </SheetHeader>
 
@@ -108,38 +91,6 @@ export function TimelineFilterDrawer({
             oldestUserDataIso={oldestUserDataIso}
             onSelect={(iso) => setJumpTo(iso)}
           />
-        </FilterSection>
-
-        <FilterSection title="Foco">
-          <ChipRow>
-            {FOCUS_OPTIONS.map((opt) => (
-              <FilterChip
-                key={opt.value}
-                active={focus === opt.value}
-                onClick={() => setFocus(opt.value)}
-              >
-                {opt.label}
-              </FilterChip>
-            ))}
-          </ChipRow>
-        </FilterSection>
-
-        <FilterSection title="Mostrar">
-          <ChipRow>
-            {SHOW_OPTIONS.map((opt) => {
-              const Icon = "icon" in opt ? opt.icon : null;
-              return (
-                <FilterChip
-                  key={opt.value}
-                  active={show === opt.value}
-                  onClick={() => setShow(opt.value)}
-                >
-                  {Icon ? <Icon size={12} strokeWidth={2} aria-hidden /> : null}
-                  {opt.label}
-                </FilterChip>
-              );
-            })}
-          </ChipRow>
         </FilterSection>
 
         <button
