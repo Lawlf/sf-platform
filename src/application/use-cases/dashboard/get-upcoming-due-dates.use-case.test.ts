@@ -5,13 +5,14 @@ import type {
   FinancingDebt,
   OverdraftDebt,
   PersonalLoanDebt,
+  RecurringDebt,
 } from "@/domain/entities/debt.entity";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { getUpcomingDueDates } from "./get-upcoming-due-dates.use-case";
+import { getUpcomingDueDates, nextDueFor as nextDueForExported } from "./get-upcoming-due-dates.use-case";
 
 function makeDebtRepo(): DebtRepositoryPort {
   return {
@@ -155,6 +156,29 @@ function makeOverdraft(): OverdraftDebt {
   };
 }
 
+function makeRecurringDebt(overrides: Partial<RecurringDebt> = {}): RecurringDebt {
+  return {
+    id: overrides.id ?? "debt-rec",
+    userId: overrides.userId ?? "user-1",
+    profileId: overrides.profileId ?? "profile-1",
+    label: overrides.label ?? "Netflix",
+    status: "active",
+    originalPrincipal: makeMoney(50),
+    currentBalance: makeMoney(0),
+    startDate: overrides.startDate ?? new Date(2026, 0, 1),
+    expectedEndDate: null,
+    notes: null,
+    createdAt: new Date(2026, 0, 1),
+    updatedAt: new Date(2026, 0, 1),
+    kind: "recurring",
+    recurringFrequency: overrides.recurringFrequency ?? "monthly",
+    recurringAmountCents: overrides.recurringAmountCents ?? 5000n,
+    dueDay: overrides.dueDay !== undefined ? overrides.dueDay : 10,
+    expenseCategory: overrides.expenseCategory ?? "assinatura",
+    deletedAt: null,
+  };
+}
+
 describe("getUpcomingDueDates", () => {
   it("computes next due for a financing debt as start + elapsed + 1 months", async () => {
     const debts = makeDebtRepo();
@@ -249,6 +273,38 @@ describe("getUpcomingDueDates", () => {
     expect(isOk(result)).toBe(true);
     if (isOk(result)) {
       expect(result.value).toHaveLength(0);
+    }
+  });
+
+  it("gera vencimento mensal para dívida recorrente mensal", () => {
+    const debt = makeRecurringDebt({
+      recurringFrequency: "monthly",
+      dueDay: 10,
+      recurringAmountCents: 5000n,
+      startDate: new Date(2026, 0, 10),
+    });
+    const now = new Date(2026, 5, 1);
+    const due = nextDueForExported(debt, now);
+    expect(due).not.toBeNull();
+    expect(due!.dueDate).toEqual(new Date(2026, 5, 10));
+    expect(due!.amount?.toCents()).toBe(5000n);
+  });
+
+  it("recorrente sem dueDay cai no dia de startDate", () => {
+    const debt = makeRecurringDebt({
+      recurringFrequency: "monthly",
+      dueDay: null,
+      recurringAmountCents: 3000n,
+      startDate: new Date(2026, 0, 5),
+    });
+    const due = nextDueForExported(debt, new Date(2026, 5, 1));
+    expect(due!.dueDate).toEqual(new Date(2026, 5, 5));
+  });
+
+  it("recorrente semanal e anual não geram vencimento no v1", () => {
+    for (const freq of ["weekly", "annual"] as const) {
+      const debt = makeRecurringDebt({ recurringFrequency: freq, dueDay: 10, recurringAmountCents: 1000n });
+      expect(nextDueForExported(debt, new Date(2026, 5, 1))).toBeNull();
     }
   });
 

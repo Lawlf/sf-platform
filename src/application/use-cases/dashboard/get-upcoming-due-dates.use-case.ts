@@ -1,7 +1,7 @@
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
-import type { Money } from "@/domain/value-objects/money.vo";
+import { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface UpcomingDue {
@@ -34,7 +34,7 @@ export async function getUpcomingDueDates(
   return ok(dues);
 }
 
-function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
+export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
   switch (debt.kind) {
     case "financing": {
       const elapsed = monthDiff(debt.startDate, now);
@@ -72,11 +72,18 @@ function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
     }
     case "overdraft":
       return null;
-    case "recurring":
-      // Compromissos recorrentes ainda não geram alertas de vencimento no
-      // dashboard. Próximo batch pode introduzir lógica específica
-      // (mensal: dia do mês).
-      return null;
+    case "recurring": {
+      if (debt.recurringFrequency !== "monthly") return null;
+      const day = debt.dueDay ?? debt.startDate.getDate();
+      const due = new Date(now.getFullYear(), now.getMonth(), day);
+      if (due < now) due.setMonth(due.getMonth() + 1);
+      return {
+        debtId: debt.id,
+        label: debt.label,
+        dueDate: due,
+        amount: Money.fromCents(debt.recurringAmountCents),
+      };
+    }
   }
 }
 
