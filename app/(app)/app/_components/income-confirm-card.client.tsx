@@ -90,7 +90,9 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() => run(income.id, "received", "Entrada confirmada.")}
+                  onClick={() =>
+                    run(income.id, "received", `${income.amount.formatted} entrou no seu garantido.`)
+                  }
                   className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--semantic-positive)]/[0.14] px-2.5 py-1.5 text-[0.75rem] font-bold text-[color:var(--semantic-positive)] transition-colors hover:bg-[color:var(--semantic-positive)]/[0.22] disabled:opacity-50"
                 >
                   <Check size={13} strokeWidth={2.5} aria-hidden />

@@ -244,9 +244,18 @@ export function DashboardHeroClient({
               </>
             ) : null}
             {hasVariableIncome ? (
-              <span className={`mt-2 block text-[0.75rem] leading-snug ${sublineColor}`}>
-                Parte da sua renda varia. Sem ela, {floor.verb}{" "}
-                <HideableValue>{floorFmt}</HideableValue>.
+              <span className={`mt-2 block text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}>
+                {floor.positive ? (
+                  <>
+                    Garantido mesmo: <HideableValue>{floorFmt}</HideableValue>. O resto depende do
+                    que cair.
+                  </>
+                ) : (
+                  <>
+                    Sem o que varia, faltam <HideableValue>{floorFmt}</HideableValue>. O resto
+                    depende do que cair.
+                  </>
+                )}
               </span>
             ) : null}
             {showNudge ? (
