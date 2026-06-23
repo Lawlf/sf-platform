@@ -15,7 +15,7 @@ const freeFeatures = [
   "Dívidas e renda ilimitadas",
   "Quanto da sua renda já está comprometido com dívidas",
   "Quanto os juros estão custando de verdade, somando tudo",
-  "Seu patrimônio líquido atualizado a cada lançamento",
+  "Seu patrimônio líquido sempre atualizado",
   "Simulador: e se eu pagar R$ X a mais por mês?",
   "Simulador: em que ordem quito pra economizar mais",
   "Simulador: posso comprar isso sem atrasar tudo?",

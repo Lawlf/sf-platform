@@ -27,7 +27,7 @@ const heroFeature: Feature = {
   n: "01",
   label: "Projeção de quitação.",
   title: "A data prevista pra dívida acabar.",
-  body: "No ritmo atual, em que mês cada dívida sai e quando abre espaço pra guardar. Mês fraco encurta o aporte e recalcula; mês cheio antecipa a data.",
+  body: "No ritmo atual, em que mês cada dívida sai e quando abre espaço pra guardar. Mês fraco, você guarda menos e a conta se ajusta; mês cheio, a data chega antes.",
   accent: "from-[#16a34a] to-[#0f7a37]",
 };
 

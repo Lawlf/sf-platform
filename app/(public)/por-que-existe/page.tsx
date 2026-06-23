@@ -6,7 +6,7 @@ import { LandingHeader } from "../_components/landing-header";
 import { LandingWhyExists } from "../_components/landing-why-exists";
 
 export const metadata: Metadata = {
-  title: "Por que existe",
+  title: "Organizar o dinheiro sem anotar cada gasto",
   description:
     "Por que o Sabor Financeiro existe: finança não precisa virar segundo emprego. Em vez de anotar cada gasto, a gente mostra o mês inteiro do seu dinheiro.",
   alternates: { canonical: "/por-que-existe" },

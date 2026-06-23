@@ -87,7 +87,7 @@ export function SoftwareApplicationJsonLd() {
       "Comparador de empréstimos",
       "Linha do tempo de evolução financeira",
       "PWA instalável no celular",
-      "Cálculo de custo real da dívida (CET ponderado)",
+      "Custo real da dívida: os juros somados",
       "Conformidade LGPD",
     ],
   };

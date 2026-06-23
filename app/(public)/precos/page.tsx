@@ -8,7 +8,7 @@ import { LandingHeader } from "../_components/landing-header";
 import { PlanComparison } from "../_components/plan-comparison";
 
 export const metadata: Metadata = {
-  title: "Preços",
+  title: "Preços: Free e Pro lado a lado",
   description:
     "Veja tudo que o Free e o Pro do Sabor Financeiro entregam, lado a lado. Sem letra miúda, sem fidelidade, sem multa.",
   alternates: { canonical: "/precos" },
@@ -19,14 +19,14 @@ export const metadata: Metadata = {
     "comparação de planos",
   ],
   openGraph: {
-    title: "Preços",
+    title: "Preços: Free e Pro lado a lado",
     description:
       "Free com tudo essencial. Pro para histórico completo, ações B3, criptos e avisos.",
     url: "/precos",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Preços",
+    title: "Preços: Free e Pro lado a lado",
     description: "Free com tudo essencial. Pro para quem quer mais.",
     images: [
       {

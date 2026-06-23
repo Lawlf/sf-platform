@@ -51,13 +51,13 @@ const GROUPS: Group[] = [
     label: "Análises e simuladores",
     rows: [
       {
-        feature: "Dashboard com fluxo de caixa",
+        feature: "Painel com entradas e saídas do mês",
         free: true,
         pro: true,
       },
       {
         feature: "Custo real dos juros, somando tudo",
-        hint: "CET ponderado.",
+        hint: "Os juros de todas as dívidas num número só.",
         free: true,
         pro: true,
       },
