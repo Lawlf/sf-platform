@@ -76,6 +76,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
         q: "Como o cálculo estima quando chego lá?",
         a: "A calculadora projeta o crescimento do seu patrimônio a partir do que você já tem e do quanto aporta por mês, e compara a renda que ele geraria com o seu custo de vida mensal.",
       },
+      {
+        q: "Quanto preciso para viver de renda?",
+        a: "Depende do seu custo de vida mensal e da renda que o patrimônio gera. Quanto maior o gasto, maior o patrimônio necessário. A calculadora estima esse ponto a partir dos seus números.",
+      },
     ],
   },
   {
@@ -83,7 +87,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "meta-investimento",
     seoTitle: "Calculadora de meta de investimento",
     seoDescription:
-      "Calcule quanto aportar por mês para chegar a uma meta financeira no prazo que você definir, considerando o que já tem investido.",
+      "Calcule quanto aportar por mês para chegar a uma meta financeira no prazo que você definir, considerando o que já tem investido e o rendimento no período.",
     h1: "Calculadora de meta de investimento",
     intro:
       "Diga o valor da meta, o prazo e quanto já tem investido. A calculadora mostra o aporte mensal necessário para chegar lá, considerando o rendimento no período.",
@@ -97,6 +101,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
       {
         q: "O rendimento entra na conta?",
         a: "Sim. O cálculo considera que os aportes rendem ao longo do prazo, então o aporte necessário costuma ser menor do que dividir a meta pelo número de meses.",
+      },
+      {
+        q: "Para que serve a calculadora de meta?",
+        a: "Para sair do achismo: em vez de guardar o que sobra, você descobre o aporte mensal exato que leva a um objetivo (entrada de imóvel, viagem, carro) dentro do prazo que escolher.",
       },
     ],
   },
@@ -142,6 +150,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
         q: "A poupança sempre rende menos?",
         a: "Nem sempre, mas costuma. A calculadora mostra o líquido de cada opção para o seu valor e prazo, sem chute.",
       },
+      {
+        q: "CDB rende mais que poupança?",
+        a: "Costuma render, mesmo pagando Imposto de Renda, porque a taxa do CDB tende a superar a da poupança. Mas depende do percentual do CDI e do prazo. A calculadora compara o líquido de cada um para o seu caso.",
+      },
     ],
   },
   {
@@ -149,7 +161,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "reserva",
     seoTitle: "Calculadora de reserva de emergência",
     seoDescription:
-      "Descubra quantos meses sua reserva cobre se a renda parar, a partir do seu custo fixo mensal, e quanto falta para a meta.",
+      "Descubra quantos meses sua reserva de emergência cobre se a renda parar, a partir do seu custo fixo mensal, e quanto ainda falta para a meta.",
     h1: "Calculadora de reserva de emergência",
     intro:
       "Informe seu custo fixo mensal e o quanto já tem reservado para ver quantos meses está coberto e quanto falta para a meta.",
@@ -163,6 +175,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
       {
         q: "A reserva conta o custo total ou só o fixo?",
         a: "O custo fixo mensal, que é o que você precisa cobrir se a renda parar. A calculadora parte desse valor.",
+      },
+      {
+        q: "Onde deixar a reserva de emergência?",
+        a: "O ideal é um lugar de resgate rápido e baixo risco, como Tesouro Selic ou um CDB de liquidez diária. Esta calculadora não escolhe o investimento; ela mostra quanto você precisa juntar e quantos meses já cobre.",
       },
     ],
   },
@@ -219,7 +235,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "decimo-terceiro",
     seoTitle: "Calculadora de 13º salário líquido 2026",
     seoDescription:
-      "Calcule o 13º salário líquido depois do INSS e do Imposto de Renda, parcela por parcela.",
+      "Calcule o 13º salário líquido depois do INSS e do Imposto de Renda, parcela por parcela, e veja quanto cai da primeira e da segunda.",
     h1: "Calculadora de 13º salário líquido",
     intro:
       "Informe o salário bruto para ver quanto cai do 13º depois do INSS e do Imposto de Renda. O 13º é tributado separado do salário do mês; a calculadora mostra cada parcela.",
@@ -234,6 +250,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
         q: "A primeira parcela tem desconto?",
         a: "A primeira parcela costuma sair sem descontos; eles incidem na segunda. A calculadora mostra o líquido considerando isso.",
       },
+      {
+        q: "Quando o 13º é pago?",
+        a: "A primeira parcela costuma ser paga até 30 de novembro e a segunda até 20 de dezembro. A calculadora mostra o líquido de cada uma.",
+      },
     ],
   },
   {
@@ -241,7 +261,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "ferias",
     seoTitle: "Calculadora de férias líquidas 2026",
     seoDescription:
-      "Calcule o valor líquido das férias com o terço constitucional, já descontados INSS e Imposto de Renda.",
+      "Calcule o valor líquido das férias com o terço constitucional (1/3), já descontados INSS e Imposto de Renda, a partir do salário bruto.",
     h1: "Calculadora de férias líquidas",
     intro:
       "Informe o salário bruto para calcular o valor das férias somado ao terço constitucional (1/3), já descontados INSS e Imposto de Renda.",
@@ -255,6 +275,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
       {
         q: "Férias têm desconto de imposto?",
         a: "Sim, INSS e Imposto de Renda incidem sobre o total das férias mais o terço. A calculadora mostra o líquido.",
+      },
+      {
+        q: "Posso vender parte das férias?",
+        a: "A lei permite vender até 1/3 das férias (o abono pecuniário), trocando dias de descanso por dinheiro. Esta calculadora estima o líquido das férias tiradas; o abono entra como valor adicional à parte.",
       },
     ],
   },
@@ -300,6 +324,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
         q: "O que o cálculo PJ considera?",
         a: "Imposto do MEI ou do Simples, pró-labore e custo de contador. Do lado CLT, soma FGTS, 13º e férias ao líquido.",
       },
+      {
+        q: "Quanto cobrar como PJ para ganhar o mesmo que CLT?",
+        a: "Como PJ você precisa de um bruto maior para cobrir imposto, contador e a falta de FGTS, 13º e férias. A calculadora compara o líquido dos dois lados para você achar a proposta que empata ou supera o CLT.",
+      },
     ],
   },
   {
@@ -321,6 +349,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
       {
         q: "Serve para freelancer?",
         a: "Sim. Saber o valor da sua hora ajuda a precificar um freela ou avaliar se uma hora extra paga o tempo investido.",
+      },
+      {
+        q: "Quanto cobrar por um freelancer?",
+        a: "Comece pelo valor da sua hora e multiplique pelas horas estimadas do projeto, somando custos e uma margem. Saber quanto vale a sua hora evita cobrar barato demais por um freela.",
       },
     ],
   },
@@ -351,7 +383,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "ebitda",
     seoTitle: "Calculadora de EBITDA",
     seoDescription:
-      "Calcule o EBITDA da sua operação: o caixa que o negócio gera antes de juros, impostos e depreciação.",
+      "Calcule o EBITDA da sua operação: o caixa que o negócio gera antes de juros, impostos, depreciação e amortização. Veja o resultado da atividade principal.",
     h1: "Calculadora de EBITDA",
     intro:
       "Informe receita, custos e despesas da operação para ver o EBITDA: o caixa que o seu negócio gera antes de juros, impostos e depreciação.",
@@ -366,6 +398,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
         q: "EBITDA é o lucro?",
         a: "Não. É o caixa operacional antes de juros, impostos e depreciação. O lucro final ainda desconta esses itens.",
       },
+      {
+        q: "Como calcular o EBITDA?",
+        a: "Parte-se da receita e tiram-se os custos e as despesas da operação, sem incluir juros, impostos, depreciação e amortização. A calculadora faz essa conta a partir dos números que você informa.",
+      },
     ],
   },
   {
@@ -373,7 +409,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "compra",
     seoTitle: "Vale a pena comprar? Calculadora de custo de oportunidade",
     seoDescription:
-      "Compare comprar e manter, comprar e revender, ou investir o mesmo dinheiro no CDI. Veja o custo real de cada escolha.",
+      "Compare comprar e manter, comprar e revender, ou investir o mesmo dinheiro no CDI. Veja o custo de oportunidade real de cada escolha antes de decidir.",
     h1: "Vale a pena comprar?",
     intro:
       "Informe o valor para comparar o mesmo dinheiro em três caminhos: comprar e manter, comprar e revender, ou investir no CDI. A calculadora mostra o custo de oportunidade de cada escolha.",
@@ -395,7 +431,7 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
     simId: "avista-parcelado",
     seoTitle: "À vista ou parcelado: qual vale mais?",
     seoDescription:
-      "Compare o desconto à vista com parcelar sem juros e investir o dinheiro. Veja qual opção sai mais barata em valor de hoje.",
+      "Compare o desconto à vista com parcelar sem juros e investir o dinheiro. Veja qual opção sai mais barata em valor de hoje, no presente.",
     h1: "À vista ou parcelado?",
     intro:
       "Informe o preço à vista, o desconto e as parcelas para comparar o pagamento à vista com o valor presente das parcelas, considerando que o dinheiro renderia investido. O menor em valor de hoje vence.",
@@ -409,6 +445,10 @@ export const PUBLIC_CALCULATORS: ReadonlyArray<PublicCalculator> = [
       {
         q: "O que é valor presente?",
         a: "É quanto valem hoje pagamentos futuros, descontando o rendimento que o dinheiro teria nesse tempo. Permite comparar à vista com parcelado de forma justa.",
+      },
+      {
+        q: "Quando vale mais a pena pagar à vista?",
+        a: "Vale quando o desconto à vista supera o que o dinheiro renderia investido durante o parcelamento. Sem desconto e podendo render, parcelar sem juros costuma ganhar. A calculadora compara os dois em valor de hoje.",
       },
     ],
   },
