@@ -101,7 +101,12 @@ export function GoalDetail({ detail }: GoalDetailProps) {
   return (
     <div className="flex flex-col gap-4">
       {/* ETA hero */}
-      <EtaHero etaLocked={etaLocked} etaMonths={progress.etaMonths} reached={progress.reached} />
+      <EtaHero
+        goalId={goal.id}
+        etaLocked={etaLocked}
+        etaMonths={progress.etaMonths}
+        reached={progress.reached}
+      />
 
       {/* Progress card */}
       <ResultCard title="Progresso">
@@ -239,10 +244,12 @@ export function GoalDetail({ detail }: GoalDetailProps) {
 }
 
 function EtaHero({
+  goalId,
   etaLocked,
   etaMonths,
   reached,
 }: {
+  goalId: string;
   etaLocked: boolean;
   etaMonths: number | null;
   reached: boolean;
@@ -269,16 +276,18 @@ function EtaHero({
         </span>
         <div className="mt-1 flex items-center gap-2 text-[1.25rem] font-extrabold leading-tight text-[color:var(--text-primary)]">
           <Lock size={18} strokeWidth={2} className="text-[color:var(--text-muted)]" aria-hidden />
-          Projeção no Pro
+          <span className="blur-[5px] select-none" aria-hidden>
+            set. de 2027
+          </span>
         </div>
         <p className="mt-2 text-[0.75rem] text-[color:var(--text-secondary)]">
-          Veja a data prevista de conclusão desta meta no plano Pro.
+          No ritmo de hoje dá pra saber quando você chega lá. A data certa é do plano Pro.
         </p>
         <Link
           href={"/app/configuracoes/planos" as Route}
           className="focus-ring mt-3 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
         >
-          Virar Pro
+          Ver quando vou chegar
           <Crown size={12} strokeWidth={2.25} aria-hidden />
         </Link>
       </section>
@@ -298,6 +307,12 @@ function EtaHero({
           No ritmo atual, a meta não fecha num prazo que dá pra projetar. Aumente o quanto guarda por
           mês ou revise o alvo.
         </p>
+        <Link
+          href={`/app/metas/${goalId}/editar` as Route}
+          className="focus-ring mt-3 inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline underline-offset-2 hover:text-[color:var(--color-brand-700)]"
+        >
+          Ajustar a meta
+        </Link>
       </section>
     );
   }
