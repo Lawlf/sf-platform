@@ -39,13 +39,25 @@ export type SimCategoryId =
   | "decisoes"
   | "ferramentas";
 
+// Ordem pela dor do ICP: o que pesa no mês primeiro; jargão/negócio/ferramentas
+// técnicas por último.
 export const SIM_CATEGORIES: ReadonlyArray<{ id: SimCategoryId; label: string }> = [
   { id: "dividas", label: "Dívidas" },
   { id: "patrimonio", label: "Investir & Patrimônio" },
+  { id: "decisoes", label: "Compras & Decisões" },
   { id: "trabalho", label: "Trabalho" },
   { id: "negocio", label: "Negócio (PJ)" },
-  { id: "decisoes", label: "Compras & Decisões" },
-  { id: "ferramentas", label: "Ferramentas" },
+  { id: "ferramentas", label: "Mais ferramentas" },
+];
+
+// Os que respondem a dor direta do ICP (autônomo, renda irregular). Aparecem
+// numa secao "Pra voce agora" no topo, sem sair das categorias.
+const FEATURED_IDS: ReadonlyArray<string> = [
+  "reserva",
+  "rotativo",
+  "compra",
+  "valor-hora",
+  "onde-rende-mais",
 ];
 
 export interface SimulatorMeta {
@@ -155,7 +167,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "financiamento",
     href: "/app/simular/financiamento" as Route,
-    title: "Financiamento: Price ou SAC?",
+    title: "Financiamento: qual parcela cabe?",
     desc: "Veja a parcela e o custo total.",
     icon: Landmark,
     category: "dividas",
@@ -221,7 +233,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     id: "margem-markup",
     href: "/app/simular/margem" as Route,
     title: "Preço e lucro por venda",
-    desc: "Quanto você ganha em cada venda (markup)?",
+    desc: "Quanto você lucra em cada venda.",
     icon: Tag,
     category: "negocio",
     keywords: ["margem", "markup", "preco", "lucro", "revenda", "produto", "remarcacao"],
@@ -229,8 +241,8 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "ebitda",
     href: "/app/simular/ebitda" as Route,
-    title: "Caixa da operação (EBITDA)",
-    desc: "Quanto sua operação gera de caixa?",
+    title: "Quanto seu negócio gera de caixa",
+    desc: "O caixa que sobra da operação.",
     icon: Activity,
     category: "negocio",
     keywords: ["ebitda", "caixa", "operacao", "margem", "receita", "despesas", "negocio"],
@@ -258,7 +270,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
   {
     id: "conversor-juros",
     href: "/app/simular/conversor-juros" as Route,
-    title: "Conversor de taxa de juros",
+    title: "Transformar taxa: mês ou ano",
     desc: "Mensal vira anual e vice-versa.",
     icon: Percent,
     category: "ferramentas",
@@ -274,6 +286,13 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     keywords: ["regra de tres", "proporcao", "proporcional", "direta", "inversa"],
   },
 ];
+
+/** Os simuladores em destaque ("Pra você agora"), na ordem de `FEATURED_IDS`. */
+export function featuredSimulators(): SimulatorMeta[] {
+  return FEATURED_IDS.map((id) => SIMULATORS.find((s) => s.id === id)).filter(
+    (s): s is SimulatorMeta => s != null,
+  );
+}
 
 /** Agrupa os simuladores por categoria, na ordem de `SIM_CATEGORIES`. */
 export function simulatorsByCategory(): ReadonlyArray<{

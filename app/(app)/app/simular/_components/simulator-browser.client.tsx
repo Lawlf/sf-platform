@@ -5,6 +5,7 @@ import { useMemo, useState } from "react";
 
 import { MaisCard } from "../../_components/mais-card";
 import {
+  featuredSimulators,
   searchSimulators,
   simulatorsByCategory,
   type SimulatorMeta,
@@ -17,6 +18,7 @@ function Card({ s }: { s: SimulatorMeta }) {
 export function SimulatorBrowser() {
   const [query, setQuery] = useState("");
   const groups = useMemo(() => simulatorsByCategory(), []);
+  const featured = useMemo(() => featuredSimulators(), []);
   const results = useMemo(() => searchSimulators(query), [query]);
   const searching = query.trim() !== "";
 
@@ -53,18 +55,30 @@ export function SimulatorBrowser() {
           </p>
         )
       ) : (
-        groups.map((group) => (
-          <section key={group.id} className="flex flex-col gap-3">
-            <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
-              {group.label}
+        <>
+          <section className="flex flex-col gap-3">
+            <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+              Pra você agora
             </h2>
             <div className="grid gap-3 md:grid-cols-2">
-              {group.items.map((s) => (
+              {featured.map((s) => (
                 <Card key={s.id} s={s} />
               ))}
             </div>
           </section>
-        ))
+          {groups.map((group) => (
+            <section key={group.id} className="flex flex-col gap-3">
+            <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
+              {group.label}
+            </h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                {group.items.map((s) => (
+                  <Card key={s.id} s={s} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </>
       )}
     </div>
   );
