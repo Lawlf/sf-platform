@@ -10,8 +10,8 @@ export const addHubCopy = {
     PJ_MEI: "Venda, serviço, pró-labore.",
   },
   "patrimonio.desc": {
-    default: "Carro, casa, reserva, investimento.",
-    PJ_MEI: "Equipamento, estoque, caixa, reserva.",
+    default: "Carro, casa, dinheiro guardado, investimento. Seu patrimônio.",
+    PJ_MEI: "Equipamento, estoque, caixa, reserva. Seu patrimônio.",
   },
   "lancar.desc": {
     default: "Um PIX, uma venda, um gasto avulso.",

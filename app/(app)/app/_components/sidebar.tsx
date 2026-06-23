@@ -80,7 +80,7 @@ const PJ_FINANCE_GROUP: NavGroup = {
   items: [
     { href: "/app/lancar" as Route, label: "Registrar gasto", icon: Plus },
     { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
-    { href: "/app/mei" as Route, label: "Meu salário", icon: Building2 },
+    { href: "/app/mei" as Route, label: "Minha retirada", icon: Building2 },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
     { href: "/app/metas" as Route, label: "Metas", icon: Target },
   ],

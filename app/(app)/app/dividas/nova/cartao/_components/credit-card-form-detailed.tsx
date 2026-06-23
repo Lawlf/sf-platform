@@ -406,7 +406,7 @@ export function CreditCardFormDetailed({
           </WizardField>
 
           <WizardField
-            label="Dia de vencimento"
+            label="Que dia do mês?"
             helper="Dia de pagar a fatura. Vem escrito na própria fatura."
             htmlFor={dueDayId}
             error={errors.dueDay?.message}

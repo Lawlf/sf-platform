@@ -19,10 +19,10 @@ export function ScenarioPicker({
   label,
   active,
   onSelect,
-  newTitle = "Não, acabei de contratar",
-  newDescription = "Comecei agora",
-  ongoingTitle = "Sim, estou pagando",
-  ongoingDescription = "Já paguei parcelas",
+  newTitle = "Acabei de pegar",
+  newDescription = "Comprei ou contratei agora",
+  ongoingTitle = "Já estou pagando",
+  ongoingDescription = "Pago faz uns meses",
 }: Props) {
   return (
     <WizardField label={label}>

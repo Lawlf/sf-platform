@@ -524,7 +524,7 @@ export function PersonalLoanForm({
           label="Você já pagou alguma parcela desse empréstimo?"
           active={scenario}
           onSelect={selectScenario}
-          newDescription="Recebi o dinheiro agora"
+          newDescription="Peguei o dinheiro agora"
         />
 
         <WizardField label="Banco (opcional)" htmlFor={bankId}>
@@ -570,7 +570,7 @@ export function PersonalLoanForm({
             </WizardField>
 
             <WizardField
-              label="Quanto você vai pagar no total (com taxas)"
+              label="Total que você vai devolver no fim (parcelas somadas)"
               htmlFor={principalId}
               error={(errors as { principalCents?: { message?: string } }).principalCents?.message}
               helpLink={<HowItWorksSheet topic="iof" variant="brand" />}
@@ -606,9 +606,15 @@ export function PersonalLoanForm({
                 max={1000}
               />
               {cetAnnualText ? (
-                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
-                  <Calculator size={11} strokeWidth={2.25} aria-hidden />
-                  Custo real dos juros por ano: {cetAnnualText}
+                <div className="mt-1.5 flex flex-col gap-1">
+                  <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
+                    <Calculator size={11} strokeWidth={2.25} aria-hidden />
+                    Quanto os juros pesam por ano: {cetAnnualText}
+                  </div>
+                  <span className="text-[0.6875rem] leading-snug text-[color:var(--text-muted)]">
+                    É o tamanho real dos juros, já com as tarifas dentro. Quanto maior, mais caro o
+                    empréstimo saiu.
+                  </span>
                 </div>
               ) : null}
             </WizardField>
@@ -738,7 +744,7 @@ export function PersonalLoanForm({
         </WizardField>
 
         <WizardField
-          label="Dia do vencimento (opcional)"
+          label="Que dia do mês? (opcional)"
           htmlFor={dueDayId}
           error={(errors as { dueDay?: { message?: string } }).dueDay?.message}
           helper="O dia que sai da conta. A gente te lembra antes."

@@ -114,6 +114,10 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
+      <p className="rounded-xl bg-[color:var(--surface-2)] px-3.5 py-2.5 text-[0.75rem] leading-snug text-[color:var(--text-secondary)]">
+        Use aqui o que entra todo mês, mesmo que o valor varie. Recebimento de uma vez só? Registra
+        em Registrar gasto.
+      </p>
       <div>
         <label className={labelClass} htmlFor="renda-label">
           Nome
@@ -186,7 +190,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       {frequency === "monthly" ? (
         <div>
           <label className={labelClass} htmlFor="renda-payment-day">
-            Que dia costuma cair?
+            Que dia do mês?
           </label>
           <select
             id="renda-payment-day"

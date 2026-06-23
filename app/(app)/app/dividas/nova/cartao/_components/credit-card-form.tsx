@@ -263,6 +263,11 @@ export function CreditCardForm({
 
         <WizardField
           label={existing ? "Quanto falta pagar" : "Quanto tem de fatura agora"}
+          helper={
+            existing
+              ? undefined
+              : "A fatura aberta agora, a que ainda vai vencer. Não a que você já pagou."
+          }
           htmlFor={statementId}
           error={errors.currentStatementCents?.message}
         >
@@ -277,7 +282,7 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label="Dia de vencimento"
+          label="Que dia do mês?"
           helper="Dia de pagar a fatura. Vem escrito na própria fatura."
           htmlFor={dueDayId}
           error={errors.dueDay?.message}

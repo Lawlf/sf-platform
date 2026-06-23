@@ -41,7 +41,7 @@ const clients = [
   "OpenClaw",
   "Cursor",
   "Gemini",
-  "qualquer cliente MCP",
+  "e outros",
 ];
 
 export function LandingMcp() {
@@ -57,9 +57,9 @@ export function LandingMcp() {
               Conecte seu assistente de IA.
             </h2>
             <p className="mt-5 max-w-md text-base text-[color:var(--text-secondary)] sm:text-lg">
-              Use o Claude, ChatGPT, OpenClaw ou qualquer assistente compatível
-              (MCP) para cuidar das suas finanças por conversa: consultar saldo,
-              lançar renda, registrar dívida, acompanhar metas.
+              Use o ChatGPT, o Claude ou outro assistente de IA pra cuidar do
+              dinheiro conversando: perguntar quanto você tem, lançar uma renda,
+              registrar uma dívida, acompanhar metas.
             </p>
 
             <div className="mt-7">
@@ -144,8 +144,8 @@ export function LandingMcp() {
                 aria-hidden
               />
               <p className="text-[13.5px] leading-relaxed text-[color:var(--text-secondary)]">
-                Padrão aberto: é o mesmo Model Context Protocol que outros apps
-                usam. Você conecta o assistente que já tem, sem ferramenta nova.
+                Não é um robô nosso. É o seu ChatGPT ou Claude conversando com a
+                sua conta, com a sua permissão.
               </p>
             </li>
           </RevealOnScroll>

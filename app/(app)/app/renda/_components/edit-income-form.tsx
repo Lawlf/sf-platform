@@ -215,7 +215,7 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         {frequency === "monthly" ? (
           <div>
             <label className={labelClass} htmlFor="renda-edit-payment-day">
-              Que dia costuma cair?
+              Que dia do mês?
             </label>
             <select
               id="renda-edit-payment-day"
