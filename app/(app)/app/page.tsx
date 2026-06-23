@@ -152,9 +152,6 @@ export default async function DashboardPage() {
     ) : null,
     commitment: (
       <div className="md:col-span-2" data-tour="health">
-        <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-          Sua saúde financeira
-        </h2>
         <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
           <CommitmentSectionClient
             monthIso={monthIso}
