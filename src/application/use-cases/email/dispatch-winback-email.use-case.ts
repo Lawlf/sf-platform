@@ -19,6 +19,8 @@ export interface DispatchWinbackEmailDeps {
   email: EmailService;
   clock: Clock;
   appUrl: string;
+  /** Teto de envios neste lote (reserva cota pra auth/transacional). */
+  maxSends?: number;
 }
 
 export interface DispatchWinbackEmailResult {
@@ -37,6 +39,7 @@ export async function dispatchWinbackEmail(
   let sent = 0;
 
   for (const sub of ended) {
+    if (deps.maxSends != null && sent >= deps.maxSends) break;
     if (seen.has(sub.userId)) continue;
     seen.add(sub.userId);
 

@@ -44,6 +44,12 @@ export async function GET(request: Request) {
   const preferences = repos.notificationPreferences;
   const emailSends = repos.emailSends;
 
+  // Teto diário do lote de lifecycle, reservando cota pra auth/transacional
+  // (Resend free = 300/dia, chave única). Sem isto, o lote do dia 1 pode estourar
+  // a cota e deixar códigos de login sem enviar no pico.
+  const capRaw = Number.parseInt(process.env.LIFECYCLE_DAILY_CAP ?? "200", 10);
+  let budget = Number.isFinite(capRaw) && capRaw > 0 ? capRaw : 200;
+
   const winback = await dispatchWinbackEmail({
     subscriptions: repos.subscriptions,
     users,
@@ -52,7 +58,9 @@ export async function GET(request: Request) {
     email,
     clock,
     appUrl,
+    maxSends: budget,
   });
+  budget -= winback.sent;
 
   const inactivity = await dispatchInactivityEmail({
     userActivity,
@@ -61,7 +69,9 @@ export async function GET(request: Request) {
     email,
     clock,
     appUrl,
+    maxSends: budget,
   });
+  budget -= inactivity.sent;
 
   const upsell = await dispatchUpsellEmail({
     userActivity,
@@ -70,7 +80,9 @@ export async function GET(request: Request) {
     email,
     clock,
     appUrl,
+    maxSends: budget,
   });
+  budget -= upsell.sent;
 
   let monthly = { sent: 0 };
   if (clock.now().getUTCDate() === 1) {
@@ -81,6 +93,7 @@ export async function GET(request: Request) {
       email,
       clock,
       appUrl,
+      maxSends: budget,
     });
   }
 
