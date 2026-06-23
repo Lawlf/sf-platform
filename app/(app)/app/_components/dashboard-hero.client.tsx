@@ -103,14 +103,7 @@ export function DashboardHeroClient({
   const showProgress = prevCents !== null && !noIncomeState;
   const prevPositive = (prevCents ?? 0n) >= 0n;
   const prevAbs = stripMinus(formatBrl(prevCents ?? 0n));
-  const progressText =
-    prevCents === null
-      ? ""
-      : projCents > prevCents
-        ? "Esse mês está indo melhor."
-        : projCents < prevCents
-          ? "Esse mês está mais apertado."
-          : "Esse mês está no mesmo ritmo.";
+  const prevVerb = prevPositive ? "sobrou" : "faltou";
 
   // Valor "hoje" do herói, por prioridade:
   //   a) carteira ancorada → saldo reativo;
@@ -254,9 +247,14 @@ export function DashboardHeroClient({
               </>
             ) : null}
             {showProgress ? (
-              <span className="mt-2 block text-[0.78125rem] font-medium leading-snug text-white/75">
-                {previousMonth?.label} fechou {prevPositive ? "sobrando" : "faltando"}{" "}
-                <HideableValue>{prevAbs}</HideableValue>. {progressText}
+              <span className="mt-1.5 block text-[0.75rem] leading-snug text-white/65">
+                {projCents > (prevCents ?? 0n)
+                  ? "Melhor que "
+                  : projCents < (prevCents ?? 0n)
+                    ? "Abaixo de "
+                    : "No mesmo ritmo de "}
+                {previousMonth?.label?.toLowerCase()} ({prevVerb}{" "}
+                <HideableValue>{prevAbs}</HideableValue>)
               </span>
             ) : null}
             <div className="mt-2.5 flex flex-wrap items-center gap-2">

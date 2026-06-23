@@ -28,7 +28,7 @@ function OutOfMonthAnchor({ summary }: { summary: OutOfMonthSummary }) {
       </span>
       <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">
         Você tem <HideableValue>{summary.total.formatted}</HideableValue> em dívida fora do seu mês.
-        Não pesa no comprometido, mas continua no total que você deve.
+        Não entra no que já tem dono este mês, mas continua no total que você deve.
       </p>
     </div>
   );
