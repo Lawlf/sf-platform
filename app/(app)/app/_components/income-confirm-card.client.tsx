@@ -101,7 +101,7 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
                 <button
                   type="button"
                   disabled={busy}
-                  onClick={() => run(income.id, "not_received", "Marcado como não recebido.")}
+                  onClick={() => run(income.id, "not_received", "Tudo bem. Seu garantido segue de pé.")}
                   className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--surface-1)] px-2.5 py-1.5 text-[0.75rem] font-bold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)] disabled:opacity-50"
                 >
                   <X size={13} strokeWidth={2.5} aria-hidden />

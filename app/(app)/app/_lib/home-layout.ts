@@ -30,9 +30,9 @@ export function resolveHomeState(input: {
 }
 
 const ORDER_BY_STATE: Record<HomeState, HomeCardKey[]> = {
-  com_divida: ["hero", "quickAccess", "nextStep", "incomeConfirm", "bringData", "commitment", "goal", "monthClosing", "consistencyDelta", "maintenance"],
-  sem_reserva: ["hero", "quickAccess", "nextStep", "incomeConfirm", "bringData", "goal", "commitment", "monthClosing", "consistencyDelta", "maintenance"],
-  com_patrimonio: ["hero", "quickAccess", "nextStep", "incomeConfirm", "bringData", "commitment", "projection", "goal", "monthClosing", "consistencyDelta", "maintenance"],
+  com_divida: ["hero", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "goal", "monthClosing", "consistencyDelta", "maintenance"],
+  sem_reserva: ["hero", "incomeConfirm", "quickAccess", "nextStep", "bringData", "goal", "commitment", "monthClosing", "consistencyDelta", "maintenance"],
+  com_patrimonio: ["hero", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "projection", "goal", "monthClosing", "consistencyDelta", "maintenance"],
 };
 
 export function homeCardOrder(state: HomeState): HomeCardKey[] {
