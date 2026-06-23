@@ -29,6 +29,11 @@ const PurchaseSimulatorClient = dynamic(() =>
     (m) => m.PurchaseSimulatorClient,
   ),
 );
+const RuleOfThreeClient = dynamic(() =>
+  import("../../simular/regra-de-tres/_components/rule-of-three.client").then(
+    (m) => m.RuleOfThreeClient,
+  ),
+);
 const IncomeForm = dynamic(() =>
   import("../../renda/_components/income-form").then((m) => m.IncomeForm),
 );
@@ -51,6 +56,10 @@ export const QUICK_ACCESS_DRAWER_CONFIG: Record<string, DrawerConfig> = {
   sim_compra: {
     title: "Vale a pena comprar?",
     description: "Compare comprar agora vs investir o valor.",
+  },
+  sim_regra_de_tres: {
+    title: "Regra de três",
+    description: "A está para B assim como C está para X.",
   },
   add_income: {
     title: "Adicionar renda",
@@ -119,6 +128,8 @@ function DrawerBody({ itemKey, onClose }: { itemKey: string; onClose: () => void
       return <DebtsGate>{(debts) => <StrategyForm debts={debts} />}</DebtsGate>;
     case "sim_compra":
       return <PurchaseSimulatorClient />;
+    case "sim_regra_de_tres":
+      return <RuleOfThreeClient />;
     case "add_income":
       return <IncomeForm />;
     case "add_asset":
