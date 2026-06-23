@@ -28,12 +28,13 @@ describe("homeCardOrder", () => {
     expect(homeCardOrder("com_patrimonio")).toContain("projection");
   });
 
-  it("ordem-base estável: hero, acessos, movimento no topo em todos os estados", () => {
+  it("ordem-base estável: hero, confirmação de renda, acessos, movimento no topo em todos os estados", () => {
     for (const st of ["com_divida", "sem_reserva", "com_patrimonio"] as const) {
       const order = homeCardOrder(st);
       expect(order[0]).toBe("hero");
-      expect(order[1]).toBe("quickAccess");
-      expect(order[2]).toBe("nextStep");
+      expect(order[1]).toBe("incomeConfirm");
+      expect(order[2]).toBe("quickAccess");
+      expect(order[3]).toBe("nextStep");
     }
   });
 
