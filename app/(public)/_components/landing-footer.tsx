@@ -2,12 +2,15 @@ import type { Route } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
+import { SOCIAL_LINKS } from "@/app/_shared/brand-social";
+
 const groups = [
   {
     label: "Produto",
     links: [
       { label: "Funcionalidades", href: "#produto" },
       { label: "Como funciona", href: "#como" },
+      { label: "Por que existe", href: "/por-que-existe" },
       { label: "Privacidade", href: "#privacidade" },
       { label: "Preços", href: "#precos" },
       { label: "Dúvidas", href: "#faq" },
@@ -65,6 +68,20 @@ export function LandingFooter() {
             <p className="mt-2 text-xs text-[color:var(--text-muted)]">
               Feito no Brasil. Servidores em São Paulo.
             </p>
+            <div className="mt-5 flex items-center gap-3">
+              {SOCIAL_LINKS.map((social) => (
+                <a
+                  key={social.label}
+                  href={social.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  aria-label={social.label}
+                  className="flex h-9 w-9 items-center justify-center rounded-full border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] transition-colors hover:border-[color:var(--color-brand-700)] hover:text-[color:var(--color-brand-700)]"
+                >
+                  <social.icon className="h-[18px] w-[18px]" />
+                </a>
+              ))}
+            </div>
           </div>
 
           {groups.map((group) => (
