@@ -18,6 +18,7 @@ import { CommitmentSectionClient } from "./_components/commitment-section.client
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
 import { HomeConsistencyDelta } from "./_components/home-consistency-delta";
+import { IncomeConfirmCard } from "./_components/income-confirm-card.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
@@ -102,6 +103,11 @@ export default async function DashboardPage() {
     { userId: user.id, profileId, state: prescription?.state ?? "incomplete" },
   );
 
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const incomesToConfirm = (initialMonthDetail?.incomes ?? []).filter(
+    (i) => i.isEstimated && i.settledStatus === null && i.dateIso.slice(0, 10) <= todayDate,
+  );
+
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
   const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
   const bringDataEligible =
@@ -135,6 +141,12 @@ export default async function DashboardPage() {
         <QuickAccessRow />
       </div>
     ),
+    incomeConfirm:
+      incomesToConfirm.length > 0 && initialMonthDetail ? (
+        <div className="md:col-span-2">
+          <IncomeConfirmCard incomes={initialMonthDetail.incomes} monthIso={monthIso} />
+        </div>
+      ) : null,
     nextStep: (
       <div id="movimento-do-mes" className="scroll-mt-20 md:col-span-2" data-tour="next-step">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
@@ -195,7 +207,13 @@ export default async function DashboardPage() {
     ),
   };
 
-  const topKeys = new Set<HomeCardKey>(["hero", "quickAccess", "nextStep", "bringData"]);
+  const topKeys = new Set<HomeCardKey>([
+    "hero",
+    "quickAccess",
+    "nextStep",
+    "incomeConfirm",
+    "bringData",
+  ]);
   const firstDetailKey = order.find((k) => !topKeys.has(k) && cardNodes[k] != null);
 
   return (
