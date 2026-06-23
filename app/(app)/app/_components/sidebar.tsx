@@ -67,6 +67,7 @@ const TOOLS_GROUP: NavGroup = {
 const PF_FINANCE_GROUP: NavGroup = {
   label: "Minhas finanças",
   items: [
+    { href: "/app/lancar" as Route, label: "Registrar gasto", icon: Plus },
     { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
     { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
@@ -77,6 +78,7 @@ const PF_FINANCE_GROUP: NavGroup = {
 const PJ_FINANCE_GROUP: NavGroup = {
   label: "Minha empresa",
   items: [
+    { href: "/app/lancar" as Route, label: "Registrar gasto", icon: Plus },
     { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
     { href: "/app/mei" as Route, label: "Meu salário", icon: Building2 },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
@@ -221,30 +223,6 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
               Ctrl K
             </kbd>
           </button>
-        )}
-      </div>
-
-      <div className="mb-4">
-        {collapsed ? (
-          <SimpleTooltip label="Registrar gasto" side="right">
-            <Link
-              href={"/app/lancar" as Route}
-              aria-label="Registrar gasto"
-              aria-current={pathname === "/app/lancar" ? "page" : undefined}
-              className="focus-ring flex w-full items-center justify-center rounded-lg border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.10] px-2 py-2.5 text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.16]"
-            >
-              <Plus size={18} strokeWidth={2.25} aria-hidden />
-            </Link>
-          </SimpleTooltip>
-        ) : (
-          <Link
-            href={"/app/lancar" as Route}
-            aria-current={pathname === "/app/lancar" ? "page" : undefined}
-            className="focus-ring flex w-full items-center gap-2.5 rounded-lg border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.10] px-3 py-2.5 text-[0.875rem] font-semibold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.16]"
-          >
-            <Plus size={18} strokeWidth={2.25} aria-hidden />
-            Registrar gasto
-          </Link>
         )}
       </div>
 
