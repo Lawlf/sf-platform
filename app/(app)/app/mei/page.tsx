@@ -7,14 +7,14 @@ import { CreateMeiCta } from "./_components/create-mei-cta.client";
 import { InsightsExpandable } from "./_components/insights-expandable.client";
 import { MeiMonthlyForm } from "./_components/mei-monthly-form.client";
 
-export const metadata: Metadata = { title: "Meu salário real" };
+export const metadata: Metadata = { title: "Minha retirada" };
 
 export default async function MeiPage() {
   const data = await fetchMeiDiagnostic();
 
   if (!data.hasPj) {
     return (
-      <PageShell title="Meu salário real" description="Quanto você realmente ganha como MEI.">
+      <PageShell title="Minha retirada" description="Quanto você realmente ganha como MEI.">
         <div className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-6 py-8 text-center flex flex-col items-center gap-4">
           <Building2
             size={40}
@@ -58,7 +58,7 @@ export default async function MeiPage() {
   });
 
   return (
-    <PageShell title="Meu salário real" description={`Diagnóstico de ${monthLabel}`}>
+    <PageShell title="Minha retirada" description={`Diagnóstico de ${monthLabel}`}>
       <section
         aria-label="Salário real do mês"
         className="rounded-2xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-6 py-6 text-white shadow-[0_8px_24px_rgba(239,122,26,0.35)] flex flex-col gap-2"

@@ -35,6 +35,12 @@ function formatMonthYear(date: Date): string {
   return date.toLocaleDateString("pt-BR", { month: "short", year: "numeric" });
 }
 
+// Conquistas de hábito/tempo embutem o alvo no slug (saude-verde-3m, jornada-12m).
+function targetMonths(slug: string): number | null {
+  const m = /-(\d+)m$/.exec(slug);
+  return m ? Number(m[1]) : null;
+}
+
 export default async function ConquistasPage() {
   const user = await requireUser();
   const unlocked = await repos.userAchievements.listForUser(user.id);
@@ -42,6 +48,17 @@ export default async function ConquistasPage() {
   const total = ACHIEVEMENTS.length;
   const done = unlocked.length;
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
+
+  const slugsWithProgress = ACHIEVEMENTS.filter(
+    (a) =>
+      (a.detection === "sustained" || a.detection === "tenure") && !unlockedMap.has(a.slug),
+  ).map((a) => a.slug);
+  const progressEntries = await Promise.all(
+    slugsWithProgress.map(
+      async (slug) => [slug, await repos.achievementProgress.get(user.id, slug)] as const,
+    ),
+  );
+  const progressMap = new Map(progressEntries);
 
   return (
     <PageShell
@@ -81,6 +98,12 @@ export default async function ConquistasPage() {
                 const unlockedAt = unlockedMap.get(a.slug);
                 const isUnlocked = Boolean(unlockedAt);
                 const Icon = getAchievementIcon(a.iconName);
+                const target = isUnlocked ? null : targetMonths(a.slug);
+                const qualified = progressMap.get(a.slug)?.qualifiedMonths ?? 0;
+                const showProgress = target != null && target > 0;
+                const progressPct = showProgress
+                  ? Math.min(100, Math.round((qualified / target) * 100))
+                  : 0;
                 return (
                   <div
                     key={a.slug}
@@ -104,9 +127,21 @@ export default async function ConquistasPage() {
                       <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-secondary)]">
                         {a.description}
                       </div>
+                      {showProgress ? (
+                        <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+                          <div
+                            className="h-full rounded-full bg-[color:var(--color-brand-500)]"
+                            style={{ width: `${progressPct}%` }}
+                          />
+                        </div>
+                      ) : null}
                     </div>
                     <span className="flex-none text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-                      {isUnlocked && unlockedAt ? formatMonthYear(unlockedAt) : "Bloqueada"}
+                      {isUnlocked && unlockedAt
+                        ? formatMonthYear(unlockedAt)
+                        : showProgress
+                          ? `${qualified} de ${target} meses`
+                          : "Bloqueada"}
                     </span>
                   </div>
                 );

@@ -1,6 +1,6 @@
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { PersonalLoanForm } from "./_components/personal-loan-form";
+import { LoanEntry } from "./_components/loan-entry.client";
 
 interface PageProps {
   searchParams: Promise<{ existing?: string; linkAssetId?: string }>;
@@ -11,7 +11,7 @@ export default async function EmprestimoPage({ searchParams }: PageProps) {
   const sp = await searchParams;
   const initialScenario = sp.existing === "1" ? "ongoing" : "new";
   return (
-    <PersonalLoanForm
+    <LoanEntry
       initialScenario={initialScenario}
       defaultCurrency={user.baseCurrency}
       initialLinkAssetId={sp.linkAssetId ?? null}

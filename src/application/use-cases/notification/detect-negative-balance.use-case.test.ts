@@ -61,7 +61,7 @@ describe("detectNegativeBalance", () => {
     expect(created?.kind).toBe("negative_balance_month");
     expect(created?.payload.eyebrow).toBe("Atenção");
     expect(created?.payload.iconName).toBe("AlertTriangle");
-    expect(created?.payload.line).toContain("saldo negativo");
+    expect(created?.payload.line).toContain("faltando");
     expect(created?.dismissedAt).toBeNull();
     expect(created?.triggeredAt).toEqual(new Date("2026-05-21T10:00:00Z"));
   });

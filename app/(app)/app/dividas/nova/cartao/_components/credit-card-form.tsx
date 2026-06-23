@@ -5,37 +5,24 @@ import { useQueryClient } from "@tanstack/react-query";
 import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState, useTransition } from "react";
-import { useFieldArray, useForm } from "react-hook-form";
+import { useId, useState, useTransition } from "react";
+import { useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 
-import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
-import {
-  InstallmentPurchasesEditor,
-  sumMonthlyCents,
-} from "../../../_components/installment-purchases-editor";
 import { todayIso } from "../../../_lib/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
-import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";
 import { linkDebtToAssetAction } from "../../_actions/link-debt-to-asset.action";
 import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
-import {
-  canAdvanceLinkAssetStep,
-  LinkAssetStepContent,
-  validateLinkAssetStep,
-} from "../../_components/link-asset-step";
-import { RateEstimateHint } from "../../_components/rate-estimate-hint";
+import { validateLinkAssetStep } from "../../_components/link-asset-step";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
-import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";
-import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 import {
   buildLinkSummary,
   debtCreatedHref,
@@ -56,7 +43,7 @@ const installmentPurchaseSchema = z
   });
 
 const formSchema = z.object({
-  label: z.string().min(1, "Informe um rotulo.").max(120),
+  label: z.string().min(1, "Informe um nome.").max(120),
   currency: z.enum(CURRENCIES),
   creditLimitCents: z.bigint().nullable(),
   currentStatementCents: z.bigint().min(0n, "Não pode ser negativo."),
@@ -84,52 +71,44 @@ const formSchema = z.object({
 type FormValues = z.infer<typeof formSchema>;
 
 
-type Step = 2 | 3 | 4 | 5 | 6;
+// Colapsado pra 2 telas: o essencial que o ICP sabe de cabeça (fatura + dia que
+// vence) e a confirmacao. Limite, juros do rotativo, dia de fechamento, compras
+// parceladas e bem vinculado sao adiaveis: edita depois no detalhe do cartao.
+type Step = 2 | 3;
 
-const STEP2_FIELDS = [
-  "label",
-  "creditLimitCents",
-  "currentStatementCents",
-  "statementDay",
-  "dueDay",
-] as const;
-
-const STEP3_FIELDS = ["revolvingMonthlyRatePct", "startDate"] as const;
-
-const STEP4_FIELDS = ["installmentPurchases"] as const;
+const ESSENTIAL_FIELDS = ["label", "currentStatementCents", "dueDay"] as const;
 
 interface CreditCardFormProps {
   existing?: boolean;
   defaultCurrency?: Currency;
   initialLinkAssetId?: string | null;
+  onWantDetailed?: (seed: CardSeed) => void;
+}
+
+export interface CardSeed {
+  label: string;
+  currentStatementCents: bigint;
+  dueDay: number;
 }
 
 export function CreditCardForm({
   existing = false,
   defaultCurrency = "BRL",
   initialLinkAssetId = null,
+  onWantDetailed,
 }: CreditCardFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
-  // Só quem está pagando juros (rotativo) vê o passo de taxa/saldo rotativo.
-  // Quem paga a fatura toda pula direto, e o cartão vira 4 passos. No fluxo de
-  // cartão antigo o rotativo costuma existir, então já começa marcado.
-  const [revolving, setRevolving] = useState(existing);
 
   const [bank, setBank] = useState("");
 
   const labelId = useId();
   const bankId = useId();
-  const limitId = useId();
   const statementId = useId();
-  const statementDayId = useId();
   const dueDayId = useId();
-  const rateId = useId();
-  const revolvingBalanceId = useId();
-  const startDateId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -150,57 +129,13 @@ export function CreditCardForm({
     },
   });
 
-  const purchasesArray = useFieldArray({
-    control: form.control,
-    name: "installmentPurchases",
-  });
-
   const values = form.watch();
   const errors = form.formState.errors;
   const currency: Currency = values.currency ?? defaultCurrency;
 
-  const monthlyInstallmentsTotal = useMemo(
-    () => sumMonthlyCents(values.installmentPurchases),
-    [values.installmentPurchases],
-  );
-
-  // juros_mensais = fatura_atual × taxa_mensal / 100
-  const monthlyInterestCents = useMemo(() => {
-    const statement = values.currentStatementCents;
-    const rate = values.revolvingMonthlyRatePct;
-    if (typeof statement !== "bigint" || statement <= 0n) return null;
-    if (rate === null || rate === undefined || !Number.isFinite(rate) || rate <= 0) return null;
-    const statementReais = Number(statement) / 100;
-    const interest = (statementReais * rate) / 100;
-    if (!Number.isFinite(interest)) return null;
-    return BigInt(Math.round(interest * 100));
-  }, [values.currentStatementCents, values.revolvingMonthlyRatePct]);
-
-  async function goToStep3() {
-    const valid = await form.trigger(STEP2_FIELDS);
-    if (!valid) return;
-    if (revolving) {
-      setStep(3);
-    } else {
-      // Paga a fatura toda: sem rotativo. Limpa e pula o passo de taxa.
-      form.setValue("revolvingMonthlyRatePct", null);
-      form.setValue("revolvingBalanceCents", null);
-      setStep(4);
-    }
-  }
-
-  async function goToStep4() {
-    const valid = await form.trigger(STEP3_FIELDS);
-    if (valid) setStep(4);
-  }
-
-  async function goToStep5() {
-    const valid = await form.trigger(STEP4_FIELDS);
-    if (valid) setStep(5);
-  }
-
-  function goToStep6() {
-    setStep(6);
+  async function goToConfirm() {
+    const valid = await form.trigger(ESSENTIAL_FIELDS);
+    if (valid) setStep(3);
   }
 
   async function handleSubmit() {
@@ -246,22 +181,9 @@ export function CreditCardForm({
     );
 
     startTransition(async () => {
-      let assetIdToLink: string | null = null;
-      if (v.linkAssetChoice === "new") {
-        const r = await createAssetForDebtAction({
-          category: v.newAssetCategory!,
-          label: (v.newAssetLabel ?? "").trim(),
-          currentValueCents: (v.newAssetCurrentValueCents ?? 0n).toString(),
-          acquiredAt: v.newAssetAcquiredAt ?? null,
-        });
-        if (!r.ok) {
-          setServerError(r.message);
-          return;
-        }
-        assetIdToLink = r.data.assetId;
-      } else if (v.linkAssetChoice === "existing") {
-        assetIdToLink = v.linkedAssetId ?? null;
-      }
+      // Vínculo de bem é adiável; só acontece quando o fluxo já chega com um bem
+      // (ex: "parcelei esse carro"). Sem isso, cria o cartão direto.
+      const assetIdToLink = v.linkAssetChoice === "existing" ? (v.linkedAssetId ?? null) : null;
 
       fd.set("kind", "credit_card");
       const debtRes = await createDebtAction(fd);
@@ -271,13 +193,7 @@ export function CreditCardForm({
       }
 
       if (assetIdToLink) {
-        // Para cartão, principal alocado = fatura atual (referência mais próxima
-        // de "valor da compra" desse cartão).
-        const allocationDefault = v.currentStatementCents;
-        const allocationCents =
-          v.linkAssetChoice === "existing"
-            ? (v.linkedAssetAllocationCents ?? allocationDefault)
-            : allocationDefault;
+        const allocationCents = v.linkedAssetAllocationCents ?? v.currentStatementCents;
         if (allocationCents > 0n) {
           const linkRes = await linkDebtToAssetAction({
             assetId: assetIdToLink,
@@ -300,25 +216,16 @@ export function CreditCardForm({
 
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
 
-  // Numeração visível: o passo de rotativo (3) só conta quando existe. Sem ele,
-  // os passos 4..6 sobem uma posição e o total cai pra 4.
-  const totalSteps = revolving ? 5 : 4;
-  const visibleStep = (s: Step): 1 | 2 | 3 | 4 | 5 => {
-    if (s === 2) return 1;
-    if (s === 3) return 2;
-    return (revolving ? s - 1 : s - 2) as 1 | 2 | 3 | 4 | 5;
-  };
-
   if (step === 2) {
     return (
       <WizardShell
-        currentStep={visibleStep(2)}
-        totalSteps={totalSteps}
-        title={existing ? "Cartão com saldo antigo" : "Limites e fatura"}
+        currentStep={1}
+        totalSteps={2}
+        title={existing ? "Cartão com saldo antigo" : "Seu cartão de crédito"}
         description={
           existing
-            ? "Dados do cartão e de quanto ainda falta pagar."
-            : "Dados do cartão e da fatura atual."
+            ? "Só o essencial: nome, quanto falta e o dia que vence."
+            : "Só o essencial: nome, a fatura de agora e o dia que vence."
         }
         onBack={() =>
           router.push((existing ? "/app/dividas/nova/antiga" : "/app/dividas/nova") as Route)
@@ -326,7 +233,7 @@ export function CreditCardForm({
         primary={{
           label: "Continuar",
           onClick: () => {
-            void goToStep3();
+            void goToConfirm();
           },
           icon: arrowRight,
         }}
@@ -355,23 +262,12 @@ export function CreditCardForm({
         </WizardField>
 
         <WizardField
-          label="Limite total"
-          helper="Opcional. Mostra quanto do cartão você já usou."
-          htmlFor={limitId}
-          error={errors.creditLimitCents?.message}
-        >
-          <WizardMoneyField
-            control={form.control}
-            name="creditLimitCents"
-            id={limitId}
-            placeholder="R$ 0,00"
-            currency={currency}
-            onCurrencyChange={(c) => form.setValue("currency", c)}
-          />
-        </WizardField>
-
-        <WizardField
           label={existing ? "Quanto falta pagar" : "Quanto tem de fatura agora"}
+          helper={
+            existing
+              ? undefined
+              : "A fatura aberta agora, a que ainda vai vencer. Não a que você já pagou."
+          }
           htmlFor={statementId}
           error={errors.currentStatementCents?.message}
         >
@@ -381,233 +277,69 @@ export function CreditCardForm({
             id={statementId}
             placeholder="R$ 0,00"
             currency={currency}
-          />
-        </WizardField>
-
-        <div className="grid grid-cols-2 gap-2">
-          <WizardField
-            label="Dia de fechamento"
-            helper="Dia em que a fatura fecha e para de somar compras novas."
-            htmlFor={statementDayId}
-            error={errors.statementDay?.message}
-          >
-            <input
-              id={statementDayId}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={31}
-              {...form.register("statementDay", { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-
-          <WizardField
-            label="Dia de vencimento"
-            helper="Dia de pagar a fatura. Vem escrito na própria fatura."
-            htmlFor={dueDayId}
-            error={errors.dueDay?.message}
-          >
-            <input
-              id={dueDayId}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={31}
-              {...form.register("dueDay", { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-        </div>
-
-        <WizardField label="Você costuma pagar a fatura inteira ou só uma parte?">
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              aria-pressed={!revolving}
-              onClick={() => setRevolving(false)}
-              className={`focus-ring rounded-xl border-[1.5px] px-3 py-2.5 text-[0.8125rem] font-semibold transition-all ${
-                !revolving
-                  ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]"
-                  : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
-              }`}
-            >
-              Pago tudo
-            </button>
-            <button
-              type="button"
-              aria-pressed={revolving}
-              onClick={() => setRevolving(true)}
-              className={`focus-ring rounded-xl border-[1.5px] px-3 py-2.5 text-[0.8125rem] font-semibold transition-all ${
-                revolving
-                  ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.10] text-[color:var(--color-brand-800)]"
-                  : "border-[color:var(--border-soft)] text-[color:var(--text-secondary)]"
-              }`}
-            >
-              Pago só uma parte
-            </button>
-          </div>
-        </WizardField>
-      </WizardShell>
-    );
-  }
-
-  if (step === 3) {
-    return (
-      <WizardShell
-        currentStep={visibleStep(3)}
-        totalSteps={totalSteps}
-        title="Taxas"
-        description="Juros do cartão e data de início."
-        onBack={() => setStep(2)}
-        primary={{
-          label: "Continuar",
-          onClick: () => {
-            void goToStep4();
-          },
-          icon: arrowRight,
-        }}
-      >
-        <WizardField
-          label="Juros do cartão por mês (opcional)"
-          htmlFor={rateId}
-          error={errors.revolvingMonthlyRatePct?.message}
-          helpLink={<HowItWorksSheet topic="rotativo" variant="brand" />}
-        >
-          <WizardPercentField
-            control={form.control}
-            name="revolvingMonthlyRatePct"
-            id={rateId}
-            step="0.01"
-            min={0}
-            max={1000}
-          />
-          <RateEstimateHint
-            control={form.control}
-            name="revolvingMonthlyRatePct"
-            estimate={DEBT_RATE_ESTIMATES.creditCardRevolving}
+            onCurrencyChange={(c) => form.setValue("currency", c)}
           />
         </WizardField>
 
         <WizardField
-          label="Tem saldo de antes que ainda não foi pago? (opcional)"
-          helper="Valor que sobrou de faturas passadas e foi rolando."
-          htmlFor={revolvingBalanceId}
-          error={errors.revolvingBalanceCents?.message}
-        >
-          <WizardMoneyField
-            control={form.control}
-            name="revolvingBalanceCents"
-            id={revolvingBalanceId}
-            placeholder="R$ 0,00"
-            currency={currency}
-          />
-        </WizardField>
-
-        <WizardField
-          label="A partir de quando contar"
-          helper="Quando esse cartão entra no seu planejamento. Pode deixar hoje."
-          htmlFor={startDateId}
-          error={errors.startDate?.message}
+          label="Que dia do mês?"
+          helper="Dia de pagar a fatura. Vem escrito na própria fatura."
+          htmlFor={dueDayId}
+          error={errors.dueDay?.message}
         >
           <input
-            id={startDateId}
-            type="date"
-            {...form.register("startDate")}
+            id={dueDayId}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            max={31}
+            {...form.register("dueDay", { valueAsNumber: true })}
             className={wizardInputClass}
           />
         </WizardField>
+
+        <p className="text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
+          Limite, juros e compras parceladas você adiciona depois, no cartão. Aqui é só pra ele já
+          entrar no seu mês.
+        </p>
+
+        {onWantDetailed ? (
+          <button
+            type="button"
+            onClick={() =>
+              onWantDetailed({
+                label: values.label || "Cartão de crédito",
+                currentStatementCents:
+                  typeof values.currentStatementCents === "bigint"
+                    ? values.currentStatementCents
+                    : 0n,
+                dueDay: values.dueDay,
+              })
+            }
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Tem o limite e os juros? Preencher tudo
+          </button>
+        ) : null}
       </WizardShell>
     );
   }
 
-  if (step === 4) {
-    return (
-      <WizardShell
-        currentStep={visibleStep(4)}
-        totalSteps={totalSteps}
-        title="Compras parceladas"
-        description="Compras que você ainda está pagando parcelado nesse cartão. Se não tiver, é só pular."
-        onBack={() => setStep(revolving ? 3 : 2)}
-        primary={{
-          label: "Continuar",
-          onClick: () => {
-            void goToStep5();
-          },
-          icon: arrowRight,
-        }}
-      >
-        <InstallmentPurchasesEditor
-          arrayName="installmentPurchases"
-          control={form.control}
-          register={form.register}
-          fields={purchasesArray.fields}
-          append={purchasesArray.append}
-          remove={purchasesArray.remove}
-          values={values.installmentPurchases}
-          errors={errors.installmentPurchases}
-          totalMonthlyCents={monthlyInstallmentsTotal}
-        />
-      </WizardShell>
-    );
-  }
-
-  if (step === 5) {
-    const canAdvance = canAdvanceLinkAssetStep(values);
-    return (
-      <WizardShell
-        currentStep={visibleStep(5)}
-        totalSteps={totalSteps}
-        title="Parcelou algum bem nesse cartão?"
-        description="Carro, imóvel ou outro patrimônio parcelado no cartão."
-        onBack={() => setStep(4)}
-        primary={
-          canAdvance
-            ? {
-                label: "Próximo",
-                onClick: goToStep6,
-                icon: arrowRight,
-              }
-            : undefined
-        }
-      >
-        <LinkAssetStepContent
-          form={form}
-          debtPrincipalCents={values.currentStatementCents}
-          enabled={step === 5}
-        />
-      </WizardShell>
-    );
-  }
-
-  // step 6
-  const rateIsEstimated =
-    values.revolvingMonthlyRatePct === DEBT_RATE_ESTIMATES.creditCardRevolving.valuePct;
-  const rateLabel =
-    values.revolvingMonthlyRatePct !== null && values.revolvingMonthlyRatePct !== undefined
-      ? `${values.revolvingMonthlyRatePct}% por mês${rateIsEstimated ? " (estimativa)" : ""}`
-      : "Não informada";
-
+  // step 3: confirma
   const statementCents =
     typeof values.currentStatementCents === "bigint" ? values.currentStatementCents : 0n;
-  const heroCents = statementCents > 0n ? statementCents : (monthlyInterestCents ?? 0n);
-  const heroValue = formatCentsBRL(heroCents);
-  const heroSub =
-    revolving && monthlyInterestCents
-      ? rateIsEstimated
-        ? `Inclui ~${formatCentsBRL(monthlyInterestCents)} de juros se rolar (estimativa de mercado, confira na fatura)`
-        : `Inclui juros de ${formatCentsBRL(monthlyInterestCents)} se rolar o saldo`
-      : `Fatura que vence todo dia ${values.dueDay}`;
-
+  const heroValue = formatCentsBRL(statementCents);
+  const heroSub = `Fatura que vence todo dia ${values.dueDay}`;
+  const hasLink = values.linkAssetChoice === "existing" && Boolean(values.linkedAssetId);
   const linkSummary = buildLinkSummary(values);
 
   return (
     <WizardShell
-      currentStep={visibleStep(6)}
-      totalSteps={totalSteps}
-      title="Confirme os dados"
-      description="Confere os números e salva."
-      onBack={() => setStep(5)}
+      currentStep={2}
+      totalSteps={2}
+      title="Confere e salva"
+      description="Esses são os números. Pode ajustar depois."
+      onBack={() => setStep(2)}
       primary={{
         label: "Salvar dívida",
         onClick: () => {
@@ -623,26 +355,16 @@ export function CreditCardForm({
         items={[
           { label: "Nome", value: values.label || "Sem nome" },
           { label: "Tipo", value: "Cartão de crédito" },
-          {
-            label: "Limite",
-            value: values.creditLimitCents
-              ? formatCentsBRL(values.creditLimitCents)
-              : "Não informado",
-          },
           { label: "Fatura atual", value: formatCentsBRL(values.currentStatementCents) },
-          { label: "Fechamento", value: `Dia ${values.statementDay}` },
           { label: "Vencimento", value: `Dia ${values.dueDay}` },
-          ...(revolving ? [{ label: "Juros do cartão", value: rateLabel }] : []),
-          {
-            label: "Compras parceladas",
-            value:
-              purchasesArray.fields.length === 0
-                ? "Não registrado"
-                : `${purchasesArray.fields.length} compra(s) · ${formatCentsBRL(monthlyInstallmentsTotal)}/mês`,
-          },
-          { label: "Bem vinculado", value: linkSummary },
+          ...(hasLink ? [{ label: "Bem vinculado", value: linkSummary }] : []),
         ]}
       />
+
+      <p className="text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
+        Depois, no cartão, dá pra adicionar limite, juros do rotativo e compras parceladas pra
+        deixar mais certinho.
+      </p>
 
       {serverError ? (
         <div

@@ -85,6 +85,8 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
 
   const firstPoint = initialPage?.points?.[0] ?? null;
   const patrimonyFormatted = firstPoint?.netWorth.formatted ?? "R$ 0,00";
+  const monthFreeFormatted = firstPoint?.freeBalance.formatted ?? null;
+  const monthFreeCents = firstPoint?.freeBalance.cents ?? null;
   const streakCount = initialPage ? computeStreakCount(initialPage.points) : 0;
   const oldestUserDataIso = initialPage?.oldestUserDataIso ?? null;
 
@@ -109,6 +111,8 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
     <PageShell title="Linha do tempo" description="Sua trajetória financeira mês a mês.">
       <TimelineHero
         patrimonyFormatted={patrimonyFormatted}
+        monthFreeFormatted={monthFreeFormatted}
+        monthFreeCents={monthFreeCents}
         deltaPct={null}
         deltaMonths={0}
         streakCount={streakCount}

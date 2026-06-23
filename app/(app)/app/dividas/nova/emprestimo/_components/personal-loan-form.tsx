@@ -71,12 +71,15 @@ interface PersonalLoanFormProps {
   initialScenario?: "new" | "ongoing";
   defaultCurrency?: Currency;
   initialLinkAssetId?: string | null;
+  // Vem do modo simples: pré-preenche o que a pessoa já digitou.
+  seed?: { label: string; monthlyInstallmentCents: bigint; remainingInstallments: number } | null;
 }
 
 export function PersonalLoanForm({
   initialScenario = "new",
   defaultCurrency = "BRL",
   initialLinkAssetId = null,
+  seed = null,
 }: PersonalLoanFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -123,12 +126,16 @@ export function PersonalLoanForm({
         : ({
             scenario: "new",
             currency: defaultCurrency,
-            label: "Empréstimo",
-            netReceivedCents: 0n as unknown as bigint,
-            principalCents: 0n as unknown as bigint,
+            label: seed?.label ?? "Empréstimo",
+            netReceivedCents: (seed
+              ? seed.monthlyInstallmentCents * BigInt(seed.remainingInstallments)
+              : 0n) as unknown as bigint,
+            principalCents: (seed
+              ? seed.monthlyInstallmentCents * BigInt(seed.remainingInstallments)
+              : 0n) as unknown as bigint,
             annualRatePct: 0,
-            termMonths: 24,
-            monthlyInstallmentCents: 0n as unknown as bigint,
+            termMonths: seed?.remainingInstallments ?? 24,
+            monthlyInstallmentCents: (seed?.monthlyInstallmentCents ?? 0n) as unknown as bigint,
             dueDay: null,
             startDate: todayIso(),
             expectedEndDate: null,
@@ -244,22 +251,26 @@ export function PersonalLoanForm({
 
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
-    // Reset shared/relevant fields when toggling scenarios to avoid leaking values.
+    // Trocar de cenário NÃO apaga o que serve pros dois (nome, parcela, taxa,
+    // dia, datas). Só os campos específicos do cenário antigo somem.
+    const shared = {
+      currency: values.currency ?? defaultCurrency,
+      label: values.label ?? "",
+      monthlyInstallmentCents: values.monthlyInstallmentCents ?? (0n as unknown as bigint),
+      annualRatePct: values.annualRatePct ?? 0,
+      dueDay: values.dueDay ?? null,
+      startDate: values.startDate ?? todayIso(),
+      expectedEndDate: values.expectedEndDate ?? null,
+      notes: values.notes ?? null,
+    };
     if (next === "new") {
       form.reset(
         {
           scenario: "new",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
+          ...shared,
           netReceivedCents: 0n as unknown as bigint,
           principalCents: 0n as unknown as bigint,
-          annualRatePct: 0,
           termMonths: 24,
-          monthlyInstallmentCents: 0n as unknown as bigint,
-          dueDay: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
           ...cashInflowDefaults,
         } as FormValues,
@@ -269,16 +280,9 @@ export function PersonalLoanForm({
       form.reset(
         {
           scenario: "ongoing",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
-          monthlyInstallmentCents: 0n as unknown as bigint,
+          ...shared,
           totalInstallments: undefined as unknown as number,
           paidInstallments: 0,
-          annualRatePct: 0,
-          dueDay: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
           // Para "ongoing" o dinheiro já caiu há tempos — não pergunta cash inflow.
           cashTarget: "spent" as const,
@@ -520,7 +524,7 @@ export function PersonalLoanForm({
           label="Você já pagou alguma parcela desse empréstimo?"
           active={scenario}
           onSelect={selectScenario}
-          newDescription="Recebi o dinheiro agora"
+          newDescription="Peguei o dinheiro agora"
         />
 
         <WizardField label="Banco (opcional)" htmlFor={bankId}>
@@ -566,7 +570,7 @@ export function PersonalLoanForm({
             </WizardField>
 
             <WizardField
-              label="Quanto você vai pagar no total (com taxas)"
+              label="Total que você vai devolver no fim (parcelas somadas)"
               htmlFor={principalId}
               error={(errors as { principalCents?: { message?: string } }).principalCents?.message}
               helpLink={<HowItWorksSheet topic="iof" variant="brand" />}
@@ -590,6 +594,7 @@ export function PersonalLoanForm({
               label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
+              helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
             >
               <WizardPercentField
@@ -601,9 +606,15 @@ export function PersonalLoanForm({
                 max={1000}
               />
               {cetAnnualText ? (
-                <div className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
-                  <Calculator size={11} strokeWidth={2.25} aria-hidden />
-                  Custo real dos juros por ano: {cetAnnualText}
+                <div className="mt-1.5 flex flex-col gap-1">
+                  <div className="inline-flex w-fit items-center gap-1.5 rounded-full bg-[color:var(--color-brand-500)]/[0.10] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)]">
+                    <Calculator size={11} strokeWidth={2.25} aria-hidden />
+                    Quanto os juros pesam por ano: {cetAnnualText}
+                  </div>
+                  <span className="text-[0.6875rem] leading-snug text-[color:var(--text-muted)]">
+                    É o tamanho real dos juros, já com as tarifas dentro. Quanto maior, mais caro o
+                    empréstimo saiu.
+                  </span>
                 </div>
               ) : null}
             </WizardField>
@@ -733,7 +744,7 @@ export function PersonalLoanForm({
         </WizardField>
 
         <WizardField
-          label="Dia do vencimento (opcional)"
+          label="Que dia do mês? (opcional)"
           htmlFor={dueDayId}
           error={(errors as { dueDay?: { message?: string } }).dueDay?.message}
           helper="O dia que sai da conta. A gente te lembra antes."

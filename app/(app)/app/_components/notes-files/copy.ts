@@ -57,10 +57,10 @@ export const FILES_COPY = {
   errorType: "Esse tipo de arquivo não dá pra guardar aqui. Use PDF ou imagem.",
   errorQuota: "Esse arquivo passa do seu espaço. Apague algum antigo e tente de novo.",
   nearLimit: "Você está quase no limite de espaço. Apague arquivos antigos pra liberar.",
-  paywallEyebrow: "Disponível no Pro",
-  paywallTitle: "Guarde o contrato e o comprovante aqui",
+  paywallEyebrow: "Limite do grátis",
+  paywallTitle: "Quer guardar mais de um arquivo?",
   paywallBody:
-    "No Pro você anexa o PDF do contrato, o comprovante do pagamento ou a foto do boleto. Fica tudo ligado a esta dívida, pra consultar quando precisar.",
+    "Você já guardou seu arquivo grátis aqui. No Pro dá pra anexar quantos quiser (contrato, comprovante, boleto) em cada dívida, conta ou bem.",
   paywallButton: "Conhecer o Pro",
 };
 

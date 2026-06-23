@@ -6,6 +6,7 @@ export const DIAGNOSTIC_TO_TRILHA: Record<ContentDiagnosticAnswer, TrilhaSlug> =
   "pagar-divida": "sair-do-vermelho",
   guardar: "sobrar-e-fazer-render",
   investir: "compor-patrimonio",
+  "fechar-mes": "sair-do-vermelho",
 };
 
 export interface AnswerOption {

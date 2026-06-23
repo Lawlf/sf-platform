@@ -18,6 +18,8 @@ export interface DispatchUpsellEmailDeps {
   email: EmailService;
   clock: Clock;
   appUrl: string;
+  /** Teto de envios neste lote (reserva cota pra auth/transacional). */
+  maxSends?: number;
 }
 
 export interface DispatchUpsellEmailResult {
@@ -35,6 +37,7 @@ export async function dispatchUpsellEmail(
   let sent = 0;
 
   for (const user of users) {
+    if (deps.maxSends != null && sent >= deps.maxSends) break;
     try {
       const prefs = await deps.preferences.findForUser(user.id);
       if (prefs && (!prefs.emailEnabled || !prefs.promotionsEnabled)) continue;

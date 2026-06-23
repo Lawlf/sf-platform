@@ -79,7 +79,7 @@ export function DebtStep({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="Seu cartão de crédito"
-      description="Comece pelo que mais pesa. Só um agora, os outros você soma depois. Com um já dá pra te mostrar por onde atacar."
+      description="Comece pelo cartão, que costuma pesar mais. Empréstimo, financiamento ou cheque especial você soma depois, no início. Com um já dá pra te mostrar por onde atacar."
       onBack={onBack}
       primary={{ label: "Ver meu próximo passo", onClick: form.handleSubmit(onSubmit), loading: saving }}
       secondary={{ label: "Pular esta etapa", onClick: onSkip }}

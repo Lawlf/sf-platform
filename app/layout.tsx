@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 
 import "./globals.css";
+import "@/shared/zod-locale";
 import { AnalyticsConsentBanner } from "@/app/components/analytics-consent-banner";
 import { AnalyticsGated } from "@/app/components/analytics-gated.client";
 import { PostHogProvider } from "@/app/components/providers/posthog-provider";

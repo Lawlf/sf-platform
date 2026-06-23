@@ -6,7 +6,6 @@ import { repos } from "@/infrastructure/container";
 import type { AttachmentDto } from "../../_actions/entity-attachments.action";
 
 import { AttachmentsList } from "./attachments-list";
-import { AttachmentsPaywall } from "./attachments-paywall";
 import { ENTITY_COPY } from "./copy";
 import { NoteField } from "./note-field";
 
@@ -24,23 +23,18 @@ export async function EntityNotesAndFiles({ entityType, entityId, userId, isPro 
     { userId, entityType, entityId },
   );
 
-  let items: AttachmentDto[] = [];
-  let totalBytes = 0;
-  if (isPro) {
-    const attachments = repos.entityAttachments;
-    const [list, total] = await Promise.all([
-      listAttachments({ attachments }, { userId, entityType, entityId }),
-      attachments.totalBytesForUser(userId),
-    ]);
-    items = list.map((a) => ({
-      id: a.id,
-      fileName: a.fileName,
-      contentType: a.contentType,
-      sizeBytes: a.sizeBytes,
-      createdAt: a.createdAt.toISOString(),
-    }));
-    totalBytes = total;
-  }
+  const attachments = repos.entityAttachments;
+  const [list, totalBytes] = await Promise.all([
+    listAttachments({ attachments }, { userId, entityType, entityId }),
+    attachments.totalBytesForUser(userId),
+  ]);
+  const items: AttachmentDto[] = list.map((a) => ({
+    id: a.id,
+    fileName: a.fileName,
+    contentType: a.contentType,
+    sizeBytes: a.sizeBytes,
+    createdAt: a.createdAt.toISOString(),
+  }));
 
   return (
     <section
@@ -60,16 +54,13 @@ export async function EntityNotesAndFiles({ entityType, entityId, userId, isPro 
       </div>
 
       <div className="mt-4">
-        {isPro ? (
-          <AttachmentsList
-            entityType={entityType}
-            entityId={entityId}
-            initialItems={items}
-            initialTotalBytes={totalBytes}
-          />
-        ) : (
-          <AttachmentsPaywall />
-        )}
+        <AttachmentsList
+          entityType={entityType}
+          entityId={entityId}
+          initialItems={items}
+          initialTotalBytes={totalBytes}
+          isPro={isPro}
+        />
       </div>
     </section>
   );

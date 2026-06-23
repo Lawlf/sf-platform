@@ -211,7 +211,11 @@ export function LoginPanel({ errorMessage }: LoginPanelProps) {
                   >
                     {emailForm.formState.errors.email.message}
                   </span>
-                ) : null}
+                ) : (
+                  <span className="text-xs text-[color:var(--text-muted)]">
+                    A gente manda um código pro seu email. Sem senha pra decorar.
+                  </span>
+                )}
               </div>
               {serverError ? (
                 <div role="alert" className="text-sm text-[color:var(--semantic-negative)]">
@@ -224,7 +228,7 @@ export function LoginPanel({ errorMessage }: LoginPanelProps) {
                 loading={pending}
                 className="!h-auto !rounded-xl py-[14px] text-[15px] font-bold"
               >
-                Avançar
+                Receber código por email
               </Button>
             </form>
           ) : (
@@ -280,7 +284,7 @@ export function LoginPanel({ errorMessage }: LoginPanelProps) {
                   aria-live="polite"
                 >
                   <Spinner size={15} decorative />
-                  Validando...
+                  <span className="sr-only">Entrando</span>
                 </div>
               ) : serverError ? (
                 <div

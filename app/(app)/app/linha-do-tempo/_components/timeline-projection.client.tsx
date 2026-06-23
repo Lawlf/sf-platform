@@ -96,7 +96,7 @@ export function TimelineProjection({ initialData }: Props) {
         No ritmo atual
       </span>
       <p className="mt-1 text-[0.8125rem] text-[color:var(--text-secondary)]">
-        Se você mantiver o saldo da Carteira atual.
+        Se você mantiver o ritmo de hoje.
       </p>
 
       <div className="mt-3">

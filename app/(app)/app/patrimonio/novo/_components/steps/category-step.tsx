@@ -55,7 +55,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
                 <WizardRadioCard
                   icon={cardIcon(TrendingUp)}
                   title="Investimento"
-                  description="Ações, fundo, RF..."
+                  description="Ações, fundo, renda fixa, cripto."
                   active={field.value === "investment"}
                   onSelect={() => pick("investment")}
                 />

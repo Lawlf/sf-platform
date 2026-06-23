@@ -61,7 +61,7 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         className="text-[0.9375rem] font-semibold leading-snug"
         style={{ color: "var(--semantic-positive)" }}
       >
-        Tudo bateu: o saldo da Carteira virou patrimônio.
+        Fechou certinho. O que sobrou no mês continua com você.
       </p>
     );
   }
@@ -70,11 +70,11 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
     return (
       <div className="flex flex-col gap-1">
         <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
-          Seu patrimônio cresceu{" "}
+          Você terminou o mês com{" "}
           <span style={{ color: "var(--semantic-positive)" }}>
             <HideableValue>{leakAbsFormatted}</HideableValue>
           </span>{" "}
-          além do saldo da Carteira
+          a mais do que o esperado
         </p>
         <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
           Pode ser rendimento, valorização ou uma entrada extra.
@@ -89,10 +89,10 @@ function ReconciliationLine({ status, leakAbsFormatted }: ReconciliationProps) {
         <span style={{ color: "var(--semantic-warning)" }}>
           <HideableValue>{leakAbsFormatted}</HideableValue>
         </span>{" "}
-        sobraram, mas não apareceram no seu patrimônio
+        saíram sem registro
       </p>
       <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-        Pode ter sido um gasto que você ainda não registrou.
+        Pode ter sido um gasto que você ainda não anotou.
       </p>
     </div>
   );
@@ -495,14 +495,14 @@ export function MonthClosingCard({ initialData }: Props) {
           <SheetHeader className="mb-5">
             <SheetTitle>Fechar {monthLabel}</SheetTitle>
             <SheetDescription>
-              Veja como o saldo da Carteira do mês se reflete no seu patrimônio.
+              Confirme o que entrou e o que saiu, e veja como o mês fechou.
             </SheetDescription>
           </SheetHeader>
 
           <div className="flex flex-col gap-4">
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                Saldo da Carteira no mês
+                O que sobrou no mês
               </span>
               <span className="text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                 <HideableValue>{data.theoreticalFormatted}</HideableValue>
@@ -511,7 +511,7 @@ export function MonthClosingCard({ initialData }: Props) {
 
             <div className="flex items-center justify-between gap-3">
               <span className="text-[0.875rem] text-[color:var(--text-secondary)]">
-                Seu patrimônio variou
+                Quanto você juntou de verdade
               </span>
               <span
                 className="text-[0.9375rem] font-semibold"

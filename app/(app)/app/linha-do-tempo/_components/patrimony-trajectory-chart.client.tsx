@@ -156,7 +156,7 @@ export function PatrimonyTrajectoryChart({ points, projectionInitial }: Props) {
     const last = points[points.length - 1]!;
     return (
       <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Sua trajetória</h2>
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Como você vem indo</h2>
         <div className="mt-3 flex flex-col items-center gap-1.5 py-3 text-center">
           <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
             {shortMonth(last.monthIso)}
@@ -167,7 +167,7 @@ export function PatrimonyTrajectoryChart({ points, projectionInitial }: Props) {
           <p className="mt-1 text-[0.75rem] text-[color:var(--text-muted)]">
             {points.length === 1
               ? "Seu primeiro mês está no mapa. A curva começa a se desenhar a partir do terceiro mês."
-              : "Faltam poucos dados pra curva. Mais um mês fechado e a linha da sua trajetória aparece aqui."}
+              : "Faltam poucos dados pra curva. Mais um mês fechado e a linha de como você vem indo aparece aqui."}
           </p>
         </div>
       </section>
@@ -228,9 +228,19 @@ export function PatrimonyTrajectoryChart({ points, projectionInitial }: Props) {
           .
         </p>
       ) : (
-        <p className="mt-3 text-[0.8125rem] text-[color:var(--text-muted)]">
-          Cadastre sua renda ou uma meta pra ver pra onde isso vai no ritmo atual.
-        </p>
+        <div className="mt-3 flex flex-col items-start gap-2">
+          <p className="text-[0.8125rem] text-[color:var(--text-muted)]">
+            Diga quanto você costuma ganhar por mês e a gente mostra se, no ritmo atual, você fecha
+            sobrando ou no vermelho.
+          </p>
+          <Link
+            href={"/app/renda/nova" as Route}
+            className="focus-ring inline-flex items-center gap-1 text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)] hover:underline"
+          >
+            Cadastrar minha renda
+            <ChevronRight size={14} strokeWidth={2.25} aria-hidden />
+          </Link>
+        </div>
       )}
 
       {projection ? <ProjectionExtras data={projection} /> : null}

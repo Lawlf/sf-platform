@@ -153,22 +153,27 @@ export function FinancingForm({
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
     setOngoingStep(1);
+    // Trocar de cenário preserva o que serve pros dois (nome, parcela, taxa,
+    // seguro, tarifa, datas). Só os campos específicos do cenário antigo somem.
+    const shared = {
+      currency: values.currency ?? defaultCurrency,
+      label: values.label ?? "",
+      annualRatePct: values.annualRatePct ?? 0,
+      monthlyInstallmentCents: values.monthlyInstallmentCents ?? null,
+      amortizationMethod: values.amortizationMethod ?? "PRICE",
+      monthlyInsuranceCents: values.monthlyInsuranceCents ?? null,
+      monthlyAdminFeeCents: values.monthlyAdminFeeCents ?? null,
+      startDate: values.startDate ?? todayIso(),
+      expectedEndDate: values.expectedEndDate ?? null,
+      notes: values.notes ?? null,
+    };
     if (next === "new") {
       form.reset(
         {
           scenario: "new",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
+          ...shared,
           principalCents: 0n as unknown as bigint,
-          annualRatePct: 0,
           termMonths: 60,
-          monthlyInstallmentCents: null,
-          amortizationMethod: "PRICE",
-          monthlyInsuranceCents: null,
-          monthlyAdminFeeCents: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
         } as FormValues,
         { keepErrors: false },
@@ -177,20 +182,11 @@ export function FinancingForm({
       form.reset(
         {
           scenario: "ongoing",
-          currency: values.currency ?? defaultCurrency,
-          label: values.label ?? "",
+          ...shared,
           originalPrincipalCents: 0n as unknown as bigint,
           currentBalanceCents: 0n as unknown as bigint,
-          annualRatePct: 0,
           paidInstallments: 0,
           remainingTerms: 60,
-          monthlyInstallmentCents: null,
-          amortizationMethod: "PRICE",
-          monthlyInsuranceCents: null,
-          monthlyAdminFeeCents: null,
-          startDate: values.startDate ?? todayIso(),
-          expectedEndDate: null,
-          notes: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
         } as FormValues,
         { keepErrors: false },
@@ -559,6 +555,7 @@ export function FinancingForm({
               label="Taxa por ano (opcional)"
               htmlFor={rateId}
               error={errors.annualRatePct?.message}
+              helper="Não sabe? Pode deixar em branco. A parcela mensal já basta pra contar no seu mês."
               helpLink={<HowItWorksSheet topic="cet" variant="brand" />}
             >
               <WizardPercentField

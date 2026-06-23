@@ -11,6 +11,8 @@ import { TimelineFilterDrawer } from "./timeline-filter-drawer";
 
 export interface TimelineHeroProps {
   patrimonyFormatted: string;
+  monthFreeFormatted: string | null;
+  monthFreeCents: string | null;
   deltaPct: number | null;
   deltaMonths: number;
   streakCount: number;
@@ -35,6 +37,8 @@ function hasDeepFilters(params: URLSearchParams): boolean {
 
 export function TimelineHero({
   patrimonyFormatted,
+  monthFreeFormatted,
+  monthFreeCents,
   deltaPct,
   deltaMonths,
   streakCount,
@@ -46,6 +50,14 @@ export function TimelineHero({
   const [drawerOpen, setDrawerOpen] = useState(false);
   const range = params.get("range") ?? "all";
   const deepFilters = hasDeepFilters(params);
+
+  let monthFreePositive = true;
+  try {
+    monthFreePositive = monthFreeCents === null ? true : BigInt(monthFreeCents) >= 0n;
+  } catch {
+    monthFreePositive = true;
+  }
+  const monthFreeAbs = monthFreeFormatted ? monthFreeFormatted.replace("-", "").trim() : null;
 
   function selectRange(value: string) {
     const next = new URLSearchParams(params.toString());
@@ -70,15 +82,31 @@ export function TimelineHero({
       <header className="sticky top-[58px] z-10 -mx-4 rounded-b-2xl px-4 py-4 backdrop-blur-2xl backdrop-saturate-150 md:-mx-0 md:top-[56px] md:px-0 md:py-5">
         <div
           role="region"
-          aria-label="Resumo do patrimônio"
+          aria-label="Resumo do mês"
           className="relative rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-5 py-4 backdrop-blur-md"
         >
-          <div className="text-[0.625rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
-            Patrimônio
-          </div>
-          <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
-            <HideableValue>{patrimonyFormatted}</HideableValue>
-          </div>
+          {monthFreeAbs ? (
+            <>
+              <div className="text-[0.625rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
+                {monthFreePositive ? "Sobra do mês" : "Falta do mês"}
+              </div>
+              <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
+                <HideableValue>{monthFreeAbs}</HideableValue>
+              </div>
+              <div className="mt-1.5 text-[0.8125rem] text-[color:var(--text-muted)]">
+                Patrimônio: <HideableValue>{patrimonyFormatted}</HideableValue>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-[0.625rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
+                Patrimônio
+              </div>
+              <div className="mt-1 text-[1.75rem] font-extrabold leading-none tracking-[-0.5px] text-[color:var(--text-primary)] md:text-[2rem]">
+                <HideableValue>{patrimonyFormatted}</HideableValue>
+              </div>
+            </>
+          )}
 
           {deltaText || streakCount >= 2 ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">

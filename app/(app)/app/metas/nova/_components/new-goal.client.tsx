@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ArrowLeft, ChevronDown } from "lucide-react";
+import { AlertTriangle, ChevronDown } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -530,7 +530,6 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === "edit" && existingGoal != null;
-  const [step, setStep] = useState<1 | 2>(isEdit || seed?.type ? 2 : 1);
   const [goalType, setGoalType] = useState<GoalTypeChoice | null>(
     isEdit ? (existingGoal.type as GoalTypeChoice) : (seed?.type ?? null),
   );
@@ -540,12 +539,6 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
 
   function handleTypeSelect(t: GoalTypeChoice) {
     setGoalType(t);
-    setStep(2);
-    setSubmitError(null);
-  }
-
-  function handleBack() {
-    setStep(1);
     setSubmitError(null);
   }
 
@@ -620,27 +613,6 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
     });
   }
 
-  if (step === 1) {
-    return (
-      <div className="flex flex-col gap-4">
-        <section className="glass-light p-4">
-          <SectionHeading>Qual é o seu objetivo?</SectionHeading>
-          <div className="grid grid-cols-2 gap-2">
-            {GOAL_TYPES.map((g) => (
-              <WizardRadioCard
-                key={g.type}
-                title={g.title}
-                description={g.description}
-                active={goalType === g.type}
-                onSelect={() => handleTypeSelect(g.type)}
-              />
-            ))}
-          </div>
-        </section>
-      </div>
-    );
-  }
-
   const resolvedSeed = isEdit ? null : (seed ?? null);
   const resolvedExisting = isEdit ? existingGoal : null;
   const stepContent =
@@ -682,19 +654,23 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
       />
     ) : null;
 
-  if (!stepContent) return null;
-
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-col gap-4">
       {!isEdit && (
-        <button
-          type="button"
-          onClick={handleBack}
-          className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg px-1 py-1 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
-        >
-          <ArrowLeft size={16} strokeWidth={2} aria-hidden />
-          Trocar tipo de meta
-        </button>
+        <section className="glass-light p-4">
+          <SectionHeading>Qual é o seu objetivo?</SectionHeading>
+          <div className="grid grid-cols-2 gap-2">
+            {GOAL_TYPES.map((g) => (
+              <WizardRadioCard
+                key={g.type}
+                title={g.title}
+                description={g.description}
+                active={goalType === g.type}
+                onSelect={() => handleTypeSelect(g.type)}
+              />
+            ))}
+          </div>
+        </section>
       )}
       {stepContent}
     </div>

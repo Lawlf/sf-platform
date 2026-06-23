@@ -7,7 +7,7 @@ import { linkAssetSlice } from "../_lib/link-asset";
 export const newScenarioSchema = z.object({
   scenario: z.literal("new"),
   currency: z.enum(CURRENCIES),
-  label: z.string().min(1, "Informe um rótulo.").max(120),
+  label: z.string().min(1, "Informe um nome.").max(120),
   principalCents: z.bigint().positive("Valor deve ser positivo."),
   annualRatePct: z.number().min(0).max(200),
   termMonths: z.number().int().min(1).max(600),
@@ -25,7 +25,7 @@ export const ongoingScenarioSchema = z
   .object({
     scenario: z.literal("ongoing"),
     currency: z.enum(CURRENCIES),
-    label: z.string().min(1, "Informe um rótulo.").max(120),
+    label: z.string().min(1, "Informe um nome.").max(120),
     originalPrincipalCents: z.bigint().positive("Valor original deve ser positivo."),
     // O usuário informa quanto JÁ PAGOU; o saldo devedor é derivado
     // (original - pago) no form. Guardamos os dois: o pago valida a entrada,

@@ -44,7 +44,7 @@ export function IncomeStep({
   const [saving, startSaving] = useTransition();
   const form = useForm<FormValues>({
     resolver: zodResolver(schema),
-    defaultValues: { label: "Salário", amountCents: 0n as unknown as bigint },
+    defaultValues: { label: "", amountCents: 0n as unknown as bigint },
   });
 
   function onSubmit(values: FormValues) {
@@ -68,7 +68,7 @@ export function IncomeStep({
       currentStep={stepNumber}
       totalSteps={totalSteps}
       title="Quanto entra por mês?"
-      description="Sua renda mensal líquida aproximada. Só um número já ajuda."
+      description="Quanto você costuma receber por mês. Se varia muito, põe uma média. Só um número já ajuda."
       onBack={onBack}
       primary={{ label: "Continuar", onClick: form.handleSubmit(onSubmit), loading: saving }}
       secondary={{ label: "Pular esta etapa", onClick: onSkip }}
@@ -78,7 +78,12 @@ export function IncomeStep({
           <label className={labelClass} htmlFor="onb-income-label">
             Nome
           </label>
-          <input id="onb-income-label" {...form.register("label")} className={fieldClass} />
+          <input
+            id="onb-income-label"
+            {...form.register("label")}
+            placeholder="Ex: clientes, freela, app, comissão"
+            className={fieldClass}
+          />
           {form.formState.errors.label ? (
             <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
               {form.formState.errors.label.message}

@@ -72,7 +72,23 @@ export async function GET(request: Request) {
   let goalReachedResult = { pushesSent: 0 };
 
   if (isFirstOfMonth) {
-    summaryResult = await dispatchMonthlySummaryNotifications(deps);
+    const getMonthlyFreeCashFlow = async (userId: string) => {
+      const profileId = await resolvePfProfileId(userId);
+      const r = await getDashboardSnapshot(
+        {
+          debts: repos.debts,
+          incomes: repos.incomes,
+          clock,
+          rates: repos.exchangeRates,
+          overrides: repos.userFxOverrides,
+        },
+        { userId, profileId },
+      );
+      if (!isOk(r)) return null;
+      const m = r.value.monthlyFreeCashFlow;
+      return { cents: m.toCents(), formatted: m.format() };
+    };
+    summaryResult = await dispatchMonthlySummaryNotifications({ ...deps, getMonthlyFreeCashFlow });
 
     const assets = repos.assets;
     const allocations = repos.assetDebtAllocations;

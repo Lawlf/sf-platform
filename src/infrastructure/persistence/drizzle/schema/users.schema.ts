@@ -7,6 +7,7 @@ export const contentDiagnosticAnswer = pgEnum("content_diagnostic_answer", [
   "pagar-divida",
   "guardar",
   "investir",
+  "fechar-mes",
 ]);
 
 export const users = pgTable(

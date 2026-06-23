@@ -117,7 +117,7 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
       {zone === "over" ? (
         <a
           href="#movimento-do-mes"
-          className="focus-ring mt-5 flex w-full items-center justify-center rounded-xl bg-[color:var(--color-brand-500)] px-4 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[color:var(--color-brand-600)]"
+          className="focus-ring mt-2 inline-flex text-xs font-semibold text-[color:var(--color-brand-700)] hover:underline"
         >
           Ver o movimento do mês
         </a>

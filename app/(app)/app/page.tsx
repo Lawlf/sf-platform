@@ -2,9 +2,9 @@ import { Fragment, type ReactNode, Suspense } from "react";
 
 
 import { Skeleton } from "@/app/components/ui/skeleton";
-import { getMonthlyConsumo } from "@/application/use-cases/transaction/get-monthly-consumo.use-case";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { repos } from "@/infrastructure/container";
+import { getConsistencyCard } from "@/application/use-cases/achievement/get-consistency-card.use-case";
+import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -15,9 +15,10 @@ import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
-import { ConsumoCard } from "./_components/consumo-card.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
+import { HomeConsistencyDelta } from "./_components/home-consistency-delta";
+import { IncomeConfirmCard } from "./_components/income-confirm-card.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
@@ -46,6 +47,10 @@ function greetingFor(hour: number): string {
   return "Boa noite";
 }
 
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
+}
+
 export default async function DashboardPage() {
   const user = await requireUser();
   const profileId = await getActiveProfileId();
@@ -53,36 +58,55 @@ export default async function DashboardPage() {
   const now = new Date();
   const greeting = greetingFor(now.getHours());
   const monthIso = MonthYear.fromDate(now).toIso();
-
-  const consumoFrom = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1));
-  const consumoTo = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + 1, 0, 23, 59, 59, 999));
+  const prevMonthIso = MonthYear.fromDate(now).previous().toIso();
+  const prevMonthName = capitalize(
+    new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - 1, 1)).toLocaleDateString("pt-BR", {
+      month: "long",
+    }),
+  );
 
   const [
     initialMonthDetail,
+    prevMonthDetail,
     initialMaintenancePrompts,
     onboardingState,
     projectionInitial,
     monthClosingInitial,
     prescription,
-    consumo,
     outOfMonth,
     externalAccountKeys,
     mcpConnections,
   ] = await Promise.all([
     fetchMonthDetail({ monthIso }),
+    fetchMonthDetail({ monthIso: prevMonthIso }),
     fetchMaintenancePrompts(),
     fetchOnboardingState(),
     fetchPlanningProjection(),
     fetchMonthClosing(),
     getPrescription(),
-    getMonthlyConsumo(
-      { transactions: repos.transactions },
-      { profileId, from: consumoFrom, to: consumoTo },
-    ),
     fetchOutOfMonthSummary(),
     repos.assets.listExternalAccountKeys(profileId),
     repos.mcpConnections.listForUser(user.id),
   ]);
+
+  const previousMonth =
+    prevMonthDetail && BigInt(prevMonthDetail.totals.income.cents) > 0n
+      ? { label: prevMonthName, freeCents: prevMonthDetail.totals.realizedFree.cents }
+      : null;
+  const achievementStory = initialMonthDetail?.stories?.find((s) => s.kind === "achievement");
+  const milestone = achievementStory
+    ? (/\[\[(.+?)\]\]/.exec(achievementStory.line)?.[1] ?? null)
+    : null;
+
+  const consistency = await getConsistencyCard(
+    { usage: repos.usage, closings: repos.monthClosings, now: () => clock.now() },
+    { userId: user.id, profileId, state: prescription?.state ?? "incomplete" },
+  );
+
+  const todayDate = new Date().toISOString().slice(0, 10);
+  const incomesToConfirm = (initialMonthDetail?.incomes ?? []).filter(
+    (i) => i.isEstimated && i.settledStatus === null && i.dateIso.slice(0, 10) <= todayDate,
+  );
 
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
   const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
@@ -103,7 +127,12 @@ export default async function DashboardPage() {
     hero: (
       <div className="md:col-span-2" data-tour="hero">
         <Suspense fallback={<Skeleton className="h-[160px] rounded-2xl" />}>
-          <DashboardHeroClient monthIso={monthIso} initialData={initialMonthDetail} />
+          <DashboardHeroClient
+            monthIso={monthIso}
+            initialData={initialMonthDetail}
+            previousMonth={previousMonth}
+            milestone={milestone}
+          />
         </Suspense>
       </div>
     ),
@@ -112,6 +141,12 @@ export default async function DashboardPage() {
         <QuickAccessRow />
       </div>
     ),
+    incomeConfirm:
+      incomesToConfirm.length > 0 && initialMonthDetail ? (
+        <div className="md:col-span-2">
+          <IncomeConfirmCard incomes={initialMonthDetail.incomes} monthIso={monthIso} />
+        </div>
+      ) : null,
     nextStep: (
       <div id="movimento-do-mes" className="scroll-mt-20 md:col-span-2" data-tour="next-step">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
@@ -126,9 +161,6 @@ export default async function DashboardPage() {
     ) : null,
     commitment: (
       <div className="md:col-span-2" data-tour="health">
-        <h2 className="mb-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-          Sua saúde financeira
-        </h2>
         <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
           <CommitmentSectionClient
             monthIso={monthIso}
@@ -160,6 +192,12 @@ export default async function DashboardPage() {
         </Suspense>
       </div>
     ),
+    consistencyDelta:
+      consistency.delta && consistency.delta.direction === "positive" ? (
+        <div className="md:col-span-2">
+          <HomeConsistencyDelta delta={consistency.delta} />
+        </div>
+      ) : null,
     maintenance: (
       <div className="md:col-span-2">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-2xl" />}>
@@ -168,6 +206,15 @@ export default async function DashboardPage() {
       </div>
     ),
   };
+
+  const topKeys = new Set<HomeCardKey>([
+    "hero",
+    "quickAccess",
+    "nextStep",
+    "incomeConfirm",
+    "bringData",
+  ]);
+  const firstDetailKey = order.find((k) => !topKeys.has(k) && cardNodes[k] != null);
 
   return (
     <PageShell
@@ -188,17 +235,15 @@ export default async function DashboardPage() {
         </div>
 
         {order.map((key) => (
-          <Fragment key={key}>{cardNodes[key]}</Fragment>
+          <Fragment key={key}>
+            {key === firstDetailKey ? (
+              <h2 className="mt-2 px-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)] md:col-span-2">
+                Seu mês em detalhe
+              </h2>
+            ) : null}
+            {cardNodes[key]}
+          </Fragment>
         ))}
-
-        <div className="md:col-span-2">
-          <ConsumoCard
-            total={Number(consumo.totalCents) / 100}
-            essencial={Number(consumo.essencialCents) / 100}
-            parcelado={Number(consumo.parceladoCents) / 100}
-            resto={Number(consumo.restoCents) / 100}
-          />
-        </div>
       </div>
     </PageShell>
   );

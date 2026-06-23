@@ -61,7 +61,7 @@ export const dismissHomeTourAction = action({
 });
 
 export const setOnboardingFocusAction = action({
-  schema: z.enum(["pagar-divida", "guardar", "investir"]),
+  schema: z.enum(["pagar-divida", "guardar", "investir", "fechar-mes"]),
   handler: async (focus, { userId }) => {
     unwrap(await setOnboardingFocus({ users: repos.users, clock }, { userId, focus }));
   },

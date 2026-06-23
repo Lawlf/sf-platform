@@ -12,15 +12,18 @@ import {
   stepsForFocus,
   nextStep,
   prevStep,
+  WIZARD_TOTAL_STEPS,
   type WizardStepId,
 } from "../_lib/wizard-machine";
 
 import { AssetStep } from "./steps/asset-step.client";
 import { DebtStep } from "./steps/debt-step.client";
+import { ExpenseStep } from "./steps/expense-step.client";
 import { FocusStep } from "./steps/focus-step.client";
 import { GoalStep } from "./steps/goal-step.client";
 import { IncomeStep } from "./steps/income-step.client";
 import { ResultGoal } from "./steps/result-goal.client";
+import { ResultMonthClosing } from "./steps/result-month-closing.client";
 import { ResultNetWorth } from "./steps/result-networth.client";
 import { ResultPrescription } from "./steps/result-prescription.client";
 
@@ -91,7 +94,7 @@ export function OnboardingWizardClient({
       <FocusStep
         initialFocus={focus}
         stepNumber={stepNumber}
-        totalSteps={steps.length}
+        totalSteps={focus === null ? WIZARD_TOTAL_STEPS : steps.length}
         onChosen={onFocusChosen}
         onBack={() => router.push("/app")}
         onSkip={advance}
@@ -115,6 +118,16 @@ export function OnboardingWizardClient({
   if (current === "debt") {
     return (
       <DebtStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
+    );
+  }
+  if (current === "expense") {
+    return (
+      <ExpenseStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
+    );
+  }
+  if (current === "result-month-closing") {
+    return (
+      <ResultMonthClosing stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
     );
   }
   if (current === "result-prescription") {

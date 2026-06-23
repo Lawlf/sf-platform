@@ -224,7 +224,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <WizardField label="Rótulo" htmlFor={labelId} error={form.formState.errors.label?.message}>
+        <WizardField label="Nome" htmlFor={labelId} error={form.formState.errors.label?.message}>
           <input id={labelId} {...form.register("label")} className={wizardInputClass} />
         </WizardField>
 
@@ -262,7 +262,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
 
       {(kind === "financing" || kind === "personal_loan") && (
         <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <WizardField label="Taxa anual (a.a.)" htmlFor={rateId}>
+          <WizardField label="Taxa por ano" htmlFor={rateId}>
             <input
               id={rateId}
               type="number"
@@ -328,7 +328,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
             control={form.control}
             name="currentStatementCents"
             label="Fatura atual"
-            helper="Para quem paga a fatura toda, é igual ao saldo devedor. Tem rotativo? Ponha só o deste mês."
+            helper="Para quem paga a fatura toda, é tudo o que falta. Tem rotativo? Ponha só o deste mês."
             currency={currency}
             onValueChange={handleStatementChange}
           />
@@ -359,11 +359,11 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
           <MoneyInput
             control={form.control}
             name="revolvingBalanceCents"
-            label="Saldo do rotativo"
-            helper="Faturas anteriores arrastadas."
+            label="Quanto rolou de fatura"
+            helper="Faturas anteriores que ficaram pra trás."
             currency={currency}
           />
-          <WizardField label="Taxa do rotativo (a.m.)" htmlFor={revolvingRateId}>
+          <WizardField label="Juros do rotativo por mês" htmlFor={revolvingRateId}>
             <input
               id={revolvingRateId}
               type="number"
@@ -382,7 +382,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
           <WizardField label="Banco" htmlFor={bankId}>
             <input id={bankId} {...form.register("bankName")} className={wizardInputClass} />
           </WizardField>
-          <WizardField label="Taxa mensal (a.m.)" htmlFor={overdraftRateId}>
+          <WizardField label="Taxa por mês" htmlFor={overdraftRateId}>
             <input
               id={overdraftRateId}
               type="number"

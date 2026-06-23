@@ -43,25 +43,29 @@ export async function HomeGoalCard() {
         <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
           Sua meta
         </h2>
-        <span className="text-[0.6875rem] font-semibold tabular-nums text-[color:var(--text-muted)]">
-          {pct.toFixed(0)}%
-        </span>
+        {targetCents <= 0 ? null : (
+          <span className="text-[0.6875rem] font-semibold tabular-nums text-[color:var(--text-muted)]">
+            {pct.toFixed(0)}%
+          </span>
+        )}
       </div>
 
       <p className="text-[0.9375rem] font-bold leading-[1.3] tracking-[-0.01em] text-[color:var(--text-primary)]">
         {goal.title}
       </p>
 
-      <div className="h-[7px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
-        <div
-          className="h-full rounded-full bg-[color:var(--color-brand-500)] transition-[width]"
-          style={{ width: `${pct}%` }}
-          role="progressbar"
-          aria-valuenow={pct}
-          aria-valuemin={0}
-          aria-valuemax={100}
-        />
-      </div>
+      {targetCents <= 0 ? null : (
+        <div className="h-[7px] w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+          <div
+            className="h-full rounded-full bg-[color:var(--color-brand-500)] transition-[width]"
+            style={{ width: `${pct}%` }}
+            role="progressbar"
+            aria-valuenow={pct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+          />
+        </div>
+      )}
 
       <div className="flex items-baseline justify-between gap-2 text-[0.75rem]">
         <span className="text-[color:var(--text-secondary)]">

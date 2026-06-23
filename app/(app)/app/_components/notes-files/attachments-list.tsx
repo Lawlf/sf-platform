@@ -17,6 +17,7 @@ import {
 import { Spinner } from "@/app/components/ui/spinner";
 import {
   ALLOWED_CONTENT_TYPES,
+  FREE_ATTACHMENTS_PER_ENTITY,
   MAX_FILE_BYTES,
   USER_QUOTA_BYTES,
 } from "@/application/use-cases/attachments/attachment-limits";
@@ -32,6 +33,7 @@ import {
 } from "../../_actions/entity-attachments.action";
 
 import { AttachmentActionsSheet } from "./attachment-actions-sheet.client";
+import { AttachmentsPaywall } from "./attachments-paywall";
 import { FILES_COPY, usagePhrase } from "./copy";
 import { ImageLightbox } from "./image-lightbox.client";
 import { RenameAttachmentSheet } from "./rename-attachment-sheet.client";
@@ -56,9 +58,16 @@ interface Props {
   entityId: string;
   initialItems: AttachmentDto[];
   initialTotalBytes: number;
+  isPro: boolean;
 }
 
-export function AttachmentsList({ entityType, entityId, initialItems, initialTotalBytes }: Props) {
+export function AttachmentsList({
+  entityType,
+  entityId,
+  initialItems,
+  initialTotalBytes,
+  isPro,
+}: Props) {
   const [items, setItems] = useState<AttachmentDto[]>(initialItems);
   const [totalBytes, setTotalBytes] = useState(initialTotalBytes);
   const [uploading, setUploading] = useState(false);
@@ -103,7 +112,15 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
         sizeBytes: file.size,
       });
       if (!req.ok) {
-        setError(req.reason === "quota" ? FILES_COPY.errorQuota : req.reason === "type" ? FILES_COPY.errorType : FILES_COPY.errorTooLarge);
+        setError(
+          req.reason === "not_pro"
+            ? "Você guarda 1 arquivo grátis por aqui. Pra guardar mais, é o plano Pro."
+            : req.reason === "quota"
+              ? FILES_COPY.errorQuota
+              : req.reason === "type"
+                ? FILES_COPY.errorType
+                : FILES_COPY.errorTooLarge,
+        );
         return;
       }
 
@@ -213,6 +230,7 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
   }
 
   const nearLimit = totalBytes > 0.8 * USER_QUOTA_BYTES;
+  const atFreeLimit = !isPro && items.length >= FREE_ATTACHMENTS_PER_ENTITY;
 
   return (
     <div>
@@ -293,20 +311,28 @@ export function AttachmentsList({ entityType, entityId, initialItems, initialTot
         </ul>
       )}
 
-      <div className="mt-3 flex items-center gap-3">
-        <button
-          type="button"
-          disabled={uploading}
-          onClick={() => inputRef.current?.click()}
-          className="focus-ring inline-flex items-center gap-2 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.84375rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)] disabled:opacity-50"
-        >
-          <Plus size={15} strokeWidth={2.5} aria-hidden />
-          {FILES_COPY.attachButton}
-        </button>
-        {uploading ? <Spinner size={18} className="text-[color:var(--color-brand-500)]" /> : null}
-      </div>
+      {atFreeLimit ? (
+        <div className="mt-3">
+          <AttachmentsPaywall />
+        </div>
+      ) : (
+        <>
+          <div className="mt-3 flex items-center gap-3">
+            <button
+              type="button"
+              disabled={uploading}
+              onClick={() => inputRef.current?.click()}
+              className="focus-ring inline-flex items-center gap-2 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.84375rem] font-semibold text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-3)] disabled:opacity-50"
+            >
+              <Plus size={15} strokeWidth={2.5} aria-hidden />
+              {FILES_COPY.attachButton}
+            </button>
+            {uploading ? <Spinner size={18} className="text-[color:var(--color-brand-500)]" /> : null}
+          </div>
 
-      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">{FILES_COPY.fileHint}</p>
+          <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">{FILES_COPY.fileHint}</p>
+        </>
+      )}
 
       {error ? (
         <p role="alert" className="mt-2 text-[0.75rem] text-[color:var(--semantic-negative)]">

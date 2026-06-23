@@ -17,6 +17,8 @@ export interface DispatchInactivityEmailDeps {
   email: EmailService;
   clock: Clock;
   appUrl: string;
+  /** Teto de envios neste lote (reserva cota pra auth/transacional). */
+  maxSends?: number;
 }
 
 export interface DispatchInactivityEmailResult {
@@ -35,6 +37,7 @@ export async function dispatchInactivityEmail(
   let sent = 0;
 
   for (const user of users) {
+    if (deps.maxSends != null && sent >= deps.maxSends) break;
     try {
       const prefs = await deps.preferences.findForUser(user.id);
       if (prefs && !prefs.emailEnabled) continue;

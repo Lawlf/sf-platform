@@ -175,7 +175,7 @@ export function MonthCard({
           </div>
           {isFuture ? (
             <p className="mt-1.5 text-[0.6875rem] font-medium text-[color:var(--text-muted)]">
-              Projeção no ritmo atual, com as parcelas que continuam.
+              No ritmo atual, com as parcelas que continuam.
             </p>
           ) : null}
         </>

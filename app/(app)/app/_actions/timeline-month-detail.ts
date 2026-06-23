@@ -52,6 +52,10 @@ export interface SerializedIncomeRow {
   isNew: boolean;
   /** A renda foi confirmada como não recebida no fechar-mês daquele mês. */
   notReceived?: boolean;
+  /** Renda variável (média, não garantida). */
+  isEstimated: boolean;
+  /** Confirmação do usuário pra este mês (null = ainda não confirmou). */
+  settledStatus: "received" | "not_received" | "adjusted" | null;
 }
 
 /**
@@ -124,6 +128,9 @@ export interface SerializedMonthTotals {
   realizedFree: SerializedMoney;
   monthlyDebtService: SerializedMoney;
   committedPct: number;
+  // Parte de `income` que vem de renda variavel (isEstimated). O piso garantido do
+  // mes = free - estimatedIncome (o que sobra/falta se o variavel nao vier).
+  estimatedIncome: SerializedMoney;
 }
 
 export interface SerializedMonthDetail {
@@ -136,6 +143,9 @@ export interface SerializedMonthDetail {
   events: SerializedTimelineEvent[];
   patrimony: SerializedPatrimony;
   totals: SerializedMonthTotals;
+  // true quando alguma renda ativa do mes e variavel (isEstimated): o "fecha o mes"
+  // vira condicional, nao numero garantido.
+  hasEstimatedIncome: boolean;
 }
 
 const ASSET_CATEGORY_LABEL: Record<AssetCategory, string> = {
@@ -330,6 +340,12 @@ export async function fetchMonthDetail(input: {
     const effectiveCents = monthlyIncomeCents(inc, monthTarget, incomeSettlementsRaw);
     const baseCents = monthlyIncomeCents(inc, monthTarget, []);
     const notReceived = effectiveCents === 0n && baseCents > 0n;
+    const settlement = incomeSettlementsRaw.find(
+      (s) =>
+        s.incomeId === inc.id &&
+        s.month.getUTCFullYear() === monthTarget.year &&
+        s.month.getUTCMonth() === monthTarget.month,
+    );
     return {
       id: inc.id,
       label: inc.label,
@@ -338,6 +354,8 @@ export async function fetchMonthDetail(input: {
       dateIso: date.toISOString(),
       isNew: MonthYear.fromDate(inc.createdAt).equals(month),
       notReceived,
+      isEstimated: inc.isEstimated,
+      settledStatus: settlement?.status ?? null,
     };
   });
 
@@ -464,11 +482,28 @@ export async function fetchMonthDetail(input: {
     previousMonthLabel: previousPoint ? previousPoint.month.format() : null,
   };
 
+  // Piso garantido: só conta como "variável incerto" a renda estimada que o
+  // usuário AINDA não confirmou no mês. Confirmar "recebi"/"veio diferente" tira
+  // ela daqui -> o piso sobe na hora.
+  const estimatedIncomeCents = activeIncomes
+    .filter((inc) => {
+      if (!inc.isEstimated) return false;
+      const s = incomeSettlementsRaw.find(
+        (x) =>
+          x.incomeId === inc.id &&
+          x.month.getUTCFullYear() === monthTarget.year &&
+          x.month.getUTCMonth() === monthTarget.month,
+      );
+      return !(s && (s.status === "received" || s.status === "adjusted"));
+    })
+    .reduce((acc, inc) => acc + monthlyIncomeCents(inc, monthTarget, incomeSettlementsRaw), 0n);
+
   const totals = computeMonthTotals({
     incomes: serializedIncomes,
     expenses: serializedExpenses,
     payments: serializedPayments,
     activeDebts: debtsConverted.filter((d) => d.status === "active"),
+    estimatedIncomeCents,
   });
 
   return {
@@ -481,6 +516,7 @@ export async function fetchMonthDetail(input: {
     events,
     patrimony,
     totals,
+    hasEstimatedIncome: activeIncomes.some((inc) => inc.isEstimated),
   };
 }
 
@@ -502,6 +538,7 @@ function computeMonthTotals(args: {
   expenses: SerializedExpenseRow[];
   payments: SerializedPaymentRow[];
   activeDebts: DebtEntity[];
+  estimatedIncomeCents: bigint;
 }): SerializedMonthTotals {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -533,5 +570,6 @@ function computeMonthTotals(args: {
     realizedFree: serializeMoney(Money.fromCents(realizedIncomeCents - realizedOutflowCents)),
     monthlyDebtService: serializeMoney(isOk(serviceMoney) ? serviceMoney.value : Money.fromCents(0n)),
     committedPct,
+    estimatedIncome: serializeMoney(Money.fromCents(args.estimatedIncomeCents)),
   };
 }

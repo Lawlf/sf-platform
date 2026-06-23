@@ -61,9 +61,11 @@ export async function detectNegativeBalance(
     triggeredAt,
     payload: {
       eyebrow: "Atenção",
-      line: `Mês fechou com saldo negativo de [[${brl(input.freeBalanceCents)}]].`,
+      line: `O mês fechou faltando [[${brl(input.freeBalanceCents)}]] pra fechar.`,
       iconName: "AlertTriangle",
       freeBalanceCents: input.freeBalanceCents.toString(),
+      url: `/app/linha-do-tempo/${input.monthIso}`,
+      cta: "Ver o que ajustar",
     },
     dismissedAt: null,
     readAt: null,

@@ -67,6 +67,7 @@ const TOOLS_GROUP: NavGroup = {
 const PF_FINANCE_GROUP: NavGroup = {
   label: "Minhas finanças",
   items: [
+    { href: "/app/lancar" as Route, label: "Registrar gasto", icon: Plus },
     { href: "/app/renda" as Route, label: "Renda", icon: TrendingUp },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
     { href: "/app/patrimonio" as Route, label: "Patrimônio", icon: Coins },
@@ -77,8 +78,9 @@ const PF_FINANCE_GROUP: NavGroup = {
 const PJ_FINANCE_GROUP: NavGroup = {
   label: "Minha empresa",
   items: [
+    { href: "/app/lancar" as Route, label: "Registrar gasto", icon: Plus },
     { href: "/app/renda" as Route, label: "Faturamento", icon: TrendingUp },
-    { href: "/app/mei" as Route, label: "Meu salário", icon: Building2 },
+    { href: "/app/mei" as Route, label: "Minha retirada", icon: Building2 },
     { href: "/app/dividas" as Route, label: "Dívidas", icon: Wallet },
     { href: "/app/metas" as Route, label: "Metas", icon: Target },
   ],
