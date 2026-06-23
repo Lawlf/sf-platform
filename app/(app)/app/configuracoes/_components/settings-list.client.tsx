@@ -9,6 +9,7 @@ import {
   Files,
   Globe,
   HelpCircle,
+  Info,
   KeyRound,
   LayoutGrid,
   MessageCircle,
@@ -170,6 +171,12 @@ const ADVANCED_SECTIONS: SettingSection[] = [
         description: "Conte um problema, sugestão ou dúvida. Respondemos aqui no app.",
         icon: MessageCircle,
       },
+      {
+        href: "/app/configuracoes/sobre" as Route,
+        label: "Sobre o app",
+        description: "O Sabor Financeiro e onde a gente anda nas redes.",
+        icon: Info,
+      },
     ],
   },
   {
@@ -211,16 +218,12 @@ function filterSections(sections: SettingSection[], normalizedQuery: string): Se
 
 export function SettingsList() {
   const [query, setQuery] = useState("");
-  const [showAdvanced, setShowAdvanced] = useState(false);
 
   const normalizedQuery = normalize(query.trim());
-  const searching = normalizedQuery.length > 0;
-  const filteredSections = filterSections(SECTIONS, normalizedQuery);
-  const filteredAdvanced = filterSections(ADVANCED_SECTIONS, normalizedQuery);
-  // Buscando: tudo junto (inclui avançado). Sem busca: avançado fica atrás do "Mais".
-  const visibleSections = searching
-    ? [...filteredSections, ...filteredAdvanced]
-    : filteredSections;
+  const visibleSections = filterSections(
+    [...SECTIONS, ...ADVANCED_SECTIONS],
+    normalizedQuery,
+  );
 
   return (
     <>
@@ -257,32 +260,6 @@ export function SettingsList() {
       ) : (
         visibleSections.map((section) => <SectionView key={section.title} section={section} />)
       )}
-
-      {!searching ? (
-        <div className="flex flex-col gap-2">
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            aria-expanded={showAdvanced}
-            className="focus-ring flex items-center justify-between rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 text-left backdrop-blur-xl"
-          >
-            <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
-              Mais opções
-            </span>
-            <ChevronRight
-              size={18}
-              strokeWidth={2}
-              className={`text-[color:var(--color-brand-800)] transition-transform ${showAdvanced ? "rotate-90" : ""}`}
-              aria-hidden
-            />
-          </button>
-          {showAdvanced
-            ? ADVANCED_SECTIONS.map((section) => (
-                <SectionView key={section.title} section={section} />
-              ))
-            : null}
-        </div>
-      ) : null}
     </>
   );
 }

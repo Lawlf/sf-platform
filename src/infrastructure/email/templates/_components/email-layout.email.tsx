@@ -81,6 +81,27 @@ export function EmailLayout({ preview, appUrl, children, unsubscribeNode }: Emai
               style={{
                 fontSize: 11,
                 color: TEXT_MUTED,
+                margin: "0 0 8px",
+                lineHeight: 1.5,
+              }}
+            >
+              <Link
+                href="https://instagram.com/saborfinanceiro"
+                style={{ color: TEXT_SECONDARY, marginRight: 12 }}
+              >
+                Instagram
+              </Link>
+              <Link
+                href="https://www.tiktok.com/@saborfinanceiro"
+                style={{ color: TEXT_SECONDARY, marginRight: 12 }}
+              >
+                TikTok
+              </Link>
+            </Text>
+            <Text
+              style={{
+                fontSize: 11,
+                color: TEXT_MUTED,
                 margin: 0,
                 lineHeight: 1.5,
               }}
