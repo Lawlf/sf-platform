@@ -1,3 +1,5 @@
+import { SOCIAL_LINKS } from "@/app/_shared/brand-social";
+
 import { faqItems } from "../_lib/faq-items";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
@@ -23,7 +25,7 @@ export function OrganizationJsonLd() {
       "Painel macro de patrimônio, dívida e renda para quem quer enxergar a trajetória financeira além do saldo do dia.",
     foundingDate: "2026",
     areaServed: { "@type": "Country", name: "Brasil" },
-    sameAs: [] as string[],
+    sameAs: SOCIAL_LINKS.map((link) => link.href),
   };
   return <JsonLdScript data={data} id="ld-organization" />;
 }
