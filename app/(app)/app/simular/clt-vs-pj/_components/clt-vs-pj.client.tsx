@@ -57,6 +57,9 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
   const [regime, setRegime] = useState<PjRegime>("simples");
   const [meiActivity, setMeiActivity] = useState<MeiActivity>("servicos");
   const [anexo, setAnexo] = useState<AnexoChoice>("auto");
+  // Modo rapido: so salario + faturamento + MEI/Simples. O resto (dependentes,
+  // beneficios, pro-labore, contador, anexo, custos) fica atras de "Ajustar detalhes".
+  const [showDetails, setShowDetails] = useState(false);
 
   const result = useMemo(
     () =>
@@ -106,34 +109,38 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
             required
             helper="Puxado da sua renda; ajuste se precisar."
           />
-          <SimSlider
-            label="Dependentes"
-            value={dependents}
-            min={0}
-            max={8}
-            step={1}
-            displayValue={`${dependents}`}
-            onChange={setDependents}
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <WizardRadioCard
-              title="Só o líquido"
-              description="Compara só o que cai na conta."
-              active={!includeBenefits}
-              onSelect={() => setIncludeBenefits(false)}
-            />
-            <WizardRadioCard
-              title="Com benefícios"
-              description="Soma FGTS, 13º e 1/3 de férias."
-              active={includeBenefits}
-              onSelect={() => setIncludeBenefits(true)}
-            />
-          </div>
-          {includeBenefits ? (
-            <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-              Somando ao bruto: FGTS <strong>8%</strong> + 13º <strong>8,33%</strong> (1/12) + 1/3 de
-              férias <strong>2,78%</strong> (1/36) = <strong>~19,1%</strong>.
-            </p>
+          {showDetails ? (
+            <>
+              <SimSlider
+                label="Dependentes"
+                value={dependents}
+                min={0}
+                max={8}
+                step={1}
+                displayValue={`${dependents}`}
+                onChange={setDependents}
+              />
+              <div className="grid grid-cols-2 gap-2">
+                <WizardRadioCard
+                  title="Só o líquido"
+                  description="Compara só o que cai na conta."
+                  active={!includeBenefits}
+                  onSelect={() => setIncludeBenefits(false)}
+                />
+                <WizardRadioCard
+                  title="Com benefícios"
+                  description="Soma FGTS, 13º e 1/3 de férias."
+                  active={includeBenefits}
+                  onSelect={() => setIncludeBenefits(true)}
+                />
+              </div>
+              {includeBenefits ? (
+                <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
+                  Somando ao bruto: FGTS <strong>8%</strong> + 13º <strong>8,33%</strong> (1/12) +
+                  1/3 de férias <strong>2,78%</strong> (1/36) = <strong>~19,1%</strong>.
+                </p>
+              ) : null}
+            </>
           ) : null}
         </div>
       </section>
@@ -169,8 +176,9 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
             />
           </div>
 
-          {/* Seção avançada por regime */}
-          {regime === "mei" ? (
+          {/* Seção avançada por regime (só no modo detalhado) */}
+          {showDetails ? (
+            regime === "mei" ? (
             <div className="flex flex-col gap-1.5">
               <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
                 Atividade
@@ -227,14 +235,25 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
                 </div>
               </div>
             </>
-          )}
+            )
+          ) : null}
 
-          <MoneyInput
-            control={form.control}
-            name="businessCostsCents"
-            label="Custos do negócio (opcional)"
-            helper="Faturamento não é lucro. Revenda: custo dos produtos. Serviço: costuma ser zero (você vende sua hora)."
-          />
+          {showDetails ? (
+            <MoneyInput
+              control={form.control}
+              name="businessCostsCents"
+              label="Custos do negócio (opcional)"
+              helper="Faturamento não é lucro. Revenda: custo dos produtos. Serviço: costuma ser zero (você vende sua hora)."
+            />
+          ) : null}
+
+          <button
+            type="button"
+            onClick={() => setShowDetails((v) => !v)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            {showDetails ? "Esconder detalhes" : "Ajustar detalhes (dependentes, imposto, custos)"}
+          </button>
         </div>
       </section>
 
