@@ -34,6 +34,7 @@ import type { SerializedProfile } from "../_actions/profile-queries";
 import { switchProfileAction } from "../_actions/switch-profile.action";
 import { ImmersiveSidebar } from "../conteudo/_components/immersive-sidebar";
 
+import { AddIntentSheet } from "./add-intent-sheet.client";
 import { openSearch } from "./command-palette.client";
 import { CreateProfileSheet } from "./create-profile-sheet.client";
 import { InstallSidebarNudge } from "./pwa/install-sidebar-nudge.client";
@@ -121,6 +122,7 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
     pathname.startsWith("/app/conteudo/livros") ||
     pathname.startsWith("/app/conteudo/ritmo");
   const [collapsed, setCollapsed] = useState(false);
+  const [addOpen, setAddOpen] = useState(false);
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
   const activeIsPj = activeProfile?.type === "PJ_MEI";
   const navGroups = buildNavGroups(activeIsPj, hasHousehold);
@@ -191,6 +193,32 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
         </Link>
         {toggleButton}
       </div>
+
+      <div className="mb-3">
+        {collapsed ? (
+          <SimpleTooltip label="Adicionar" side="right">
+            <button
+              type="button"
+              onClick={() => setAddOpen(true)}
+              aria-label="Adicionar"
+              className="focus-ring flex w-full items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-2 py-2.5 text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
+            >
+              <Plus size={18} strokeWidth={2.25} aria-hidden />
+            </button>
+          </SimpleTooltip>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setAddOpen(true)}
+            className="focus-ring flex w-full items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-3 py-2.5 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
+          >
+            <Plus size={16} strokeWidth={2.5} aria-hidden />
+            Adicionar
+          </button>
+        )}
+      </div>
+
+      <AddIntentSheet open={addOpen} onOpenChange={setAddOpen} />
 
       <div className="mb-5">
         {collapsed ? (
