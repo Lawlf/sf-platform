@@ -97,6 +97,14 @@ export function DashboardHeroClient({
     : stripMinus(formatBrl(freeBalanceCents));
   const { verb, positive } = leftover(projCents);
 
+  // Renda variavel (isEstimated): o numero grande conta com ela, mas a parte
+  // garantida (sem o variavel) e o piso honesto pro freela de renda irregular.
+  const estimatedIncomeCents = BigInt(monthDetail.totals.estimatedIncome.cents);
+  const hasVariableIncome = monthDetail.hasEstimatedIncome && estimatedIncomeCents > 0n && !noIncome;
+  const floorCents = projCents - estimatedIncomeCents;
+  const floor = leftover(floorCents);
+  const floorFmt = stripMinus(formatBrl(floorCents));
+
   // Fio de progresso: comparo a sobra realizada do mes passado com a projecao
   // de agora. So aparece quando ha mes anterior e ha renda no mes atual.
   const prevCents = previousMonth ? BigInt(previousMonth.freeCents) : null;
@@ -234,6 +242,12 @@ export function DashboardHeroClient({
                   )}
                 </span>
               </>
+            ) : null}
+            {hasVariableIncome ? (
+              <span className={`mt-2 block text-[0.75rem] leading-snug ${sublineColor}`}>
+                Parte da sua renda varia. Sem ela, {floor.verb}{" "}
+                <HideableValue>{floorFmt}</HideableValue>.
+              </span>
             ) : null}
             {showNudge ? (
               <>

@@ -3,7 +3,8 @@ import { Fragment, type ReactNode, Suspense } from "react";
 
 import { Skeleton } from "@/app/components/ui/skeleton";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { repos } from "@/infrastructure/container";
+import { getConsistencyCard } from "@/application/use-cases/achievement/get-consistency-card.use-case";
+import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -16,6 +17,7 @@ import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
+import { HomeConsistencyDelta } from "./_components/home-consistency-delta";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
@@ -95,6 +97,11 @@ export default async function DashboardPage() {
     ? (/\[\[(.+?)\]\]/.exec(achievementStory.line)?.[1] ?? null)
     : null;
 
+  const consistency = await getConsistencyCard(
+    { usage: repos.usage, closings: repos.monthClosings, now: () => clock.now() },
+    { userId: user.id, profileId, state: prescription?.state ?? "incomplete" },
+  );
+
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
   const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
   const bringDataEligible =
@@ -173,6 +180,12 @@ export default async function DashboardPage() {
         </Suspense>
       </div>
     ),
+    consistencyDelta:
+      consistency.delta && consistency.delta.direction === "positive" ? (
+        <div className="md:col-span-2">
+          <HomeConsistencyDelta delta={consistency.delta} />
+        </div>
+      ) : null,
     maintenance: (
       <div className="md:col-span-2">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-2xl" />}>

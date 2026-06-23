@@ -124,6 +124,9 @@ export interface SerializedMonthTotals {
   realizedFree: SerializedMoney;
   monthlyDebtService: SerializedMoney;
   committedPct: number;
+  // Parte de `income` que vem de renda variavel (isEstimated). O piso garantido do
+  // mes = free - estimatedIncome (o que sobra/falta se o variavel nao vier).
+  estimatedIncome: SerializedMoney;
 }
 
 export interface SerializedMonthDetail {
@@ -136,6 +139,9 @@ export interface SerializedMonthDetail {
   events: SerializedTimelineEvent[];
   patrimony: SerializedPatrimony;
   totals: SerializedMonthTotals;
+  // true quando alguma renda ativa do mes e variavel (isEstimated): o "fecha o mes"
+  // vira condicional, nao numero garantido.
+  hasEstimatedIncome: boolean;
 }
 
 const ASSET_CATEGORY_LABEL: Record<AssetCategory, string> = {
@@ -464,11 +470,16 @@ export async function fetchMonthDetail(input: {
     previousMonthLabel: previousPoint ? previousPoint.month.format() : null,
   };
 
+  const estimatedIncomeCents = activeIncomes
+    .filter((inc) => inc.isEstimated)
+    .reduce((acc, inc) => acc + monthlyIncomeCents(inc, monthTarget, incomeSettlementsRaw), 0n);
+
   const totals = computeMonthTotals({
     incomes: serializedIncomes,
     expenses: serializedExpenses,
     payments: serializedPayments,
     activeDebts: debtsConverted.filter((d) => d.status === "active"),
+    estimatedIncomeCents,
   });
 
   return {
@@ -481,6 +492,7 @@ export async function fetchMonthDetail(input: {
     events,
     patrimony,
     totals,
+    hasEstimatedIncome: activeIncomes.some((inc) => inc.isEstimated),
   };
 }
 
@@ -502,6 +514,7 @@ function computeMonthTotals(args: {
   expenses: SerializedExpenseRow[];
   payments: SerializedPaymentRow[];
   activeDebts: DebtEntity[];
+  estimatedIncomeCents: bigint;
 }): SerializedMonthTotals {
   const today = new Date().toISOString().slice(0, 10);
 
@@ -533,5 +546,6 @@ function computeMonthTotals(args: {
     realizedFree: serializeMoney(Money.fromCents(realizedIncomeCents - realizedOutflowCents)),
     monthlyDebtService: serializeMoney(isOk(serviceMoney) ? serviceMoney.value : Money.fromCents(0n)),
     committedPct,
+    estimatedIncome: serializeMoney(Money.fromCents(args.estimatedIncomeCents)),
   };
 }
