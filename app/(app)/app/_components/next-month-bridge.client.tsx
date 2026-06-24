@@ -24,9 +24,11 @@ function capitalize(s: string): string {
 export function NextMonthBridge({ currentMonthIso }: { currentMonthIso: string }) {
   const nextMonth = MonthYear.fromIso(currentMonthIso).next();
   const nextIso = nextMonth.toIso();
-  const nextName = capitalize(
-    new Intl.DateTimeFormat("pt-BR", { month: "long" }).format(nextMonth.toDate()),
-  );
+  const nextNameLower = new Intl.DateTimeFormat("pt-BR", {
+    month: "long",
+    timeZone: "UTC",
+  }).format(nextMonth.toDate());
+  const nextName = capitalize(nextNameLower);
   const todayIso = new Date().toISOString().slice(0, 10);
   const days = daysUntilNextMonth(currentMonthIso, todayIso);
   const whenLabel = days <= 1 ? "começa amanhã" : `começa em ${days} dias`;
@@ -53,8 +55,9 @@ export function NextMonthBridge({ currentMonthIso }: { currentMonthIso: string }
           {nextName} {whenLabel}
         </span>
         <span className="mt-1 block text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
-          {positive ? "Por enquanto sobra " : "Por enquanto faltam "}
-          <HideableValue>{floorFmt}</HideableValue>. Ainda vai mudar.
+          Só com o que já é fixo, {nextNameLower} começa com{" "}
+          <HideableValue>{floorFmt}</HideableValue>
+          {positive ? "." : " a pagar."}
         </span>
       </div>
       <ChevronRight
