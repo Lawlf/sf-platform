@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Bell,
   Building2,
   ChevronsUpDown,
   Coins,
@@ -44,6 +45,7 @@ interface NavItem {
   label: string;
   icon: typeof HomeIcon;
   exact?: boolean;
+  badge?: number;
 }
 
 interface NavGroup {
@@ -51,10 +53,20 @@ interface NavGroup {
   items: NavItem[];
 }
 
-const HOME_GROUP: NavGroup = {
-  label: "",
-  items: [{ href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true }],
-};
+function buildHomeGroup(notificationCount: number): NavGroup {
+  return {
+    label: "",
+    items: [
+      { href: "/app" as Route, label: "Início", icon: HomeIcon, exact: true },
+      {
+        href: "/app/notificacoes" as Route,
+        label: "Notificações",
+        icon: Bell,
+        badge: notificationCount,
+      },
+    ],
+  };
+}
 
 const TOOLS_GROUP: NavGroup = {
   label: "Ferramentas",
@@ -94,8 +106,16 @@ const LAR_GROUP: NavGroup = {
   ],
 };
 
-function buildNavGroups(activeIsPj: boolean, hasHousehold: boolean): NavGroup[] {
-  const groups: NavGroup[] = [HOME_GROUP, activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP, TOOLS_GROUP];
+function buildNavGroups(
+  activeIsPj: boolean,
+  hasHousehold: boolean,
+  notificationCount: number,
+): NavGroup[] {
+  const groups: NavGroup[] = [
+    buildHomeGroup(notificationCount),
+    activeIsPj ? PJ_FINANCE_GROUP : PF_FINANCE_GROUP,
+    TOOLS_GROUP,
+  ];
   if (hasHousehold) groups.push(LAR_GROUP);
   return groups;
 }
@@ -114,9 +134,10 @@ export interface SidebarProps {
   profiles: SerializedProfile[];
   activeProfileId: string;
   hasHousehold: boolean;
+  notificationCount: number;
 }
 
-export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold, notificationCount }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
@@ -125,7 +146,7 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
   const [collapsed, setCollapsed] = useState(false);
   const activeProfile = profiles.find((p) => p.id === activeProfileId) ?? profiles[0];
   const activeIsPj = activeProfile?.type === "PJ_MEI";
-  const navGroups = buildNavGroups(activeIsPj, hasHousehold);
+  const navGroups = buildNavGroups(activeIsPj, hasHousehold, notificationCount);
 
   useEffect(() => {
     const stored = window.localStorage.getItem(STORAGE_KEY);
@@ -167,7 +188,7 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
     <aside
       aria-label="Navegação principal"
       data-collapsed={collapsed ? "true" : "false"}
-      className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-[var(--sidebar-w)] md:flex-col md:overflow-hidden md:border-r md:border-[color:var(--border-soft)] md:bg-[color:var(--surface-3)] md:px-3 md:py-6 md:[backdrop-filter:blur(24px)_saturate(180%)] md:transition-[width] md:duration-200"
+      className="hidden md:fixed md:inset-y-0 md:left-0 md:z-30 md:flex md:w-[var(--sidebar-w)] md:flex-col md:border-r md:border-[color:var(--border-soft)] md:bg-[color:var(--surface-3)] md:px-3 md:py-6 md:[backdrop-filter:blur(24px)_saturate(180%)] md:transition-[width] md:duration-200"
     >
       <div
         className={`mb-6 flex items-center ${collapsed ? "flex-col gap-3" : "justify-between gap-2 px-2"}`}
@@ -255,6 +276,17 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
                   >
                     <Icon size={18} strokeWidth={active ? 2.25 : 1.75} aria-hidden />
                     {!collapsed ? <span className="flex-1">{item.label}</span> : null}
+                    {!collapsed && item.badge ? (
+                      <span className="flex-none rounded-full bg-[color:var(--semantic-negative)] px-1.5 py-px text-[0.625rem] font-bold text-white">
+                        {item.badge > 99 ? "99+" : item.badge}
+                      </span>
+                    ) : null}
+                    {collapsed && item.badge ? (
+                      <span
+                        aria-hidden
+                        className="absolute right-1.5 top-1.5 h-2 w-2 rounded-full bg-[color:var(--semantic-negative)] ring-2 ring-[color:var(--surface-3)]"
+                      />
+                    ) : null}
                   </Link>
                 );
                 return collapsed ? (
@@ -457,7 +489,9 @@ function AccountZone({
       {open ? (
         <div
           role="menu"
-          className="absolute bottom-[calc(100%+0.5rem)] left-0 right-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)]"
+          className={`absolute bottom-[calc(100%+0.5rem)] left-0 z-40 rounded-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-solid)] p-1.5 shadow-[0_24px_50px_-16px_rgba(31,29,28,0.4)] ${
+            collapsed ? "w-64" : "right-0"
+          }`}
         >
           {single ? (
             <>
@@ -527,20 +561,9 @@ function AccountZone({
       <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} />
 
       {collapsed ? (
-        <div className="flex flex-col items-stretch gap-1.5">
-          <SimpleTooltip label="Conta" side="right">
-            {collapsedCard}
-          </SimpleTooltip>
-          <SimpleTooltip label="Configurações" side="right">
-            <Link
-              href={"/app/configuracoes" as Route}
-              aria-label="Configurações"
-              className="focus-ring flex w-full items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-2 text-[color:var(--text-muted)] transition-colors hover:border-[color:var(--color-brand-500)]/40 hover:text-[color:var(--text-primary)]"
-            >
-              <Settings size={16} strokeWidth={1.75} aria-hidden />
-            </Link>
-          </SimpleTooltip>
-        </div>
+        <SimpleTooltip label="Conta" side="right">
+          {collapsedCard}
+        </SimpleTooltip>
       ) : (
         expandedCard
       )}

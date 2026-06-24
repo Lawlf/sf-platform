@@ -94,8 +94,9 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
               hasHousehold={hasHousehold}
+              notificationCount={notificationCount}
             />
-            <Topbar notificationCount={notificationCount} />
+            <Topbar />
             <MobileTopBar
               displayName={displayName}
               avatarUrl={avatarUrl}

@@ -13,6 +13,7 @@ import { fetchWalletBalance } from "../_actions/wallet-queries";
 import { queryKeys } from "../_lib/query-keys";
 
 import { HowItWorksSheet } from "./how-it-works-sheet";
+import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
 import { HideableValue } from "./money-visibility/hideable-value.client";
 
 function formatBrl(cents: bigint): string {
@@ -181,13 +182,15 @@ export function DashboardHeroClient({
         : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
-    <div className="relative">
+    <div
+      className={`relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
+    >
       <Link
         href={heroHref}
         aria-label={ariaLabel}
-        className={`focus-ring relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
-      >
-        {!negative ? (
+        className="focus-ring absolute inset-0 z-[1] rounded-2xl"
+      />
+      {!negative ? (
           <>
             <span
               aria-hidden
@@ -211,10 +214,16 @@ export function DashboardHeroClient({
                 {stateText}
               </div>
             ) : (
-              <div
-                className={`mt-1.5 text-[1.875rem] font-extrabold leading-none md:text-[2.25rem] ${bigColor}`}
-              >
-                <HideableValue>{bigFormatted}</HideableValue>
+              <div className="mt-1.5 flex items-center gap-2">
+                <div
+                  className={`text-[1.875rem] font-extrabold leading-none md:text-[2.25rem] ${bigColor}`}
+                >
+                  <HideableValue>{bigFormatted}</HideableValue>
+                </div>
+                <HideValuesToggle
+                  size={15}
+                  className="focus-ring relative z-10 flex h-8 w-8 flex-none items-center justify-center rounded-full bg-white/15 text-white backdrop-blur transition-colors hover:bg-white/25"
+                />
               </div>
             )}
             {showProjectionLine ? (
@@ -302,7 +311,6 @@ export function DashboardHeroClient({
             aria-hidden
           />
         </div>
-      </Link>
       <div
         className={`pointer-events-none absolute right-3 top-3 z-10 md:right-4 md:top-4 ${negative ? "text-white/80" : "text-white"}`}
       >
