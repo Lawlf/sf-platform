@@ -6,6 +6,7 @@ import { AssetDebtAllocationRepository } from "@/infrastructure/persistence/driz
 import { AssetRepository } from "@/infrastructure/persistence/drizzle/repositories/asset.repository";
 import { CryptoPriceCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/crypto-price-catalog.repository";
 import { DebtAmountAdjustmentRepository } from "@/infrastructure/persistence/drizzle/repositories/debt-amount-adjustment.repository";
+import { DebtDueAcknowledgementRepository } from "@/infrastructure/persistence/drizzle/repositories/debt-due-acknowledgement.repository";
 import { DebtPaymentRepository } from "@/infrastructure/persistence/drizzle/repositories/debt-payment.repository";
 import { DebtRepository } from "@/infrastructure/persistence/drizzle/repositories/debt.repository";
 import { EmailEventRepository } from "@/infrastructure/persistence/drizzle/repositories/email-event.repository";
@@ -64,6 +65,7 @@ export const repos = {
   assets: new AssetRepository(),
   cryptoPriceCatalog: new CryptoPriceCatalogRepository(),
   debtAmountAdjustments: new DebtAmountAdjustmentRepository(),
+  debtDueAcknowledgements: new DebtDueAcknowledgementRepository(),
   debtPayments: new DebtPaymentRepository(),
   debts: new DebtRepository(),
   emailEvents: new EmailEventRepository(),
