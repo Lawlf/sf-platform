@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { dismissChecklistItem } from "@/application/use-cases/onboarding/dismiss-checklist-item.use-case";
 import { dismissHomeTour } from "@/application/use-cases/onboarding/dismiss-home-tour.use-case";
 import {
   getOnboardingState,
@@ -57,6 +58,14 @@ export const dismissHomeTourAction = action({
   revalidates: ["home"],
   handler: async (_input, { userId }) => {
     unwrap(await dismissHomeTour({ users: repos.users }, { userId }));
+  },
+});
+
+export const dismissChecklistItemAction = action({
+  schema: z.enum(["debt", "goal"]),
+  revalidates: ["home"],
+  handler: async (item, { userId }) => {
+    unwrap(await dismissChecklistItem({ users: repos.users }, { userId, item }));
   },
 });
 
