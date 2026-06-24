@@ -45,7 +45,14 @@ describe("getOnboardingState", () => {
       wizardSeen: false,
       tourDismissed: false,
       focus: "guardar",
-      checklist: { hasIncome: true, hasDebt: false, hasAsset: false, hasGoal: true },
+      checklist: {
+        hasIncome: true,
+        hasDebt: false,
+        hasAsset: false,
+        hasGoal: true,
+        debtDismissed: false,
+        goalDismissed: false,
+      },
     });
   });
 
@@ -66,6 +73,29 @@ describe("getOnboardingState", () => {
       hasDebt: false,
       hasAsset: false,
       hasGoal: false,
+      debtDismissed: false,
+      goalDismissed: false,
     });
+  });
+
+  it("expõe dispensa de dívida e meta a partir dos timestamps do usuário", async () => {
+    const deps = {
+      users: {
+        findById: vi
+          .fn()
+          .mockResolvedValue(
+            makeUser({ checklistDebtDismissedAt: new Date(), checklistGoalDismissedAt: null }),
+          ),
+      },
+      counts: {
+        hasIncome: vi.fn().mockResolvedValue(true),
+        hasDebt: vi.fn().mockResolvedValue(false),
+        hasAsset: vi.fn().mockResolvedValue(true),
+        hasGoal: vi.fn().mockResolvedValue(false),
+      },
+    } as unknown as Parameters<typeof getOnboardingState>[0];
+    const result = await getOnboardingState(deps, { userId: "u1" });
+    expect(result.checklist.debtDismissed).toBe(true);
+    expect(result.checklist.goalDismissed).toBe(false);
   });
 });

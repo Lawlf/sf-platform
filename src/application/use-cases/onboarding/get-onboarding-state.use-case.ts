@@ -6,6 +6,8 @@ export interface OnboardingChecklist {
   hasDebt: boolean;
   hasAsset: boolean;
   hasGoal: boolean;
+  debtDismissed: boolean;
+  goalDismissed: boolean;
 }
 
 export interface OnboardingState {
@@ -41,7 +43,14 @@ export async function getOnboardingState(
       wizardSeen: false,
       tourDismissed: false,
       focus: null,
-      checklist: { hasIncome: false, hasDebt: false, hasAsset: false, hasGoal: false },
+      checklist: {
+        hasIncome: false,
+        hasDebt: false,
+        hasAsset: false,
+        hasGoal: false,
+        debtDismissed: false,
+        goalDismissed: false,
+      },
     };
   }
   const [hasIncome, hasDebt, hasAsset, hasGoal] = await Promise.all([
@@ -54,6 +63,13 @@ export async function getOnboardingState(
     wizardSeen: user.onboardingWizardSeenAt !== null,
     tourDismissed: user.homeTourDismissedAt !== null,
     focus: user.contentDiagnosticAnswer,
-    checklist: { hasIncome, hasDebt, hasAsset, hasGoal },
+    checklist: {
+      hasIncome,
+      hasDebt,
+      hasAsset,
+      hasGoal,
+      debtDismissed: user.checklistDebtDismissedAt != null,
+      goalDismissed: user.checklistGoalDismissedAt != null,
+    },
   };
 }
