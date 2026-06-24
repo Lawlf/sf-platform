@@ -62,6 +62,7 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
       <button
         type="button"
         aria-expanded={expanded}
+        aria-controls="profile-checklist-panel"
         onClick={() => setExpanded((v) => !v)}
         className="focus-ring flex w-full items-center justify-between gap-3 px-4 py-3 text-left"
       >
@@ -87,7 +88,7 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
         />
       </button>
       {expanded ? (
-        <div className="px-4 pb-4">
+        <div id="profile-checklist-panel" className="px-4 pb-4">
           <ChecklistItemList items={pending} isPending={isPending} onDismiss={dismissItem} />
         </div>
       ) : null}
