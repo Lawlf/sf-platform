@@ -18,6 +18,8 @@ export interface UserEntity {
   contentDiagnosticAnsweredAt: Date | null;
   onboardingWizardSeenAt: Date | null;
   homeTourDismissedAt: Date | null;
+  checklistDebtDismissedAt?: Date | null;
+  checklistGoalDismissedAt?: Date | null;
   quickAccess: string[];
   username: string | null;
   profileFlair: string | null;

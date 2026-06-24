@@ -29,6 +29,8 @@ export const users = pgTable(
     }),
     onboardingWizardSeenAt: timestamp("onboarding_wizard_seen_at", { withTimezone: true }),
     homeTourDismissedAt: timestamp("home_tour_dismissed_at", { withTimezone: true }),
+    checklistDebtDismissedAt: timestamp("checklist_debt_dismissed_at", { withTimezone: true }),
+    checklistGoalDismissedAt: timestamp("checklist_goal_dismissed_at", { withTimezone: true }),
     quickAccess: jsonb("quick_access")
       .notNull()
       .default(sql`'[]'::jsonb`),

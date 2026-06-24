@@ -22,6 +22,8 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
+    checklistDebtDismissedAt: row.checklistDebtDismissedAt,
+    checklistGoalDismissedAt: row.checklistGoalDismissedAt,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
     username: row.username,
     profileFlair: row.profileFlair,
@@ -85,6 +87,17 @@ export class UserRepository implements UserRepositoryPort {
     await getDb()
       .update(users)
       .set({ homeTourDismissedAt: new Date(), updatedAt: new Date() })
+      .where(eq(users.id, id));
+  }
+
+  async markChecklistItemDismissed(id: string, item: "debt" | "goal"): Promise<void> {
+    const column =
+      item === "debt"
+        ? { checklistDebtDismissedAt: new Date() }
+        : { checklistGoalDismissedAt: new Date() };
+    await getDb()
+      .update(users)
+      .set({ ...column, updatedAt: new Date() })
       .where(eq(users.id, id));
   }
 

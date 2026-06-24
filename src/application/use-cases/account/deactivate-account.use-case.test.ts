@@ -13,6 +13,7 @@ function makeDeps(): Deps {
     markEmailVerified: vi.fn(),
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
+    markChecklistItemDismissed: vi.fn(),
     deactivate: vi.fn().mockResolvedValue(undefined),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),
