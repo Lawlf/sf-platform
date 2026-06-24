@@ -8,6 +8,7 @@ export type NotificationKind =
   | "negative_balance_month"
   | "achievement_unlocked"
   | "household_invite"
+  | "payment_overdue"
   | "support_reply";
 
 export interface NotificationPayload {
