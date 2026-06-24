@@ -43,8 +43,10 @@ export async function fetchHasDueDatedDebt(): Promise<boolean> {
   const profileId = await getActiveProfileId();
   const debts = await repos.debts.listForProfile(profileId, { status: "active" });
   return debts.some((d) => {
-    if (d.kind === "financing" || d.kind === "overdraft") return false;
-    return d.dueDay !== null;
+    if (d.kind === "credit_card") return true;
+    if (d.kind === "personal_loan") return true;
+    if (d.kind === "recurring") return d.recurringFrequency === "monthly";
+    return false;
   });
 }
 

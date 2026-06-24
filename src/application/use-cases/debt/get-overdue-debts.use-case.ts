@@ -45,13 +45,20 @@ export async function getOverdueDebts(
   return ok(items);
 }
 
+function daysInMonth(year: number, month: number): number {
+  return new Date(year, month + 1, 0).getDate();
+}
+
 function currentCycleDue(
   debt: DebtEntity,
   today: Date,
 ): { debtId: string; label: string; dueDate: Date; amount: Money | null } | null {
   const dueDay = monthlyDueDay(debt);
   if (dueDay === null) return null;
-  const dueDate = new Date(today.getFullYear(), today.getMonth(), dueDay);
+  const year = today.getFullYear();
+  const month = today.getMonth();
+  const clampedDay = Math.min(dueDay, daysInMonth(year, month));
+  const dueDate = new Date(year, month, clampedDay);
   return { debtId: debt.id, label: debt.label, dueDate, amount: monthlyAmount(debt) };
 }
 

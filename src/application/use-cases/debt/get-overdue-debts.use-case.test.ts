@@ -1,15 +1,39 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import type { CreditCardDebt, RecurringDebt } from "@/domain/entities/debt.entity";
+import type { CreditCardDebt, DebtEntity, RecurringDebt } from "@/domain/entities/debt.entity";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { DebtDueAcknowledgementRepositoryPort } from "@/domain/ports/repositories/debt-due-acknowledgement.repository";
+import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
 import { getOverdueDebts } from "./get-overdue-debts.use-case";
 
-const fixedClock = (d: Date) => ({ now: () => d });
+const fixedClock = (d: Date): Clock => ({ now: () => d });
 
 function makeMoney(cents: bigint): Money {
   return Money.fromCents(cents);
+}
+
+function makeDebtRepo(debts: DebtEntity[]): DebtRepositoryPort {
+  return {
+    findById: vi.fn(),
+    listForProfile: vi.fn(async () => debts),
+    create: vi.fn(),
+    update: vi.fn(),
+    setStatus: vi.fn(),
+    softDelete: vi.fn(),
+    countByExpenseCategory: vi.fn(async () => 0),
+    reassignExpenseCategory: vi.fn(),
+  };
+}
+
+function makeAckRepo(paid: { debtId: string; cycleIso: string }[] = []): DebtDueAcknowledgementRepositoryPort {
+  return {
+    upsert: vi.fn(),
+    findForDebtCycle: vi.fn(async () => null),
+    listPaidCyclesForUser: vi.fn(async () => paid),
+  };
 }
 
 function makeCreditCardDebt(overrides: {
@@ -75,14 +99,10 @@ function makeRecurringDebt(overrides: {
 
 describe("getOverdueDebts", () => {
   it("marca cartao vencido quando dueDay passou e nao ha ack paid", async () => {
-    const debts = {
-      listForProfile: async () => [
-        makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n }),
-      ],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n })]);
+    const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -92,14 +112,10 @@ describe("getOverdueDebts", () => {
   });
 
   it("nao marca vencido se ja existe ack paid do ciclo", async () => {
-    const debts = {
-      listForProfile: async () => [makeCreditCardDebt({ id: "c1", dueDay: 10 })],
-    } as any;
-    const acks = {
-      listPaidCyclesForUser: async () => [{ debtId: "c1", cycleIso: "2026-06" }],
-    } as any;
+    const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10 })]);
+    const acks = makeAckRepo([{ debtId: "c1", cycleIso: "2026-06" }]);
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -107,12 +123,10 @@ describe("getOverdueDebts", () => {
   });
 
   it("nao marca vencido quando dueDay ainda nao chegou", async () => {
-    const debts = {
-      listForProfile: async () => [makeCreditCardDebt({ id: "c1", dueDay: 20 })],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 20 })]);
+    const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -120,12 +134,10 @@ describe("getOverdueDebts", () => {
   });
 
   it("marca vencido quando dueDay e exatamente hoje (boundary inclusive)", async () => {
-    const debts = {
-      listForProfile: async () => [makeCreditCardDebt({ id: "c1", dueDay: 15 })],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 15 })]);
+    const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -133,14 +145,10 @@ describe("getOverdueDebts", () => {
   });
 
   it("recorrente mensal vencido sem ack aparece na lista", async () => {
-    const debts = {
-      listForProfile: async () => [
-        makeRecurringDebt({ id: "r1", dueDay: 8, recurringAmountCents: 9900n }),
-      ],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([makeRecurringDebt({ id: "r1", dueDay: 8, recurringAmountCents: 9900n })]);
+    const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -149,15 +157,11 @@ describe("getOverdueDebts", () => {
   });
 
   it("recorrente com dueDay null usa dia de startDate", async () => {
-    const debts = {
-      listForProfile: async () => [
-        makeRecurringDebt({ id: "r2", dueDay: null, recurringAmountCents: 4900n }),
-      ],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([makeRecurringDebt({ id: "r2", dueDay: null, recurringAmountCents: 4900n })]);
+    const acks = makeAckRepo();
     // startDate = 2026-01-10, so effective dueDay = 10; today = 15 => overdue
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -165,19 +169,31 @@ describe("getOverdueDebts", () => {
   });
 
   it("retorna lista ordenada por dueDate crescente", async () => {
-    const debts = {
-      listForProfile: async () => [
-        makeCreditCardDebt({ id: "c3", dueDay: 3 }),
-        makeCreditCardDebt({ id: "c1", dueDay: 1 }),
-        makeCreditCardDebt({ id: "c2", dueDay: 2 }),
-      ],
-    } as any;
-    const acks = { listPaidCyclesForUser: async () => [] } as any;
+    const repo = makeDebtRepo([
+      makeCreditCardDebt({ id: "c3", dueDay: 3 }),
+      makeCreditCardDebt({ id: "c1", dueDay: 1 }),
+      makeCreditCardDebt({ id: "c2", dueDay: 2 }),
+    ]);
+    const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 15)) },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
     expect(res.value.map((i) => i.debtId)).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("recorrente com dueDay=31 em mes de 30 dias usa ultimo dia do mes", async () => {
+    // June 2026 has 30 days; dueDay=31 should clamp to 30; now=2026-06-30 => overdue
+    const debt = makeRecurringDebt({ id: "r31", dueDay: 31, recurringAmountCents: 5000n });
+    const repo = makeDebtRepo([debt]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, clock: fixedClock(new Date(2026, 5, 30)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(1);
+    expect(res.value[0]!.cycleIso).toBe("2026-06");
   });
 });

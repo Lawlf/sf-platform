@@ -75,7 +75,10 @@ export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
     case "recurring": {
       if (debt.recurringFrequency !== "monthly") return null;
       const day = debt.dueDay ?? debt.startDate.getDate();
-      const due = new Date(now.getFullYear(), now.getMonth(), day);
+      const y = now.getFullYear();
+      const m = now.getMonth();
+      const clampedDay = Math.min(day, new Date(y, m + 1, 0).getDate());
+      const due = new Date(y, m, clampedDay);
       if (due < now) due.setMonth(due.getMonth() + 1);
       return {
         debtId: debt.id,

@@ -1,25 +1,54 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+
+import type { NotificationEntity } from "@/domain/entities/notification.entity";
+import type { Clock } from "@/domain/ports/clock.port";
+import type { NotificationRepositoryPort } from "@/domain/ports/repositories/notification.repository";
 import { isOk, ok } from "@/shared/errors/result";
+
+import type { OverdueItem } from "@/application/use-cases/debt/get-overdue-debts.use-case";
+import type { DetectOverdueDeps } from "./detect-overdue-debts.use-case";
 import { detectOverdueDebts } from "./detect-overdue-debts.use-case";
 
-const clock = { now: () => new Date(2026, 5, 15) };
+const clock: Clock = { now: () => new Date(2026, 5, 15) };
 
-function makeDeps(overdue: any[], existing: boolean) {
-  const created: any[] = [];
+function makeNotifRepo(
+  existing: NotificationEntity | null,
+  onCreate?: (e: NotificationEntity) => void,
+): NotificationRepositoryPort {
   return {
-    deps: {
-      getOverdue: async () => ok(overdue) as any,
-      notifications: {
-        findByUserAndKindAndMonth: async () => (existing ? ({ id: "n1" } as any) : null),
-        create: async (e: any) => {
-          created.push(e);
-          return e;
-        },
-      },
-      clock,
-    },
-    created,
+    findById: vi.fn(async () => null),
+    findByUserAndKindAndMonth: vi.fn(async () => existing),
+    listForUser: vi.fn(async () => []),
+    countUndismissedForUser: vi.fn(async () => 0),
+    countUnreadForUser: vi.fn(async () => 0),
+    create: vi.fn(async (e: NotificationEntity) => { onCreate?.(e); return e; }),
+    markDismissed: vi.fn(),
+    markAllReadForUser: vi.fn(),
   };
+}
+
+function makeDeps(overdue: OverdueItem[], existingNotif: boolean): { deps: DetectOverdueDeps; created: NotificationEntity[] } {
+  const created: NotificationEntity[] = [];
+  const existingEntity: NotificationEntity | null = existingNotif
+    ? {
+        id: "n1",
+        userId: "u1",
+        kind: "payment_overdue",
+        monthIso: "2026-06",
+        triggeredAt: new Date(2026, 5, 1),
+        payload: { eyebrow: "Venceu", line: "Venceu", iconName: "CalendarClock" },
+        dismissedAt: null,
+        readAt: null,
+        createdAt: new Date(2026, 5, 1),
+      }
+    : null;
+
+  const deps: DetectOverdueDeps = {
+    getOverdue: vi.fn(async () => ok(overdue)),
+    notifications: makeNotifRepo(existingEntity, (e) => { created.push(e); }),
+    clock,
+  };
+  return { deps, created };
 }
 
 describe("detectOverdueDebts", () => {
@@ -36,10 +65,10 @@ describe("detectOverdueDebts", () => {
       ],
       false,
     );
-    const res = await detectOverdueDebts(deps as any, { userId: "u1", profileId: "p1" });
+    const res = await detectOverdueDebts(deps, { userId: "u1", profileId: "p1" });
     expect(created).toHaveLength(1);
-    expect(created[0].kind).toBe("payment_overdue");
-    expect(created[0].monthIso).toBe("2026-06");
+    expect(created[0]!.kind).toBe("payment_overdue");
+    expect(created[0]!.monthIso).toBe("2026-06");
     expect(isOk(res) && res.value.created).toHaveLength(1);
   });
 
@@ -56,7 +85,7 @@ describe("detectOverdueDebts", () => {
       ],
       true,
     );
-    const res = await detectOverdueDebts(deps as any, { userId: "u1", profileId: "p1" });
+    const res = await detectOverdueDebts(deps, { userId: "u1", profileId: "p1" });
     expect(created).toHaveLength(0);
     expect(isOk(res) && res.value.created).toHaveLength(0);
   });
