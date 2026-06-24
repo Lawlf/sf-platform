@@ -12,9 +12,9 @@ import { cn } from "@/lib/utils";
 import { useInstall } from "../../../_components/pwa/install-context";
 import { PrefSection } from "../../acessibilidade/_components/pref-section";
 import { sendTestPushAction } from "../_actions/send-test-push.action";
-import { subscribePushAction } from "../_actions/subscribe-push.action";
 import { unsubscribePushAction } from "../_actions/unsubscribe-push.action";
 import { updateNotificationPreferencesAction } from "../_actions/update-preferences.action";
+import { subscribePush } from "../_lib/subscribe-push";
 
 interface Prefs {
   pushEnabled: boolean;
@@ -34,28 +34,6 @@ interface Props {
   vapidPublicKey: string;
   initialPrefs: Prefs;
   deviceCount: number;
-}
-
-function urlBase64ToUint8Array(base64String: string): Uint8Array<ArrayBuffer> {
-  const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
-  const buffer = new ArrayBuffer(rawData.length);
-  const output = new Uint8Array(buffer);
-  for (let i = 0; i < rawData.length; i++) {
-    output[i] = rawData.charCodeAt(i);
-  }
-  return output;
-}
-
-function arrayBufferToBase64(buffer: ArrayBuffer | null): string {
-  if (!buffer) return "";
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]!);
-  }
-  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
 }
 
 export function NotificationSettings({
@@ -98,42 +76,14 @@ export function NotificationSettings({
   }, [supported]);
 
   async function enablePushOnDevice() {
-    if (!supported) {
-      toast.error("Seu navegador não suporta notificações.");
-      return;
-    }
-    if (!vapidPublicKey) {
-      toast.error("Não foi possível ativar agora. Tente de novo.");
-      return;
-    }
     setSubscribing(true);
     try {
-      const permission = await Notification.requestPermission();
-      if (permission !== "granted") {
-        toast.error("Permissão negada. Habilite nas configurações do navegador.");
-        return;
-      }
-      const registration = await navigator.serviceWorker.ready;
-      let subscription = await registration.pushManager.getSubscription();
-      if (!subscription) {
-        subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidPublicKey),
-        });
-      }
-      const p256dh = arrayBufferToBase64(subscription.getKey("p256dh"));
-      const auth = arrayBufferToBase64(subscription.getKey("auth"));
-      const res = await subscribePushAction({
-        endpoint: subscription.endpoint,
-        p256dh,
-        auth,
-        userAgent: navigator.userAgent,
-      });
+      const res = await subscribePush(vapidPublicKey);
       if (!res.ok) {
         toast.error(res.message);
         return;
       }
-      setDevices(res.data.deviceCount);
+      setDevices(res.deviceCount);
       setDeviceState("active");
       toast.success("Notificações ativadas neste aparelho.");
     } catch (err) {
@@ -314,7 +264,7 @@ export function NotificationSettings({
           <PrefRow
             label="Vencimento de dívida"
             description="Avisa quando uma parcela está próxima de vencer."
-            channels={["push", "email"]}
+            channels={["push"]}
             checked={isPro ? prefs.debtDueEnabled : false}
             onToggle={() => togglePref("debtDueEnabled")}
             disabled={!isPro || pending}

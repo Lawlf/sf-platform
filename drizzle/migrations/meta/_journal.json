@@ -533,6 +533,13 @@
       "when": 1782049352518,
       "tag": "0075_ancient_dark_beast",
       "breakpoints": true
+    },
+    {
+      "idx": 76,
+      "version": "7",
+      "when": 1782259757925,
+      "tag": "0076_lovely_black_bird",
+      "breakpoints": true
     }
   ]
 }

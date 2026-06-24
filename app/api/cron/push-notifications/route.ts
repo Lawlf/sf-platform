@@ -9,14 +9,17 @@ import { reconcileEventAchievements } from "@/application/use-cases/achievement/
 import { runAchievementsRecompute } from "@/application/use-cases/achievement/run-achievements-recompute.use-case";
 import { getNetWorth } from "@/application/use-cases/asset/get-net-worth.use-case";
 import { getDashboardSnapshot } from "@/application/use-cases/dashboard/get-dashboard-snapshot.use-case";
+import { getOverdueDebts } from "@/application/use-cases/debt/get-overdue-debts.use-case";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
 import { captureGoalSnapshots } from "@/application/use-cases/goal/capture-goal-snapshots.use-case";
+import { detectOverdueDebts } from "@/application/use-cases/notification/detect-overdue-debts.use-case";
 import { dispatchDebtDueNotifications } from "@/application/use-cases/push/dispatch-debt-due-notifications.use-case";
 import { dispatchGoalReachedNotifications } from "@/application/use-cases/push/dispatch-goal-reached-notifications.use-case";
 import { dispatchMonthlySummaryNotifications } from "@/application/use-cases/push/dispatch-monthly-summary-notifications.use-case";
+import { dispatchOverdueNotifications } from "@/application/use-cases/push/dispatch-overdue-notifications.use-case";
 import { clock, repos } from "@/infrastructure/container";
-import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { getWebPushService } from "@/infrastructure/push/web-push.service";
+import { resolvePfProfileId } from "@/presentation/http/middleware/active-profile";
 import { isOk } from "@/shared/errors/result";
 
 export const runtime = "nodejs";
@@ -63,6 +66,23 @@ export async function GET(request: Request) {
   };
 
   const debtResult = await dispatchDebtDueNotifications(deps);
+
+  const overdueResult = await dispatchOverdueNotifications({
+    ...deps,
+    detectOverdue: (input) =>
+      detectOverdueDebts(
+        {
+          getOverdue: (i) =>
+            getOverdueDebts(
+              { debts: repos.debts, acknowledgements: repos.debtDueAcknowledgements, clock },
+              i,
+            ),
+          notifications: repos.notifications,
+          clock,
+        },
+        input,
+      ),
+  });
 
   const today = new Date();
   const isFirstOfMonth = today.getUTCDate() === 1;
@@ -186,6 +206,7 @@ export async function GET(request: Request) {
   return NextResponse.json({
     ok: true,
     debtDue: debtResult,
+    overdue: overdueResult,
     monthlySummary: summaryResult,
     goalSnapshots: { snapshotsWritten: snapshotResult.snapshotsWritten },
     goalReached: goalReachedResult,

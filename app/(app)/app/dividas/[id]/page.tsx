@@ -31,6 +31,7 @@ import { buildCategoryLabeler } from "../../_actions/_category-labels";
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 
+import { fetchOverdueStateForDebt } from "./_actions/overdue-state";
 import { ActionsSection } from "./_components/actions-section";
 import { AmortizationSection } from "./_components/amortization-section";
 import { DebtHeader } from "./_components/debt-header";
@@ -38,6 +39,7 @@ import { InstallmentPurchasesSection } from "./_components/installment-purchases
 import { MinimumPaymentNotice } from "./_components/minimum-payment-notice";
 import { NoScheduleSection } from "./_components/no-schedule-section";
 import { OutOfMonthBanner } from "./_components/out-of-month-banner";
+import { OverdueBanner } from "./_components/overdue-banner.client";
 import { PaidOffBanner } from "./_components/paid-off-banner";
 import { PaymentsSection } from "./_components/payments-section";
 
@@ -74,6 +76,11 @@ export default async function DebtDetailPage({ params }: PageProps) {
   const linkedGoals = await fetchGoalsLinkedToDebt(id);
   const labelCategory = await buildCategoryLabeler(user.id);
 
+  const overdueState =
+    debt.status === "active"
+      ? await fetchOverdueStateForDebt(id, user.id, profileId)
+      : null;
+
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader
@@ -83,6 +90,9 @@ export default async function DebtDetailPage({ params }: PageProps) {
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
       {debt.status === "written_off" ? <OutOfMonthBanner /> : null}
+      {overdueState ? (
+        <OverdueBanner debtId={id} dueDay={overdueState.dueDay} cycleIso={overdueState.cycleIso} />
+      ) : null}
 
       <MinimumPaymentNotice debt={debt} />
 

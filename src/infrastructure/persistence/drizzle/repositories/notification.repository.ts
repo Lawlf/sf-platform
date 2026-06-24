@@ -17,6 +17,7 @@ import {
 const KNOWN_KINDS: ReadonlyArray<NotificationKind> = [
   "negative_balance_month",
   "achievement_unlocked",
+  "payment_overdue",
 ];
 
 function parseKind(raw: string): NotificationKind {

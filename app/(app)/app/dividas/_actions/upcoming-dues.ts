@@ -36,6 +36,20 @@ export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
   }));
 }
 
+export async function fetchHasDueDatedDebt(): Promise<boolean> {
+  const user = await getCurrentUser();
+  if (!user) return false;
+
+  const profileId = await getActiveProfileId();
+  const debts = await repos.debts.listForProfile(profileId, { status: "active" });
+  return debts.some((d) => {
+    if (d.kind === "credit_card") return true;
+    if (d.kind === "personal_loan") return true;
+    if (d.kind === "recurring") return d.recurringFrequency === "monthly";
+    return false;
+  });
+}
+
 function startOfLocalDay(d: Date): Date {
   return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }

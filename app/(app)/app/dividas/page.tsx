@@ -11,11 +11,12 @@ import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { fetchDebts, type DebtStatusFilter } from "../_actions/debt-queries";
+import { EnableDuePushNudge } from "../_components/enable-due-push-nudge.client";
 import { PageShell } from "../_components/page-shell";
 import { getServerQueryClient } from "../_lib/query-client.server";
 import { queryKeys } from "../_lib/query-keys";
 
-import { fetchUpcomingDues } from "./_actions/upcoming-dues";
+import { fetchHasDueDatedDebt, fetchUpcomingDues } from "./_actions/upcoming-dues";
 import { DebtDueBanner } from "./_components/debt-due-banner.client";
 import { DebtDueReminderCard } from "./_components/debt-due-reminder.client";
 import { DividasFilterPills } from "./_components/dividas-filter-pills";
@@ -36,7 +37,10 @@ export default async function DividasPage({ searchParams }: PageProps) {
 
   const user = await requireUser();
   const prefs = await repos.notificationPreferences.findForUser(user.id);
-  const upcomingDues = await fetchUpcomingDues();
+  const [upcomingDues, hasDueDatedDebt] = await Promise.all([
+    fetchUpcomingDues(),
+    fetchHasDueDatedDebt(),
+  ]);
 
   const queryClient = getServerQueryClient();
   await queryClient.prefetchQuery({
@@ -55,6 +59,8 @@ export default async function DividasPage({ searchParams }: PageProps) {
       </Link>
 
       <DebtDueBanner dues={upcomingDues} />
+
+      <EnableDuePushNudge isPro={user.isPro} hasDueDatedDebt={hasDueDatedDebt} />
 
       <DividasFilterPills />
 
