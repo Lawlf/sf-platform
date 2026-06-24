@@ -314,7 +314,7 @@ export function NotificationSettings({
           <PrefRow
             label="Vencimento de dívida"
             description="Avisa quando uma parcela está próxima de vencer."
-            channels={["push", "email"]}
+            channels={["push"]}
             checked={isPro ? prefs.debtDueEnabled : false}
             onToggle={() => togglePref("debtDueEnabled")}
             disabled={!isPro || pending}

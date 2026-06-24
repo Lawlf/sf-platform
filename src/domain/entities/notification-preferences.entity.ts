@@ -67,7 +67,7 @@ export const NOTIFICATION_KIND_CHANNELS: Record<
   NotificationKindKey,
   ReadonlyArray<NotificationChannel>
 > = {
-  debtDueEnabled: ["push", "email"],
+  debtDueEnabled: ["push"],
   assetPriceEnabled: ["push"],
   monthlySummaryEnabled: ["push", "email"],
   promotionsEnabled: ["email"],
