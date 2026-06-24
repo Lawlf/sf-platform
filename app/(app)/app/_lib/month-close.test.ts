@@ -18,6 +18,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showBridge).toBe(false);
     expect(r.showCelebration).toBe(false);
@@ -32,6 +33,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showBridge).toBe(false);
     expect(r.showCelebration).toBe(false);
@@ -46,6 +48,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showBridge).toBe(true);
     expect(r.showCelebration).toBe(false);
@@ -60,6 +63,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showCelebration).toBe(true);
     expect(r.celebratePositive).toBe(true);
@@ -74,6 +78,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showCelebration).toBe(false);
   });
@@ -87,9 +92,39 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-28",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showCelebration).toBe(true);
     expect(r.celebratePositive).toBe(false);
+  });
+
+  it("rede de segurança bloqueada quando há renda variável pendente nos últimos 3 dias", () => {
+    const r = resolveMonthClose({
+      flat: true,
+      positive: true,
+      incomes: [baseIncome({ settledStatus: null })],
+      expenses: [],
+      payments: [],
+      monthIso: "2026-06",
+      todayIso: "2026-06-28",
+      hasPendingEstimatedIncome: true,
+    });
+    expect(r.showCelebration).toBe(false);
+    expect(r.showBridge).toBe(true);
+  });
+
+  it("caminho nobre celebra mesmo com hasPendingEstimatedIncome=true quando toda renda está confirmada", () => {
+    const r = resolveMonthClose({
+      flat: true,
+      positive: true,
+      incomes: [baseIncome({ settledStatus: "received" }), baseIncome({ settledStatus: "adjusted" })],
+      expenses: [],
+      payments: [],
+      monthIso: "2026-06",
+      todayIso: "2026-06-28",
+      hasPendingEstimatedIncome: true,
+    });
+    expect(r.showCelebration).toBe(true);
   });
 
   it("dia 27 de junho ainda não está nos últimos 3 dias", () => {
@@ -101,6 +136,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-27",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showCelebration).toBe(false);
   });
@@ -114,6 +150,7 @@ describe("resolveMonthClose", () => {
       payments: [],
       monthIso: "2026-06",
       todayIso: "2026-06-23",
+      hasPendingEstimatedIncome: false,
     });
     expect(r.showBridge).toBe(true);
   });

@@ -18,6 +18,7 @@ export interface MonthCloseInput {
   payments: ReadonlyArray<DatedRow>;
   monthIso: string;
   todayIso: string;
+  hasPendingEstimatedIncome: boolean;
 }
 
 export interface MonthCloseState {
@@ -47,7 +48,9 @@ function inLastDays(monthIso: string, todayIso: string): boolean {
 export function resolveMonthClose(input: MonthCloseInput): MonthCloseState {
   const base = input.flat && hasRealizedBase(input);
   const celebrate =
-    base && (incomeAllConfirmed(input.incomes) || inLastDays(input.monthIso, input.todayIso));
+    base &&
+    (incomeAllConfirmed(input.incomes) ||
+      (inLastDays(input.monthIso, input.todayIso) && !input.hasPendingEstimatedIncome));
   return { showBridge: base, showCelebration: celebrate, celebratePositive: input.positive };
 }
 

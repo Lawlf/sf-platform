@@ -143,6 +143,7 @@ export function DashboardHeroClient({
     payments: monthDetail.payments,
     monthIso,
     todayIso,
+    hasPendingEstimatedIncome: estimatedIncomeCents > 0n,
   });
   const showCelebration = monthClose.showCelebration && !noIncome;
   const showBridge = monthClose.showBridge && !noIncome;
@@ -194,13 +195,15 @@ export function DashboardHeroClient({
   const nudgeText = "Cadastre sua renda pra ver como o mês fecha.";
 
   const heroHref = noIncomeState ? ("/app/renda/nova" as Route) : timelineHref;
-  const ariaLabel = noIncomeState
-    ? `${stateText}. ${nudgeText}`
-    : noIncome
-      ? `Ver detalhes de ${month.format()}. ${bigFormatted}. ${nudgeText}`
-      : projectionIsFlat
-        ? `Ver detalhes de ${month.format()}. ${bigFormatted}. Nada previsto mexe nele até o fim de ${CURRENT_MONTH_NAME}.`
-        : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
+  const ariaLabel = showCelebration
+    ? `Ver detalhes de ${month.format()}. ${bigFormatted}. ${positive ? `Você fechou ${CURRENT_MONTH_NAME} no azul.` : `${capitalize(CURRENT_MONTH_NAME)} fechou no vermelho.`}`
+    : noIncomeState
+      ? `${stateText}. ${nudgeText}`
+      : noIncome
+        ? `Ver detalhes de ${month.format()}. ${bigFormatted}. ${nudgeText}`
+        : projectionIsFlat
+          ? `Ver detalhes de ${month.format()}. ${bigFormatted}. Nada previsto mexe nele até o fim de ${CURRENT_MONTH_NAME}.`
+          : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
     <div className="flex flex-col gap-3">
