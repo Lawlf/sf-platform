@@ -10,6 +10,7 @@ import { Button } from "@/app/components/ui/button";
 import { Skeleton } from "@/app/components/ui/skeleton";
 
 import { fetchWalletBalance } from "../../_actions/wallet-queries";
+import { HideValuesToggle } from "../../_components/money-visibility/hide-values-toggle.client";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import { queryKeys } from "../../_lib/query-keys";
 
@@ -147,9 +148,15 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
             <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
               Saldo da Carteira
             </span>
-            <span className="text-3xl font-bold tabular-nums leading-none text-[color:var(--text-primary)]">
-              <HideableValue>{data.reactiveBalance.formatted}</HideableValue>
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-3xl font-bold tabular-nums leading-none text-[color:var(--text-primary)]">
+                <HideableValue>{data.reactiveBalance.formatted}</HideableValue>
+              </span>
+              <HideValuesToggle
+                size={16}
+                className="focus-ring relative z-10 flex h-8 w-8 flex-none items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+              />
+            </div>
           </div>
 
           <div

@@ -230,9 +230,11 @@ export default async function DashboardPage() {
 
         <OfflineStaleNote />
 
-        <div className="md:col-span-2">
-          <OnboardingChecklistCard checklist={onboardingState.checklist} />
-        </div>
+        {allChecklistDone(onboardingState.checklist) ? null : (
+          <div className="md:col-span-2 xl:fixed xl:bottom-6 xl:right-6 xl:z-40 xl:w-80 xl:shadow-[0_20px_50px_-12px_rgba(0,0,0,0.45)]">
+            <OnboardingChecklistCard checklist={onboardingState.checklist} />
+          </div>
+        )}
 
         {order.map((key) => (
           <Fragment key={key}>
