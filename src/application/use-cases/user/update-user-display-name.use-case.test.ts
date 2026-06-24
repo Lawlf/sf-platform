@@ -43,7 +43,6 @@ function makeDeps(user: UserEntity | null): Deps {
     markEmailVerified: vi.fn(),
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
-    markChecklistItemDismissed: vi.fn(),
     deactivate: vi.fn(),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),
