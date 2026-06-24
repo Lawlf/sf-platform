@@ -12,9 +12,12 @@ import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeli
 import { fetchWalletBalance } from "../_actions/wallet-queries";
 import { queryKeys } from "../_lib/query-keys";
 
+import { resolveMonthClose } from "../_lib/month-close";
+
 import { HowItWorksSheet } from "./how-it-works-sheet";
 import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
 import { HideableValue } from "./money-visibility/hideable-value.client";
+import { NextMonthBridge } from "./next-month-bridge.client";
 
 function formatBrl(cents: bigint): string {
   const negative = cents < 0n;
@@ -26,6 +29,10 @@ function formatBrl(cents: bigint): string {
 
 function stripMinus(formatted: string): string {
   return formatted.replace(/^[-−]\s*/, "");
+}
+
+function capitalize(s: string): string {
+  return s.charAt(0).toUpperCase() + s.slice(1);
 }
 
 /**
@@ -127,10 +134,24 @@ export function DashboardHeroClient({
   const todayCents = useWallet ? BigInt(walletBal.reactiveBalance.cents) : realizedTodayCents;
   const projectionIsFlat = projCents === todayCents;
 
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const monthClose = resolveMonthClose({
+    flat: projectionIsFlat,
+    positive,
+    incomes: monthDetail.incomes,
+    expenses: monthDetail.expenses,
+    payments: monthDetail.payments,
+    monthIso,
+    todayIso,
+  });
+  const showCelebration = monthClose.showCelebration && !noIncome;
+  const showBridge = monthClose.showBridge && !noIncome;
+
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
-  const eyebrow =
-    todayMode === "wallet"
+  const eyebrow = showCelebration
+    ? `${capitalize(CURRENT_MONTH_NAME)} · fechado`
+    : todayMode === "wallet"
       ? "Saldo da Carteira · hoje"
       : todayMode === "projection"
         ? `Seu mês · no fim de ${CURRENT_MONTH_NAME}`
@@ -164,7 +185,7 @@ export function DashboardHeroClient({
   const badgeClass = negative
     ? "bg-[#fca5a5]/[0.16] text-[#fca5a5]"
     : "bg-white/20 text-white";
-  const badgeLabel = positive ? "Sobra do mês" : "Falta do mês";
+  const badgeLabel = showCelebration && positive ? "Mês fechado" : positive ? "Sobra do mês" : "Falta do mês";
   const showBadge = !noIncome;
 
   // No fallback sem renda, o valor grande vira texto-estado (não é dinheiro).
@@ -182,9 +203,10 @@ export function DashboardHeroClient({
         : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
-    <div
-      className={`relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
-    >
+    <div className="flex flex-col gap-3">
+      <div
+        className={`relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
+      >
       <Link
         href={heroHref}
         aria-label={ariaLabel}
@@ -235,7 +257,13 @@ export function DashboardHeroClient({
                 <span
                   className={`mt-3 flex items-center gap-1.5 text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}
                 >
-                  {projectionIsFlat ? (
+                  {showCelebration ? (
+                    positive ? (
+                      <>Você fechou {CURRENT_MONTH_NAME} no azul.</>
+                    ) : (
+                      <>{capitalize(CURRENT_MONTH_NAME)} fechou no vermelho.</>
+                    )
+                  ) : projectionIsFlat ? (
                     <>Nada previsto mexe nele até o fim de {CURRENT_MONTH_NAME}.</>
                   ) : todayMode === "projection" ? (
                     positive ? (
@@ -318,6 +346,8 @@ export function DashboardHeroClient({
           <HowItWorksSheet topic="saldo-livre" variant="chip" />
         </div>
       </div>
+      </div>
+      {showBridge ? <NextMonthBridge currentMonthIso={monthIso} /> : null}
     </div>
   );
 }
