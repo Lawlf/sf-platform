@@ -14,6 +14,8 @@ function rowToEntity(row: ProfileRow): ProfileEntity {
     linkedProfileId: row.linkedProfileId ?? null,
     displayName: row.displayName ?? null,
     isPrimary: row.isPrimary,
+    checklistDebtDismissedAt: row.checklistDebtDismissedAt,
+    checklistGoalDismissedAt: row.checklistGoalDismissedAt,
     taxClassification: row.taxClassification ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
@@ -110,6 +112,17 @@ export class ProfileRepository implements ProfileRepositoryPort {
     await getDb()
       .update(profiles)
       .set({ linkedProfileId, updatedAt: sql`now()` })
+      .where(eq(profiles.id, profileId));
+  }
+
+  async markChecklistItemDismissed(profileId: string, item: "debt" | "goal"): Promise<void> {
+    const column =
+      item === "debt"
+        ? { checklistDebtDismissedAt: new Date() }
+        : { checklistGoalDismissedAt: new Date() };
+    await getDb()
+      .update(profiles)
+      .set({ ...column, updatedAt: sql`now()` })
       .where(eq(profiles.id, profileId));
   }
 }

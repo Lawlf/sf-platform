@@ -76,6 +76,7 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
       const idx = store.findIndex((p) => p.id === profileId);
       if (idx >= 0) store[idx] = { ...store[idx]!, linkedProfileId };
     }),
+    markChecklistItemDismissed: vi.fn(),
   };
 }
 

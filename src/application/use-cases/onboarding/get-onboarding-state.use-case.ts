@@ -1,4 +1,5 @@
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
+import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
 import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 
 export interface OnboardingChecklist {
@@ -26,11 +27,13 @@ export interface OnboardingCounts {
 
 export interface GetOnboardingStateDeps {
   users: UserRepositoryPort;
+  profiles: Pick<ProfileRepositoryPort, "findById">;
   counts: OnboardingCounts;
 }
 
 export interface GetOnboardingStateInput {
   userId: string;
+  profileId: string;
 }
 
 export async function getOnboardingState(
@@ -53,12 +56,15 @@ export async function getOnboardingState(
       },
     };
   }
-  const [hasIncome, hasDebt, hasAsset, hasGoal] = await Promise.all([
+  const [hasIncome, hasDebt, hasAsset, hasGoal, profile] = await Promise.all([
     deps.counts.hasIncome(input.userId),
     deps.counts.hasDebt(input.userId),
     deps.counts.hasAsset(input.userId),
     deps.counts.hasGoal(input.userId),
+    deps.profiles.findById(input.profileId),
   ]);
+  const debtDismissed = profile?.checklistDebtDismissedAt != null;
+  const goalDismissed = profile?.checklistGoalDismissedAt != null;
   return {
     wizardSeen: user.onboardingWizardSeenAt !== null,
     tourDismissed: user.homeTourDismissedAt !== null,
@@ -68,8 +74,8 @@ export async function getOnboardingState(
       hasDebt,
       hasAsset,
       hasGoal,
-      debtDismissed: user.checklistDebtDismissedAt != null,
-      goalDismissed: user.checklistGoalDismissedAt != null,
+      debtDismissed,
+      goalDismissed,
     },
   };
 }

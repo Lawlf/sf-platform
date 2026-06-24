@@ -1,5 +1,5 @@
 {
-  "id": "8584ab17-1942-4192-a281-0ba2a3290af3",
+  "id": "fb1296db-cab0-448e-82b4-d68986a1363b",
   "prevId": "225e4624-af0c-41f5-982b-4015daf476c3",
   "version": "7",
   "dialect": "postgresql",
@@ -5489,6 +5489,18 @@
           "notNull": true,
           "default": false
         },
+        "checklist_debt_dismissed_at": {
+          "name": "checklist_debt_dismissed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
+        "checklist_goal_dismissed_at": {
+          "name": "checklist_goal_dismissed_at",
+          "type": "timestamp with time zone",
+          "primaryKey": false,
+          "notNull": false
+        },
         "tax_classification": {
           "name": "tax_classification",
           "type": "profile_tax_classification",
@@ -7097,18 +7109,6 @@
         },
         "home_tour_dismissed_at": {
           "name": "home_tour_dismissed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "checklist_debt_dismissed_at": {
-          "name": "checklist_debt_dismissed_at",
-          "type": "timestamp with time zone",
-          "primaryKey": false,
-          "notNull": false
-        },
-        "checklist_goal_dismissed_at": {
-          "name": "checklist_goal_dismissed_at",
           "type": "timestamp with time zone",
           "primaryKey": false,
           "notNull": false

@@ -8,6 +8,8 @@ export interface ProfileEntity {
   linkedProfileId: string | null;
   displayName: string | null;
   isPrimary: boolean;
+  checklistDebtDismissedAt?: Date | null;
+  checklistGoalDismissedAt?: Date | null;
   taxClassification: ProfileTaxClassification | null;
   createdAt: Date;
   updatedAt: Date;

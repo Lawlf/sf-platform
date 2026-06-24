@@ -70,6 +70,7 @@ function makeProfilesRepo(profile: ProfileEntity | null): ProfileRepositoryPort 
     rename: vi.fn(),
     delete: vi.fn(),
     setLinkedProfile: vi.fn(),
+    markChecklistItemDismissed: vi.fn(),
   };
 }
 

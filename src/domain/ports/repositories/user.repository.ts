@@ -12,7 +12,6 @@ export interface UserRepositoryPort {
   markEmailVerified(id: string): Promise<void>;
   markOnboardingWizardSeen(id: string): Promise<void>;
   markHomeTourDismissed(id: string): Promise<void>;
-  markChecklistItemDismissed(id: string, item: "debt" | "goal"): Promise<void>;
   deactivate(id: string, reason: string | null): Promise<void>;
   update(user: UserEntity): Promise<void>;
   /**

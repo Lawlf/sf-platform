@@ -1,13 +1,13 @@
-import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
+import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
 import type { DomainError } from "@/shared/errors/domain-error";
 import { ok, type Result } from "@/shared/errors/result";
 
 export interface DismissChecklistItemDeps {
-  users: Pick<UserRepositoryPort, "markChecklistItemDismissed">;
+  profiles: Pick<ProfileRepositoryPort, "markChecklistItemDismissed">;
 }
 
 export interface DismissChecklistItemInput {
-  userId: string;
+  profileId: string;
   item: "debt" | "goal";
 }
 
@@ -15,6 +15,6 @@ export async function dismissChecklistItem(
   deps: DismissChecklistItemDeps,
   input: DismissChecklistItemInput,
 ): Promise<Result<void, DomainError>> {
-  await deps.users.markChecklistItemDismissed(input.userId, input.item);
+  await deps.profiles.markChecklistItemDismissed(input.profileId, input.item);
   return ok(undefined);
 }

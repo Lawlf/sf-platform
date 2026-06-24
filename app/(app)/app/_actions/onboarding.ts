@@ -43,7 +43,10 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
     },
   };
 
-  return getOnboardingState({ users, counts }, { userId: user.id });
+  return getOnboardingState(
+    { users, profiles: repos.profiles, counts },
+    { userId: user.id, profileId },
+  );
 }
 
 export const markWizardSeenAction = action({
@@ -64,8 +67,9 @@ export const dismissHomeTourAction = action({
 export const dismissChecklistItemAction = action({
   schema: z.enum(["debt", "goal"]),
   revalidates: ["home"],
-  handler: async (item, { userId }) => {
-    unwrap(await dismissChecklistItem({ users: repos.users }, { userId, item }));
+  handler: async (item, { userId: _userId }) => {
+    const profileId = await getActiveProfileId();
+    unwrap(await dismissChecklistItem({ profiles: repos.profiles }, { profileId, item }));
   },
 });
 

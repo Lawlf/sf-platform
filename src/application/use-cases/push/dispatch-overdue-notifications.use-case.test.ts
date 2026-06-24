@@ -76,7 +76,6 @@ function makeUserRepo(): UserRepositoryPort {
     markEmailVerified: vi.fn(),
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
-    markChecklistItemDismissed: vi.fn(),
     deactivate: vi.fn(),
     update: vi.fn(),
     findAllPro: vi.fn(async () => [makeUser()]),
