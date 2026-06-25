@@ -114,6 +114,7 @@ function makeProfilesRepo(profiles: ProfileEntity[]): ProfileRepositoryPort {
     rename: vi.fn(),
     delete: vi.fn(),
     setLinkedProfile: vi.fn(),
+    markChecklistItemDismissed: vi.fn(),
   };
 }
 

@@ -25,6 +25,7 @@ function fakeRepo(profilesList: ProfileEntity[], ensured?: ProfileEntity): Profi
     rename: vi.fn(),
     delete: vi.fn(),
     setLinkedProfile: vi.fn(),
+    markChecklistItemDismissed: vi.fn(),
   };
 }
 

@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 
+import { dismissChecklistItem } from "@/application/use-cases/onboarding/dismiss-checklist-item.use-case";
 import { dismissHomeTour } from "@/application/use-cases/onboarding/dismiss-home-tour.use-case";
 import {
   getOnboardingState,
@@ -42,7 +43,10 @@ export async function fetchOnboardingState(): Promise<OnboardingState> {
     },
   };
 
-  return getOnboardingState({ users, counts }, { userId: user.id });
+  return getOnboardingState(
+    { users, profiles: repos.profiles, counts },
+    { userId: user.id, profileId },
+  );
 }
 
 export const markWizardSeenAction = action({
@@ -57,6 +61,15 @@ export const dismissHomeTourAction = action({
   revalidates: ["home"],
   handler: async (_input, { userId }) => {
     unwrap(await dismissHomeTour({ users: repos.users }, { userId }));
+  },
+});
+
+export const dismissChecklistItemAction = action({
+  schema: z.enum(["debt", "goal"]),
+  revalidates: ["home"],
+  handler: async (item, { userId: _userId }) => {
+    const profileId = await getActiveProfileId();
+    unwrap(await dismissChecklistItem({ profiles: repos.profiles }, { profileId, item }));
   },
 });
 

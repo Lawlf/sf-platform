@@ -18,4 +18,5 @@ export interface ProfileRepositoryPort {
   rename(profileId: string, displayName: string): Promise<void>;
   delete(profileId: string): Promise<void>;
   setLinkedProfile(profileId: string, linkedProfileId: string | null): Promise<void>;
+  markChecklistItemDismissed(profileId: string, item: "debt" | "goal"): Promise<void>;
 }

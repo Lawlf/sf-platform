@@ -17,6 +17,8 @@ export const profiles = pgTable(
     linkedProfileId: uuid("linked_profile_id"),
     displayName: text("display_name"),
     isPrimary: boolean("is_primary").notNull().default(false),
+    checklistDebtDismissedAt: timestamp("checklist_debt_dismissed_at", { withTimezone: true }),
+    checklistGoalDismissedAt: timestamp("checklist_goal_dismissed_at", { withTimezone: true }),
     taxClassification: profileTaxClassification("tax_classification"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
