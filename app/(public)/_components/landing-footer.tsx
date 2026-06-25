@@ -23,6 +23,7 @@ const groups = [
       { label: "Calculadoras", href: "/calculadora" },
       { label: "Comparar apps", href: "/alternativas" },
       { label: "Finanças com IA", href: "/financas-com-ia" },
+      { label: "Ajuda e suporte", href: "/ajuda" },
     ],
   },
   {
