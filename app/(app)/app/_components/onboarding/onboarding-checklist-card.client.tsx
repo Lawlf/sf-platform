@@ -31,7 +31,7 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
     return (
       <section
         aria-label="Complete seu perfil"
-        className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4"
+        className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 animate-in fade-in duration-300"
       >
         <div className="flex items-start justify-between">
           <div>
@@ -57,7 +57,7 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
   return (
     <section
       aria-label="Complete seu perfil"
-      className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
+      className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] animate-in fade-in duration-300"
     >
       <button
         type="button"
@@ -75,7 +75,7 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
             className="mt-1.5 block h-1 w-full overflow-hidden rounded-full bg-[color:var(--surface-3)]"
           >
             <span
-              className="block h-full rounded-full bg-[color:var(--color-brand-500)]"
+              className="block h-full rounded-full bg-[color:var(--color-brand-500)] transition-[width] duration-500 ease-out"
               style={{ width: `${(doneCount / items.length) * 100}%` }}
             />
           </span>
@@ -88,7 +88,10 @@ export function OnboardingChecklistCard({ checklist }: { checklist: OnboardingCh
         />
       </button>
       {expanded ? (
-        <div id="profile-checklist-panel" className="px-4 pb-4">
+        <div
+          id="profile-checklist-panel"
+          className="px-4 pb-4 animate-in fade-in slide-in-from-top-2 duration-200"
+        >
           <ChecklistItemList items={pending} isPending={isPending} onDismiss={dismissItem} />
         </div>
       ) : null}
