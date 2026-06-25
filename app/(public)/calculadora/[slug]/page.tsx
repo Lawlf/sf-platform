@@ -4,6 +4,7 @@ import { notFound } from "next/navigation";
 
 import { BreadcrumbJsonLd, FaqPageJsonLd, SoftwareToolJsonLd } from "../../_components/json-ld";
 import { RevealOnScroll } from "../../_components/reveal-on-scroll";
+import { CalcReference } from "../_components/calc-reference";
 import { CalcAccountCta, CalcShell } from "../_components/calc-shell";
 import { getPublicCalculator, publicCalculatorSlugs } from "../_lib/public-calculators";
 
@@ -86,6 +87,8 @@ export default async function CalculadoraPage({
         </section>
 
         <CalcWidget slug={calc.slug} />
+
+        <CalcReference simId={calc.simId} />
 
         <section className="mt-2">
           <h2

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -25,6 +26,7 @@ export default async function RescisaoPage() {
         summary="A gente soma as verbas (saldo, aviso, 13º e férias proporcionais), aplica os descontos certos e traz o FGTS com a multa de 40%."
       />
       <SeveranceClient prefill={{ grossSalaryCents: prefill.incomeCents }} />
+      <CalcReference simId="rescisao" />
     </PageShell>
   );
 }

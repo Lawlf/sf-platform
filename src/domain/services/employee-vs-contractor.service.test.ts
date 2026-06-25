@@ -20,10 +20,10 @@ describe("EmployeeVsContractorService.compute", () => {
       pjRevenueCents: 5_000_00n,
       pjRegime: "mei",
     });
-    expect(Number(r.pj.dasCents) / 100).toBeCloseTo(80.9, 2); // serviços
+    expect(Number(r.pj.dasCents) / 100).toBeCloseTo(86.05, 2); // serviços (DAS-MEI 2026)
     expect(r.pj.overMeiLimit).toBe(false);
-    expect(Number(r.pj.netCents) / 100).toBeCloseTo(4919.1, 1);
-    expect(Number(r.cltCompareCents) / 100).toBeCloseTo(2733.39, 1);
+    expect(Number(r.pj.netCents) / 100).toBeCloseTo(4913.95, 1);
+    expect(Number(r.cltCompareCents) / 100).toBeCloseTo(2751.4, 1);
     expect(r.recommendation).toBe("pj");
   });
 
@@ -50,7 +50,7 @@ describe("EmployeeVsContractorService.compute", () => {
     expect(r.pj.fatorR).toBeCloseTo(0.3, 4);
     expect(Number(r.pj.dasCents) / 100).toBeCloseTo(600, 1); // 6% de 10.000
     expect(Number(r.pj.proLaboreInssCents) / 100).toBeCloseTo(330, 1); // 11% de 3.000
-    expect(Number(r.pj.netCents) / 100).toBeCloseTo(8856.8, 0);
+    expect(Number(r.pj.netCents) / 100).toBeCloseTo(8870, 0);
     expect(r.recommendation).toBe("pj");
   });
 
@@ -93,8 +93,8 @@ describe("EmployeeVsContractorService.compute", () => {
       pjRevenueCents: 5_000_00n,
       pjRegime: "mei",
     });
-    // 2733,39 + 3000*(0,08+1/12+1/36) = 2733,39 + 573,33 = 3306,72
-    expect(Number(r.clt.withBenefitsCents) / 100).toBeCloseTo(3306.72, 0);
-    expect(Number(r.cltCompareCents) / 100).toBeCloseTo(3306.72, 0);
+    // 2751,40 + 3000*(0,08+1/12+1/36) = 2751,40 + 573,33 = 3324,73
+    expect(Number(r.clt.withBenefitsCents) / 100).toBeCloseTo(3324.73, 0);
+    expect(Number(r.cltCompareCents) / 100).toBeCloseTo(3324.73, 0);
   });
 });

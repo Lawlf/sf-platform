@@ -9,12 +9,14 @@ describe("CltNetSalaryService.compute", () => {
       dependents: 0,
       otherDeductionsCents: 0n,
     });
-    // 7,5%*1518 + 9%*(2793,88-1518) + 12%*(3000-2793,88) = 113,85 + 114,83 + 24,73
-    expect(Number(r.inssCents) / 100).toBeCloseTo(253.41, 1);
-    // desconto simplificado vence (base menor) => IRRF 7,5% * 2435,20 - 169,44 = 13,20
+    // 7,5%*1621 + 9%*(2902,84-1621) + 12%*(3000-2902,84) = 121,58 + 115,37 + 11,66
+    expect(Number(r.inssCents) / 100).toBeCloseTo(248.6, 1);
+    // base = 3000 - 607,20 (simplificado) = 2392,80, dentro da faixa isenta; o
+    // redutor da Lei 15.270/2025 zera qualquer imposto até R$ 5.000 mensais.
     expect(r.usedSimplifiedDeduction).toBe(true);
-    expect(Number(r.irrfCents) / 100).toBeCloseTo(13.2, 1);
-    expect(Number(r.netCents) / 100).toBeCloseTo(2733.39, 1);
+    expect(r.irrfCents).toBe(0n);
+    expect(r.irrfBandPct).toBe(0);
+    expect(Number(r.netCents) / 100).toBeCloseTo(2751.4, 1);
   });
 
   it("caps INSS at the ceiling and uses legal deductions for a high salary", () => {
@@ -23,14 +25,14 @@ describe("CltNetSalaryService.compute", () => {
       dependents: 2,
       otherDeductionsCents: 0n,
     });
-    // teto INSS 2025 ~ 951,63
-    expect(Number(r.inssCents) / 100).toBeCloseTo(951.63, 1);
-    // deduções legais (951,63 + 2*189,59 = 1330,81) > simplificado (564,80)
+    // teto INSS 2026 ~ 988,09
+    expect(Number(r.inssCents) / 100).toBeCloseTo(988.09, 1);
+    // deduções legais (988,09 + 2*189,59 = 1367,27) > simplificado (607,20)
     expect(r.usedSimplifiedDeduction).toBe(false);
     expect(r.irrfBandPct).toBe(27.5);
-    // base 8669,19 * 0,275 - 896 = 1488,03
-    expect(Number(r.irrfCents) / 100).toBeCloseTo(1488.03, 0);
-    expect(Number(r.netCents) / 100).toBeCloseTo(7560.34, 0);
+    // base 8632,73 * 0,275 - 908,73 = 1465,27 (acima de 7.350, sem redutor)
+    expect(Number(r.irrfCents) / 100).toBeCloseTo(1465.27, 0);
+    expect(Number(r.netCents) / 100).toBeCloseTo(7546.64, 0);
   });
 
   it("returns zero IRRF when the base falls in the exempt bracket", () => {
@@ -39,11 +41,11 @@ describe("CltNetSalaryService.compute", () => {
       dependents: 0,
       otherDeductionsCents: 0n,
     });
-    // INSS: 7,5%*1518 + 9%*(1800-1518) = 113,85 + 25,38 = 139,23
-    expect(Number(r.inssCents) / 100).toBeCloseTo(139.23, 1);
+    // INSS: 7,5%*1621 + 9%*(1800-1621) = 121,58 + 16,11 = 137,69
+    expect(Number(r.inssCents) / 100).toBeCloseTo(137.69, 1);
     expect(r.irrfCents).toBe(0n);
     expect(r.irrfBandPct).toBe(0);
-    expect(Number(r.netCents) / 100).toBeCloseTo(1660.77, 1);
+    expect(Number(r.netCents) / 100).toBeCloseTo(1662.32, 1);
   });
 
   it("subtracts other deductions from the net without touching the tax base", () => {
@@ -64,12 +66,12 @@ describe("CltNetSalaryService.compute", () => {
 
   it("dependents lower the tax when legal deductions beat the simplified discount", () => {
     const zero = CltNetSalaryService.compute({
-      grossCents: 5_000_00n,
+      grossCents: 8_000_00n,
       dependents: 0,
       otherDeductionsCents: 0n,
     });
     const three = CltNetSalaryService.compute({
-      grossCents: 5_000_00n,
+      grossCents: 8_000_00n,
       dependents: 3,
       otherDeductionsCents: 0n,
     });

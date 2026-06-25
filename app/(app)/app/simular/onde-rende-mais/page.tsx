@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -42,6 +43,7 @@ export default async function OndeRendeMaisPage() {
           aria-hidden
         />
       </Link>
+      <CalcReference simId="onde-rende-mais" />
     </PageShell>
   );
 }

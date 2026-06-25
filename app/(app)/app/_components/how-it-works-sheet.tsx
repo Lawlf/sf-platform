@@ -157,21 +157,21 @@ const TOPICS = {
     tag: "Simulador",
     body: "Do salário bruto saem dois descontos obrigatórios: o INSS (que banca sua aposentadoria) e o Imposto de Renda. A gente calcula os dois e mostra o líquido passo a passo. O segredo que confunde todo mundo: as alíquotas funcionam como degraus de uma escada. Cada faixa do salário paga a sua taxa só na parte que cai nela, não no salário inteiro. Por isso ganhar um pouco a mais nunca faz você 'perder' dinheiro ao mudar de faixa.",
     technical:
-      "INSS 2025 (progressivo, cada % só na parte da faixa): 7,5% até R$ 1.518; 9% até R$ 2.793,88; 12% até R$ 4.190,83; 14% até R$ 8.157,41 (teto). IRRF: base = bruto menos o maior entre (INSS + R$ 189,59 por dependente) e o desconto simplificado de R$ 564,80. Sobre a base: isento até R$ 2.259,20; depois 7,5%, 15%, 22,5% e 27,5%, sempre subtraindo a parcela a deduzir da faixa. Valores de referência 2025.",
+      "INSS 2026 (progressivo, cada % só na parte da faixa): 7,5% até R$ 1.621; 9% até R$ 2.902,84; 12% até R$ 4.354,27; 14% até R$ 8.475,55 (teto). IRRF: base = bruto menos o maior entre (INSS + R$ 189,59 por dependente) e o desconto simplificado de R$ 607,20. Sobre a base: isento até R$ 2.428,80; depois 7,5%, 15%, 22,5% e 27,5%, sempre subtraindo a parcela a deduzir da faixa. No fim ainda entra o redutor da Lei 15.270/2025: quem recebe até R$ 5.000 no mês não paga Imposto de Renda, e entre R$ 5.000 e R$ 7.350 o desconto cai aos poucos. Valores de referência 2026.",
   },
   "decimo-terceiro": {
     title: "13º salário líquido",
     tag: "Simulador",
     body: "O 13º é proporcional aos meses que você trabalhou no ano e é tributado separado do salário do mês. Costuma vir em duas parcelas: a 1ª (até 30/nov) cai sem descontos, e a 2ª (até 20/dez) já vem com o INSS e o Imposto de Renda do 13º inteiro. Por isso a 2ª parcela vem bem menor que a 1ª.",
     technical:
-      "Faça você mesmo: 13º bruto = salário x meses trabalhados ÷ 12. Sobre esse valor incidem INSS (progressivo, mesma tabela do salário) e IRRF, calculados separadamente do salário mensal. 1ª parcela = metade do bruto. 2ª parcela = líquido total menos a 1ª. Valores de referência 2025.",
+      "Faça você mesmo: 13º bruto = salário x meses trabalhados ÷ 12. Sobre esse valor incidem INSS (progressivo, mesma tabela do salário) e IRRF, calculados separadamente do salário mensal. 1ª parcela = metade do bruto. 2ª parcela = líquido total menos a 1ª. Valores de referência 2026.",
   },
   ferias: {
     title: "Férias líquidas",
     tag: "Simulador",
     body: "Nas férias você recebe o salário dos dias mais um terço a mais, garantido pela Constituição. O INSS e o Imposto de Renda incidem sobre esse total. Muita calculadora esquece o terço e erra a conta pra menos; aqui ele entra certo.",
     technical:
-      "Faça você mesmo: salário dos dias = salário x dias ÷ 30. Terço = salário dos dias ÷ 3. Bruto = salário dos dias + terço. Sobre o bruto incidem INSS (progressivo) e IRRF (com a dedução mais vantajosa). O líquido é o bruto menos esses dois. Valores de referência 2025.",
+      "Faça você mesmo: salário dos dias = salário x dias ÷ 30. Terço = salário dos dias ÷ 3. Bruto = salário dos dias + terço. Sobre o bruto incidem INSS (progressivo) e IRRF (com a dedução mais vantajosa). O líquido é o bruto menos esses dois. Valores de referência 2026.",
   },
   "conversor-juros": {
     title: "Conversor de taxa de juros",

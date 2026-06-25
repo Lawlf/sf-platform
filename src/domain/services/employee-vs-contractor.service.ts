@@ -1,6 +1,6 @@
 import { resolveIrrf } from "./brazil-payroll-tax";
 import {
-  MEI_DAS_2025,
+  MEI_DAS_2026,
   MEI_ANNUAL_LIMIT,
   proLaboreInss,
   resolveAnexoByFatorR,
@@ -97,7 +97,7 @@ export class EmployeeVsContractorService {
     const accountant = Number(input.accountantCents) / 100;
 
     if (input.pjRegime === "mei") {
-      das = MEI_DAS_2025[input.meiActivity];
+      das = MEI_DAS_2026[input.meiActivity];
       overMeiLimit = revenue * 12 > MEI_ANNUAL_LIMIT;
     } else {
       const proLabore = Number(input.proLaboreCents) / 100;

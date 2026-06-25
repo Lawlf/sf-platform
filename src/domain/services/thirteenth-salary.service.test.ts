@@ -10,9 +10,10 @@ describe("ThirteenthSalaryService.compute", () => {
       dependents: 0,
     });
     expect(Number(r.gross13Cents) / 100).toBeCloseTo(3000, 2);
-    expect(Number(r.inssCents) / 100).toBeCloseTo(253.41, 1);
-    expect(Number(r.irrfCents) / 100).toBeCloseTo(13.2, 1);
-    expect(Number(r.netCents) / 100).toBeCloseTo(2733.39, 1);
+    expect(Number(r.inssCents) / 100).toBeCloseTo(248.6, 1);
+    // base abaixo de R$ 5.000: o redutor da Lei 15.270/2025 zera o IRRF.
+    expect(r.irrfCents).toBe(0n);
+    expect(Number(r.netCents) / 100).toBeCloseTo(2751.4, 1);
     expect(Number(r.firstInstallmentCents) / 100).toBeCloseTo(1500, 2);
     // 2ª parcela = líquido - 1ª
     expect(r.secondInstallmentCents).toBe(r.netCents - r.firstInstallmentCents);
