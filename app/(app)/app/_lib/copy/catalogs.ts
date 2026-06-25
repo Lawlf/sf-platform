@@ -36,9 +36,11 @@ export const incomeCopy = {
 } satisfies Catalog;
 
 export const lancarCopy = {
-  "page.subtitle": {
-    default: "Um PIX, uma venda, um gasto do dia.",
-    PJ_MEI: "Uma venda, um custo, um PIX do dia.",
+  "page.note": {
+    default:
+      "Caiu um PIX, vendeu algo, pagou uma conta avulsa? Registra aqui. O que se repete todo mês fica em Renda ou Dívidas.",
+    PJ_MEI:
+      "Entrou de uma venda, saiu um custo do dia? Registra aqui. O que se repete todo mês fica em Renda ou Dívidas.",
   },
   "form.inPlaceholder": { default: "Freela extra", PJ_MEI: "Venda balcão" },
   "form.outPlaceholder": { default: "Mercado da semana", PJ_MEI: "Material / fornecedor" },

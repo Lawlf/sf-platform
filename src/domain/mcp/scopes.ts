@@ -53,7 +53,7 @@ export const MCP_SCOPE_DESCRIPTIONS: Record<McpScope, string> = {
   "assets:delete": "Excluir itens de patrimônio.",
   "incomes:read": "Ver suas rendas.",
   "incomes:write": "Criar e atualizar rendas.",
-  "transactions:write": "Registrar gastos avulsos.",
+  "transactions:write": "Registrar entradas e saídas avulsas.",
   "goals:read": "Ver suas metas.",
   "goals:write": "Criar e atualizar metas.",
   "goals:delete": "Excluir metas.",
