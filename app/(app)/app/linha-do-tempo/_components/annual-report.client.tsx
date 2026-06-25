@@ -104,7 +104,7 @@ function EmptyReport() {
           className="focus-ring inline-flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-2.5 text-[0.8125rem] font-bold text-[color:var(--text-primary)] backdrop-blur transition-colors hover:bg-[color:var(--surface-2)]"
         >
           <PlusCircle size={16} strokeWidth={2} aria-hidden />
-          Registrar gasto
+          Entrada ou saída
         </Link>
       </div>
     </section>
@@ -352,7 +352,7 @@ export function AnnualReport({ initialData }: Props) {
           className="focus-ring inline-flex items-center gap-2 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
         >
           <PlusCircle size={16} strokeWidth={2} aria-hidden />
-          Registrar gasto
+          Entrada ou saída
         </Link>
       </section>
     </div>

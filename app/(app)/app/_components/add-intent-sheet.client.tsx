@@ -59,7 +59,7 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
     {
       id: "lancar",
       href: "/app/lancar" as Route,
-      title: "Um gasto ou recebimento do dia",
+      title: "Uma entrada ou saída do dia",
       description: t("lancar.desc"),
       icon: <ArrowDownUp size={22} strokeWidth={2} aria-hidden />,
     },
