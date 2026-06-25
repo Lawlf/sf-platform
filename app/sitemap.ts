@@ -14,6 +14,7 @@ const staticRoutes = [
   { path: "/alternativas", changeFrequency: "monthly", priority: 0.8 },
   { path: "/financas-com-ia", changeFrequency: "monthly", priority: 0.8 },
   { path: "/por-que-existe", changeFrequency: "monthly", priority: 0.6 },
+  { path: "/ajuda", changeFrequency: "monthly", priority: 0.6 },
   { path: "/entrar", changeFrequency: "yearly", priority: 0.3 },
 ] as const;
 
