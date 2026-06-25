@@ -1,16 +1,18 @@
 /**
- * Tributação de empresa no Simples Nacional e MEI (referência 2025), usada
- * pelo simulador CLT x PJ. Valores datados e fáceis de atualizar.
+ * Tributação de empresa no Simples Nacional e MEI (referência 2026), usada
+ * pelo simulador CLT x PJ. Valores datados e fáceis de atualizar. As faixas
+ * dos Anexos III e V são da LC 123 e não mudam com reajuste anual; o que muda
+ * em janeiro é o DAS-MEI (5% do salário mínimo) e o teto do INSS.
  */
 
 export type MeiActivity = "comercio" | "servicos" | "ambos";
 export type SimplesAnexo = "III" | "V";
 
-// DAS-MEI 2025: 5% do salário mínimo (R$ 1.518 = R$ 75,90) + ICMS/ISS.
-export const MEI_DAS_2025: Record<MeiActivity, number> = {
-  comercio: 76.9, // 75,90 + 1,00 ICMS
-  servicos: 80.9, // 75,90 + 5,00 ISS
-  ambos: 81.9, // 75,90 + 1,00 + 5,00
+// DAS-MEI 2026: 5% do salário mínimo (R$ 1.621 = R$ 81,05) + ICMS/ISS.
+export const MEI_DAS_2026: Record<MeiActivity, number> = {
+  comercio: 82.05, // 81,05 + 1,00 ICMS
+  servicos: 86.05, // 81,05 + 5,00 ISS
+  ambos: 87.05, // 81,05 + 1,00 + 5,00
 };
 
 export const MEI_ANNUAL_LIMIT = 81000;
@@ -67,10 +69,10 @@ export function resolveAnexoByFatorR(proLaboreMonthly: number, revenueMonthly: n
 }
 
 const INSS_RATE_PRO_LABORE = 0.11;
-const INSS_CEILING_2025 = 8157.41;
+const INSS_CEILING_2026 = 8475.55;
 
-/** INSS sobre o pró-labore: 11% limitado ao teto (R$ 897,32 em 2025). */
+/** INSS sobre o pró-labore: 11% limitado ao teto (R$ 932,31 em 2026). */
 export function proLaboreInss(proLaboreMonthly: number): number {
-  const base = Math.min(Math.max(0, proLaboreMonthly), INSS_CEILING_2025);
+  const base = Math.min(Math.max(0, proLaboreMonthly), INSS_CEILING_2026);
   return base * INSS_RATE_PRO_LABORE;
 }

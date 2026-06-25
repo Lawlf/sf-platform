@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -25,6 +26,7 @@ export default async function FeriasPage() {
         summary="A gente soma o salário dos dias de férias com o terço constitucional (1/3) e desconta INSS e IR sobre o total."
       />
       <VacationClient prefill={{ grossSalaryCents: prefill.incomeCents }} />
+      <CalcReference simId="ferias" />
     </PageShell>
   );
 }

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -25,6 +26,7 @@ export default async function DecimoTerceiroPage() {
         summary="O 13º é tributado separado do salário do mês. A gente desconta INSS e IR sobre ele e mostra quanto cai em cada uma das duas parcelas."
       />
       <ThirteenthClient prefill={{ grossSalaryCents: prefill.incomeCents }} />
+      <CalcReference simId="decimo-terceiro" />
     </PageShell>
   );
 }

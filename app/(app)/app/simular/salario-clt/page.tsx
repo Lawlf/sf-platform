@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -25,6 +26,7 @@ export default async function SalarioCltPage() {
         summary="A gente desconta INSS (progressivo, por faixa) e o Imposto de Renda do seu salário bruto e mostra cada etapa, pra você entender de onde sai cada centavo."
       />
       <CltSalaryClient prefill={{ grossCents: prefill.incomeCents }} />
+      <CalcReference simId="salario-clt" />
     </PageShell>
   );
 }

@@ -12,9 +12,10 @@ describe("VacationPayService.compute", () => {
     expect(Number(r.vacationBaseCents) / 100).toBeCloseTo(3000, 2);
     expect(Number(r.oneThirdCents) / 100).toBeCloseTo(1000, 2);
     expect(Number(r.grossCents) / 100).toBeCloseTo(4000, 2);
-    // INSS sobre 4000 ~ 373,41
-    expect(Number(r.inssCents) / 100).toBeCloseTo(373.41, 1);
-    expect(Number(r.netCents) / 100).toBeCloseTo(3492.75, 0);
+    // INSS sobre 4000 ~ 368,60
+    expect(Number(r.inssCents) / 100).toBeCloseTo(368.6, 1);
+    // total abaixo de R$ 5.000: o redutor da Lei 15.270/2025 zera o IRRF.
+    expect(Number(r.netCents) / 100).toBeCloseTo(3631.4, 0);
   });
 
   it("is proportional to vacation days", () => {

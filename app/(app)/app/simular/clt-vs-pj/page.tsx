@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 
+import { CalcReference } from "@/app/(public)/calculadora/_components/calc-reference";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { PageShell } from "../../_components/page-shell";
@@ -25,6 +26,7 @@ export default async function CltVsPjPage() {
         summary="A gente calcula o líquido CLT (com opção de somar FGTS, 13º e férias) e o líquido PJ (MEI ou Simples, com imposto, pró-labore e contador) pra comparar de verdade."
       />
       <CltVsPjClient prefill={{ cltGrossCents: prefill.incomeCents }} />
+      <CalcReference simId="clt-vs-pj" />
     </PageShell>
   );
 }
