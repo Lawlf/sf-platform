@@ -1,202 +1,14 @@
 "use client";
 
-import {
-  Accessibility,
-  Bell,
-  ChevronRight,
-  Crown,
-  FileUp,
-  Files,
-  Globe,
-  HelpCircle,
-  Info,
-  KeyRound,
-  LayoutGrid,
-  MessageCircle,
-  Palette,
-  Plug,
-  Scale,
-  ScrollText,
-  Search,
-  SearchX,
-  ShieldCheck,
-  SlidersHorizontal,
-  Tag,
-  UserCog,
-  Users,
-} from "lucide-react";
-import type { Route } from "next";
+import { ChevronRight, Search, SearchX } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
-interface SettingItem {
-  href: Route;
-  label: string;
-  description: string;
-  icon: typeof Palette;
-  disabled?: boolean;
-}
-
-interface SettingSection {
-  title: string;
-  items: SettingItem[];
-}
-
-const SECTIONS: SettingSection[] = [
-  {
-    title: "Minha conta",
-    items: [
-      {
-        href: "/app/perfil/conta" as Route,
-        label: "Dados pessoais",
-        description: "Nome e email.",
-        icon: UserCog,
-      },
-      {
-        href: "/app/configuracoes/planos" as Route,
-        label: "Plano",
-        description: "Veja seu plano atual.",
-        icon: Crown,
-      },
-      {
-        href: "/app/perfil/seguranca" as Route,
-        label: "Segurança",
-        description: "Sessões ativas e desativar conta.",
-        icon: KeyRound,
-      },
-      {
-        href: "/app/lar" as Route,
-        label: "Nosso lar",
-        description: "Convites e o que você compartilha com quem divide as contas.",
-        icon: Users,
-      },
-    ],
-  },
-  {
-    title: "Meus dados",
-    items: [
-      {
-        href: "/app/configuracoes/importacao-de-dados/extrato" as Route,
-        label: "Importar extrato do banco",
-        description: "Baixe o extrato no app do seu banco e suba aqui.",
-        icon: FileUp,
-      },
-      {
-        href: "/app/configuracoes/integracoes" as Route,
-        label: "Assistente de IA",
-        description: "Conecte o ChatGPT ou Claude pra cuidar dos números por conversa.",
-        icon: Plug,
-      },
-      {
-        href: "/app/configuracoes/documentos" as Route,
-        label: "Meus documentos",
-        description: "Contratos e comprovantes que você guardou.",
-        icon: Files,
-      },
-    ],
-  },
-  {
-    title: "Meu mês",
-    items: [
-      {
-        href: "/app/perfil/notificacoes" as Route,
-        label: "Notificações",
-        description: "Quando a gente te chama: conta pra vencer e fim do mês.",
-        icon: Bell,
-      },
-      {
-        href: "/app/configuracoes/acessos-rapidos" as Route,
-        label: "Acessos rápidos",
-        description: "Escolha os atalhos da sua home.",
-        icon: LayoutGrid,
-      },
-      {
-        href: "/app/configuracoes/categorias" as Route,
-        label: "Categorias",
-        description: "As fatias do seu mês. Crie, renomeie ou esconda as que não usa.",
-        icon: Tag,
-      },
-    ],
-  },
-];
-
-const ADVANCED_SECTIONS: SettingSection[] = [
-  {
-    title: "Ajustes finos",
-    items: [
-      {
-        href: "/app/configuracoes/perfis" as Route,
-        label: "Perfis",
-        description: "Separe o dinheiro pessoal do dinheiro do seu negócio.",
-        icon: SlidersHorizontal,
-      },
-      {
-        href: "/app/configuracoes/estilo" as Route,
-        label: "Estilo com dinheiro",
-        description: "Como você lida com dinheiro.",
-        icon: Scale,
-      },
-      {
-        href: "/app/configuracoes/idioma-regiao" as Route,
-        label: "Idioma e região",
-        description: "Português (Brasil). Escolha a moeda padrão dos seus lançamentos.",
-        icon: Globe,
-      },
-      {
-        href: "/app/perfil/aparencia" as Route,
-        label: "Aparência",
-        description: "Tema claro, escuro ou seguir sistema.",
-        icon: Palette,
-      },
-      {
-        href: "/app/perfil/acessibilidade" as Route,
-        label: "Acessibilidade",
-        description: "Modo daltônico e leitura.",
-        icon: Accessibility,
-      },
-    ],
-  },
-  {
-    title: "Suporte",
-    items: [
-      {
-        href: "/app/ajuda" as Route,
-        label: "Ajuda e FAQ",
-        description: "Tire dúvidas e veja respostas rápidas.",
-        icon: HelpCircle,
-      },
-      {
-        href: "/app/falar-com-a-gente" as Route,
-        label: "Falar com a gente",
-        description: "Conte um problema, sugestão ou dúvida. Respondemos aqui no app.",
-        icon: MessageCircle,
-      },
-      {
-        href: "/app/configuracoes/sobre" as Route,
-        label: "Sobre o app",
-        description: "O Sabor Financeiro e onde a gente anda nas redes.",
-        icon: Info,
-      },
-    ],
-  },
-  {
-    title: "Documentos",
-    items: [
-      {
-        href: "/termos" as Route,
-        label: "Termos de uso",
-        description: "Regras de uso da plataforma.",
-        icon: ScrollText,
-      },
-      {
-        href: "/privacidade" as Route,
-        label: "Política de privacidade",
-        description: "Como tratamos seus dados.",
-        icon: ShieldCheck,
-      },
-    ],
-  },
-];
+import {
+  SETTINGS_ADVANCED_SECTIONS,
+  SETTINGS_SECTIONS,
+  type SettingSection,
+} from "../../_lib/settings-items";
 
 function normalize(value: string): string {
   return value
@@ -210,7 +22,9 @@ function filterSections(sections: SettingSection[], normalizedQuery: string): Se
     .map((section) => ({
       ...section,
       items: section.items.filter((item) =>
-        normalize(`${item.label} ${item.description}`).includes(normalizedQuery),
+        normalize(`${item.label} ${item.description} ${(item.keywords ?? []).join(" ")}`).includes(
+          normalizedQuery,
+        ),
       ),
     }))
     .filter((section) => section.items.length > 0);
@@ -221,7 +35,7 @@ export function SettingsList() {
 
   const normalizedQuery = normalize(query.trim());
   const visibleSections = filterSections(
-    [...SECTIONS, ...ADVANCED_SECTIONS],
+    [...SETTINGS_SECTIONS, ...SETTINGS_ADVANCED_SECTIONS],
     normalizedQuery,
   );
 
