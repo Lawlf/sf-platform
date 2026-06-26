@@ -2,6 +2,7 @@
 
 import {
   Bell,
+  ChevronRight,
   Coins,
   Files,
   HomeIcon,
@@ -21,6 +22,8 @@ import { toast } from "sonner";
 
 import { isOfflineRoute } from "../_lib/offline/offline-routes";
 import { useOnline } from "../_lib/offline/use-online";
+import { SETTINGS_ADVANCED_SECTIONS, SETTINGS_SECTIONS } from "../_lib/settings-items";
+import { SIMULATORS } from "../simular/_lib/simulators";
 
 import { OFFLINE_BLOCKED_MESSAGE } from "./offline-nav-guard.client";
 
@@ -35,21 +38,56 @@ interface Command {
   label: string;
   hint: string;
   icon: typeof HomeIcon;
+  terms?: string;
+  group?: string;
 }
 
-const COMMANDS: Command[] = [
-  { href: "/app" as Route, label: "Início", hint: "Visão geral", icon: HomeIcon },
-  { href: "/app/renda" as Route, label: "Renda", hint: "Visão geral", icon: TrendingUp },
-  { href: "/app/dividas" as Route, label: "Dívidas", hint: "Visão geral", icon: Wallet },
-  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "Visão geral", icon: Coins },
-  { href: "/app/metas" as Route, label: "Metas", hint: "Planejar", icon: Target },
-  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Planejar", icon: LineChart },
-  { href: "/app/simular" as Route, label: "Simular", hint: "Planejar", icon: PlusCircle },
-  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell },
-  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound },
-  { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Conta", icon: Settings },
-  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files },
+const BASE_COMMANDS: Command[] = [
+  { href: "/app" as Route, label: "Início", hint: "Visão geral", icon: HomeIcon, terms: "home resumo painel dashboard" },
+  { href: "/app/renda" as Route, label: "Renda", hint: "Visão geral", icon: TrendingUp, terms: "dinheiro que entra salario ganho receita faturamento entrada" },
+  { href: "/app/dividas" as Route, label: "Dívidas", hint: "Visão geral", icon: Wallet, terms: "quanto devo emprestimo financiamento cartao parcela conta a pagar" },
+  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "Visão geral", icon: Coins, terms: "investimentos bens ativos poupanca aplicacao quanto tenho reserva" },
+  { href: "/app/metas" as Route, label: "Metas", hint: "Planejar", icon: Target, terms: "objetivo sonho guardar juntar planejar" },
+  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Planejar", icon: LineChart, terms: "projecao futuro previsao timeline historico evolucao" },
+  { href: "/app/simular" as Route, label: "Simular", hint: "Planejar", icon: PlusCircle, terms: "simulador calculadora calcular simulacao" },
+  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell, terms: "alertas avisos lembretes" },
+  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound, terms: "minha conta usuario" },
+  { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Conta", icon: Settings, terms: "ajustes config configuracao preferencias opcoes" },
+  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files, terms: "anexos comprovantes contratos arquivos" },
 ];
+
+const SETTINGS_COMMANDS: Command[] = [...SETTINGS_SECTIONS, ...SETTINGS_ADVANCED_SECTIONS]
+  .flatMap((section) => section.items)
+  .filter((item) => !item.disabled)
+  .map((item) => ({
+    href: item.href,
+    label: item.label,
+    hint: item.description,
+    icon: item.icon,
+    terms: item.keywords?.join(" ") ?? "",
+    group: "Configurações",
+  }));
+
+const SIMULATOR_COMMANDS: Command[] = SIMULATORS.map((sim) => ({
+  href: sim.href,
+  label: sim.title,
+  hint: sim.desc,
+  icon: sim.icon,
+  terms: sim.keywords.join(" "),
+  group: "Simular",
+}));
+
+// Índice de busca = seções, ajustes e simuladores. Nunca indexar transação ou
+// linha de extrato: a busca segue o recorte macro do produto.
+const SEARCHABLE: Command[] = (() => {
+  const seen = new Set<string>(BASE_COMMANDS.map((c) => c.href));
+  const extra = [...SETTINGS_COMMANDS, ...SIMULATOR_COMMANDS].filter((c) => {
+    if (seen.has(c.href)) return false;
+    seen.add(c.href);
+    return true;
+  });
+  return [...BASE_COMMANDS, ...extra];
+})();
 
 function normalize(s: string): string {
   return s
@@ -68,8 +106,8 @@ export function CommandPalette() {
 
   const results = useMemo(() => {
     const q = normalize(query.trim());
-    if (!q) return COMMANDS;
-    return COMMANDS.filter((c) => normalize(`${c.label} ${c.hint}`).includes(q));
+    if (!q) return BASE_COMMANDS;
+    return SEARCHABLE.filter((c) => normalize(`${c.label} ${c.hint} ${c.terms ?? ""}`).includes(q));
   }, [query]);
 
   useEffect(() => {
@@ -152,7 +190,7 @@ export function CommandPalette() {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={onInputKey}
-            placeholder="Buscar seções..."
+            placeholder="Buscar no app"
             className="flex-1 bg-transparent py-3.5 text-[0.9375rem] text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-muted)]"
           />
           <kbd className="hidden flex-none rounded border border-[color:var(--border-strong)] bg-[color:var(--surface-2)] px-1.5 py-0.5 text-[0.625rem] font-semibold text-[color:var(--text-muted)] md:block">
@@ -163,7 +201,7 @@ export function CommandPalette() {
         <div className="max-h-[min(60vh,24rem)] overflow-y-auto p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
           {results.length === 0 ? (
             <p className="px-3 py-6 text-center text-[0.8125rem] text-[color:var(--text-muted)]">
-              Nada encontrado. Busca por dívidas e metas chega em breve.
+              Nada com esse nome. Tente uma seção, um simulador ou um ajuste.
             </p>
           ) : (
             results.map((c, i) => {
@@ -187,10 +225,18 @@ export function CommandPalette() {
                     aria-hidden
                     className={`flex-none ${isActive ? "text-[color:var(--color-brand-800)]" : "text-[color:var(--text-muted)]"}`}
                   />
-                  <span className="flex-1 text-[0.875rem] font-medium text-[color:var(--text-primary)]">
-                    {c.label}
+                  <span className="flex max-w-full flex-none items-center gap-1 text-[0.875rem]">
+                    {c.group ? (
+                      <span className="flex flex-none items-center gap-0.5 text-[color:var(--text-muted)]">
+                        {c.group}
+                        <ChevronRight size={13} strokeWidth={2} aria-hidden />
+                      </span>
+                    ) : null}
+                    <span className="truncate font-medium text-[color:var(--text-primary)]">{c.label}</span>
                   </span>
-                  <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{c.hint}</span>
+                  <span className="hidden min-w-0 flex-1 truncate text-[0.6875rem] text-[color:var(--text-muted)] sm:block">
+                    {c.hint}
+                  </span>
                 </button>
               );
             })
