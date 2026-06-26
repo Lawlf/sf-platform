@@ -17,6 +17,7 @@ import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
+import { HomeSafeToSpendCard } from "./_components/home-safe-to-spend-card";
 import { HomeConsistencyDelta } from "./_components/home-consistency-delta";
 import { IncomeConfirmCard } from "./_components/income-confirm-card.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
@@ -164,6 +165,13 @@ export default async function DashboardPage() {
         <HomeBringDataCard />
       </div>
     ) : null,
+    safeToSpend: (
+      <div className="md:col-span-2">
+        <Suspense fallback={<Skeleton className="h-[96px] rounded-2xl" />}>
+          <HomeSafeToSpendCard />
+        </Suspense>
+      </div>
+    ),
     commitment: (
       <div className="md:col-span-2" data-tour="health">
         <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
@@ -218,6 +226,7 @@ export default async function DashboardPage() {
     "nextStep",
     "incomeConfirm",
     "bringData",
+    "safeToSpend",
   ]);
   const firstDetailKey = order.find((k) => !topKeys.has(k) && cardNodes[k] != null);
 
