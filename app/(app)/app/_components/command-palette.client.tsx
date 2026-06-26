@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  ArrowDownUp,
   Bell,
   ChevronRight,
   Coins,
   Files,
   HomeIcon,
   LineChart,
+  PiggyBank,
   PlusCircle,
   Search,
   Settings,
@@ -43,17 +45,19 @@ interface Command {
 }
 
 const BASE_COMMANDS: Command[] = [
-  { href: "/app" as Route, label: "Início", hint: "Visão geral", icon: HomeIcon, terms: "home resumo painel dashboard" },
-  { href: "/app/renda" as Route, label: "Renda", hint: "Visão geral", icon: TrendingUp, terms: "dinheiro que entra salario ganho receita faturamento entrada" },
-  { href: "/app/dividas" as Route, label: "Dívidas", hint: "Visão geral", icon: Wallet, terms: "quanto devo emprestimo financiamento cartao parcela conta a pagar" },
-  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "Visão geral", icon: Coins, terms: "investimentos bens ativos poupanca aplicacao quanto tenho reserva" },
-  { href: "/app/metas" as Route, label: "Metas", hint: "Planejar", icon: Target, terms: "objetivo sonho guardar juntar planejar" },
-  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Planejar", icon: LineChart, terms: "projecao futuro previsao timeline historico evolucao" },
-  { href: "/app/simular" as Route, label: "Simular", hint: "Planejar", icon: PlusCircle, terms: "simulador calculadora calcular simulacao" },
-  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell, terms: "alertas avisos lembretes" },
-  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound, terms: "minha conta usuario" },
-  { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Conta", icon: Settings, terms: "ajustes config configuracao preferencias opcoes" },
-  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files, terms: "anexos comprovantes contratos arquivos" },
+  { href: "/app" as Route, label: "Início", hint: "Como está seu mês", icon: HomeIcon, terms: "home resumo painel dashboard saldo do mes movimento gap sobra inicio visao geral" },
+  { href: "/app/lancar" as Route, label: "Registrar entrada ou saída", hint: "Um PIX, uma venda, um gasto avulso", icon: ArrowDownUp, terms: "pix venda vendi recebi paguei gasto compra dinheiro entrada saida custo transacao pagamento lancar lancamento avulso recebimento entrou saiu freela" },
+  { href: "/app/renda" as Route, label: "Renda", hint: "Quanto entra todo mês", icon: TrendingUp, terms: "dinheiro que entra salario ganho receita faturamento entrada renda mensal pro labore" },
+  { href: "/app/dividas" as Route, label: "Dívidas", hint: "O que você deve e quanto falta", icon: Wallet, terms: "quanto devo emprestimo financiamento cartao parcela conta a pagar boleto fatura deve dividas" },
+  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "O que você tem e investe", icon: Coins, terms: "investimentos bens ativos poupanca aplicacao quanto tenho reserva cripto carteira imovel" },
+  { href: "/app/investir" as Route, label: "Onde investir", hint: "Pra onde mandar seu dinheiro", icon: PiggyBank, terms: "investir aplicar onde rende render rendimento cdb tesouro selic poupanca melhor investimento planejar" },
+  { href: "/app/metas" as Route, label: "Metas", hint: "Seus objetivos e quanto falta", icon: Target, terms: "objetivo sonho guardar juntar planejar meta poupar" },
+  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Seu dinheiro mês a mês", icon: LineChart, terms: "projecao futuro previsao timeline historico evolucao relatorio mes a mes planejar" },
+  { href: "/app/simular" as Route, label: "Simular", hint: "Faça as contas antes de decidir", icon: PlusCircle, terms: "simulador calculadora calcular simulacao contas planejar" },
+  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Avisos e lembretes", icon: Bell, terms: "alertas avisos lembretes notificacao conta" },
+  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Seus dados e sua conta", icon: UserRound, terms: "minha conta usuario perfil identidade badges" },
+  { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Ajustes do app", icon: Settings, terms: "ajustes config configuracao preferencias opcoes conta" },
+  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files, terms: "anexos comprovantes contratos arquivos documentos pdf" },
 ];
 
 const SETTINGS_COMMANDS: Command[] = [...SETTINGS_SECTIONS, ...SETTINGS_ADVANCED_SECTIONS]
@@ -96,6 +100,17 @@ function normalize(s: string): string {
     .toLowerCase();
 }
 
+const STOPWORDS = new Set([
+  "de", "da", "do", "das", "dos", "e", "ou", "a", "o", "as", "os", "um", "uma",
+  "para", "pra", "por", "com", "no", "na", "em", "que", "meu", "minha",
+]);
+
+function tokenize(s: string): string[] {
+  return normalize(s)
+    .split(/\s+/)
+    .filter((t) => t.length > 0 && !STOPWORDS.has(t));
+}
+
 export function CommandPalette() {
   const router = useRouter();
   const online = useOnline();
@@ -105,9 +120,12 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = useMemo(() => {
-    const q = normalize(query.trim());
-    if (!q) return BASE_COMMANDS;
-    return SEARCHABLE.filter((c) => normalize(`${c.label} ${c.hint} ${c.terms ?? ""}`).includes(q));
+    const tokens = tokenize(query);
+    if (!tokens.length) return BASE_COMMANDS;
+    return SEARCHABLE.filter((c) => {
+      const haystack = normalize(`${c.group ?? ""} ${c.label} ${c.hint} ${c.terms ?? ""}`);
+      return tokens.every((token) => haystack.includes(token));
+    });
   }, [query]);
 
   useEffect(() => {
