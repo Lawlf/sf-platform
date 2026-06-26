@@ -33,8 +33,7 @@ interface Props {
 const COPY: Record<AnchorMode, { title: string; description: string }> = {
   capture: {
     title: "Quanto você tem na conta hoje?",
-    description:
-      "É o ponto de partida. A partir dele, sua renda entra e seus gastos saem automaticamente.",
+    description: "É o ponto de partida do seu mês.",
   },
   adjust: {
     title: "Ajustar saldo da Carteira",

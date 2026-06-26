@@ -96,13 +96,13 @@ export function EmergencyFundClient({ prefill }: PrefillProps) {
             control={form.control}
             name="monthlyCostCents"
             label="Custo fixo mensal"
-            helper="Gastos essenciais que continuam mesmo sem renda. Pré-preenchido com suas parcelas."
+            helper="Gastos essenciais que continuam mesmo sem renda."
           />
           <MoneyInput
             control={form.control}
             name="currentReserveCents"
             label="Reserva atual"
-            helper="O que você tem guardado e líquido. Veio das suas reservas."
+            helper="O que você tem guardado e pode sacar agora."
           />
           <MoneyInput
             control={form.control}

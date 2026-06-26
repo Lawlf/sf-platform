@@ -34,8 +34,7 @@ export function DebtDueReminderCard({ isPro, initialEnabled, initialDaysBefore }
             ) : null}
           </div>
           <p className="mt-0.5 text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Receba um aviso quando uma parcela estiver perto de vencer. Você escolhe com quanta
-            antecedência.
+            A gente avisa quando uma parcela estiver perto de vencer. Você escolhe a antecedência.
           </p>
         </div>
       </div>
@@ -51,8 +50,8 @@ export function DebtDueReminderCard({ isPro, initialEnabled, initialDaysBefore }
       ) : (
         <div className="mt-4 flex flex-col gap-3 rounded-xl bg-[color:var(--surface-2)] p-3">
           <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Os vencimentos próximos já aparecem aqui na tela. O Pro manda o lembrete pro seu celular,
-            por push e email, sem você precisar abrir o app.
+            Os vencimentos já aparecem aqui. No Pro, o lembrete chega no seu celular sem você abrir o
+            app.
           </p>
           <Link
             href={"/app/configuracoes/planos" as Route}
