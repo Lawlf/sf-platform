@@ -28,21 +28,14 @@ describe("homeCardOrder", () => {
     expect(homeCardOrder("com_patrimonio")).toContain("projection");
   });
 
-  it("ordem-base estável: hero, safeToSpend, confirmação de renda, acessos no topo em todos os estados", () => {
+  it("ordem-base estável: hero, próximo mês, confirmação de renda, acessos no topo em todos os estados", () => {
     for (const st of ["com_divida", "sem_reserva", "com_patrimonio"] as const) {
       const order = homeCardOrder(st);
       expect(order[0]).toBe("hero");
-      expect(order[1]).toBe("safeToSpend");
+      expect(order[1]).toBe("nextMonth");
       expect(order[2]).toBe("incomeConfirm");
       expect(order[3]).toBe("quickAccess");
       expect(order[4]).toBe("nextStep");
-    }
-  });
-
-  it("safeToSpend aparece antes de commitment em todos os estados", () => {
-    for (const st of ["com_divida", "sem_reserva", "com_patrimonio"] as const) {
-      const order = homeCardOrder(st);
-      expect(order.indexOf("safeToSpend")).toBeLessThan(order.indexOf("commitment"));
     }
   });
 

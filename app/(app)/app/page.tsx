@@ -2,8 +2,8 @@ import { Fragment, type ReactNode, Suspense } from "react";
 
 
 import { Skeleton } from "@/app/components/ui/skeleton";
-import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { getConsistencyCard } from "@/application/use-cases/achievement/get-consistency-card.use-case";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -13,17 +13,18 @@ import { fetchOutOfMonthSummary } from "./_actions/debt-queries";
 import { fetchMaintenancePrompts } from "./_actions/maintenance-queries";
 import { fetchOnboardingState } from "./_actions/onboarding";
 import { fetchMonthClosing, fetchPlanningProjection } from "./_actions/planning-queries";
+import { fetchSafeToSpend } from "./_actions/safe-to-spend-queries";
 import { fetchMonthDetail } from "./_actions/timeline-month-detail";
 import { CommitmentSectionClient } from "./_components/commitment-section.client";
 import { DashboardHeroClient } from "./_components/dashboard-hero.client";
 import { HomeBringDataCard } from "./_components/home-bring-data-card";
-import { HomeSafeToSpendCard } from "./_components/home-safe-to-spend-card";
 import { HomeConsistencyDelta } from "./_components/home-consistency-delta";
-import { IncomeConfirmCard } from "./_components/income-confirm-card.client";
 import { HomeGoalCard } from "./_components/home-goal-card";
 import { HomeProjectionCard } from "./_components/home-projection-card.client";
+import { IncomeConfirmCard } from "./_components/income-confirm-card.client";
 import { MaintenancePromptsClient } from "./_components/maintenance-prompts.client";
 import { MonthClosingCard } from "./_components/month-closing-card.client";
+import { NextMonthBridge } from "./_components/next-month-bridge.client";
 import { NextStepCard } from "./_components/next-step-card";
 import { OfflineStaleNote } from "./_components/offline-stale-note.client";
 import { allChecklistDone } from "./_components/onboarding/checklist-items";
@@ -109,6 +110,8 @@ export default async function DashboardPage() {
     (i) => i.isEstimated && i.settledStatus === null && i.dateIso.slice(0, 10) <= todayDate,
   );
 
+  const safeToSpend = await fetchSafeToSpend();
+
   const hasImportedAccount = externalAccountKeys.some((k) => !k.endsWith(":reserve"));
   const hasMcpConnection = mcpConnections.some((c) => c.status === "active");
   const bringDataEligible =
@@ -133,6 +136,7 @@ export default async function DashboardPage() {
             initialData={initialMonthDetail}
             previousMonth={previousMonth}
             milestone={milestone}
+            safeToSpend={safeToSpend}
           />
         </Suspense>
         {allChecklistDone(onboardingState.checklist) ? null : (
@@ -140,6 +144,11 @@ export default async function DashboardPage() {
             <OnboardingChecklistCard checklist={onboardingState.checklist} />
           </div>
         )}
+      </div>
+    ),
+    nextMonth: (
+      <div className="md:col-span-2">
+        <NextMonthBridge currentMonthIso={monthIso} />
       </div>
     ),
     quickAccess: (
@@ -165,13 +174,6 @@ export default async function DashboardPage() {
         <HomeBringDataCard />
       </div>
     ) : null,
-    safeToSpend: (
-      <div className="md:col-span-2">
-        <Suspense fallback={<Skeleton className="h-[96px] rounded-2xl" />}>
-          <HomeSafeToSpendCard />
-        </Suspense>
-      </div>
-    ),
     commitment: (
       <div className="md:col-span-2" data-tour="health">
         <Suspense fallback={<Skeleton className="h-[180px] rounded-[18px]" />}>
@@ -222,11 +224,11 @@ export default async function DashboardPage() {
 
   const topKeys = new Set<HomeCardKey>([
     "hero",
+    "nextMonth",
     "quickAccess",
     "nextStep",
     "incomeConfirm",
     "bringData",
-    "safeToSpend",
   ]);
   const firstDetailKey = order.find((k) => !topKeys.has(k) && cardNodes[k] != null);
 

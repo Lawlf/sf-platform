@@ -41,6 +41,9 @@ export function NextMonthBridge({ currentMonthIso }: { currentMonthIso: string }
   if (!data) return null;
 
   const floorCents = nextMonthFloorCents(data);
+  // Mes que vem ainda sem nada fixo: R$0 aqui e "sem dado", nao um piso real.
+  if (floorCents === 0n) return null;
+
   const positive = floorCents >= 0n;
   const floorFmt = formatBrl(floorCents);
   const href = `/app/linha-do-tempo/${nextIso}` as Route;
@@ -48,14 +51,14 @@ export function NextMonthBridge({ currentMonthIso }: { currentMonthIso: string }
   return (
     <Link
       href={href}
-      className="focus-ring flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
+      className="focus-ring flex items-center justify-between gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] py-4 transition-colors hover:bg-[color:var(--surface-2)]"
     >
       <div className="min-w-0">
         <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--text-muted)]">
           {nextName} {whenLabel}
         </span>
-        <span className="mt-1 block text-[0.8125rem] font-semibold leading-snug text-[color:var(--text-secondary)]">
-          Só com o que já é fixo, {nextNameLower} começa com{" "}
+        <span className="mt-1 block text-sm font-semibold leading-snug text-[color:var(--text-secondary)]">
+          Sem contar nada novo, {nextNameLower} já começa com{" "}
           <HideableValue>{floorFmt}</HideableValue>
           {positive ? "." : " a pagar."}
         </span>
