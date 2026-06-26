@@ -3,6 +3,7 @@
 import {
   ArrowDownUp,
   Bell,
+  ChevronDown,
   ChevronRight,
   Coins,
   Files,
@@ -19,7 +20,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
 import { isOfflineRoute } from "../_lib/offline/offline-routes";
@@ -111,22 +112,67 @@ function tokenize(s: string): string[] {
     .filter((t) => t.length > 0 && !STOPWORDS.has(t));
 }
 
+const BY_HREF = new Map<string, Command>(SEARCHABLE.map((c) => [c.href, c]));
+
+const RECENTS_KEY = "sf:search:recents";
+const RECENTS_MAX = 6;
+
+function loadRecents(): Command[] {
+  try {
+    const raw = localStorage.getItem(RECENTS_KEY);
+    if (!raw) return [];
+    return (JSON.parse(raw) as string[])
+      .map((href) => BY_HREF.get(href))
+      .filter((c): c is Command => c != null);
+  } catch {
+    return [];
+  }
+}
+
+function recordRecent(href: Route): void {
+  try {
+    const raw = localStorage.getItem(RECENTS_KEY);
+    const prev = raw ? (JSON.parse(raw) as string[]) : [];
+    const next = [href, ...prev.filter((h) => h !== href)].slice(0, RECENTS_MAX);
+    localStorage.setItem(RECENTS_KEY, JSON.stringify(next));
+  } catch {
+    // localStorage indisponível (modo privado/quota): recentes viram no-op.
+  }
+}
+
 export function CommandPalette() {
   const router = useRouter();
   const online = useOnline();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
+  const [recents, setRecents] = useState<Command[]>([]);
+  const [canScrollDown, setCanScrollDown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const listRef = useRef<HTMLDivElement>(null);
+
+  function updateScrollHint() {
+    const el = listRef.current;
+    if (!el) return;
+    setCanScrollDown(el.scrollHeight - el.scrollTop - el.clientHeight > 8);
+  }
+
+  const isDefault = query.trim().length === 0;
 
   const results = useMemo(() => {
     const tokens = tokenize(query);
-    if (!tokens.length) return BASE_COMMANDS;
+    if (!tokens.length) {
+      const top = recents.slice(0, 3);
+      const topHrefs = new Set(top.map((c) => c.href));
+      return [...top, ...BASE_COMMANDS.filter((c) => !topHrefs.has(c.href))];
+    }
     return SEARCHABLE.filter((c) => {
       const haystack = normalize(`${c.group ?? ""} ${c.label} ${c.hint} ${c.terms ?? ""}`);
       return tokens.every((token) => haystack.includes(token));
     });
-  }, [query]);
+  }, [query, recents]);
+
+  const recentCount = isDefault ? Math.min(recents.length, 3) : 0;
 
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
@@ -150,6 +196,7 @@ export function CommandPalette() {
     if (open) {
       setQuery("");
       setActive(0);
+      setRecents(loadRecents());
       const id = window.setTimeout(() => inputRef.current?.focus(), 20);
       return () => window.clearTimeout(id);
     }
@@ -157,8 +204,26 @@ export function CommandPalette() {
   }, [open]);
 
   useEffect(() => {
+    if (!open) return undefined;
+    const html = document.documentElement;
+    const prevBody = document.body.style.overflow;
+    const prevHtml = html.style.overflow;
+    document.body.style.overflow = "hidden";
+    html.style.overflow = "hidden";
+    return () => {
+      document.body.style.overflow = prevBody;
+      html.style.overflow = prevHtml;
+    };
+  }, [open]);
+
+  useEffect(() => {
     setActive(0);
   }, [query]);
+
+  useEffect(() => {
+    const id = window.setTimeout(updateScrollHint, 0);
+    return () => window.clearTimeout(id);
+  }, [open, query, recents]);
 
   function go(href: Route) {
     setOpen(false);
@@ -166,6 +231,7 @@ export function CommandPalette() {
       toast(OFFLINE_BLOCKED_MESSAGE);
       return;
     }
+    recordRecent(href);
     router.push(href);
   }
 
@@ -195,10 +261,10 @@ export function CommandPalette() {
       className="fixed inset-0 z-[60] flex items-end justify-center md:items-start md:p-4 md:pt-[12vh]"
       onMouseDown={() => setOpen(false)}
     >
-      <div className="absolute inset-0 bg-[color:var(--bg-app)]/55 backdrop-blur-sm" aria-hidden />
+      <div className="absolute inset-0 bg-[color:var(--bg-app)]/55 backdrop-blur-sm animate-in fade-in duration-200" aria-hidden />
       <div
         onMouseDown={(e) => e.stopPropagation()}
-        className="relative w-full overflow-hidden rounded-t-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-1)] shadow-[0_32px_70px_-20px_rgba(31,29,28,0.5)] [backdrop-filter:blur(24px)_saturate(180%)] md:max-w-[34rem] md:rounded-2xl"
+        className="relative flex h-[75dvh] w-full flex-col overflow-hidden rounded-t-2xl border border-[color:var(--border-strong)] bg-[color:var(--surface-1)] shadow-[0_32px_70px_-20px_rgba(31,29,28,0.5)] [backdrop-filter:blur(24px)_saturate(180%)] animate-in fade-in slide-in-from-bottom duration-300 ease-out md:h-auto md:max-w-[34rem] md:rounded-2xl md:slide-in-from-top-4"
       >
         <div className="mx-auto mt-2 h-1 w-9 rounded-full bg-[color:var(--border-strong)] md:hidden" aria-hidden />
         <div className="flex items-center gap-2.5 border-b border-[color:var(--border-soft)] px-4">
@@ -216,22 +282,43 @@ export function CommandPalette() {
           </kbd>
         </div>
 
-        <div className="max-h-[min(60vh,24rem)] overflow-y-auto p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <div
+          ref={listRef}
+          onScroll={updateScrollHint}
+          className="min-h-0 flex-1 overflow-y-auto p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))] md:max-h-[min(60vh,24rem)] md:flex-initial"
+        >
           {results.length === 0 ? (
             <p className="px-3 py-6 text-center text-[0.8125rem] text-[color:var(--text-muted)]">
               Nada com esse nome. Tente uma seção, um simulador ou um ajuste.
             </p>
           ) : (
-            results.map((c, i) => {
+            <>
+            {recentCount > 0 ? (
+              <p className="px-3 pb-1 pt-1.5 text-[0.6875rem] font-medium text-[color:var(--text-muted)]">
+                Recentes
+              </p>
+            ) : null}
+            {results.map((c, i) => {
               const Icon = c.icon;
               const isActive = i === active;
+              const showGroupHeader = isDefault && i === recentCount;
               return (
+                <Fragment key={c.href}>
+                {showGroupHeader ? (
+                  <>
+                    {recentCount > 0 ? (
+                      <div aria-hidden className="mx-3 my-1.5 border-t border-[color:var(--border-soft)]" />
+                    ) : null}
+                    <p className="px-3 pb-1 pt-1.5 text-[0.6875rem] font-medium text-[color:var(--text-muted)]">
+                      Ir para
+                    </p>
+                  </>
+                ) : null}
                 <button
-                  key={c.href}
                   type="button"
                   onMouseEnter={() => setActive(i)}
                   onClick={() => go(c.href)}
-                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition-colors ${
+                  className={`flex w-full items-center gap-3 rounded-xl px-3 py-3.5 text-left transition-colors md:py-2.5 ${
                     isActive
                       ? "bg-[color:var(--color-brand-500)]/[0.12]"
                       : "hover:bg-[color:var(--surface-2)]"
@@ -243,23 +330,37 @@ export function CommandPalette() {
                     aria-hidden
                     className={`flex-none ${isActive ? "text-[color:var(--color-brand-800)]" : "text-[color:var(--text-muted)]"}`}
                   />
-                  <span className="flex max-w-full flex-none items-center gap-1 text-[0.875rem]">
-                    {c.group ? (
-                      <span className="flex flex-none items-center gap-0.5 text-[color:var(--text-muted)]">
-                        {c.group}
-                        <ChevronRight size={13} strokeWidth={2} aria-hidden />
-                      </span>
-                    ) : null}
-                    <span className="truncate font-medium text-[color:var(--text-primary)]">{c.label}</span>
-                  </span>
-                  <span className="hidden min-w-0 flex-1 truncate text-[0.6875rem] text-[color:var(--text-muted)] sm:block">
-                    {c.hint}
+                  <span className="flex min-w-0 flex-1 flex-col gap-0.5 md:flex-row md:items-center md:gap-3">
+                    <span className="flex max-w-full flex-none items-center gap-1 text-[0.875rem]">
+                      {c.group ? (
+                        <span className="flex flex-none items-center gap-0.5 text-[color:var(--text-muted)]">
+                          {c.group}
+                          <ChevronRight size={13} strokeWidth={2} aria-hidden />
+                        </span>
+                      ) : null}
+                      <span className="truncate font-medium text-[color:var(--text-primary)]">{c.label}</span>
+                    </span>
+                    <span className="truncate text-[0.75rem] text-[color:var(--text-muted)] md:flex-1 md:text-[0.6875rem]">
+                      {c.hint}
+                    </span>
                   </span>
                 </button>
+                </Fragment>
               );
-            })
+            })}
+            </>
           )}
         </div>
+        {canScrollDown ? (
+          <div
+            aria-hidden
+            className="pointer-events-none absolute inset-x-0 bottom-0 flex h-14 items-end justify-center bg-gradient-to-t from-[color:var(--surface-1)] via-[color:var(--surface-1)]/80 to-transparent pb-2"
+          >
+            <span className="flex h-7 w-7 animate-bounce items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] text-[color:var(--color-brand-700)] shadow-[0_2px_8px_rgba(31,29,28,0.25)]">
+              <ChevronDown size={18} strokeWidth={2.5} />
+            </span>
+          </div>
+        ) : null}
       </div>
     </div>
   );

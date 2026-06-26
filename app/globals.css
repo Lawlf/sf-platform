@@ -157,25 +157,6 @@
     );
   }
 
-  /* Âncora "Ver o movimento do mês": pisca o card de destino ao chegar via
-     hash, pra deixar claro que o scroll levou a algum lugar. Reduzir-movimento
-     desliga via regra global de [data-motion="reduce"]. */
-  @keyframes anchor-flash {
-    0% {
-      box-shadow: 0 0 0 0 transparent;
-    }
-    25% {
-      box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand-500) 65%, transparent);
-    }
-    100% {
-      box-shadow: 0 0 0 0 transparent;
-    }
-  }
-  #movimento-do-mes:target {
-    border-radius: 18px;
-    animation: anchor-flash 1.4s ease-out;
-  }
-
   [data-theme="dark"][data-contrast="high"] {
     --text-secondary: rgba(253, 248, 243, 0.95);
     --text-muted: rgba(253, 248, 243, 0.8);

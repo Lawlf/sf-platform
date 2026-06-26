@@ -153,7 +153,7 @@ export default async function DashboardPage() {
         </div>
       ) : null,
     nextStep: (
-      <div id="movimento-do-mes" className="scroll-mt-20 md:col-span-2" data-tour="next-step">
+      <div className="md:col-span-2" data-tour="next-step">
         <Suspense fallback={<Skeleton className="h-[120px] rounded-[18px]" />}>
           <NextStepCard />
         </Suspense>
