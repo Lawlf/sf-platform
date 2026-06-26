@@ -35,6 +35,7 @@ import { fetchOverdueStateForDebt } from "./_actions/overdue-state";
 import { ActionsSection } from "./_components/actions-section";
 import { AmortizationSection } from "./_components/amortization-section";
 import { DebtHeader } from "./_components/debt-header";
+import { DueReminder } from "./_components/due-reminder.client";
 import { InstallmentPurchasesSection } from "./_components/installment-purchases-section";
 import { MinimumPaymentNotice } from "./_components/minimum-payment-notice";
 import { NoScheduleSection } from "./_components/no-schedule-section";
@@ -86,6 +87,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
       <DebtHeader
         debt={debt}
         categoryLabelText={labelCategory(debt.expenseCategory) ?? "Outros"}
+        scheduleEndDate={dueDates.at(-1)?.dueDate ?? null}
       />
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
@@ -96,25 +98,35 @@ export default async function DebtDetailPage({ params }: PageProps) {
 
       <MinimumPaymentNotice debt={debt} />
 
-      <ActionsSection
-        debt={debt}
-        hasCalendarSchedule={hasCalendarSchedule}
-        googleCalendarUrl={googleCalendarUrl}
-        defaultAlarm={defaultAlarm}
-        linkedGoals={linkedGoals}
-      />
+      {debt.status === "active" && hasCalendarSchedule ? (
+        <DueReminder
+          debtId={id}
+          googleCalendarUrl={googleCalendarUrl}
+          defaultAlarm={defaultAlarm}
+          isPro={user.isPro}
+          dueEnabled={prefs?.debtDueEnabled ?? true}
+          dueDaysBefore={prefs?.debtDueDaysBefore ?? 3}
+        />
+      ) : null}
+
+      <ActionsSection debt={debt} linkedGoals={linkedGoals} />
 
       {debt.kind === "credit_card" ? <InstallmentPurchasesSection debt={debt} /> : null}
 
       {amortization ? (
-        <AmortizationSection debt={debt} amortization={amortization} />
+        <AmortizationSection
+          debt={debt}
+          amortization={amortization}
+          payments={payments}
+          isPro={user.isPro}
+        />
       ) : debt.kind === "recurring" ? null : (
         <NoScheduleSection kind={debt.kind} />
       )}
 
-      {debt.kind === "recurring" ? null : (
+      {!amortization && debt.kind !== "recurring" ? (
         <PaymentsSection debt={debt} payments={payments} userId={user.id} isPro={user.isPro} />
-      )}
+      ) : null}
 
       <EntityNotesAndFiles
         entityType="debt"

@@ -74,7 +74,7 @@ export function OverdueBanner({ debtId, dueDay, cycleIso }: Props) {
                 </span>
               ) : null}
             </Button>
-            <OutOfMonthButton debtId={debtId} />
+            <OutOfMonthButton debtId={debtId} compact />
           </div>
         </div>
       </div>

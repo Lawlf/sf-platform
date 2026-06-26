@@ -68,7 +68,7 @@ export function DeleteDebtButton({ debtId, label }: DeleteDebtButtonProps) {
           variant="ghost"
           size="sm"
           aria-label={aria}
-          className="w-full text-[color:var(--text-muted)] hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)] sm:w-auto"
+          className="text-[color:var(--semantic-negative)] hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
         >
           <Trash2 size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
           Apagar dívida

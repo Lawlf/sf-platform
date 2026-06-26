@@ -20,7 +20,13 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { queryKeys } from "../../../_lib/query-keys";
 import { archiveDebtAction } from "../_actions/archive-debt.action";
 
-export function OutOfMonthButton({ debtId }: { debtId: string }) {
+export function OutOfMonthButton({
+  debtId,
+  compact = false,
+}: {
+  debtId: string;
+  compact?: boolean;
+}) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [note, setNote] = useState("");
@@ -49,10 +55,25 @@ export function OutOfMonthButton({ debtId }: { debtId: string }) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button variant="outline" size="sm" className="w-full sm:w-auto">
-          <CalendarOff size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
-          Tirar do meu mês
-        </Button>
+        {compact ? (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="px-2 text-[color:var(--text-secondary)] hover:text-[color:var(--color-brand-700)]"
+          >
+            <CalendarOff size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
+            Tirar do meu mês
+          </Button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            className="w-full justify-center border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)] sm:w-auto"
+          >
+            <CalendarOff size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
+            Tirar do meu mês
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
