@@ -17,15 +17,27 @@ function normalize(value: string): string {
     .toLowerCase();
 }
 
-function filterSections(sections: SettingSection[], normalizedQuery: string): SettingSection[] {
+const STOPWORDS = new Set([
+  "de", "da", "do", "das", "dos", "e", "ou", "a", "o", "as", "os", "um", "uma",
+  "para", "pra", "por", "com", "no", "na", "em", "que", "meu", "minha",
+]);
+
+function tokenize(value: string): string[] {
+  return normalize(value)
+    .split(/\s+/)
+    .filter((token) => token.length > 0 && !STOPWORDS.has(token));
+}
+
+function filterSections(sections: SettingSection[], tokens: string[]): SettingSection[] {
   return sections
     .map((section) => ({
       ...section,
-      items: section.items.filter((item) =>
-        normalize(`${item.label} ${item.description} ${(item.keywords ?? []).join(" ")}`).includes(
-          normalizedQuery,
-        ),
-      ),
+      items: section.items.filter((item) => {
+        const haystack = normalize(
+          `${item.label} ${item.description} ${(item.keywords ?? []).join(" ")}`,
+        );
+        return tokens.every((token) => haystack.includes(token));
+      }),
     }))
     .filter((section) => section.items.length > 0);
 }
@@ -33,10 +45,10 @@ function filterSections(sections: SettingSection[], normalizedQuery: string): Se
 export function SettingsList() {
   const [query, setQuery] = useState("");
 
-  const normalizedQuery = normalize(query.trim());
+  const tokens = tokenize(query);
   const visibleSections = filterSections(
     [...SETTINGS_SECTIONS, ...SETTINGS_ADVANCED_SECTIONS],
-    normalizedQuery,
+    tokens,
   );
 
   return (

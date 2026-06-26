@@ -100,6 +100,17 @@ function normalize(s: string): string {
     .toLowerCase();
 }
 
+const STOPWORDS = new Set([
+  "de", "da", "do", "das", "dos", "e", "ou", "a", "o", "as", "os", "um", "uma",
+  "para", "pra", "por", "com", "no", "na", "em", "que", "meu", "minha",
+]);
+
+function tokenize(s: string): string[] {
+  return normalize(s)
+    .split(/\s+/)
+    .filter((t) => t.length > 0 && !STOPWORDS.has(t));
+}
+
 export function CommandPalette() {
   const router = useRouter();
   const online = useOnline();
@@ -109,9 +120,12 @@ export function CommandPalette() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const results = useMemo(() => {
-    const q = normalize(query.trim());
-    if (!q) return BASE_COMMANDS;
-    return SEARCHABLE.filter((c) => normalize(`${c.label} ${c.hint} ${c.terms ?? ""}`).includes(q));
+    const tokens = tokenize(query);
+    if (!tokens.length) return BASE_COMMANDS;
+    return SEARCHABLE.filter((c) => {
+      const haystack = normalize(`${c.group ?? ""} ${c.label} ${c.hint} ${c.terms ?? ""}`);
+      return tokens.every((token) => haystack.includes(token));
+    });
   }, [query]);
 
   useEffect(() => {
