@@ -159,8 +159,7 @@ export function RotativoClient({ prefill }: PrefillProps) {
                   </div>
                   <p className="mt-2 text-[0.75rem] font-medium text-white/85">
                     Pagando {brl(paymentCents)} por mês, o juro desse mês já é{" "}
-                    {brl(result.firstMonthInterestCents)}. Quase tudo que você paga vira juro, e a
-                    dívida mal anda.
+                    {brl(result.firstMonthInterestCents)}. Quase tudo que você paga vira juro.
                   </p>
                   <p className="mt-1 text-[0.75rem] font-medium text-white/85">
                     Arraste pra cima pra achar o valor que começa a derrubar a fatura.

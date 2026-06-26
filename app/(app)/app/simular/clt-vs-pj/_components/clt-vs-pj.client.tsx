@@ -136,8 +136,7 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
               </div>
               {includeBenefits ? (
                 <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-                  Somando ao bruto: FGTS <strong>8%</strong> + 13º <strong>8,33%</strong> (1/12) +
-                  1/3 de férias <strong>2,78%</strong> (1/36) = <strong>~19,1%</strong>.
+                  O CLT ainda soma cerca de <strong>19%</strong> em benefícios além do salário.
                 </p>
               ) : null}
             </>
@@ -201,7 +200,7 @@ export function CltVsPjClient({ prefill }: { prefill: { cltGrossCents: string } 
                 control={form.control}
                 name="proLaboreCents"
                 label="Pró-labore mensal (opcional)"
-                helper="Salário que você tira da empresa. Quando passa de 28% do faturamento, cai na faixa de imposto mais barata."
+                helper="Salário que você tira da empresa."
               />
               <MoneyInput
                 control={form.control}

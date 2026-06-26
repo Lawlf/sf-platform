@@ -72,13 +72,13 @@ export function CompoundGrowthClient({ prefill }: PrefillProps) {
             control={form.control}
             name="initialCents"
             label="Valor inicial"
-            helper="O que você já tem investido. Veio do seu patrimônio."
+            helper="O que você já tem investido."
           />
           <MoneyInput
             control={form.control}
             name="contributionCents"
             label="Aporte mensal"
-            helper="Quanto você investe por mês. Pré-preenchido com seu saldo da Carteira."
+            helper="Quanto você investe por mês."
           />
           <SimSlider
             label="Rendimento esperado"

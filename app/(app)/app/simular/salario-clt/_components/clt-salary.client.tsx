@@ -60,7 +60,7 @@ export function CltSalaryClient({ prefill }: PrefillProps) {
             name="grossCents"
             label="Salário bruto"
             required
-            helper="O valor antes dos descontos. Puxado da sua renda; ajuste se precisar."
+            helper="O valor antes dos descontos. Ajuste se precisar."
           />
           <SimSlider
             label="Dependentes"
@@ -138,8 +138,7 @@ export function CltSalaryClient({ prefill }: PrefillProps) {
           </div>
         </div>
         <p className="mt-3 text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-          A gente calculou o IR pelo jeito que te faz pagar menos imposto. Sobre {brl(result.irrfBaseCents)}{" "}
-          é que incide a alíquota.
+          A gente usou o desconto que te faz pagar menos imposto.
         </p>
           </section>
 
