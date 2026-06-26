@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, Settings } from "lucide-react";
+import { Bell, ChevronDown, Search, Settings } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -9,8 +9,8 @@ import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
 import type { SerializedProfile } from "../_actions/profile-queries";
 
+import { openSearch } from "./command-palette.client";
 import { MobileAccountDrawer } from "./mobile-account-drawer.client";
-import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
 import { UserAvatar } from "./user-avatar";
 
 const LONG_PRESS_MS = 450;
@@ -98,7 +98,16 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
       </div>
 
       <div className="flex flex-none items-center gap-2">
-        <HideValuesToggle size={22} />
+        <SimpleTooltip label="Buscar" side="bottom">
+          <button
+            type="button"
+            onClick={openSearch}
+            aria-label="Buscar no app"
+            className="focus-ring flex h-12 w-12 items-center justify-center rounded-full bg-[color:var(--surface-1)] text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
+          >
+            <Search size={22} strokeWidth={1.75} aria-hidden />
+          </button>
+        </SimpleTooltip>
         <SimpleTooltip label="Notificações" side="bottom">
           <Link
             href={"/app/notificacoes" as Route}

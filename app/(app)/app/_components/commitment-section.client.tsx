@@ -81,7 +81,7 @@ export function CommitmentSectionClient({ monthIso, initialData, hasDebt, outOfM
 
   return (
     <div>
-      <CommitmentCard pct={monthDetail.totals.committedPct} />
+      <CommitmentCard pct={monthDetail.totals.committedPct} monthIso={monthIso} />
       {hasOutOfMonth ? <OutOfMonthAnchor summary={outOfMonth} /> : null}
     </div>
   );

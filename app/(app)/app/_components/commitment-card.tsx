@@ -5,6 +5,7 @@ import { HowItWorksSheet } from "./how-it-works-sheet";
 
 export interface CommitmentCardProps {
   pct: number;
+  monthIso: string;
 }
 
 type Zone = "excellent" | "healthy" | "attention" | "tight" | "severe" | "over";
@@ -38,7 +39,7 @@ const ZONE_FILL: Record<Zone, string> = {
   over: "var(--semantic-negative)",
 };
 
-export function CommitmentCard({ pct }: CommitmentCardProps) {
+export function CommitmentCard({ pct, monthIso }: CommitmentCardProps) {
   const rawPct = Number.isFinite(pct) ? pct : 1;
   const cappedPct = Math.max(0, Math.min(1, rawPct));
   const overflow = rawPct > 1;
@@ -115,12 +116,12 @@ export function CommitmentCard({ pct }: CommitmentCardProps) {
         {tone.label}
       </div>
       {zone === "over" ? (
-        <a
-          href="#movimento-do-mes"
-          className="focus-ring mt-2 inline-flex text-xs font-semibold text-[color:var(--color-brand-700)] hover:underline"
+        <Link
+          href={`/app/linha-do-tempo/${monthIso}` as Route}
+          className="mt-2 inline-flex text-xs font-semibold text-[color:var(--color-brand-700)] hover:underline"
         >
-          Ver o movimento do mês
-        </a>
+          Ver minhas parcelas do mês
+        </Link>
       ) : zone === "attention" || zone === "tight" || zone === "severe" ? (
         <Link
           href={"/app/simular/quitacao" as Route}
