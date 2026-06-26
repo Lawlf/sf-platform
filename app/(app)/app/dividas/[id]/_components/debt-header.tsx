@@ -53,6 +53,7 @@ function statusBadgeClass(status: DebtStatus): string {
 function buildHeaderStats(
   debt: DebtEntity,
   categoryLabelText: string,
+  scheduleEndDate: Date | null,
 ): { label: string; value: string; isCurrency?: boolean }[] {
   if (debt.kind === "recurring") {
     const freqLabel = FREQUENCY_LABEL[debt.recurringFrequency];
@@ -79,10 +80,13 @@ function buildHeaderStats(
       ? debt.creditLimit
         ? { label: "Limite", value: debt.creditLimit.format(), isCurrency: true }
         : { label: "Limite", value: "Não informado" }
-      : {
-          label: "Termina em",
-          value: debt.expectedEndDate ? DATE_FMT.format(debt.expectedEndDate) : "A definir",
-        };
+      : (() => {
+          const endDate = debt.expectedEndDate ?? scheduleEndDate;
+          return {
+            label: "Termina em",
+            value: endDate ? DATE_FMT.format(endDate) : "Não informado",
+          };
+        })();
   return [
     { label: terms.debtRemaining, value: debt.currentBalance.format(), isCurrency: true },
     { label: "Valor original", value: debt.originalPrincipal.format(), isCurrency: true },
@@ -94,10 +98,11 @@ function buildHeaderStats(
 interface Props {
   debt: DebtEntity;
   categoryLabelText?: string;
+  scheduleEndDate?: Date | null;
 }
 
-export function DebtHeader({ debt, categoryLabelText }: Props) {
-  const headerStats = buildHeaderStats(debt, categoryLabelText ?? "Outros");
+export function DebtHeader({ debt, categoryLabelText, scheduleEndDate = null }: Props) {
+  const headerStats = buildHeaderStats(debt, categoryLabelText ?? "Outros", scheduleEndDate);
   return (
     <section className="glass-tier-1 relative overflow-hidden p-[22px]">
       <div

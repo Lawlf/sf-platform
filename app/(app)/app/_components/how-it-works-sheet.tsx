@@ -278,6 +278,13 @@ const TOPICS = {
     technical:
       "Alvo = custo anual / 0,04 (regra dos 4%). Progresso = patrimônio atual / alvo. ETA: resolva alvo = atual x (1 + i)^n + aporte x ((1 + i)^n - 1) / i para n, com i = (1 + taxa real anual)^(1/12) - 1. Taxa real de referência: 4% a.a. acima da inflação (CDI histórico).",
   },
+  "cronograma-parcelas": {
+    title: "Cronograma de parcelas",
+    tag: "Conceito",
+    body: "Cada barra é uma parcela. A parte de baixo, na cor da marca, é o quanto daquela parcela abate a sua dívida; a parte de cima é o juro, que vira custo. As parcelas que você já pagou ficam verdes. Toque numa barra ou use as setas pra ver os valores do mês: o valor da parcela, quanto abate, quanto é juro e o saldo que ainda sobra. Quando há um pagamento registrado naquele mês, dá pra abrir os detalhes.",
+    technical:
+      "Na Tabela Price a parcela é fixa do começo ao fim. No início, a maior fatia é juro (incide sobre um saldo grande); conforme o saldo cai, mais da parcela passa a abater a dívida. Por isso as barras mantêm a mesma altura, mas a fatia de juro encolhe com o tempo.",
+  },
 } as const;
 
 export type HowItWorksTopic = keyof typeof TOPICS;
@@ -290,9 +297,9 @@ export interface HowItWorksSheetProps {
 }
 
 const TRIGGER_CLASSES: Record<HowItWorksVariant, string> = {
-  chip: "focus-ring inline-flex items-center gap-1.5 rounded-full bg-white/20 px-2.5 py-1 text-[0.6875rem] font-semibold text-current backdrop-blur-sm transition-colors hover:bg-white/30",
+  chip: "focus-ring inline-flex size-9 shrink-0 items-center justify-center rounded-full bg-white/20 text-current backdrop-blur-sm transition-colors hover:bg-white/30",
   brand:
-    "focus-ring inline-flex items-center gap-1.5 rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] px-2.5 py-1 text-[0.6875rem] font-semibold text-[color:var(--color-brand-800)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-1)]",
+    "focus-ring inline-flex size-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] text-[color:var(--color-brand-800)] backdrop-blur-md transition-colors hover:bg-[color:var(--surface-1)]",
   plain:
     "focus-ring inline-flex items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] underline-offset-2 hover:underline",
 };
@@ -304,14 +311,19 @@ export function HowItWorksSheet({
 }: HowItWorksSheetProps) {
   const data = TOPICS[topic];
   const triggerClass = `${TRIGGER_CLASSES[variant]} ${triggerClassName ?? ""}`.trim();
-  const showIcon = variant !== "plain";
 
   return (
     <Sheet>
       <SheetTrigger asChild>
         <button type="button" className={triggerClass} aria-label={`Como funciona ${data.title}`}>
-          {showIcon ? <HelpCircle size={12} strokeWidth={2.5} aria-hidden /> : null}
-          Como funciona
+          {variant === "plain" ? (
+            <>
+              <HelpCircle size={13} strokeWidth={2.5} aria-hidden />
+              Como funciona
+            </>
+          ) : (
+            <HelpCircle size={19} strokeWidth={2.5} aria-hidden />
+          )}
         </button>
       </SheetTrigger>
 

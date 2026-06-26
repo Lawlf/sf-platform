@@ -27,6 +27,8 @@ interface Props {
 }
 
 export async function PaymentsSection({ debt, payments, userId, isPro }: Props) {
+  if (payments.length === 0) return null;
+
   const currency = debt.originalPrincipal.currency;
   const word = KIND_WORD[debt.kind];
 
