@@ -15,14 +15,19 @@ export async function HomeSafeToSpendCard() {
     "flex flex-col gap-1 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[18px] pb-[16px] pt-[14px]";
 
   if (data.state === "underwater") {
+    const brokeEven = data.shortfallCents === "0";
     return (
       <div className={shell}>
         <p className="text-sm text-[color:var(--text-soft)]">Quanto posso gastar</p>
         <p className="text-base font-medium">
-          Esse mês seus compromissos já passam da renda garantida.
+          {brokeEven
+            ? "Esse mês fecha no zero, não sobra pra gasto livre."
+            : "Esse mês seus compromissos já passam da renda garantida."}
         </p>
         <p className="text-sm text-[color:var(--text-soft)]">
-          Faltam {brl(data.shortfallCents)} pra cobrir o mês. Veja onde aliviar na sua prescrição.
+          {brokeEven
+            ? "Veja onde abrir folga na sua prescrição."
+            : `Faltam ${brl(data.shortfallCents)} pra cobrir o mês. Veja onde aliviar na sua prescrição.`}
         </p>
       </div>
     );
@@ -37,6 +42,18 @@ export async function HomeSafeToSpendCard() {
         </p>
         <p className="text-sm text-[color:var(--text-soft)]">
           Estendendo o prazo da meta, sobram cerca de {brl(data.perWeekWithoutGoalCents)} por semana.
+        </p>
+      </div>
+    );
+  }
+
+  if (data.perWeekCents === "0") {
+    return (
+      <div className={shell}>
+        <p className="text-sm text-[color:var(--text-soft)]">Quanto posso gastar</p>
+        <p className="text-base font-medium">Quase não sobra pra gasto livre esse mês.</p>
+        <p className="text-sm text-[color:var(--text-soft)]">
+          Número de planejamento, não saldo em tempo real.
         </p>
       </div>
     );
