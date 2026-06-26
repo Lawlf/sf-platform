@@ -61,6 +61,24 @@ function makeSettingsRepo(): FinancialPlanningSettingsRepositoryPort {
         userId,
         profileId,
         liquidBucketAssetId,
+        freeBalanceAccumulatedCents: existing?.freeBalanceAccumulatedCents ?? 0n,
+        committedCoveredCents: existing?.committedCoveredCents ?? 0n,
+        currentBucketMonth: existing?.currentBucketMonth ?? null,
+        createdAt: existing?.createdAt ?? new Date(0),
+        updatedAt: new Date(),
+      };
+      store.set(profileId, record);
+      return record;
+    },
+    upsertFreeBalanceBucket: async (userId: string, profileId: string, update) => {
+      const existing = store.get(profileId);
+      const record: FinancialPlanningSettingsEntity = {
+        userId,
+        profileId,
+        liquidBucketAssetId: existing?.liquidBucketAssetId ?? null,
+        freeBalanceAccumulatedCents: update.accumulatedCents,
+        committedCoveredCents: update.committedCoveredCents,
+        currentBucketMonth: update.currentBucketMonth,
         createdAt: existing?.createdAt ?? new Date(0),
         updatedAt: new Date(),
       };

@@ -22,18 +22,18 @@ interface StateTeaser {
 // Teaser borrado por estado (free): enquadra o movimento real sem revelar números.
 const TEASER_BY_STATE: Record<string, StateTeaser> = {
   bleeding: {
-    line1: "Coloque sua sobra na dívida certa primeiro.",
-    line2: "Você economiza R$ ••• em juros e ••• meses.",
+    line1: "Parte do que entra já tem dono: a dívida que corre juros vem antes.",
+    line2: "Mexer nela primeiro libera R$ ••• por mês pro que vier.",
     cta: "Ver qual dívida quitar primeiro",
   },
   no_cushion: {
-    line1: "Sua reserva ainda não cobre um imprevisto.",
-    line2: "Faltam R$ ••• para o seu colchão ficar completo.",
+    line1: "Sua reserva ainda não segura um mês fraco.",
+    line2: "Faltam R$ ••• pra você ter de quanto se segurar.",
     cta: "Ver quanto guardar por mês",
   },
   ready_to_grow: {
-    line1: "Sua sobra pode render mais do que parada.",
-    line2: "Em 12 meses, cerca de R$ •••.",
+    line1: "Sua sobra rende mais trabalhando do que parada.",
+    line2: "Em 12 meses, a diferença é cerca de R$ •••.",
     cta: "Ver quanto sua sobra rende",
   },
 };
@@ -52,18 +52,18 @@ const TEASER_ESTIMATED_HOLD: StateTeaser = {
 
 const TEASER_BY_TIGHT_KIND: Record<TightKind, StateTeaser> = {
   deficit: {
-    line1: "Este mês sai mais do que entra.",
-    line2: "Faltam R$ ••• pra fechar o mês.",
+    line1: "No ritmo de agora, esse mês não fecha sozinho.",
+    line2: "Faltam R$ ••• pra entrada cobrir a saída.",
     cta: "Ver minhas parcelas",
   },
   over_committed: {
-    line1: "Suas parcelas sozinhas já passam a renda.",
-    line2: "Cortar R$ ••• por mês deixa a renda cobrir as parcelas.",
+    line1: "Só as parcelas já passam o que entra.",
+    line2: "Tirar R$ ••• por mês faz a renda voltar a cobrir.",
     cta: "Ver qual parcela renegociar",
   },
   squeezed: {
-    line1: "Você fecha o mês, mas no limite.",
-    line2: "Sobram só R$ ••• neste mês.",
+    line1: "Você fecha esse mês, mas no limite.",
+    line2: "Sobram só R$ ••• pra qualquer susto.",
     cta: "Ver o que ajustar este mês",
   },
 };
@@ -131,11 +131,11 @@ export async function NextStepCard() {
         </p>
         <p className="mt-1.5 flex items-center gap-1.5 text-[0.78125rem] font-medium text-[color:var(--color-brand-800)]">
           <Lock size={12} strokeWidth={2.25} aria-hidden />
-          Números completos no plano Pro
+          Os valores, em reais, no Pro
         </p>
         {data.timelineTeaser ? (
           <p className="mt-2 text-[0.78125rem] leading-[1.5] text-[color:var(--text-secondary)]">
-            No Pro você vê em que mês essa dívida quita e a sobra muda de lugar.
+            No Pro você vê se o mês que vem fecha no ritmo de agora, e quanto guardar pra ele não apertar.
           </p>
         ) : null}
         {action ? (

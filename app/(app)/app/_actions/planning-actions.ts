@@ -10,9 +10,11 @@ import { setLiquidBucket } from "@/application/use-cases/planning/set-liquid-buc
 import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
-import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, ActionError, unwrap } from "@/presentation/actions/action";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+
+import { computeFreeBalanceEvent, type IncomeFreeBalanceEvent } from "./_free-balance-event";
 
 export const setLiquidBucketAction = action({
   schema: z.string().nullable(),
@@ -158,7 +160,7 @@ const createTransactionSchema = z.object({
 export const createTransactionAction = action({
   schema: createTransactionSchema,
   revalidates: ["report"],
-  handler: async (input, { userId, profileId }) => {
+  handler: async (input, { userId, profileId }): Promise<{ event: IncomeFreeBalanceEvent | null }> => {
     const description = input.description.trim();
     if (description.length === 0) {
       throw new ActionError("Descreva o gasto.");
@@ -185,6 +187,9 @@ export const createTransactionAction = action({
       occurredAt = parsed;
     }
 
+    const direction = input.direction ?? "out";
+    const status = input.status ?? "paid";
+
     await createTransaction(
       {
         transactions: repos.transactions,
@@ -194,14 +199,20 @@ export const createTransactionAction = action({
       {
         userId,
         profileId,
-        direction: input.direction ?? "out",
+        direction,
         amount: Money.fromCents(amountCents),
         description,
         category,
         accountId: input.accountId ?? null,
         occurredAt,
-        status: input.status ?? "paid",
+        status,
       },
     );
+
+    const event =
+      direction === "in" && status === "paid"
+        ? await computeFreeBalanceEvent(userId, profileId, Money.fromCents(amountCents))
+        : null;
+    return { event };
   },
 });
