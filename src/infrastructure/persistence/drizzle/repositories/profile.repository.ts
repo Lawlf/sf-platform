@@ -2,6 +2,7 @@ import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { ProfileEntity } from "@/domain/entities/profile.entity";
 import type { ProfileRepositoryPort } from "@/domain/ports/repositories/profile.repository";
+import type { ConservativeLevel } from "@/domain/services/safe-to-spend.service";
 
 import { getDb } from "../client";
 import { profiles, type ProfileRow } from "../schema/profiles.schema";
@@ -17,6 +18,7 @@ function rowToEntity(row: ProfileRow): ProfileEntity {
     checklistDebtDismissedAt: row.checklistDebtDismissedAt,
     checklistGoalDismissedAt: row.checklistGoalDismissedAt,
     taxClassification: row.taxClassification ?? null,
+    conservativeLevel: (row.conservativeLevel ?? "normal") as ConservativeLevel,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -123,6 +125,13 @@ export class ProfileRepository implements ProfileRepositoryPort {
     await getDb()
       .update(profiles)
       .set({ ...column, updatedAt: sql`now()` })
+      .where(eq(profiles.id, profileId));
+  }
+
+  async setConservativeLevel(profileId: string, level: ConservativeLevel): Promise<void> {
+    await getDb()
+      .update(profiles)
+      .set({ conservativeLevel: level, updatedAt: sql`now()` })
       .where(eq(profiles.id, profileId));
   }
 }

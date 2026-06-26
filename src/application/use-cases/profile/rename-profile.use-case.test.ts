@@ -18,6 +18,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     displayName: "Original",
     isPrimary: true,
     taxClassification: null,
+    conservativeLevel: "normal",
     createdAt: NOW,
     updatedAt: NOW,
     ...over,

@@ -1,3 +1,7 @@
+import type { ConservativeLevel } from "@/domain/services/safe-to-spend.service";
+
+export type { ConservativeLevel };
+
 export type ProfileType = "PF" | "PJ_MEI";
 export type ProfileTaxClassification = "mei" | "manual";
 
@@ -11,6 +15,7 @@ export interface ProfileEntity {
   checklistDebtDismissedAt?: Date | null;
   checklistGoalDismissedAt?: Date | null;
   taxClassification: ProfileTaxClassification | null;
+  conservativeLevel: ConservativeLevel;
   createdAt: Date;
   updatedAt: Date;
 }
