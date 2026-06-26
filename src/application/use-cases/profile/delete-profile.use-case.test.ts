@@ -18,6 +18,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     displayName: "Empresa",
     isPrimary: false,
     taxClassification: "mei",
+    conservativeLevel: "normal",
     createdAt: NOW,
     updatedAt: NOW,
     ...over,
@@ -54,6 +55,7 @@ describe("deleteProfile", () => {
       displayName: null,
       isPrimary: true,
       taxClassification: null,
+      conservativeLevel: "normal",
       createdAt: NOW,
       updatedAt: NOW,
     };

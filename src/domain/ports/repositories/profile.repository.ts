@@ -1,4 +1,4 @@
-import type { ProfileEntity, ProfileTaxClassification, ProfileType } from "@/domain/entities/profile.entity";
+import type { ConservativeLevel, ProfileEntity, ProfileTaxClassification, ProfileType } from "@/domain/entities/profile.entity";
 
 export interface ProfileRepositoryPort {
   listForUser(userId: string): Promise<ProfileEntity[]>;
@@ -19,4 +19,5 @@ export interface ProfileRepositoryPort {
   delete(profileId: string): Promise<void>;
   setLinkedProfile(profileId: string, linkedProfileId: string | null): Promise<void>;
   markChecklistItemDismissed(profileId: string, item: "debt" | "goal"): Promise<void>;
+  setConservativeLevel(profileId: string, level: ConservativeLevel): Promise<void>;
 }

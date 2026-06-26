@@ -62,6 +62,7 @@ function makeProfiles() {
       displayName: null,
       isPrimary: true,
       taxClassification: null,
+      conservativeLevel: "normal" as const,
       createdAt: new Date("2026-01-01"),
       updatedAt: new Date("2026-01-01"),
     })),

@@ -43,6 +43,7 @@ function makeProfile(id: string, userId: string, displayName: string | null = nu
     displayName,
     isPrimary: true,
     taxClassification: null,
+    conservativeLevel: "normal",
     createdAt: NOW,
     updatedAt: NOW,
   };
@@ -115,6 +116,7 @@ function makeProfilesRepo(profiles: ProfileEntity[]): ProfileRepositoryPort {
     delete: vi.fn(),
     setLinkedProfile: vi.fn(),
     markChecklistItemDismissed: vi.fn(),
+    setConservativeLevel: vi.fn(),
   };
 }
 

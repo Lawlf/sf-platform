@@ -20,6 +20,7 @@ export const profiles = pgTable(
     checklistDebtDismissedAt: timestamp("checklist_debt_dismissed_at", { withTimezone: true }),
     checklistGoalDismissedAt: timestamp("checklist_goal_dismissed_at", { withTimezone: true }),
     taxClassification: profileTaxClassification("tax_classification"),
+    conservativeLevel: text("conservative_level").notNull().default("normal"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

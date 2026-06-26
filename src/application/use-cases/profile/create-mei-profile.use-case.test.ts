@@ -23,6 +23,7 @@ function makeProfile(over: Partial<ProfileEntity> = {}): ProfileEntity {
     displayName: null,
     isPrimary: true,
     taxClassification: null,
+    conservativeLevel: "normal",
     createdAt: NOW,
     updatedAt: NOW,
     ...over,
@@ -77,6 +78,7 @@ function makeProfileRepo(initial: ProfileEntity[] = []): ProfileRepositoryPort &
       if (idx >= 0) store[idx] = { ...store[idx]!, linkedProfileId };
     }),
     markChecklistItemDismissed: vi.fn(),
+    setConservativeLevel: vi.fn(),
   };
 }
 
