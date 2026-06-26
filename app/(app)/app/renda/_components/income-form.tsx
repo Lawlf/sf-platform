@@ -17,7 +17,8 @@ import { incomeCopy } from "../../_lib/copy/catalogs";
 import { useCopy } from "../../_lib/copy/use-copy";
 import { queryKeys } from "../../_lib/query-keys";
 import { parseIncomeSeed } from "../../simular/_lib/income-seed";
-import { createIncomeAction } from "../_actions/create-income.action";
+import { createIncomeAction, type IncomeFreeBalanceEvent } from "../_actions/create-income.action";
+import { IncomeFreeBalanceResult } from "./income-free-balance-result";
 
 const formSchema = z.object({
   label: z.string().min(1, "Informe um nome.").max(120),
@@ -54,6 +55,7 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
   const [pending, startTransition] = useTransition();
   const t = useCopy(incomeCopy);
   const [serverError, setServerError] = useState<string | null>(null);
+  const [result, setResult] = useState<IncomeFreeBalanceEvent | null>(null);
 
   // Vindo de um simulador (ex: salário-CLT, 13º, férias, rescisão): pré-preenche
   // valor/frequência/rótulo para a pessoa só conferir e salvar.
@@ -108,8 +110,16 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
       await queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
       await queryClient.invalidateQueries({ queryKey: ["timeline"] });
       await queryClient.invalidateQueries({ queryKey: ["planning", "projection"] });
+      if (r.data?.event) {
+        setResult(r.data.event);
+        return;
+      }
       router.push("/app/renda");
     });
+  }
+
+  if (result) {
+    return <IncomeFreeBalanceResult event={result} onDone={() => router.push("/app/renda")} />;
   }
 
   return (

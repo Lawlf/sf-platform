@@ -36,6 +36,7 @@ import {
 } from "@/app/components/ui/sheet";
 import { activeCategories } from "@/domain/categories/resolve-categories";
 
+import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 import {
   listCategoriesQuery,
   type CategoryCatalog,
@@ -47,6 +48,7 @@ import { MoneyInput } from "../../_components/money-input";
 import { lancarCopy } from "../../_lib/copy/catalogs";
 import { useCopy } from "../../_lib/copy/use-copy";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
+import { IncomeFreeBalanceResult } from "../../renda/_components/income-free-balance-result";
 import { createCashAccount } from "../_actions/create-cash-account.action";
 import {
   listCashAccounts,
@@ -106,6 +108,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const t = useCopy(lancarCopy);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
+  const [eventResult, setEventResult] = useState<IncomeFreeBalanceEvent | null>(null);
   const [direction, setDirection] = useState<Direction>("out");
   const [status, setStatus] = useState<Status>("paid");
   const [category, setCategory] = useState<string>(NO_CATEGORY_VALUE);
@@ -232,7 +235,12 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       setShowCategory(false);
       await queryClient.invalidateQueries({ queryKey: ["annual-report"] });
       toast.success(direction === "in" ? "Entrada registrada." : "Saída registrada.");
+      if (result.data?.event) setEventResult(result.data.event);
     });
+  }
+
+  if (eventResult) {
+    return <IncomeFreeBalanceResult event={eventResult} onDone={() => setEventResult(null)} />;
   }
 
   return (

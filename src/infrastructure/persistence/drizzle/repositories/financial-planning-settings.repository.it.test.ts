@@ -138,4 +138,49 @@ describe("FinancialPlanningSettingsRepository (integration)", () => {
     expect(found).not.toBeNull();
     expect(found?.liquidBucketAssetId).toBeNull();
   });
+
+  it("a new liquid-bucket row starts with a zeroed free-balance bucket", async () => {
+    await repo.upsertLiquidBucket(userId, profileId, assetId);
+
+    const found = await repo.findByProfile(profileId);
+    expect(found?.freeBalanceAccumulatedCents).toBe(0n);
+    expect(found?.committedCoveredCents).toBe(0n);
+    expect(found?.currentBucketMonth).toBeNull();
+  });
+
+  it("upsertFreeBalanceBucket persists the accumulated bucket and month", async () => {
+    const entity = await repo.upsertFreeBalanceBucket(userId, profileId, {
+      accumulatedCents: 370000n,
+      committedCoveredCents: 230000n,
+      currentBucketMonth: "2026-06",
+    });
+
+    expect(entity.freeBalanceAccumulatedCents).toBe(370000n);
+    expect(entity.committedCoveredCents).toBe(230000n);
+    expect(entity.currentBucketMonth).toBe("2026-06");
+
+    const found = await repo.findByProfile(profileId);
+    expect(found?.freeBalanceAccumulatedCents).toBe(370000n);
+    expect(found?.committedCoveredCents).toBe(230000n);
+    expect(found?.currentBucketMonth).toBe("2026-06");
+  });
+
+  it("upsertFreeBalanceBucket does not clobber the liquid bucket asset", async () => {
+    await repo.upsertLiquidBucket(userId, profileId, assetId);
+    await repo.upsertFreeBalanceBucket(userId, profileId, {
+      accumulatedCents: 500000n,
+      committedCoveredCents: 0n,
+      currentBucketMonth: "2026-07",
+    });
+
+    const found = await repo.findByProfile(profileId);
+    expect(found?.liquidBucketAssetId).toBe(assetId);
+    expect(found?.freeBalanceAccumulatedCents).toBe(500000n);
+
+    const allRows = await getDb()
+      .select()
+      .from(financialPlanningSettings)
+      .where(eq(financialPlanningSettings.profileId, profileId));
+    expect(allRows).toHaveLength(1);
+  });
 });

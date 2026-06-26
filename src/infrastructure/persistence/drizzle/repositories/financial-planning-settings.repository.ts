@@ -1,7 +1,10 @@
 import { eq, sql } from "drizzle-orm";
 
 import type { FinancialPlanningSettingsEntity } from "@/domain/entities/financial-planning-settings.entity";
-import type { FinancialPlanningSettingsRepositoryPort } from "@/domain/ports/repositories/financial-planning-settings.repository";
+import type {
+  FinancialPlanningSettingsRepositoryPort,
+  FreeBalanceBucketUpdate,
+} from "@/domain/ports/repositories/financial-planning-settings.repository";
 
 import { getDb } from "../client";
 import {
@@ -14,6 +17,9 @@ function rowToEntity(row: FinancialPlanningSettingsRow): FinancialPlanningSettin
     userId: row.userId,
     profileId: row.profileId,
     liquidBucketAssetId: row.liquidBucketAssetId ?? null,
+    freeBalanceAccumulatedCents: row.freeBalanceAccumulatedCents,
+    committedCoveredCents: row.committedCoveredCents,
+    currentBucketMonth: row.currentBucketMonth ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
   };
@@ -48,6 +54,35 @@ export class FinancialPlanningSettingsRepository
       .returning();
     const row = rows[0];
     if (!row) throw new Error("Failed to upsert financial planning settings");
+    return rowToEntity(row);
+  }
+
+  async upsertFreeBalanceBucket(
+    userId: string,
+    profileId: string,
+    update: FreeBalanceBucketUpdate,
+  ): Promise<FinancialPlanningSettingsEntity> {
+    const rows = await getDb()
+      .insert(financialPlanningSettings)
+      .values({
+        userId,
+        profileId,
+        freeBalanceAccumulatedCents: update.accumulatedCents,
+        committedCoveredCents: update.committedCoveredCents,
+        currentBucketMonth: update.currentBucketMonth,
+      })
+      .onConflictDoUpdate({
+        target: financialPlanningSettings.profileId,
+        set: {
+          freeBalanceAccumulatedCents: update.accumulatedCents,
+          committedCoveredCents: update.committedCoveredCents,
+          currentBucketMonth: update.currentBucketMonth,
+          updatedAt: sql`now()`,
+        },
+      })
+      .returning();
+    const row = rows[0];
+    if (!row) throw new Error("Failed to upsert free balance bucket");
     return rowToEntity(row);
   }
 }

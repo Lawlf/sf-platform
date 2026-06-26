@@ -1,5 +1,5 @@
 import { sql } from "drizzle-orm";
-import { index, pgTable, timestamp, uuid } from "drizzle-orm/pg-core";
+import { bigint, index, pgTable, text, timestamp, uuid } from "drizzle-orm/pg-core";
 
 import { assets } from "./assets.schema";
 import { profiles } from "./profiles.schema";
@@ -18,6 +18,13 @@ export const financialPlanningSettings = pgTable(
     liquidBucketAssetId: uuid("liquid_bucket_asset_id").references(() => assets.id, {
       onDelete: "set null",
     }),
+    freeBalanceAccumulatedCents: bigint("free_balance_accumulated_cents", { mode: "bigint" })
+      .notNull()
+      .default(sql`0`),
+    committedCoveredCents: bigint("committed_covered_cents", { mode: "bigint" })
+      .notNull()
+      .default(sql`0`),
+    currentBucketMonth: text("current_bucket_month"),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),
