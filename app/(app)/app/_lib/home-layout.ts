@@ -2,11 +2,11 @@ export type HomeState = "com_divida" | "sem_reserva" | "com_patrimonio";
 
 export type HomeCardKey =
   | "hero"
+  | "nextMonth"
   | "quickAccess"
   | "nextStep"
   | "incomeConfirm"
   | "bringData"
-  | "safeToSpend"
   | "commitment"
   | "projection"
   | "goal"
@@ -31,9 +31,9 @@ export function resolveHomeState(input: {
 }
 
 const ORDER_BY_STATE: Record<HomeState, HomeCardKey[]> = {
-  com_divida: ["hero", "safeToSpend", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "goal", "monthClosing", "consistencyDelta", "maintenance"],
-  sem_reserva: ["hero", "safeToSpend", "incomeConfirm", "quickAccess", "nextStep", "bringData", "goal", "commitment", "monthClosing", "consistencyDelta", "maintenance"],
-  com_patrimonio: ["hero", "safeToSpend", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "projection", "goal", "monthClosing", "consistencyDelta", "maintenance"],
+  com_divida: ["hero", "nextMonth", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "goal", "monthClosing", "consistencyDelta", "maintenance"],
+  sem_reserva: ["hero", "nextMonth", "incomeConfirm", "quickAccess", "nextStep", "bringData", "goal", "commitment", "monthClosing", "consistencyDelta", "maintenance"],
+  com_patrimonio: ["hero", "nextMonth", "incomeConfirm", "quickAccess", "nextStep", "bringData", "commitment", "projection", "goal", "monthClosing", "consistencyDelta", "maintenance"],
 };
 
 export function homeCardOrder(state: HomeState): HomeCardKey[] {

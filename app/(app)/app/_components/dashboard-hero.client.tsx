@@ -4,20 +4,20 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useMemo } from "react";
+import { type ReactNode, useMemo } from "react";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
+import type { SerializedSafeToSpend } from "../_actions/safe-to-spend-queries";
 import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
 import { fetchWalletBalance } from "../_actions/wallet-queries";
+import { resolveMonthClose } from "../_lib/month-close";
 import { queryKeys } from "../_lib/query-keys";
 
-import { resolveMonthClose } from "../_lib/month-close";
 
 import { HowItWorksSheet } from "./how-it-works-sheet";
 import { HideValuesToggle } from "./money-visibility/hide-values-toggle.client";
 import { HideableValue } from "./money-visibility/hideable-value.client";
-import { NextMonthBridge } from "./next-month-bridge.client";
 
 function formatBrl(cents: bigint): string {
   const negative = cents < 0n;
@@ -29,6 +29,17 @@ function formatBrl(cents: bigint): string {
 
 function stripMinus(formatted: string): string {
   return formatted.replace(/^[-−]\s*/, "");
+}
+
+// Estimativa semanal arredondada pro inteiro: centavo numa aproximacao induz
+// leitura de "saldo exato de banco", justo o que o numero nao e.
+function formatBrlWhole(cents: bigint): string {
+  const reais = Math.round(Number(cents) / 100);
+  return reais.toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
 }
 
 function capitalize(s: string): string {
@@ -56,6 +67,8 @@ interface Props {
   previousMonth?: { label: string; freeCents: string } | null;
   // Marco do StoryDetection (ex: "3 meses no azul"), so quando existe.
   milestone?: string | null;
+  // Quanto cabe gastar por semana (planejamento macro fatiado no tempo).
+  safeToSpend?: SerializedSafeToSpend | null;
 }
 
 export function DashboardHeroClient({
@@ -63,6 +76,7 @@ export function DashboardHeroClient({
   initialData,
   previousMonth = null,
   milestone = null,
+  safeToSpend = null,
 }: Props) {
   const month = useMemo(() => MonthYear.fromIso(monthIso), [monthIso]);
   const timelineHref = `/app/linha-do-tempo/${monthIso}` as Route;
@@ -146,7 +160,6 @@ export function DashboardHeroClient({
     hasPendingEstimatedIncome: estimatedIncomeCents > 0n,
   });
   const showCelebration = monthClose.showCelebration && !noIncome;
-  const showBridge = monthClose.showBridge && !noIncome;
 
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
@@ -171,6 +184,28 @@ export function DashboardHeroClient({
   const showNudge = noIncome;
 
   const negative = !positive && !noIncome;
+
+  // Linha "quanto posso gastar": so quando o heroi nao e a propria ma noticia.
+  // underwater e perWeek=0 em mes vermelho so ecoam o heroi; tight-by-goal e o
+  // unico apertado cuja causa o numero grande nao explica (a meta come a folga).
+  let safeLine: ReactNode = null;
+  if (safeToSpend && !noIncome) {
+    if (safeToSpend.state === "tight-by-goal") {
+      const withoutGoal = formatBrlWhole(BigInt(safeToSpend.perWeekWithoutGoalCents));
+      safeLine = <>Esse mês a meta come a folga; sem ela sobrariam uns {withoutGoal}/semana.</>;
+    } else if (safeToSpend.state === "ok" && !negative) {
+      const perWeekCents = BigInt(safeToSpend.perWeekCents);
+      safeLine =
+        perWeekCents > 0n ? (
+          <>
+            Dá pra gastar uns <HideableValue>{formatBrlWhole(perWeekCents)}</HideableValue> por
+            semana sem furar o mês.
+          </>
+        ) : (
+          <>Essa semana, melhor não contar com gasto livre.</>
+        );
+    }
+  }
 
   // Tratamento de estado negativo (buraco): herói escuro/alerta em vez do
   // laranja, com acento vermelho na linha "falta" e no selo.
@@ -206,7 +241,6 @@ export function DashboardHeroClient({
           : `Ver detalhes de ${month.format()}. ${bigFormatted}. ${verb} ${projFormatted} no fim de ${CURRENT_MONTH_NAME}.`;
 
   return (
-    <div className="flex flex-col gap-3">
       <div
         className={`relative flex min-h-[126px] w-full items-center overflow-hidden rounded-2xl px-5 py-5 text-left transition-[filter] hover:brightness-105 md:min-h-[148px] md:px-6 md:py-6 ${heroSurface}`}
       >
@@ -283,6 +317,13 @@ export function DashboardHeroClient({
                 </span>
               </>
             ) : null}
+            {safeLine ? (
+              <span
+                className={`mt-2 block text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}
+              >
+                {safeLine}
+              </span>
+            ) : null}
             {hasVariableIncome ? (
               <span className={`mt-2 block text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}>
                 {floor.positive ? (
@@ -350,7 +391,5 @@ export function DashboardHeroClient({
         </div>
       </div>
       </div>
-      {showBridge ? <NextMonthBridge currentMonthIso={monthIso} /> : null}
-    </div>
   );
 }
