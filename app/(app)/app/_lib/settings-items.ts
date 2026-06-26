@@ -53,7 +53,7 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
         label: "Plano",
         description: "Veja seu plano atual.",
         icon: Crown,
-        keywords: ["assinatura", "pro", "premium", "pagamento", "cobranca", "upgrade", "fatura", "preco"],
+        keywords: ["assinatura", "pro", "premium", "pagamento", "cobranca", "upgrade", "fatura", "preco", "cancelar", "vitalicio"],
       },
       {
         href: "/app/perfil/seguranca" as Route,
@@ -79,14 +79,14 @@ export const SETTINGS_SECTIONS: SettingSection[] = [
         label: "Importar extrato do banco",
         description: "Baixe o extrato no app do seu banco e suba aqui.",
         icon: FileUp,
-        keywords: ["ofx", "extrato", "importar", "banco", "csv", "arquivo", "upload", "transacoes"],
+        keywords: ["ofx", "extrato", "importar", "banco", "csv", "arquivo", "upload", "transacoes", "sincronizar", "open finance", "nubank", "inter"],
       },
       {
         href: "/app/configuracoes/integracoes" as Route,
         label: "Assistente de IA",
         description: "Conecte o ChatGPT ou Claude pra cuidar dos números por conversa.",
         icon: Plug,
-        keywords: ["mcp", "chatgpt", "claude", "integracao", "integracoes", "conectar", "ia", "api", "token", "assistente"],
+        keywords: ["mcp", "chatgpt", "claude", "integracao", "integracoes", "conectar", "ia", "inteligencia artificial", "robo", "automatizar", "api", "token", "assistente", "gpt"],
       },
       {
         href: "/app/configuracoes/documentos" as Route,

@@ -1,12 +1,14 @@
 "use client";
 
 import {
+  ArrowDownUp,
   Bell,
   ChevronRight,
   Coins,
   Files,
   HomeIcon,
   LineChart,
+  PiggyBank,
   PlusCircle,
   Search,
   Settings,
@@ -43,17 +45,19 @@ interface Command {
 }
 
 const BASE_COMMANDS: Command[] = [
-  { href: "/app" as Route, label: "Início", hint: "Visão geral", icon: HomeIcon, terms: "home resumo painel dashboard" },
-  { href: "/app/renda" as Route, label: "Renda", hint: "Visão geral", icon: TrendingUp, terms: "dinheiro que entra salario ganho receita faturamento entrada" },
-  { href: "/app/dividas" as Route, label: "Dívidas", hint: "Visão geral", icon: Wallet, terms: "quanto devo emprestimo financiamento cartao parcela conta a pagar" },
-  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "Visão geral", icon: Coins, terms: "investimentos bens ativos poupanca aplicacao quanto tenho reserva" },
-  { href: "/app/metas" as Route, label: "Metas", hint: "Planejar", icon: Target, terms: "objetivo sonho guardar juntar planejar" },
-  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Planejar", icon: LineChart, terms: "projecao futuro previsao timeline historico evolucao" },
-  { href: "/app/simular" as Route, label: "Simular", hint: "Planejar", icon: PlusCircle, terms: "simulador calculadora calcular simulacao" },
-  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell, terms: "alertas avisos lembretes" },
-  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound, terms: "minha conta usuario" },
+  { href: "/app" as Route, label: "Início", hint: "Visão geral", icon: HomeIcon, terms: "home resumo painel dashboard saldo do mes movimento gap sobra inicio" },
+  { href: "/app/lancar" as Route, label: "Registrar entrada ou saída", hint: "Um PIX, uma venda, um gasto avulso", icon: ArrowDownUp, terms: "pix venda vendi recebi paguei gasto compra dinheiro entrada saida custo transacao pagamento lancar lancamento avulso recebimento entrou saiu freela" },
+  { href: "/app/renda" as Route, label: "Renda", hint: "Visão geral", icon: TrendingUp, terms: "dinheiro que entra salario ganho receita faturamento entrada renda mensal pro labore" },
+  { href: "/app/dividas" as Route, label: "Dívidas", hint: "Visão geral", icon: Wallet, terms: "quanto devo emprestimo financiamento cartao parcela conta a pagar boleto fatura deve dividas" },
+  { href: "/app/patrimonio" as Route, label: "Patrimônio", hint: "Visão geral", icon: Coins, terms: "investimentos bens ativos poupanca aplicacao quanto tenho reserva cripto carteira imovel" },
+  { href: "/app/investir" as Route, label: "Onde investir", hint: "Planejar", icon: PiggyBank, terms: "investir aplicar onde rende render rendimento cdb tesouro selic poupanca melhor investimento" },
+  { href: "/app/metas" as Route, label: "Metas", hint: "Planejar", icon: Target, terms: "objetivo sonho guardar juntar planejar meta poupar" },
+  { href: "/app/linha-do-tempo" as Route, label: "Linha do tempo", hint: "Planejar", icon: LineChart, terms: "projecao futuro previsao timeline historico evolucao relatorio mes a mes" },
+  { href: "/app/simular" as Route, label: "Simular", hint: "Planejar", icon: PlusCircle, terms: "simulador calculadora calcular simulacao contas" },
+  { href: "/app/notificacoes" as Route, label: "Notificações", hint: "Conta", icon: Bell, terms: "alertas avisos lembretes notificacao" },
+  { href: "/app/perfil" as Route, label: "Perfil e conta", hint: "Conta", icon: UserRound, terms: "minha conta usuario perfil identidade badges" },
   { href: "/app/configuracoes" as Route, label: "Configurações", hint: "Conta", icon: Settings, terms: "ajustes config configuracao preferencias opcoes" },
-  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files, terms: "anexos comprovantes contratos arquivos" },
+  { href: "/app/configuracoes/documentos" as Route, label: "Meus documentos", hint: "Contratos e comprovantes", icon: Files, terms: "anexos comprovantes contratos arquivos documentos pdf" },
 ];
 
 const SETTINGS_COMMANDS: Command[] = [...SETTINGS_SECTIONS, ...SETTINGS_ADVANCED_SECTIONS]

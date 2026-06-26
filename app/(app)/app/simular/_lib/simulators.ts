@@ -80,7 +80,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quando seu patrimônio paga suas contas?",
     icon: Rocket,
     category: "patrimonio",
-    keywords: ["independencia", "liberdade", "aposentadoria", "fire", "renda passiva", "4%"],
+    keywords: ["independencia", "liberdade", "aposentadoria", "fire", "renda passiva", "4%", "viver de renda", "parar de trabalhar", "dividendos"],
   },
   {
     id: "meta-investimento",
@@ -89,7 +89,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto aportar por mês pra chegar lá?",
     icon: Target,
     category: "patrimonio",
-    keywords: ["meta", "objetivo", "aporte", "quanto guardar", "entrada", "sonho", "planejar"],
+    keywords: ["meta", "objetivo", "aporte", "quanto guardar", "entrada", "sonho", "planejar", "quanto investir", "aporte mensal", "chegar na meta"],
   },
   {
     id: "juros-compostos",
@@ -98,7 +98,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto seu dinheiro vira com o tempo?",
     icon: LineChart,
     category: "patrimonio",
-    keywords: ["juros", "compostos", "aporte", "investir", "rendimento", "bola de neve"],
+    keywords: ["juros", "compostos", "aporte", "investir", "rendimento", "bola de neve", "render", "crescer dinheiro", "longo prazo"],
   },
   {
     id: "onde-rende-mais",
@@ -107,7 +107,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Poupança, CDB ou Tesouro, já líquido.",
     icon: PiggyBank,
     category: "patrimonio",
-    keywords: ["poupanca", "cdb", "tesouro", "selic", "render", "aplicar", "cdi", "investir"],
+    keywords: ["poupanca", "cdb", "tesouro", "selic", "render", "aplicar", "cdi", "investir", "comparar investimento", "melhor rendimento", "lci", "lca"],
   },
   {
     id: "reserva",
@@ -116,7 +116,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quantos meses você aguenta sem renda?",
     icon: ShieldCheck,
     category: "patrimonio",
-    keywords: ["reserva", "emergencia", "colchao", "custo fixo", "meses"],
+    keywords: ["reserva", "emergencia", "colchao", "custo fixo", "meses", "fundo de emergencia", "quanto guardar", "imprevisto", "seguranca"],
   },
   // Dívidas
   {
@@ -126,7 +126,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quando uma dívida termina?",
     icon: Calculator,
     category: "dividas",
-    keywords: ["quitacao", "divida", "parcela", "quando termina", "saldo"],
+    keywords: ["quitacao", "divida", "parcela", "quando termina", "saldo", "quando quito", "fim da divida", "prazo", "tempo pra quitar"],
   },
   {
     id: "extra",
@@ -135,7 +135,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto economizo pagando mais?",
     icon: TrendingUp,
     category: "dividas",
-    keywords: ["pagar extra", "amortizar", "antecipar", "economia", "juros"],
+    keywords: ["pagar extra", "amortizar", "antecipar", "economia", "juros", "adiantar parcela", "quitar antes", "abater divida"],
   },
   {
     id: "rotativo",
@@ -144,7 +144,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Pagar só uma parte da fatura, quanto custa?",
     icon: CreditCard,
     category: "dividas",
-    keywords: ["rotativo", "cartao", "fatura", "minimo", "juros do cartao", "rolar fatura"],
+    keywords: ["rotativo", "cartao", "fatura", "minimo", "juros do cartao", "rolar fatura", "pagamento minimo", "juros altos", "credito rotativo"],
   },
   {
     id: "estrategia",
@@ -153,7 +153,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Menor saldo ou juro mais alto?",
     icon: Layers,
     category: "dividas",
-    keywords: ["snowball", "avalanche", "bola de neve", "ordem", "estrategia", "dividas"],
+    keywords: ["snowball", "avalanche", "bola de neve", "ordem", "estrategia", "dividas", "qual pagar primeiro", "priorizar", "metodo"],
   },
   {
     id: "divida-vs-investir",
@@ -162,7 +162,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Onde sua folga rende mais?",
     icon: Scale,
     category: "dividas",
-    keywords: ["quitar", "investir", "cdi", "folga", "13o", "bonus", "decisao"],
+    keywords: ["quitar", "investir", "cdi", "folga", "13o", "bonus", "decisao", "vale a pena quitar", "render mais", "sobra"],
   },
   {
     id: "financiamento",
@@ -171,7 +171,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Veja a parcela e o custo total.",
     icon: Landmark,
     category: "dividas",
-    keywords: ["financiamento", "price", "sac", "imovel", "casa", "carro", "amortizacao", "parcela"],
+    keywords: ["financiamento", "price", "sac", "imovel", "casa", "carro", "amortizacao", "parcela", "prestacao", "entrada", "veiculo", "apartamento"],
   },
   // Trabalho (CLT)
   {
@@ -181,7 +181,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto cai na conta após INSS e IR?",
     icon: Banknote,
     category: "trabalho",
-    keywords: ["salario", "liquido", "clt", "inss", "irrf", "imposto", "holerite", "contracheque"],
+    keywords: ["salario", "liquido", "clt", "inss", "irrf", "imposto", "holerite", "contracheque", "quanto recebo", "descontos", "salario bruto"],
   },
   {
     id: "decimo-terceiro",
@@ -190,7 +190,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto sobra do décimo terceiro?",
     icon: Gift,
     category: "trabalho",
-    keywords: ["13", "decimo terceiro", "gratificacao natalina", "parcela", "clt"],
+    keywords: ["13", "13o", "decimo terceiro", "gratificacao natalina", "parcela", "clt", "natal", "abono"],
   },
   {
     id: "ferias",
@@ -199,7 +199,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Salário das férias + 1/3, já líquido.",
     icon: Palmtree,
     category: "trabalho",
-    keywords: ["ferias", "terco", "1/3", "constitucional", "clt", "descanso"],
+    keywords: ["ferias", "terco", "1/3", "constitucional", "clt", "descanso", "abono pecuniario", "vender ferias"],
   },
   {
     id: "rescisao",
@@ -208,7 +208,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto recebe numa demissão sem justa causa?",
     icon: FileText,
     category: "trabalho",
-    keywords: ["rescisao", "demissao", "acerto", "verbas", "fgts", "multa", "aviso previo", "sem justa causa"],
+    keywords: ["rescisao", "demissao", "acerto", "verbas", "fgts", "multa", "aviso previo", "sem justa causa", "fui demitido", "indenizacao", "calcular rescisao"],
   },
   // Negócio (PJ)
   {
@@ -218,7 +218,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto sobra como CLT e como PJ?",
     icon: Briefcase,
     category: "negocio",
-    keywords: ["clt", "pj", "mei", "simples", "pro-labore", "autonomo", "contratar", "freelancer", "das"],
+    keywords: ["clt", "pj", "mei", "simples", "pro-labore", "autonomo", "contratar", "freelancer", "das", "vale a pena pj", "carteira assinada", "comparar"],
   },
   {
     id: "valor-hora",
@@ -227,7 +227,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto vale uma hora do seu trabalho?",
     icon: Clock,
     category: "trabalho",
-    keywords: ["valor hora", "hora", "freela", "freelance", "jornada", "hora extra", "clt", "quanto vale minha hora"],
+    keywords: ["valor hora", "hora", "freela", "freelance", "jornada", "hora extra", "clt", "quanto vale minha hora", "precificar", "cobrar por hora", "diaria", "quanto cobrar"],
   },
   {
     id: "margem-markup",
@@ -236,7 +236,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Quanto você lucra em cada venda.",
     icon: Tag,
     category: "negocio",
-    keywords: ["margem", "markup", "preco", "lucro", "revenda", "produto", "remarcacao"],
+    keywords: ["margem", "markup", "preco", "lucro", "revenda", "produto", "remarcacao", "precificar", "quanto cobrar", "venda", "lucratividade"],
   },
   {
     id: "ebitda",
@@ -245,7 +245,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "O caixa que sobra da operação.",
     icon: Activity,
     category: "negocio",
-    keywords: ["ebitda", "caixa", "operacao", "margem", "receita", "despesas", "negocio"],
+    keywords: ["ebitda", "caixa", "operacao", "margem", "receita", "despesas", "negocio", "lucro operacional", "fluxo de caixa", "geracao de caixa"],
   },
   // Compras & Decisões
   {
@@ -255,7 +255,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Compare comprar vs investir.",
     icon: ShoppingBag,
     category: "decisoes",
-    keywords: ["comprar", "vale a pena", "depreciacao", "custo de oportunidade", "investir"],
+    keywords: ["comprar", "vale a pena", "depreciacao", "custo de oportunidade", "investir", "vale comprar", "comprar agora ou esperar", "consumo"],
   },
   {
     id: "avista-parcelado",
@@ -264,7 +264,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Vale o desconto ou parcelar e investir?",
     icon: CreditCard,
     category: "decisoes",
-    keywords: ["a vista", "parcelado", "desconto", "parcelas", "valor presente"],
+    keywords: ["a vista", "parcelado", "desconto", "parcelas", "valor presente", "pagar a vista", "parcelar", "juros embutidos", "cartao"],
   },
   // Ferramentas
   {
@@ -274,7 +274,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Mensal vira anual e vice-versa.",
     icon: Percent,
     category: "ferramentas",
-    keywords: ["conversor", "taxa", "juros", "mensal", "anual", "am", "aa", "equivalente"],
+    keywords: ["conversor", "taxa", "juros", "mensal", "anual", "am", "aa", "equivalente", "converter taxa", "ao mes ao ano", "transformar juros"],
   },
   {
     id: "regra-de-tres",
@@ -283,7 +283,7 @@ export const SIMULATORS: ReadonlyArray<SimulatorMeta> = [
     desc: "Ache um valor proporcional.",
     icon: Divide,
     category: "ferramentas",
-    keywords: ["regra de tres", "proporcao", "proporcional", "direta", "inversa"],
+    keywords: ["regra de tres", "proporcao", "proporcional", "direta", "inversa", "calcular proporcao", "porcentagem", "calculo simples"],
   },
 ];
 
