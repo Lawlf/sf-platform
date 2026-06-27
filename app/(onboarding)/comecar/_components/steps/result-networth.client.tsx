@@ -60,7 +60,7 @@ export function ResultNetWorth({
           : "Esse é o total que é seu hoje. Ele cresce conforme você cadastra."
       }
       onBack={onBack}
-      primary={{ label: "Ver meu mês no início", onClick: onFinish, loading: finishing }}
+      primary={{ label: "Continuar", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6"><Spinner size={24} /></div>

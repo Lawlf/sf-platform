@@ -8,15 +8,18 @@ import { action, unwrap } from "@/presentation/actions/action";
 
 import type { CashAccountOption } from "./list-cash-accounts.action";
 
-const inputSchema = z
-  .string()
-  .transform((label) => label.trim())
-  .refine((label) => label.length > 0, "Dê um nome para a conta.")
-  .refine((label) => label.length <= 120, "Nome muito longo.");
+const inputSchema = z.object({
+  label: z
+    .string()
+    .transform((label) => label.trim())
+    .refine((label) => label.length > 0, "Dê um nome para a conta.")
+    .refine((label) => label.length <= 120, "Nome muito longo."),
+  isReserve: z.boolean().optional(),
+});
 
 export const createCashAccount = action({
   schema: inputSchema,
-  handler: async (label, { userId, profileId }) => {
+  handler: async ({ label, isReserve }, { userId, profileId }) => {
     const asset = unwrap(
       await createAsset(
         {
@@ -32,7 +35,7 @@ export const createCashAccount = action({
           label,
           currentValueCents: 0n,
           currency: "BRL",
-          metadata: { kind: "cash", yieldType: "none" },
+          metadata: { kind: "cash", yieldType: "none", ...(isReserve ? { isReserve: true } : {}) },
           fipeCode: null,
           acquiredAt: null,
           allocations: [],
@@ -44,6 +47,8 @@ export const createCashAccount = action({
       id: asset.id,
       label: asset.label,
       currency: asset.currentValue.currency,
+      isReserve: isReserve === true,
+      isBase: asset.label === "Carteira",
     };
     return { account };
   },

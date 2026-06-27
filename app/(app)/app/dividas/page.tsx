@@ -16,8 +16,10 @@ import { PageShell } from "../_components/page-shell";
 import { getServerQueryClient } from "../_lib/query-client.server";
 import { queryKeys } from "../_lib/query-keys";
 
+import { fetchOverdueDues } from "./_actions/overdue-list";
 import { fetchHasDueDatedDebt, fetchUpcomingDues } from "./_actions/upcoming-dues";
 import { DebtDueBanner } from "./_components/debt-due-banner.client";
+import { OverdueDebtsBanner } from "./_components/overdue-debts-banner.client";
 import { DebtDueReminderCard } from "./_components/debt-due-reminder.client";
 import { DividasFilterPills } from "./_components/dividas-filter-pills";
 import { DividasListClient } from "./_components/dividas-list.client";
@@ -37,9 +39,10 @@ export default async function DividasPage({ searchParams }: PageProps) {
 
   const user = await requireUser();
   const prefs = await repos.notificationPreferences.findForUser(user.id);
-  const [upcomingDues, hasDueDatedDebt] = await Promise.all([
+  const [upcomingDues, hasDueDatedDebt, overdueDues] = await Promise.all([
     fetchUpcomingDues(),
     fetchHasDueDatedDebt(),
+    fetchOverdueDues(),
   ]);
 
   const queryClient = getServerQueryClient();
@@ -57,6 +60,8 @@ export default async function DividasPage({ searchParams }: PageProps) {
         <PlusCircle size={16} strokeWidth={2} aria-hidden />
         Adicionar compra, conta ou dívida
       </Link>
+
+      <OverdueDebtsBanner overdue={overdueDues} />
 
       <DebtDueBanner dues={upcomingDues} />
 

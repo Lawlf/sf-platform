@@ -55,6 +55,12 @@ export type AssetMetadata =
       yieldType?: "none" | "cdi" | "fixed_pct_year";
       yieldRatePct?: number;
       /**
+       * Etiqueta de papel (só rótulo, não tipo estrutural): `true` = reserva
+       * (dinheiro guardado, "não mexe"); ausente/false = livre (dia a dia / conta).
+       * Usado pra agrupar destinos no "Guardar em..." e falar a língua do usuário.
+       */
+      isReserve?: boolean;
+      /**
        * Última vez que o usuário revisou esta reserva (saldo e rendimento).
        * Usado pelo MaintenancePromptService para lembrar o usuário a cada
        * 30 dias de verificar se a taxa mudou ou se houve depósitos/saques.

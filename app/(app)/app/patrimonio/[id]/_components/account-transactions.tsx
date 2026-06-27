@@ -11,13 +11,18 @@ export function AccountTransactionsSection({
   items,
   total,
   framing,
+  seeAllHref,
 }: {
   accountId: string;
   items: SerializedAccountTxn[];
   total: number;
   framing: "extrato" | "lancamentos";
+  /** Destino do "Ver todas". Default: movimentações desta conta. A Carteira aponta pra lista consolidada. */
+  seeAllHref?: string;
 }) {
   const hasMore = total > items.length;
+  const allHref = seeAllHref ?? `/app/patrimonio/${accountId}/movimentacoes`;
+  const showSeeAll = seeAllHref ? items.length > 0 : hasMore;
   const orientation =
     total > 0
       ? framing === "extrato"
@@ -51,12 +56,12 @@ export function AccountTransactionsSection({
               <AccountTxnRow key={t.id} txn={t} />
             ))}
           </ul>
-          {hasMore ? (
+          {showSeeAll ? (
             <Link
-              href={`/app/patrimonio/${accountId}/movimentacoes` as Route}
+              href={allHref as Route}
               className="focus-ring mt-3 flex items-center gap-2 border-t border-[color:var(--border-soft)] pt-3 text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)] transition-colors hover:text-[color:var(--color-brand-800)]"
             >
-              <span className="flex-1">Ver todas</span>
+              <span className="flex-1">Ver todas as movimentações</span>
               <ChevronRight size={16} strokeWidth={2.25} className="shrink-0" aria-hidden />
             </Link>
           ) : null}

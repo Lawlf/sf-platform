@@ -37,6 +37,7 @@ import { AmortizationSection } from "./_components/amortization-section";
 import { DebtHeader } from "./_components/debt-header";
 import { DueReminder } from "./_components/due-reminder.client";
 import { InstallmentPurchasesSection } from "./_components/installment-purchases-section";
+import { LinkedAssetCard } from "./_components/linked-asset-card";
 import { MinimumPaymentNotice } from "./_components/minimum-payment-notice";
 import { NoScheduleSection } from "./_components/no-schedule-section";
 import { OutOfMonthBanner } from "./_components/out-of-month-banner";
@@ -82,6 +83,13 @@ export default async function DebtDetailPage({ params }: PageProps) {
       ? await fetchOverdueStateForDebt(id, user.id, profileId)
       : null;
 
+  const allocations = await repos.assetDebtAllocations.findByDebt(id);
+  const linkedAssets: { id: string; label: string }[] = [];
+  for (const alloc of allocations) {
+    const asset = await repos.assets.findById(alloc.assetId, profileId);
+    if (asset) linkedAssets.push({ id: asset.id, label: asset.label });
+  }
+
   return (
     <PageShell backHref={"/app/dividas" as Route}>
       <DebtHeader
@@ -93,8 +101,16 @@ export default async function DebtDetailPage({ params }: PageProps) {
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
       {debt.status === "written_off" ? <OutOfMonthBanner /> : null}
       {overdueState ? (
-        <OverdueBanner debtId={id} dueDay={overdueState.dueDay} cycleIso={overdueState.cycleIso} />
+        <OverdueBanner
+          debtId={id}
+          dueDay={overdueState.dueDay}
+          cycleIso={overdueState.cycleIso}
+          amountFormatted={overdueState.amountFormatted}
+          canAdjust={debt.kind === "credit_card" || debt.kind === "personal_loan"}
+        />
       ) : null}
+
+      <LinkedAssetCard assets={linkedAssets} />
 
       <MinimumPaymentNotice debt={debt} />
 

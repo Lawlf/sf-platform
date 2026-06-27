@@ -74,7 +74,12 @@ export async function GET(request: Request) {
         {
           getOverdue: (i) =>
             getOverdueDebts(
-              { debts: repos.debts, acknowledgements: repos.debtDueAcknowledgements, clock },
+              {
+                debts: repos.debts,
+                acknowledgements: repos.debtDueAcknowledgements,
+                payments: repos.debtPayments,
+                clock,
+              },
               i,
             ),
           notifications: repos.notifications,

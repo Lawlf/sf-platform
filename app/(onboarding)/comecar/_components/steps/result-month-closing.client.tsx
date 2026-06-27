@@ -70,7 +70,7 @@ export function ResultMonthClosing({
             : "Com sua renda e suas contas, é assim que o mês termina."
       }
       onBack={onBack}
-      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
+      primary={{ label: "Continuar", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6"><Spinner size={24} /></div>

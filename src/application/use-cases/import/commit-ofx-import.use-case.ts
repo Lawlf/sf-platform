@@ -146,6 +146,9 @@ export async function commitOfxImport(
       accountId: assetId,
       occurredAt: t.postedAt,
       status: "paid",
+      // Transferência interna detectada (Pix pra si, caixinha) não conta no
+      // número do mês: é dinheiro mudando de lugar, não gasto nem renda.
+      excludedFromTotals: movement.internalFitIds.has(t.fitId),
       source: "ofx_import",
       externalId: t.fitId,
       deletedAt: null,

@@ -16,7 +16,13 @@ export interface TransactionRepositoryPort {
     profileId: string,
   ): Promise<Array<{ key: string; inCents: bigint; outCents: bigint; currency: string }>>;
   listForProfileInRange(profileId: string, from: Date, to: Date): Promise<TransactionEntity[]>;
+  /** Agendados com data já vencida (occurredAt <= asOf), de todos os perfis. Para o cron de postagem. */
+  listDueScheduled(asOf: Date): Promise<TransactionEntity[]>;
   softDelete(id: string, deletedAt: Date): Promise<void>;
+  /** Define a categoria de vários lançamentos de uma vez (scoped por perfil). Categoria não mexe saldo. */
+  setCategoryForIds(profileId: string, ids: string[], category: string | null): Promise<void>;
+  /** Marca/desmarca "não contar no mês" em vários lançamentos (scoped por perfil). Não mexe saldo. */
+  setExcludedForIds(profileId: string, ids: string[], excluded: boolean): Promise<void>;
   existingExternalIds(profileId: string, externalIds: string[]): Promise<string[]>;
   countByCategory(profileId: string, categoryKey: string): Promise<number>;
   reassignCategory(profileId: string, fromKey: string, toKey: string): Promise<void>;

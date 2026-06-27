@@ -5,6 +5,7 @@ import { isOk } from "@/shared/errors/result";
 export interface OverdueState {
   dueDay: number;
   cycleIso: string;
+  amountFormatted: string | null;
 }
 
 export async function fetchOverdueStateForDebt(
@@ -13,7 +14,12 @@ export async function fetchOverdueStateForDebt(
   profileId: string,
 ): Promise<OverdueState | null> {
   const result = await getOverdueDebts(
-    { debts: repos.debts, acknowledgements: repos.debtDueAcknowledgements, clock },
+    {
+      debts: repos.debts,
+      acknowledgements: repos.debtDueAcknowledgements,
+      payments: repos.debtPayments,
+      clock,
+    },
     { userId, profileId },
   );
   if (!isOk(result)) return null;
@@ -21,5 +27,9 @@ export async function fetchOverdueStateForDebt(
   const item = result.value.find((i) => i.debtId === debtId);
   if (!item) return null;
 
-  return { dueDay: item.dueDate.getDate(), cycleIso: item.cycleIso };
+  return {
+    dueDay: item.dueDate.getDate(),
+    cycleIso: item.cycleIso,
+    amountFormatted: item.amount ? item.amount.format() : null,
+  };
 }

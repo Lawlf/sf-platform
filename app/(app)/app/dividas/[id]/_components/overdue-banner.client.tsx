@@ -2,13 +2,16 @@
 
 import { useQueryClient } from "@tanstack/react-query";
 import { CalendarClock } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/app/components/ui/button";
 import { Spinner } from "@/app/components/ui/spinner";
 
 import { queryKeys } from "../../../_lib/query-keys";
-import { acknowledgeDueAction } from "../_actions/acknowledge-due.action";
+import { showSettleToast } from "../../_lib/settle-toast";
+import { settleOverdueAction } from "../_actions/settle-overdue.action";
 
 import { OutOfMonthButton } from "./out-of-month-button";
 
@@ -16,9 +19,11 @@ interface Props {
   debtId: string;
   dueDay: number;
   cycleIso: string;
+  amountFormatted: string | null;
+  canAdjust: boolean;
 }
 
-export function OverdueBanner({ debtId, dueDay, cycleIso }: Props) {
+export function OverdueBanner({ debtId, dueDay, cycleIso, amountFormatted, canAdjust }: Props) {
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -29,14 +34,16 @@ export function OverdueBanner({ debtId, dueDay, cycleIso }: Props) {
   function onPaid() {
     setError(null);
     startTransition(async () => {
-      const r = await acknowledgeDueAction({ debtId, cycleIso, response: "paid" });
+      const r = await settleOverdueAction({ debtId, cycleIso });
       if (!r.ok) {
         setError(r.message);
         return;
       }
+      showSettleToast(r.data);
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: queryKeys.debts("active") }),
         queryClient.invalidateQueries({ queryKey: queryKeys.debts("all") }),
+        queryClient.invalidateQueries({ queryKey: queryKeys.debts("paid_off") }),
         queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot }),
         queryClient.invalidateQueries({ queryKey: ["timeline"] }),
       ]);
@@ -52,7 +59,16 @@ export function OverdueBanner({ debtId, dueDay, cycleIso }: Props) {
         </span>
         <div className="min-w-0 flex-1">
           <p className="text-sm text-[color:var(--text-secondary)]">
-            Venceu dia {dueDay}. Quando resolver, é só dizer aqui.
+            Venceu dia {dueDay}
+            {amountFormatted ? (
+              <>
+                {" · "}
+                <span className="font-semibold text-[color:var(--text-primary)]">
+                  {amountFormatted}
+                </span>
+              </>
+            ) : null}
+            . Quando pagar, toque em Paguei que já abato esse valor.
           </p>
           {error ? (
             <p role="alert" className="mt-1 text-sm text-[color:var(--semantic-negative)]">
@@ -76,6 +92,14 @@ export function OverdueBanner({ debtId, dueDay, cycleIso }: Props) {
             </Button>
             <OutOfMonthButton debtId={debtId} compact />
           </div>
+          {canAdjust ? (
+            <Link
+              href={`/app/dividas/${debtId}/pagar` as Route}
+              className="focus-ring mt-2 inline-block text-[0.8125rem] font-semibold text-[color:var(--text-muted)] underline-offset-2 hover:underline"
+            >
+              Paguei outro valor ou com juros? Ajustar
+            </Link>
+          ) : null}
         </div>
       </div>
     </section>

@@ -17,6 +17,7 @@ function txn(p: Partial<TransactionEntity>): TransactionEntity {
     accountId: "a1",
     occurredAt: p.occurredAt ?? new Date(Date.UTC(2026, 5, 10)),
     status: "paid",
+    excludedFromTotals: false,
     source: p.source ?? "ofx_import",
     externalId: null,
     createdAt: new Date(Date.UTC(2026, 5, 10)),

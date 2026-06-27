@@ -72,6 +72,7 @@ export async function fetchTimelinePage(
       debtPayments: repos.debtPayments,
       assets: repos.assets,
       debtAmountAdjustments: repos.debtAmountAdjustments,
+      transactions: repos.transactions,
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
       clock,

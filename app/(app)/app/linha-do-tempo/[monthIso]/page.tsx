@@ -2,7 +2,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Award,
-  CalendarRange,
+  ChevronLeft,
   ChevronRight,
   Flame,
   Package,
@@ -24,6 +24,7 @@ import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { dateOnlyFormat } from "@/shared/format/date-only";
 
+import { fetchSafeToSpend, type SerializedSafeToSpend } from "../../_actions/safe-to-spend-queries";
 import { fetchMonthDetail } from "../../_actions/timeline-month-detail";
 import type {
   SerializedExpenseRow,
@@ -32,9 +33,12 @@ import type {
   SerializedPaymentRow,
   SerializedStoryRow,
   SerializedTimelineEvent,
+  SerializedTransactionRow,
   TimelineEventKind,
 } from "../../_actions/timeline-month-detail";
 import { PageShell } from "../../_components/page-shell";
+
+import { DayTransactionsRollup } from "./_components/day-transactions-rollup";
 
 export const metadata: Metadata = { title: "Detalhe do mês" };
 
@@ -44,6 +48,30 @@ interface PageProps {
 
 function isValidMonthIso(iso: string): boolean {
   return /^\d{4}-\d{2}$/.test(iso);
+}
+
+function formatWhole(cents: bigint): string {
+  return Math.round(Number(cents) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+    maximumFractionDigits: 0,
+  });
+}
+
+function buildWeeklyLine(s: SerializedSafeToSpend | null): string | null {
+  if (!s) return null;
+  if (s.state === "tight-by-goal") {
+    return `Esse mês a meta come a folga; sem ela sobrariam uns ${formatWhole(
+      BigInt(s.perWeekWithoutGoalCents),
+    )}/semana.`;
+  }
+  if (s.state === "ok") {
+    const perWeek = BigInt(s.perWeekCents);
+    return perWeek > 0n
+      ? `Dá pra gastar uns ${formatWhole(perWeek)} por semana sem furar o mês.`
+      : "Essa semana, melhor não contar com gasto livre.";
+  }
+  return null;
 }
 
 function formatBrl(cents: bigint): string {
@@ -61,7 +89,8 @@ type TimelineEntry =
   | { kind: "expense"; dateIso: string; data: SerializedExpenseRow }
   | { kind: "payment"; dateIso: string; data: SerializedPaymentRow }
   | { kind: "story"; dateIso: string; data: SerializedStoryRow }
-  | { kind: "event"; dateIso: string; data: SerializedTimelineEvent };
+  | { kind: "event"; dateIso: string; data: SerializedTimelineEvent }
+  | { kind: "txnRollup"; dateIso: string; data: SerializedTransactionRow[] };
 
 function dayKey(iso: string): string {
   return iso.slice(0, 10);
@@ -86,6 +115,8 @@ export default async function MonthDetailPage({ params }: PageProps) {
   const todayKey = now.toISOString().slice(0, 10);
 
   const target = MonthYear.fromIso(monthIso);
+  const prevIso = target.previous().toIso();
+  const nextIso = target.next().toIso();
   const cur = MonthYear.fromDate(now);
   const isPast = target.isBefore(cur);
   const isFuture = cur.isBefore(target);
@@ -94,6 +125,11 @@ export default async function MonthDetailPage({ params }: PageProps) {
   const fullIncomeCents = BigInt(data.totals.income.cents);
   const fullOutflowCents = BigInt(data.totals.outflow.cents);
   const fullFreeCents = BigInt(data.totals.free.cents);
+
+  // "Quanto dá pra gastar por semana": fatia o macro no tempo. Vive aqui (no
+  // detalhe do mês), não no herói da home — é micro disfarçado, não fica na cara.
+  const safeToSpend = isCurrent && fullIncomeCents > 0n ? await fetchSafeToSpend() : null;
+  const weeklyLine = buildWeeklyLine(safeToSpend);
 
   const realizedIncomeCents = BigInt(data.totals.realizedIncome.cents);
   const realizedOutflowCents = BigInt(data.totals.realizedOutflow.cents);
@@ -131,10 +167,24 @@ export default async function MonthDetailPage({ params }: PageProps) {
   // Fluxo de caixa do mês: renda, despesa recorrente, pagamento de dívida.
   // Eventos "Nova dívida" (`debt_added`, só dívidas reais após o dedup no
   // server) entram aqui também, pois uma dívida nova é movimentação do mês.
+  const txnByDay = new Map<string, SerializedTransactionRow[]>();
+  for (const t of data.transactions) {
+    const k = dayKey(t.dateIso);
+    const list = txnByDay.get(k) ?? [];
+    list.push(t);
+    txnByDay.set(k, list);
+  }
+  const txnRollupEntries: TimelineEntry[] = Array.from(txnByDay.entries()).map(([day, txns]) => ({
+    kind: "txnRollup",
+    dateIso: `${day}T12:00:00.000Z`,
+    data: txns,
+  }));
+
   const flowEntries: TimelineEntry[] = [
     ...data.incomes.map<TimelineEntry>((i) => ({ kind: "income", dateIso: i.dateIso, data: i })),
     ...data.expenses.map<TimelineEntry>((e) => ({ kind: "expense", dateIso: e.dateIso, data: e })),
     ...data.payments.map<TimelineEntry>((p) => ({ kind: "payment", dateIso: p.dateIso, data: p })),
+    ...txnRollupEntries,
     ...data.stories.map<TimelineEntry>((s) => ({ kind: "story", dateIso: s.dateIso, data: s })),
     ...data.events
       .filter((e) => e.kind === "debt_added")
@@ -158,6 +208,29 @@ export default async function MonthDetailPage({ params }: PageProps) {
       description={subtitleFor({ isCurrent, isPast })}
       backHref={"/app/linha-do-tempo" as Route}
     >
+      <div className="flex items-center justify-between gap-1">
+        <Link
+          href={`/app/linha-do-tempo/${prevIso}` as Route}
+          aria-label="Mês anterior"
+          className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
+        >
+          <ChevronLeft size={20} strokeWidth={2.25} aria-hidden />
+        </Link>
+        <Link
+          href={"/app/linha-do-tempo" as Route}
+          className="focus-ring rounded-lg px-3 py-1.5 text-[0.9375rem] font-bold capitalize text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
+        >
+          {monthLabel}
+        </Link>
+        <Link
+          href={`/app/linha-do-tempo/${nextIso}` as Route}
+          aria-label="Próximo mês"
+          className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
+        >
+          <ChevronRight size={20} strokeWidth={2.25} aria-hidden />
+        </Link>
+      </div>
+
       <section className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl md:p-5">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
           {tiles.map((tile) => (
@@ -170,6 +243,11 @@ export default async function MonthDetailPage({ params }: PageProps) {
             />
           ))}
         </div>
+        {weeklyLine ? (
+          <p className="mt-3 border-t border-[color:var(--border-soft)] pt-3 text-[0.8125rem] text-[color:var(--text-secondary)]">
+            {weeklyLine}
+          </p>
+        ) : null}
       </section>
 
       {!hasAnything ? (
@@ -211,28 +289,6 @@ export default async function MonthDetailPage({ params }: PageProps) {
         </div>
       )}
 
-      <Link
-        href={"/app/linha-do-tempo" as Route}
-        className="focus-ring flex items-center gap-3 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 transition-colors hover:bg-[color:var(--surface-2)]"
-      >
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
-          <CalendarRange size={16} strokeWidth={2} aria-hidden />
-        </span>
-        <div className="min-w-0 flex-1">
-          <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
-            Ver os outros meses
-          </div>
-          <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-            Sua trajetória, mês a mês.
-          </div>
-        </div>
-        <ChevronRight
-          size={16}
-          strokeWidth={2}
-          className="shrink-0 text-[color:var(--text-muted)]"
-          aria-hidden
-        />
-      </Link>
     </PageShell>
   );
 }
@@ -426,6 +482,7 @@ function SubSection({
 function rowKey(entry: TimelineEntry): string {
   if (entry.kind === "story") return `story-${entry.data.kind}-${entry.dateIso}`;
   if (entry.kind === "event") return `event-${entry.data.id}`;
+  if (entry.kind === "txnRollup") return `txn-${entry.dateIso}`;
   return entry.data.id;
 }
 
@@ -514,6 +571,9 @@ const EVENT_ICON: Record<TimelineEventKind, LucideIcon> = {
 };
 
 function TimelineRow({ entry }: { entry: TimelineEntry }) {
+  if (entry.kind === "txnRollup") {
+    return <DayTransactionsRollup transactions={entry.data} />;
+  }
   if (entry.kind === "income") {
     return (
       <RowLink

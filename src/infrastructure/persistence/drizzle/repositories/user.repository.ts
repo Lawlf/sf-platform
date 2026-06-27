@@ -1,6 +1,6 @@
 import { and, eq, isNull, sql } from "drizzle-orm";
 
-import type { UserEntity } from "@/domain/entities/user.entity";
+import type { AcquisitionChannel, UserEntity } from "@/domain/entities/user.entity";
 import type { UserRepositoryPort } from "@/domain/ports/repositories/user.repository";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
@@ -22,6 +22,8 @@ function toEntity(row: typeof users.$inferSelect): UserEntity {
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
+    acquisitionChannel: (row.acquisitionChannel as AcquisitionChannel | null) ?? null,
+    acquisitionChannelOther: row.acquisitionChannelOther,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
     username: row.username,
     profileFlair: row.profileFlair,
@@ -111,6 +113,8 @@ export class UserRepository implements UserRepositoryPort {
         contentDiagnosticAnsweredAt: user.contentDiagnosticAnsweredAt,
         onboardingWizardSeenAt: user.onboardingWizardSeenAt,
         homeTourDismissedAt: user.homeTourDismissedAt,
+        acquisitionChannel: user.acquisitionChannel,
+        acquisitionChannelOther: user.acquisitionChannelOther,
         quickAccess: user.quickAccess,
         username: user.username,
         profileFlair: user.profileFlair,

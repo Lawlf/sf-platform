@@ -24,6 +24,10 @@ export class IncomeNotFound extends DomainError {
   readonly code = "INCOME_NOT_FOUND" as const;
 }
 
+export class TransactionNotFound extends DomainError {
+  readonly code = "TRANSACTION_NOT_FOUND" as const;
+}
+
 export class IncomeAlreadyActive extends DomainError {
   readonly code = "INCOME_ALREADY_ACTIVE" as const;
 }

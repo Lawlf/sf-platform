@@ -159,8 +159,11 @@ const createTransactionSchema = z.object({
 
 export const createTransactionAction = action({
   schema: createTransactionSchema,
-  revalidates: ["report"],
-  handler: async (input, { userId, profileId }): Promise<{ event: IncomeFreeBalanceEvent | null }> => {
+  revalidates: ["report", "timeline", "home"],
+  handler: async (
+    input,
+    { userId, profileId },
+  ): Promise<{ event: IncomeFreeBalanceEvent | null; accountId: string; transactionId: string }> => {
     const description = input.description.trim();
     if (description.length === 0) {
       throw new ActionError("Descreva o gasto.");
@@ -190,29 +193,42 @@ export const createTransactionAction = action({
     const direction = input.direction ?? "out";
     const status = input.status ?? "paid";
 
-    await createTransaction(
-      {
-        transactions: repos.transactions,
-        assets: repos.assets,
-        clock,
-      },
-      {
-        userId,
-        profileId,
-        direction,
-        amount: Money.fromCents(amountCents),
-        description,
-        category,
-        accountId: input.accountId ?? null,
-        occurredAt,
-        status,
-      },
+    if (status === "scheduled" && !isFutureDay(occurredAt, clock.now())) {
+      throw new ActionError("Um agendamento precisa de uma data futura.");
+    }
+
+    const created = unwrap(
+      await createTransaction(
+        {
+          transactions: repos.transactions,
+          assets: repos.assets,
+          clock,
+        },
+        {
+          userId,
+          profileId,
+          direction,
+          amount: Money.fromCents(amountCents),
+          description,
+          category,
+          accountId: input.accountId ?? null,
+          occurredAt,
+          status,
+        },
+      ),
     );
 
     const event =
       direction === "in" && status === "paid"
         ? await computeFreeBalanceEvent(userId, profileId, Money.fromCents(amountCents))
         : null;
-    return { event };
+    return { event, accountId: created.accountId ?? "", transactionId: created.id };
   },
 });
+
+function isFutureDay(date: Date | null, now: Date): boolean {
+  if (!date) return false;
+  const day = Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), date.getUTCDate());
+  const today = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate());
+  return day > today;
+}

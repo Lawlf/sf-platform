@@ -16,6 +16,7 @@ import {
   type WizardStepId,
 } from "../_lib/wizard-machine";
 
+import { AcquisitionStep } from "./steps/acquisition-step.client";
 import { AssetStep } from "./steps/asset-step.client";
 import { DebtStep } from "./steps/debt-step.client";
 import { ExpenseStep } from "./steps/expense-step.client";
@@ -127,12 +128,12 @@ export function OnboardingWizardClient({
   }
   if (current === "result-month-closing") {
     return (
-      <ResultMonthClosing stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
+      <ResultMonthClosing stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
     );
   }
   if (current === "result-prescription") {
     return (
-      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
+      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
     );
   }
 
@@ -143,7 +144,7 @@ export function OnboardingWizardClient({
   }
   if (current === "result-goal") {
     return (
-      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
+      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
     );
   }
 
@@ -154,7 +155,20 @@ export function OnboardingWizardClient({
   }
   if (current === "result-networth") {
     return (
-      <ResultNetWorth stepNumber={stepNumber} totalSteps={steps.length} onFinish={finishWizard} onBack={goBack} finishing={finishing} />
+      <ResultNetWorth stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
+    );
+  }
+
+  if (current === "acquisition") {
+    return (
+      <AcquisitionStep
+        stepNumber={stepNumber}
+        totalSteps={steps.length}
+        onDone={finishWizard}
+        onBack={goBack}
+        onSkip={finishWizard}
+        finishing={finishing}
+      />
     );
   }
 

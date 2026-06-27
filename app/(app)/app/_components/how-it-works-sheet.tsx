@@ -26,6 +26,13 @@ const TOPICS = {
     technical:
       "Cálculo: soma de renda mensal equivalente (incluindo semanais convertidas) menos soma das parcelas atuais (financiamento, empréstimo, mínimo do cartão a 15%, juros do cheque especial).",
   },
+  "movimentacoes-saldo": {
+    title: "Movimentações e seu saldo",
+    tag: "Conceito",
+    body: "Esta lista mostra só seus lançamentos avulsos e o extrato que você importou. Seu saldo da Carteira também inclui a renda que você registra e o saldo que você informou. Por isso a soma do que aparece aqui não fecha com o saldo, e tá tudo certo.",
+    technical:
+      "O saldo da Carteira junta tudo: saldo informado + renda registrada + entradas e saídas avulsas. Aqui você vê só a parte avulsa e o extrato, não a renda.",
+  },
   "renda-comprometida": {
     title: "Renda comprometida",
     tag: "Conceito",

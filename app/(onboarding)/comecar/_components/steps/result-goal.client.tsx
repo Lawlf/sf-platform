@@ -63,7 +63,7 @@ export function ResultGoal({
             : "Sua reserva começa agora. Acompanhe o progresso no início."
       }
       onBack={onBack}
-      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
+      primary={{ label: "Continuar", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6"><Spinner size={24} /></div>

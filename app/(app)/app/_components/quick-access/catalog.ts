@@ -27,6 +27,7 @@ export const QUICK_ACCESS_CATALOG: CatalogEntry[] = [
   { key: "dividas", label: "Minhas dívidas", shortLabel: "Dívidas", href: "/app/dividas", category: "navegar", icon: "Wallet" },
   { key: "renda", label: "Minha renda", shortLabel: "Rendas", href: "/app/renda", category: "navegar", icon: "Banknote" },
   { key: "patrimonio", label: "Meu patrimônio", shortLabel: "Patrimônio", href: "/app/patrimonio", category: "navegar", icon: "PiggyBank" },
+  { key: "transactions_list", label: "Movimentações", shortLabel: "Movim.", href: "/app/lancamentos", category: "navegar", icon: "ListChecks" },
   { key: "comprei", label: "Comprei", shortLabel: "Comprei", href: "/app/comprei", category: "navegar", icon: "Receipt" },
   { key: "notificacoes", label: "Notificações", shortLabel: "Avisos", href: "/app/notificacoes", category: "navegar", icon: "Bell" },
   { key: "documentos", label: "Meus documentos", shortLabel: "Documentos", href: "/app/configuracoes/documentos", category: "navegar", icon: "Files" },

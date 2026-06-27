@@ -39,6 +39,12 @@ export interface TransactionEntity {
   occurredAt: Date;
   /** paid move o saldo da conta; scheduled não (conta a pagar futura). */
   status: TransactionStatus;
+  /**
+   * "Não contar no mês": transferência entre contas próprias / dinheiro mudando
+   * de lugar / item que o usuário decide ignorar. Sai dos totais de fluxo (mês,
+   * timeline, dossiê) mas continua na lista, marcado. Não mexe no saldo.
+   */
+  excludedFromTotals: boolean;
   source: TransactionSource;
   /** id do provedor de Open Finance (dedupe futuro). null por ora. */
   externalId: string | null;

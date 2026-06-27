@@ -45,6 +45,7 @@ import { unlinkDebtAction } from "../_actions/unlink-debt.action";
 import { updateAssetAction } from "../_actions/update-asset.action";
 
 
+import { AssetCostCard, type AssetCostView } from "./asset-cost-card";
 import { DeleteAssetButton } from "./delete-asset-button";
 
 export interface LinkedDebtView {
@@ -134,6 +135,8 @@ export interface AssetDetailViewProps {
   } | null;
   /** Metas vinculadas a este ativo. */
   linkedGoals: SerializedGoalWithProgress[];
+  /** Dossiê de custo total (vale x devo + parcela). null quando não tem estrutura (sem dívida ligada). */
+  costSummary: AssetCostView | null;
 }
 
 function formatCentsToBRL(cents: bigint): string {
@@ -220,6 +223,8 @@ export function AssetDetailView(props: AssetDetailViewProps) {
           ) : null}
         </div>
       </section>
+
+      {props.costSummary ? <AssetCostCard view={props.costSummary} /> : null}
 
       <RenameSection assetId={props.assetId} label={props.label} />
 
