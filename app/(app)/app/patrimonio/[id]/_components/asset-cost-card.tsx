@@ -14,8 +14,13 @@ export interface AssetCostView {
   monthlyTotalFormatted: string | null;
   /** Só a parte da parcela. null quando zero. */
   monthlyInstallmentFormatted: string | null;
-  /** Média mensal dos gastos das categorias ligadas. null quando zero. */
+  /** Média mensal dos gastos atrelados a este bem. null quando zero. */
   monthlyExpensesFormatted: string | null;
+  /** Média mensal das entradas atreladas (ex.: aluguel). null quando zero. */
+  monthlyIncomeFormatted: string | null;
+  /** Líquido mensal (renda - custo), em módulo. null sem renda atrelada. */
+  netFormatted: string | null;
+  netIsPositive: boolean;
 }
 
 export function AssetCostCard({ view }: { view: AssetCostView }) {
@@ -92,13 +97,25 @@ export function AssetCostCard({ view }: { view: AssetCostView }) {
             </p>
           ) : view.monthlyExpensesFormatted === null ? (
             <p className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">
-              Só a parcela entra aqui. Ligue uma categoria abaixo pra somar os gastos.
+              Só a parcela entra aqui. Ao lançar um gasto, atrele a esse {view.noun} pra somar.
             </p>
           ) : (
             <p className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">
-              Média de 3 meses dos gastos que você ligou.
+              Média de 3 meses dos gastos que você atrelou a esse {view.noun}.
             </p>
           )}
+        </div>
+      ) : null}
+
+      {view.monthlyIncomeFormatted ? (
+        <div className="mt-3 grid grid-cols-3 gap-2 border-t border-[color:var(--border-soft)] pt-3 text-center">
+          <CostStat label="Rende" value={view.monthlyIncomeFormatted} tone="positive" />
+          <CostStat label="Custa" value={view.monthlyTotalFormatted ?? "R$ 0,00"} tone="negative" />
+          <CostStat
+            label="Líquido"
+            value={`${view.netIsPositive ? "+" : "-"}${view.netFormatted ?? ""}`}
+            tone={view.netIsPositive ? "positive" : "negative"}
+          />
         </div>
       ) : null}
     </section>

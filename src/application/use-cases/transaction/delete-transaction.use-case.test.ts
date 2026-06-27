@@ -45,6 +45,7 @@ function txn(over: Partial<TransactionEntity> = {}): TransactionEntity {
     description: "Mercado",
     category: null,
     accountId: "acc1",
+    assetId: null,
     occurredAt: new Date("2026-06-20T12:00:00Z"),
     status: "paid",
     excludedFromTotals: false,

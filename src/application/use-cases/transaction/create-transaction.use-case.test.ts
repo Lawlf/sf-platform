@@ -133,6 +133,40 @@ describe("createTransaction", () => {
     expect(created[0]?.label).toBe("Carteira");
   });
 
+  it("atrela o lançamento a um ativo quando informado", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      direction: "out",
+      amount: Money.fromCents(8000n),
+      description: "Gasolina",
+      category: "transporte",
+      accountId: "acc1",
+      assetId: "asset-carro",
+      occurredAt: null,
+      status: "paid",
+    });
+    expect(r._tag).toBe("ok");
+    if (r._tag === "ok") expect(r.value.assetId).toBe("asset-carro");
+  });
+
+  it("sem ativo informado, assetId fica null", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      direction: "out",
+      amount: Money.fromCents(1000n),
+      description: "x",
+      category: null,
+      accountId: "acc1",
+      occurredAt: null,
+      status: "paid",
+    });
+    if (r._tag === "ok") expect(r.value.assetId).toBeNull();
+  });
+
   it("sem conta mas com ativo cash existente, usa o primeiro", async () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {

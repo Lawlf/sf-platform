@@ -25,6 +25,7 @@ function txn(
     description: opts.description ?? "compra qualquer",
     category: opts.category ?? null,
     accountId: null,
+    assetId: null,
     status: "paid",
     excludedFromTotals: false,
     source: "manual",
@@ -34,7 +35,9 @@ function txn(
   };
 }
 
-function fakeRepo(rows: TransactionEntity[]): Pick<TransactionRepositoryPort, "listForProfileInRange"> {
+function fakeRepo(
+  rows: TransactionEntity[],
+): Pick<TransactionRepositoryPort, "listForProfileInRange"> {
   return {
     async listForProfileInRange(_profileId, from, to) {
       return rows.filter((r) => r.occurredAt >= from && r.occurredAt <= to);

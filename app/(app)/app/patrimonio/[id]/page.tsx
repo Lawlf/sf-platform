@@ -14,8 +14,6 @@ import { isOk } from "@/shared/errors/result";
 import { formatDateSafe } from "@/shared/format/date-format";
 import { formatCents } from "@/shared/format/money-format";
 
-import { buildCategoryLabeler } from "../../_actions/_category-labels";
-import { listCategoriesQuery } from "../../_actions/category-queries";
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
@@ -26,7 +24,6 @@ import {
 } from "./_actions/account-transactions-queries";
 import { AccountTransactionsSection } from "./_components/account-transactions";
 import type { AssetCostView } from "./_components/asset-cost-card";
-import { AssetCostCategoriesSection } from "./_components/asset-cost-categories-section.client";
 import {
   AssetDetailView,
   type AvailableDebtView,
@@ -107,11 +104,14 @@ export default async function AssetDetailPage({ params }: PageProps) {
           ? "investimento"
           : "bem";
 
-  const costCategories =
-    asset.category === "cash" ? [] : await repos.assetCostCategories.listByAsset(asset.id, profileId);
-
+  // Custo de propriedade: vem dos lançamentos ATRELADOS a este bem (assetId),
+  // não de categorias inteiras. Atribuição direta evita o vazamento de "toda
+  // transporte = este carro" quando há mais de um bem na mesma categoria.
+  // Média de 3 meses, só BRL, ignora excluídos e não-pagos. Entradas atreladas
+  // (ex.: aluguel) viram renda do bem.
   let monthlyExpensesCents = 0n;
-  if (costCategories.length > 0) {
+  let monthlyIncomeCents = 0n;
+  if (asset.category !== "cash") {
     const nowMonth = MonthYear.fromDate(new Date());
     const fromMonth = nowMonth.previous().previous();
     const txns = await repos.transactions.listForProfileInRange(
@@ -119,27 +119,25 @@ export default async function AssetDetailPage({ params }: PageProps) {
       fromMonth.firstDay(),
       nowMonth.lastDay(),
     );
-    const keys = new Set(costCategories.map((c) => c.categoryKey));
     let outCents = 0n;
+    let inCents = 0n;
     for (const t of txns) {
+      if (t.assetId !== asset.id) continue;
       if (t.excludedFromTotals) continue;
-      if (t.direction !== "out" || t.status !== "paid") continue;
-      if (!t.category || !keys.has(t.category)) continue;
+      if (t.status !== "paid") continue;
       if (t.amount.currency !== "BRL") continue;
-      outCents += t.amount.toCents();
+      if (t.direction === "out") outCents += t.amount.toCents();
+      else inCents += t.amount.toCents();
     }
     monthlyExpensesCents = outCents / 3n;
+    monthlyIncomeCents = inCents / 3n;
   }
 
-  const costLabeler = await buildCategoryLabeler(user.id);
-  const linkedCostCategories = costCategories.map((c) => ({
-    key: c.categoryKey,
-    label: costLabeler(c.categoryKey) ?? c.categoryKey,
-  }));
-  const costCatalog = asset.category === "cash" ? null : await listCategoriesQuery();
-
   let costSummary: AssetCostView | null = null;
-  if (asset.category !== "cash" && (linkedDebts.length > 0 || costCategories.length > 0)) {
+  if (
+    asset.category !== "cash" &&
+    (linkedDebts.length > 0 || monthlyExpensesCents > 0n || monthlyIncomeCents > 0n)
+  ) {
     const cur = asset.currentValue.currency;
     const valueCents = asset.currentValue.toCents();
     const owedCents = valueCents - netWorth.toCents();
@@ -156,6 +154,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
     }
     const installmentCents = BigInt(Math.round(monthlyReais * 100));
     const totalCents = installmentCents + monthlyExpensesCents;
+    const netCents = monthlyIncomeCents - totalCents;
     costSummary = {
       noun: assetNoun,
       hasDebt: linkedDebts.length > 0,
@@ -168,6 +167,9 @@ export default async function AssetDetailPage({ params }: PageProps) {
       monthlyInstallmentFormatted: installmentCents > 0n ? formatCents(installmentCents, cur) : null,
       monthlyExpensesFormatted:
         monthlyExpensesCents > 0n ? formatCents(monthlyExpensesCents, cur) : null,
+      monthlyIncomeFormatted: monthlyIncomeCents > 0n ? formatCents(monthlyIncomeCents, cur) : null,
+      netFormatted: monthlyIncomeCents > 0n ? formatCents(netCents < 0n ? -netCents : netCents, cur) : null,
+      netIsPositive: netCents >= 0n,
     };
   }
 
@@ -392,14 +394,6 @@ export default async function AssetDetailPage({ params }: PageProps) {
         linkedGoals={linkedGoals}
         costSummary={costSummary}
       />
-      {!isCash ? (
-        <AssetCostCategoriesSection
-          assetId={asset.id}
-          noun={assetNoun}
-          linked={linkedCostCategories}
-          catalog={costCatalog}
-        />
-      ) : null}
       {isCash ? (
         <AccountTransactionsSection
           accountId={asset.id}

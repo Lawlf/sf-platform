@@ -44,6 +44,7 @@ function txn(over: Partial<TransactionEntity> = {}): TransactionEntity {
     description: "x",
     category: null,
     accountId: "A",
+    assetId: null,
     occurredAt: new Date("2026-06-10"),
     status: "paid",
     excludedFromTotals: false,

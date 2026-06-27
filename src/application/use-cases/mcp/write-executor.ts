@@ -145,6 +145,7 @@ export async function executeWrite(
           description: str(args.description),
           category: optStr(args.category),
           accountId: optStr(args.accountId) ?? null,
+          assetId: optStr(args.assetId) ?? null,
           occurredAt: optDate(args.occurredAt),
         },
       );

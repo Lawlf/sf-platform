@@ -28,6 +28,10 @@ export const transactions = pgTable(
     description: text("description").notNull(),
     category: text("category"),
     accountId: uuid("account_id").references(() => assets.id, { onDelete: "set null" }),
+    // Patrimônio ao qual o lançamento é atribuído (custo/renda de ter o bem).
+    // Só metadado de relatório: não mexe no valor do ativo nem em motor macro.
+    // set null: apagar o bem desatrela os lançamentos, não os apaga.
+    assetId: uuid("asset_id").references(() => assets.id, { onDelete: "set null" }),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("paid"),
     // "Não contar no mês": transferência entre contas / dinheiro mudando de lugar
@@ -43,6 +47,7 @@ export const transactions = pgTable(
     byUser: index("transactions_user_idx").on(t.userId),
     byUserOccurred: index("transactions_user_occurred_idx").on(t.userId, t.occurredAt),
     byAccount: index("transactions_account_idx").on(t.accountId),
+    byAssetAttribution: index("transactions_profile_asset_idx").on(t.profileId, t.assetId),
     profileIdx: index("transactions_profile_id_idx").on(t.profileId),
     // Backstop de banco contra a corrida de double-commit do import OFX: o mesmo
     // fitId (external_id) nunca pode entrar duas vezes para o mesmo usuário.

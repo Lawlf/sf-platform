@@ -45,6 +45,7 @@ function txn(over: Partial<TransactionEntity> = {}): TransactionEntity {
     description: "Mercado",
     category: null,
     accountId: "acc1",
+    assetId: null,
     occurredAt: new Date("2026-06-20T12:00:00Z"),
     status: "paid",
     excludedFromTotals: false,
@@ -129,6 +130,29 @@ describe("updateTransaction", () => {
       amountCents: 10000n,
     });
     expect(updatedAssets).toHaveLength(0);
+  });
+
+  it("reatribui o ativo do lançamento sem tocar saldo", async () => {
+    const { deps, updatedTxns, updatedAssets } = makeDeps(txn({ assetId: null }));
+    const res = await updateTransaction(deps, {
+      profileId: "p1",
+      transactionId: "t1",
+      category: null,
+      assetId: "asset-apt",
+    });
+    expect(isOk(res)).toBe(true);
+    expect(updatedTxns[0]!.assetId).toBe("asset-apt");
+    expect(updatedAssets).toHaveLength(0);
+  });
+
+  it("assetId omitido preserva a atribuição existente", async () => {
+    const { deps, updatedTxns } = makeDeps(txn({ assetId: "asset-carro" }));
+    await updateTransaction(deps, {
+      profileId: "p1",
+      transactionId: "t1",
+      category: "transporte",
+    });
+    expect(updatedTxns[0]!.assetId).toBe("asset-carro");
   });
 
   it("erro quando não existe", async () => {

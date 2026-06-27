@@ -24,6 +24,7 @@ function rowToEntity(row: TransactionRow): TransactionEntity {
     description: row.description,
     category: row.category ?? null,
     accountId: row.accountId ?? null,
+    assetId: row.assetId ?? null,
     occurredAt: row.occurredAt,
     status: row.status as TransactionStatus,
     excludedFromTotals: row.excludedFromTotals,
@@ -45,6 +46,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
     description: entity.description,
     category: entity.category,
     accountId: entity.accountId,
+    assetId: entity.assetId,
     occurredAt: entity.occurredAt,
     status: entity.status,
     excludedFromTotals: entity.excludedFromTotals,
@@ -204,6 +206,21 @@ export class TransactionRepository implements TransactionRepositoryPort {
           eq(transactions.profileId, profileId),
           gte(transactions.occurredAt, from),
           lte(transactions.occurredAt, to),
+          isNull(transactions.deletedAt),
+        ),
+      )
+      .orderBy(desc(transactions.occurredAt));
+    return rows.map(rowToEntity);
+  }
+
+  async listByAttributedAsset(assetId: string, profileId: string): Promise<TransactionEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.assetId, assetId),
+          eq(transactions.profileId, profileId),
           isNull(transactions.deletedAt),
         ),
       )

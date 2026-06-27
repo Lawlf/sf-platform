@@ -15,6 +15,7 @@ function txn(p: Partial<TransactionEntity>): TransactionEntity {
     description: p.description ?? "X",
     category: p.category ?? null,
     accountId: "a1",
+    assetId: null,
     occurredAt: p.occurredAt ?? new Date(Date.UTC(2026, 5, 10)),
     status: "paid",
     excludedFromTotals: false,
@@ -54,7 +55,11 @@ describe("getMonthlyConsumo", () => {
     const txns = [
       txn({ description: "Supermercado", amount: Money.fromCents(20000n) }),
       txn({ description: "Loja 3/10", amount: Money.fromCents(5000n), category: "promoted_debt" }),
-      txn({ description: "Resgate de empréstimo", amount: Money.fromCents(131915n), category: "internal_transfer" }),
+      txn({
+        description: "Resgate de empréstimo",
+        amount: Money.fromCents(131915n),
+        category: "internal_transfer",
+      }),
     ];
     const r = await getMonthlyConsumo(makeDeps(txns), {
       profileId: "profile-1",

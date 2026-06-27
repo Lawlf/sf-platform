@@ -16,6 +16,8 @@ export interface TransactionRepositoryPort {
     profileId: string,
   ): Promise<Array<{ key: string; inCents: bigint; outCents: bigint; currency: string }>>;
   listForProfileInRange(profileId: string, from: Date, to: Date): Promise<TransactionEntity[]>;
+  /** Lançamentos atribuídos a um patrimônio (não apagados), para o custo de propriedade. */
+  listByAttributedAsset(assetId: string, profileId: string): Promise<TransactionEntity[]>;
   /** Agendados com data já vencida (occurredAt <= asOf), de todos os perfis. Para o cron de postagem. */
   listDueScheduled(asOf: Date): Promise<TransactionEntity[]>;
   softDelete(id: string, deletedAt: Date): Promise<void>;

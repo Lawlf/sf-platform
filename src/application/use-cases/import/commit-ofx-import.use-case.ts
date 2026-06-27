@@ -144,6 +144,7 @@ export async function commitOfxImport(
       description: t.memo,
       category,
       accountId: assetId,
+      assetId: null,
       occurredAt: t.postedAt,
       status: "paid",
       // Transferência interna detectada (Pix pra si, caixinha) não conta no
