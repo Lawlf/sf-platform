@@ -92,6 +92,7 @@ const extraDeps = {
   debtPayments: { listForProfileInRange: async () => [] },
   debtAmountAdjustments: { listForProfile: async () => [] },
   recurringSettlements: { listForProfile: async () => [] },
+  goals: { listForProfile: async () => [] },
 };
 
 const deps = {

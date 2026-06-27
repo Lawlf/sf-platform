@@ -41,6 +41,7 @@ export async function fetchPrescription(): Promise<PrescriptionViewPayload | nul
       debtPayments: repos.debtPayments,
       debtAmountAdjustments: repos.debtAmountAdjustments,
       recurringSettlements: repos.recurringSettlements,
+      goals: repos.goals,
       now: () => clock.now(),
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,

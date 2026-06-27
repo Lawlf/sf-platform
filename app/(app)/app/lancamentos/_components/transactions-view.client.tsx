@@ -48,7 +48,6 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 
 import type { CategoryCatalog } from "../../_actions/category-queries";
 import { categoryIcon } from "../../_components/category-icons";
-import { HowItWorksSheet } from "../../_components/how-it-works-sheet";
 import { MoneyInput } from "../../_components/money-input";
 import { setSelectionBarActive } from "../../_lib/selection-bar";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
@@ -594,14 +593,6 @@ export function TransactionsView({
           </Link>
         </div>
       )}
-
-      <div className="flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[0.75rem] leading-relaxed text-[color:var(--text-muted)]">
-        <span>
-          A renda que você registra entra direto no seu saldo. Aqui ficam só os lançamentos e o
-          extrato, então a soma desta lista não fecha com o saldo, e tá certo assim.
-        </span>
-        <HowItWorksSheet topic="movimentacoes-saldo" variant="plain" />
-      </div>
 
       <div className="flex flex-col gap-2">
         <div className="relative">
@@ -1495,11 +1486,13 @@ function EditTransactionSheet({
         return;
       }
       toast.success("Lançamento apagado.");
+      setConfirmDelete(false);
       onDeleted(txn.id);
     });
   }
 
   return (
+    <>
     <Sheet
       open={txn !== null}
       onOpenChange={(open) => {
@@ -1597,43 +1590,49 @@ function EditTransactionSheet({
           Salvar
         </Button>
 
-        {confirmDelete ? (
-          <div className="flex flex-col gap-2 rounded-xl border border-[color:var(--semantic-negative)]/30 bg-[color:var(--semantic-negative)]/[0.06] p-3">
-            <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">
-              Apagar esse lançamento? O saldo volta ao que era.
-            </p>
-            <div className="flex gap-2">
-              <Button
-                type="button"
-                size="sm"
-                variant="ghost"
-                onClick={() => setConfirmDelete(false)}
-                className="flex-1"
-              >
-                Cancelar
-              </Button>
-              <Button
-                type="button"
-                size="sm"
-                loading={pending}
-                onClick={remove}
-                className="flex-1 bg-[color:var(--semantic-negative)] text-white hover:brightness-105"
-              >
-                Apagar
-              </Button>
-            </div>
-          </div>
-        ) : (
-          <button
-            type="button"
-            onClick={() => setConfirmDelete(true)}
-            className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[0.8125rem] font-semibold text-[color:var(--semantic-negative)] hover:underline"
-          >
-            <Trash2 size={14} strokeWidth={2} aria-hidden />
-            Apagar lançamento
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setConfirmDelete(true)}
+          className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[0.8125rem] font-semibold text-[color:var(--semantic-negative)] hover:underline"
+        >
+          <Trash2 size={14} strokeWidth={2} aria-hidden />
+          Apagar lançamento
+        </button>
       </SheetContent>
     </Sheet>
+
+    <Sheet open={confirmDelete} onOpenChange={setConfirmDelete}>
+      <SheetContent side="bottom" className="flex flex-col gap-4 px-6 pb-8 pt-3">
+        <div
+          className="mx-auto mb-1 h-1 w-10 rounded-full bg-[color:var(--border-strong)] md:hidden"
+          aria-hidden
+        />
+        <SheetHeader>
+          <SheetTitle>Apagar esse lançamento?</SheetTitle>
+          <SheetDescription className="text-[0.8125rem] text-[color:var(--text-secondary)]">
+            O saldo volta ao que era.
+          </SheetDescription>
+        </SheetHeader>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="ghost"
+            onClick={() => setConfirmDelete(false)}
+            className="flex-1"
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            loading={pending}
+            onClick={remove}
+            className="flex-1 bg-[color:var(--semantic-negative)] text-white hover:brightness-105"
+          >
+            Apagar
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+    </>
   );
 }

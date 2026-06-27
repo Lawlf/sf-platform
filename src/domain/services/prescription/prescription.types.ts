@@ -14,6 +14,7 @@ export type MoveType = "reduce_commitment" | "pay_debt" | "build_reserve" | "inv
 export type ReasonCode =
   | "highest_rate" // dívida de maior juro
   | "below_reserve_floor" // reserva abaixo do piso
+  | "reserve_goal_active" // meta de reserva do usuário ainda não concluída
   | "below_min_safety" // reserva abaixo do colchão mínimo (guard-rail)
   | "no_expensive_debt_reserve_ok" // pronto pra crescer
   | "negative_free_balance" // saldo livre negativo
@@ -30,6 +31,7 @@ export interface MoveMetrics {
   monthsToReserve?: number | null;
   monthlyContributionReais?: number;
   projectedGrowthReais?: number;
+  projectedTotalReais?: number;
   targetReductionReais?: number;
   /** mês de quitação da dívida COM o pagamento extra. */
   monthsToPayoff?: number | null;
@@ -63,6 +65,8 @@ export interface PrescriptionSnapshot {
   committedPct: number;
   /** total de ativos da categoria "cash" (reserva/liquidez), em reais. */
   reserveReais: number;
+  /** quanto falta para a meta de reserva de emergência ativa do usuário (alvo - reserva). undefined se não houver meta ativa. */
+  reserveGoalGapReais?: number | undefined;
   /** true quando alguma renda do mês tem isEstimated=true (renda variável/irregular). */
   hasEstimatedIncome: boolean;
   config: PrescriptionConfig;

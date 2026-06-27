@@ -13,6 +13,7 @@ import { Forbidden } from "@/domain/errors/auth-errors";
 import type { FxRateUnavailableError } from "@/domain/errors/financial-errors";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import type { HouseholdRepositoryPort } from "@/domain/ports/repositories/household.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import type { Prescription } from "@/domain/services/prescription/prescription.types";
@@ -26,6 +27,7 @@ export interface BuildHouseholdPrescriptionDeps extends ConvertEntityDeps {
   debts: Pick<DebtRepositoryPort, "listForProfile">;
   incomes: Pick<IncomeRepositoryPort, "listForProfile">;
   assets: Pick<AssetRepositoryPort, "findActiveByProfile">;
+  goals: Pick<GoalRepositoryPort, "listForProfile">;
   now: () => Date;
 }
 
@@ -56,13 +58,21 @@ export async function buildHouseholdPrescription(
   const combinedDebts: DebtEntity[] = [];
   const combinedIncomes: IncomeEntity[] = [];
   const combinedAssets: AssetEntity[] = [];
+  let reserveGoalTargetCents = 0n;
 
   for (const share of activeShares) {
-    const [rawDebts, rawIncomes, rawAssets] = await Promise.all([
+    const [rawDebts, rawIncomes, rawAssets, rawGoals] = await Promise.all([
       deps.debts.listForProfile(share.profileId, { status: "active" }),
       deps.incomes.listForProfile(share.profileId, { onlyActive: true }),
       deps.assets.findActiveByProfile(share.profileId),
+      deps.goals.listForProfile(share.profileId, { status: "active" }),
     ]);
+
+    for (const g of rawGoals) {
+      if (g.type === "emergency_fund" && g.targetCents != null) {
+        reserveGoalTargetCents += g.targetCents;
+      }
+    }
 
     for (const d of rawDebts) {
       const r = await convertDebtToBase(deps, share.userId, d, BASE_CURRENCY, now);
@@ -88,6 +98,8 @@ export async function buildHouseholdPrescription(
     incomes: combinedIncomes,
     assets: combinedAssets,
     now,
+    reserveGoalTargetReais:
+      reserveGoalTargetCents > 0n ? Number(reserveGoalTargetCents) / 100 : undefined,
   });
 
   return ok(prescription);

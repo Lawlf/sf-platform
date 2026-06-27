@@ -104,6 +104,7 @@ async function PerfilStatsSection({ userId }: { userId: string }) {
       debtPayments: repos.debtPayments,
       debtAmountAdjustments: repos.debtAmountAdjustments,
       recurringSettlements: repos.recurringSettlements,
+      goals: repos.goals,
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
       clock,

@@ -8,6 +8,7 @@ import { requireUser } from "@/presentation/http/middleware/cached-current-user"
 
 import { buildCategoryLabeler } from "../_actions/_category-labels";
 import { listCategoriesQuery } from "../_actions/category-queries";
+import { HowItWorksSheet } from "../_components/how-it-works-sheet";
 import { PageShell } from "../_components/page-shell";
 
 import { fetchTransactionsForRange } from "./_actions/transactions-list-queries";
@@ -127,6 +128,14 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
       description="Suas entradas e saídas avulsas, dia a dia."
       backHref="/app/linha-do-tempo"
     >
+      <div className="flex flex-col gap-2">
+        <p className="text-[0.75rem] leading-relaxed text-[color:var(--text-muted)]">
+          A renda que você registra entra direto no seu saldo. Aqui ficam só os lançamentos e o
+          extrato, então a soma desta lista não fecha com o saldo, e tá certo assim.
+        </p>
+        <HowItWorksSheet topic="movimentacoes-saldo" variant="plain" />
+      </div>
+
       <Link
         href={"/app/lancar" as Route}
         className="focus-ring flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"

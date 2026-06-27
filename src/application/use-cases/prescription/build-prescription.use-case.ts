@@ -10,6 +10,7 @@ import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repo
 import type { DebtAmountAdjustmentRepositoryPort } from "@/domain/ports/repositories/debt-amount-adjustment.repository";
 import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { GoalRepositoryPort } from "@/domain/ports/repositories/goal.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
 import type { IncomeSettlementRepositoryPort } from "@/domain/ports/repositories/income-settlement.repository";
 import type { RecurringSettlementRepositoryPort } from "@/domain/ports/repositories/recurring-settlement.repository";
@@ -29,6 +30,7 @@ export interface BuildPrescriptionDeps extends ConvertEntityDeps {
   debtPayments: Pick<DebtPaymentRepositoryPort, "listForProfileInRange">;
   debtAmountAdjustments: Pick<DebtAmountAdjustmentRepositoryPort, "listForProfile">;
   recurringSettlements: Pick<RecurringSettlementRepositoryPort, "listForProfile">;
+  goals: Pick<GoalRepositoryPort, "listForProfile">;
   now: () => Date;
 }
 
@@ -44,7 +46,7 @@ export async function buildPrescription(
   const now = deps.now();
   const month = MonthYear.fromDate(now);
 
-  const [rawDebts, rawIncomes, rawAssets, incomeSettlements, paymentsThisMonth, adjustments, recurringSettlementsRaw] =
+  const [rawDebts, rawIncomes, rawAssets, incomeSettlements, paymentsThisMonth, adjustments, recurringSettlementsRaw, activeGoals] =
     await Promise.all([
       deps.debts.listForProfile(input.profileId, { status: "active" }),
       deps.incomes.listForProfile(input.profileId, { onlyActive: true }),
@@ -56,7 +58,14 @@ export async function buildPrescription(
       }),
       deps.debtAmountAdjustments.listForProfile(input.profileId),
       deps.recurringSettlements.listForProfile(input.profileId),
+      deps.goals.listForProfile(input.profileId, { status: "active" }),
     ]);
+
+  const reserveGoalTargetCents = activeGoals
+    .filter((g) => g.type === "emergency_fund" && g.targetCents != null)
+    .reduce((max, g) => (g.targetCents! > max ? g.targetCents! : max), 0n);
+  const reserveGoalTargetReais =
+    reserveGoalTargetCents > 0n ? Number(reserveGoalTargetCents) / 100 : undefined;
 
   const settlements: TimelineSettlement[] = recurringSettlementsRaw.map((s) => ({
     debtId: s.debtId,
@@ -94,6 +103,7 @@ export async function buildPrescription(
     paymentsThisMonth,
     adjustments,
     settlements,
+    reserveGoalTargetReais,
   });
 
   return ok(prescription);
