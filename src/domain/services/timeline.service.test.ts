@@ -81,6 +81,7 @@ function makeAsset(overrides: {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: overrides.createdAt ?? new Date(Date.UTC(2026, 0, 1)),
     updatedAt: new Date(Date.UTC(2026, 0, 1)),
     anchorAt: null,

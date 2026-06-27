@@ -28,6 +28,18 @@ export interface AssetCostOptions {
   purchaseDate: Date | null;
 }
 
+export type AssetCostProjectionBasis = "trailing_12m" | "extrapolated" | "estimate" | "none";
+
+export interface AssetCostProjection {
+  annualCents: bigint;
+  basis: AssetCostProjectionBasis;
+}
+
+export interface AssetCostProjectionOptions {
+  referenceDate: Date;
+  monthlyEstimateCents: bigint | null;
+}
+
 const UNCATEGORIZED = "outros";
 
 function endOfMonth(d: Date): Date {
@@ -75,5 +87,53 @@ export class AssetCostService {
       : null;
 
     return { month, last12, sincePurchase };
+  }
+
+  /**
+   * Projeta o custo anual do bem ("nesse ritmo, ~R$X/ano"). Quando há 12+ meses
+   * de gasto atrelado, usa o total real dos últimos 12 meses (captura picos
+   * anuais como IPVA). Com histórico parcial (2 a 11 meses), extrapola a média
+   * mensal. Um único mês não projeta sozinho (ruído). Sem gasto suficiente, cai
+   * pra estimativa recorrente; sem nada, basis "none".
+   */
+  static projectAnnual(
+    transactions: AssetCostInput[],
+    opts: AssetCostProjectionOptions,
+  ): AssetCostProjection {
+    const ref = opts.referenceDate;
+    const upper = endOfMonth(ref);
+    const last12From = new Date(Date.UTC(ref.getUTCFullYear(), ref.getUTCMonth() - 11, 1));
+
+    const out = transactions.filter(
+      (t) =>
+        t.direction === "out" &&
+        t.deletedAt === null &&
+        !t.excludedFromTotals &&
+        t.currency === "BRL" &&
+        inRange(t.occurredAt, last12From, upper),
+    );
+
+    if (out.length > 0) {
+      const sum = out.reduce((acc, t) => acc + t.amountCents, 0n);
+      const refIndex = ref.getUTCFullYear() * 12 + ref.getUTCMonth();
+      const earliest = out.reduce(
+        (min, t) => Math.min(min, t.occurredAt.getUTCFullYear() * 12 + t.occurredAt.getUTCMonth()),
+        refIndex,
+      );
+      const monthsElapsed = Math.min(12, Math.max(1, refIndex - earliest + 1));
+      if (monthsElapsed >= 12) {
+        return { annualCents: sum, basis: "trailing_12m" };
+      }
+      if (monthsElapsed >= 2) {
+        const m = BigInt(monthsElapsed);
+        return { annualCents: (sum * 12n + m / 2n) / m, basis: "extrapolated" };
+      }
+    }
+
+    if (opts.monthlyEstimateCents !== null) {
+      return { annualCents: opts.monthlyEstimateCents * 12n, basis: "estimate" };
+    }
+
+    return { annualCents: 0n, basis: "none" };
   }
 }

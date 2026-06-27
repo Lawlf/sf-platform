@@ -17,7 +17,6 @@ import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
 
-
 import { CATEGORIES, type Category } from "./asset-categories";
 import { CategoryStep } from "./steps/category-step";
 import { ConfirmStep } from "./steps/confirm-step";
@@ -46,6 +45,7 @@ export const wizardFormSchema = z.object({
   currentValueCents: z.bigint().nonnegative("Valor inválido."),
   currency: z.enum(CURRENCIES),
   purchasePriceCents: z.bigint().nullable().optional(),
+  monthlyCostEstimateCents: null,
   acquiredAt: z.string().optional().nullable(),
 
   // vehicle
@@ -68,10 +68,7 @@ export const wizardFormSchema = z.object({
   ticker: z
     .string()
     .optional()
-    .refine(
-      (v) => v === undefined || v === "" || /^[A-Z0-9.]{1,15}$/i.test(v),
-      "Sigla inválida.",
-    ),
+    .refine((v) => v === undefined || v === "" || /^[A-Z0-9.]{1,15}$/i.test(v), "Sigla inválida."),
   coinId: z.string().optional(),
   shares: z.string().optional(),
   avgPriceCents: z.bigint().nullable().optional(),
@@ -146,7 +143,11 @@ export function AssetWizardClient({
   const router = useRouter();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<WizardStepId>(
-    initialCategory ? (initialCategory === "investment" ? "investment_type" : "details") : "category",
+    initialCategory
+      ? initialCategory === "investment"
+        ? "investment_type"
+        : "details"
+      : "category",
   );
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -159,6 +160,7 @@ export function AssetWizardClient({
       currentValueCents: 0n as unknown as bigint,
       currency: defaultCurrency,
       purchasePriceCents: null,
+      monthlyCostEstimateCents: null,
       acquiredAt: "",
       brand: "",
       model: "",
@@ -462,6 +464,7 @@ export function AssetWizardClient({
           ? values.acquiredAt
           : null,
       purchasePriceCents: purchasePriceCents !== null ? purchasePriceCents.toString() : null,
+      monthlyCostEstimateCents: null,
     };
 
     startTransition(async () => {

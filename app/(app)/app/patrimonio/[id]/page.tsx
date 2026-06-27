@@ -4,6 +4,10 @@ import { notFound } from "next/navigation";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
+import {
+  AssetCostService,
+  type AssetCostProjectionBasis,
+} from "@/domain/services/asset-cost.service";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projection.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -72,10 +76,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
   // detalhe genérico de bem (que traria "vincular dívida", "vendi ou saiu", etc).
   const isWallet = asset.category === "cash" && asset.label === "Carteira";
 
-  const allDebtsResult = await listDebts(
-    { debts: repos.debts },
-    { profileId, status: "active" },
-  );
+  const allDebtsResult = await listDebts({ debts: repos.debts }, { profileId, status: "active" });
   const allActiveDebts = isOk(allDebtsResult) ? allDebtsResult.value : [];
 
   const linkedIds = new Set(linkedDebts.map((l) => l.debt.id));
@@ -111,13 +112,16 @@ export default async function AssetDetailPage({ params }: PageProps) {
   // (ex.: aluguel) viram renda do bem.
   let monthlyExpensesCents = 0n;
   let monthlyIncomeCents = 0n;
+  let currentMonthOutCents = 0n;
   if (asset.category !== "cash") {
     const nowMonth = MonthYear.fromDate(new Date());
     const fromMonth = nowMonth.previous().previous();
+    const monthStart = nowMonth.firstDay();
+    const monthEnd = nowMonth.lastDay();
     const txns = await repos.transactions.listForProfileInRange(
       profileId,
       fromMonth.firstDay(),
-      nowMonth.lastDay(),
+      monthEnd,
     );
     let outCents = 0n;
     let inCents = 0n;
@@ -126,18 +130,45 @@ export default async function AssetDetailPage({ params }: PageProps) {
       if (t.excludedFromTotals) continue;
       if (t.status !== "paid") continue;
       if (t.amount.currency !== "BRL") continue;
-      if (t.direction === "out") outCents += t.amount.toCents();
-      else inCents += t.amount.toCents();
+      if (t.direction === "out") {
+        outCents += t.amount.toCents();
+        if (t.occurredAt >= monthStart && t.occurredAt <= monthEnd) {
+          currentMonthOutCents += t.amount.toCents();
+        }
+      } else {
+        inCents += t.amount.toCents();
+      }
     }
     monthlyExpensesCents = outCents / 3n;
     monthlyIncomeCents = inCents / 3n;
   }
 
+  let annualProjectionFormatted: string | null = null;
+  let projectionBasis: AssetCostProjectionBasis = "none";
+  if (asset.category !== "cash") {
+    const attributed = await repos.transactions.listByAttributedAsset(asset.id, profileId);
+    const proj = AssetCostService.projectAnnual(
+      attributed.map((t) => ({
+        occurredAt: t.occurredAt,
+        direction: t.direction,
+        amountCents: t.amount.toCents(),
+        category: t.category,
+        currency: t.amount.currency,
+        excludedFromTotals: t.excludedFromTotals,
+        deletedAt: t.deletedAt,
+      })),
+      { referenceDate: new Date(), monthlyEstimateCents: asset.monthlyCostEstimateCents },
+    );
+    projectionBasis = proj.basis;
+    if (proj.basis !== "none") {
+      annualProjectionFormatted = formatCents(proj.annualCents, asset.currentValue.currency);
+    }
+  }
+
+  // Card sempre presente em bem não-cash: o editor de estimativa é a porta de
+  // entrada (convite honesto), mesmo sem dívida nem gasto atrelado ainda.
   let costSummary: AssetCostView | null = null;
-  if (
-    asset.category !== "cash" &&
-    (linkedDebts.length > 0 || monthlyExpensesCents > 0n || monthlyIncomeCents > 0n)
-  ) {
+  if (asset.category !== "cash") {
     const cur = asset.currentValue.currency;
     const valueCents = asset.currentValue.toCents();
     const owedCents = valueCents - netWorth.toCents();
@@ -147,16 +178,16 @@ export default async function AssetDetailPage({ params }: PageProps) {
       if (!isOk(svc)) continue;
       const principalCents = l.debt.originalPrincipal.toCents();
       const frac =
-        principalCents > 0n
-          ? Number(l.allocationOriginal.toCents()) / Number(principalCents)
-          : 1;
+        principalCents > 0n ? Number(l.allocationOriginal.toCents()) / Number(principalCents) : 1;
       monthlyReais += svc.value * frac;
     }
     const installmentCents = BigInt(Math.round(monthlyReais * 100));
     const totalCents = installmentCents + monthlyExpensesCents;
     const netCents = monthlyIncomeCents - totalCents;
+    const estimateCents = asset.monthlyCostEstimateCents;
     costSummary = {
       noun: assetNoun,
+      assetId: asset.id,
       hasDebt: linkedDebts.length > 0,
       valueFormatted: asset.currentValue.format(),
       owedFormatted: formatCents(owedCents < 0n ? -owedCents : owedCents, cur),
@@ -164,12 +195,20 @@ export default async function AssetDetailPage({ params }: PageProps) {
       ownIsNegative: netWorth.isNegative(),
       owedPct: valueCents > 0n ? (Number(owedCents) / Number(valueCents)) * 100 : 100,
       monthlyTotalFormatted: totalCents > 0n ? formatCents(totalCents, cur) : null,
-      monthlyInstallmentFormatted: installmentCents > 0n ? formatCents(installmentCents, cur) : null,
+      monthlyInstallmentFormatted:
+        installmentCents > 0n ? formatCents(installmentCents, cur) : null,
       monthlyExpensesFormatted:
         monthlyExpensesCents > 0n ? formatCents(monthlyExpensesCents, cur) : null,
       monthlyIncomeFormatted: monthlyIncomeCents > 0n ? formatCents(monthlyIncomeCents, cur) : null,
-      netFormatted: monthlyIncomeCents > 0n ? formatCents(netCents < 0n ? -netCents : netCents, cur) : null,
+      netFormatted:
+        monthlyIncomeCents > 0n ? formatCents(netCents < 0n ? -netCents : netCents, cur) : null,
       netIsPositive: netCents >= 0n,
+      estimateCents: estimateCents !== null ? estimateCents.toString() : null,
+      estimateFormatted: estimateCents !== null ? formatCents(estimateCents, cur) : null,
+      actualThisMonthFormatted:
+        currentMonthOutCents > 0n ? formatCents(currentMonthOutCents, cur) : null,
+      annualProjectionFormatted,
+      projectionBasis,
     };
   }
 

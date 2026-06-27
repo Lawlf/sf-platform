@@ -257,9 +257,9 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
   }
 }
 
-function deserializeInstallments(value: unknown): DebtEntity extends { installmentPurchases: infer P }
-  ? P
-  : never {
+function deserializeInstallments(
+  value: unknown,
+): DebtEntity extends { installmentPurchases: infer P } ? P : never {
   if (!Array.isArray(value)) return [] as never;
   return value.map((raw) => {
     const item = raw as Record<string, unknown>;
@@ -289,6 +289,7 @@ function deserializeAsset(s: Record<string, unknown>): AssetEntity {
     depreciationRatePctYear: num(s.depreciationRatePctYear),
     purchaseDate: optDate(s.purchaseDate),
     purchasePriceCents: optBigint(s.purchasePriceCents),
+    monthlyCostEstimateCents: null,
     createdAt: date(s.createdAt),
     updatedAt: date(s.updatedAt),
     anchorAt: optDate(s.anchorAt),

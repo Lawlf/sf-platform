@@ -17,7 +17,10 @@ import { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
 export interface CommitOfxImportDeps {
-  assets: Pick<AssetRepositoryPort, "findByExternalAccountKey" | "create" | "update" | "listExternalAccountKeys">;
+  assets: Pick<
+    AssetRepositoryPort,
+    "findByExternalAccountKey" | "create" | "update" | "listExternalAccountKeys"
+  >;
   transactions: Pick<TransactionRepositoryPort, "existingExternalIds" | "create">;
   incomes: Pick<IncomeRepositoryPort, "create">;
   debts: Pick<DebtRepositoryPort, "create">;
@@ -101,6 +104,7 @@ export async function commitOfxImport(
       depreciationRatePctYear: 0,
       purchaseDate: null,
       purchasePriceCents: null,
+      monthlyCostEstimateCents: null,
       createdAt: now,
       updatedAt: now,
       anchorAt: null,
@@ -161,9 +165,7 @@ export async function commitOfxImport(
   const incomeByFitId = new Map(
     sugg.incomes.flatMap((inc) => inc.fitIds.map((f) => [f, inc] as const)),
   );
-  const debtByFitId = new Map(
-    sugg.debts.flatMap((d) => d.fitIds.map((f) => [f, d] as const)),
-  );
+  const debtByFitId = new Map(sugg.debts.flatMap((d) => d.fitIds.map((f) => [f, d] as const)));
 
   let createdIncomes = 0;
   for (const t of newTxns) {
@@ -257,6 +259,7 @@ export async function commitOfxImport(
         depreciationRatePctYear: 0,
         purchaseDate: null,
         purchasePriceCents: null,
+        monthlyCostEstimateCents: null,
         createdAt: now,
         updatedAt: now,
         anchorAt: null,

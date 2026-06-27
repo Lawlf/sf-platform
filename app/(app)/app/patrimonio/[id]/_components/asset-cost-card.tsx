@@ -1,7 +1,11 @@
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
+import type { AssetCostProjectionBasis } from "@/domain/services/asset-cost.service";
+
+import { AssetCostEstimateEditor } from "./asset-cost-estimate-editor.client";
 
 export interface AssetCostView {
   noun: string;
+  assetId: string;
   /** Tem dívida ligada: mostra a barra vale x devo. Sem dívida, só o valor. */
   hasDebt: boolean;
   valueFormatted: string;
@@ -21,7 +25,24 @@ export interface AssetCostView {
   /** Líquido mensal (renda - custo), em módulo. null sem renda atrelada. */
   netFormatted: string | null;
   netIsPositive: boolean;
+  /** Estimativa recorrente em centavos (string) para prefill do editor. null sem estimativa. */
+  estimateCents: string | null;
+  /** Estimativa formatada. null sem estimativa. */
+  estimateFormatted: string | null;
+  /** Gastos atrelados do mês corrente, formatado. null quando zero. */
+  actualThisMonthFormatted: string | null;
+  /** Custo anual projetado ("nesse ritmo, ~R$X/ano"). null quando basis "none". */
+  annualProjectionFormatted: string | null;
+  /** Base da projeção: define a copy do qualificador. */
+  projectionBasis: AssetCostProjectionBasis;
 }
+
+const PROJECTION_QUALIFIER: Record<AssetCostProjectionBasis, string> = {
+  trailing_12m: "pelos últimos 12 meses",
+  extrapolated: "estimado pelos meses que você já registrou",
+  estimate: "pela sua estimativa",
+  none: "",
+};
 
 export function AssetCostCard({ view }: { view: AssetCostView }) {
   const owedPct = Math.min(100, Math.max(0, view.owedPct));
@@ -118,6 +139,31 @@ export function AssetCostCard({ view }: { view: AssetCostView }) {
           />
         </div>
       ) : null}
+
+      {view.annualProjectionFormatted ? (
+        <div className="mt-3 border-t border-[color:var(--border-soft)] pt-3">
+          <p className="text-[0.8125rem] text-[color:var(--text-secondary)]">
+            Nesse ritmo, esse {view.noun} custa cerca de{" "}
+            <span className="font-bold text-[color:var(--text-primary)]">
+              <HideableValue>{view.annualProjectionFormatted}</HideableValue>
+            </span>{" "}
+            por ano.
+          </p>
+          {PROJECTION_QUALIFIER[view.projectionBasis] ? (
+            <p className="mt-1 text-[0.6875rem] text-[color:var(--text-muted)]">
+              {PROJECTION_QUALIFIER[view.projectionBasis]}.
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <AssetCostEstimateEditor
+        assetId={view.assetId}
+        noun={view.noun}
+        estimateCents={view.estimateCents}
+        estimateFormatted={view.estimateFormatted}
+        actualThisMonthFormatted={view.actualThisMonthFormatted}
+      />
     </section>
   );
 }

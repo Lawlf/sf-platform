@@ -1,0 +1,1 @@
+ALTER TABLE "assets" ADD COLUMN "monthly_cost_estimate_cents" bigint;

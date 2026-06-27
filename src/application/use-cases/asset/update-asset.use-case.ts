@@ -25,6 +25,8 @@ export interface UpdateAssetInput {
   metadata?: AssetMetadata | null;
   fipeCode?: string | null;
   acquiredAt?: Date | null;
+  /** Estimativa mensal de custo. Omitido = não muda; null = limpa; valor >= 0. */
+  monthlyCostEstimateCents?: bigint | null;
 }
 
 export type UpdateAssetError =
@@ -69,6 +71,14 @@ export async function updateAsset(
     nextMetadata = input.metadata;
   }
 
+  if (
+    input.monthlyCostEstimateCents !== undefined &&
+    input.monthlyCostEstimateCents !== null &&
+    input.monthlyCostEstimateCents < 0n
+  ) {
+    return err(new InvalidAssetValue("A estimativa mensal não pode ser negativa."));
+  }
+
   const updated: AssetEntity = {
     ...existing,
     label: nextLabel,
@@ -76,6 +86,9 @@ export async function updateAsset(
     metadata: nextMetadata,
     ...(input.fipeCode !== undefined && { fipeCode: input.fipeCode }),
     ...(input.acquiredAt !== undefined && { acquiredAt: input.acquiredAt }),
+    ...(input.monthlyCostEstimateCents !== undefined && {
+      monthlyCostEstimateCents: input.monthlyCostEstimateCents,
+    }),
     updatedAt: deps.clock.now(),
   };
 

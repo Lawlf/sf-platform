@@ -8,11 +8,29 @@ import { buildProjectionAssetInputs } from "./build-projection-asset-inputs";
 
 function asset(p: Partial<AssetEntity> & Pick<AssetEntity, "id" | "metadata">): AssetEntity {
   return {
-    userId: "u1", profileId: "profile-1", category: "cash", label: "x", currentValue: Money.fromCents(100000n),
-    fipeCode: null, fipeLastSyncedAt: null, acquiredAt: null, depreciationKind: "stable",
-    depreciationRatePctYear: 0, purchaseDate: null, purchasePriceCents: null,
-    createdAt: new Date(0), updatedAt: new Date(0), anchorAt: null, deactivatedAt: null, deactivationKind: null,
-    salePriceCents: null, deactivationReason: null, deletedAt: null, externalAccountKey: null, ...p,
+    userId: "u1",
+    profileId: "profile-1",
+    category: "cash",
+    label: "x",
+    currentValue: Money.fromCents(100000n),
+    fipeCode: null,
+    fipeLastSyncedAt: null,
+    acquiredAt: null,
+    depreciationKind: "stable",
+    depreciationRatePctYear: 0,
+    purchaseDate: null,
+    purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
+    createdAt: new Date(0),
+    updatedAt: new Date(0),
+    anchorAt: null,
+    deactivatedAt: null,
+    deactivationKind: null,
+    salePriceCents: null,
+    deactivationReason: null,
+    deletedAt: null,
+    externalAccountKey: null,
+    ...p,
   };
 }
 
@@ -33,7 +51,12 @@ describe("buildProjectionAssetInputs", () => {
 
   it("preserves order and maps every asset", () => {
     const a = asset({ id: "a", metadata: { kind: "cash", yieldType: "none" } });
-    const b = asset({ id: "b", category: "vehicle", depreciationRatePctYear: 20, metadata: { kind: "vehicle", brand: "x", model: "y", year: 2020 } });
+    const b = asset({
+      id: "b",
+      category: "vehicle",
+      depreciationRatePctYear: 20,
+      metadata: { kind: "vehicle", brand: "x", model: "y", year: 2020 },
+    });
     const result = buildProjectionAssetInputs([a, b]);
     expect(result.map((r) => r.assetId)).toEqual(["a", "b"]);
     expect(result[1]!.monthlyGrowthRate).toBeLessThan(0);

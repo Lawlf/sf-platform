@@ -95,7 +95,13 @@ export async function executeWrite(
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
-      return { entityType: "income", entityId: result.value.id, before: null, after, reversible: true };
+      return {
+        entityType: "income",
+        entityId: result.value.id,
+        before: null,
+        after,
+        reversible: true,
+      };
     }
 
     case "income_update": {
@@ -111,7 +117,9 @@ export async function executeWrite(
           incomeId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.amountCents !== undefined && { amount: money(args.amountCents, currency) }),
-          ...(args.frequency !== undefined && { frequency: str(args.frequency) as IncomeFrequency }),
+          ...(args.frequency !== undefined && {
+            frequency: str(args.frequency) as IncomeFrequency,
+          }),
           ...(args.startDate !== undefined && { startDate: date(args.startDate) }),
           ...(args.endDate !== undefined && { endDate: optDate(args.endDate) }),
         },
@@ -172,7 +180,13 @@ export async function executeWrite(
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
-      return { entityType: "debt", entityId: result.value.id, before: null, after, reversible: true };
+      return {
+        entityType: "debt",
+        entityId: result.value.id,
+        before: null,
+        after,
+        reversible: true,
+      };
     }
 
     case "debt_update": {
@@ -189,7 +203,9 @@ export async function executeWrite(
           debtId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
           ...(args.notes !== undefined && { notes: optStr(args.notes) }),
-          ...(args.expectedEndDate !== undefined && { expectedEndDate: optDate(args.expectedEndDate) }),
+          ...(args.expectedEndDate !== undefined && {
+            expectedEndDate: optDate(args.expectedEndDate),
+          }),
           ...(args.currentBalanceCents !== undefined && {
             currentBalance: money(args.currentBalanceCents, currency),
           }),
@@ -260,12 +276,19 @@ export async function executeWrite(
           allocations: [],
           ...(args.purchasePriceCents !== undefined && {
             purchasePriceCents: cents(args.purchasePriceCents),
+            monthlyCostEstimateCents: null,
           }),
         },
       );
       if (isErr(result)) throw result.error;
       const after = serialize(result.value);
-      return { entityType: "asset", entityId: result.value.id, before: null, after, reversible: true };
+      return {
+        entityType: "asset",
+        entityId: result.value.id,
+        before: null,
+        after,
+        reversible: true,
+      };
     }
 
     case "asset_update": {
@@ -278,7 +301,9 @@ export async function executeWrite(
           profileId,
           assetId: id,
           ...(args.label !== undefined && { label: str(args.label) }),
-          ...(args.currentValueCents !== undefined && { currentValueCents: cents(args.currentValueCents) }),
+          ...(args.currentValueCents !== undefined && {
+            currentValueCents: cents(args.currentValueCents),
+          }),
           ...(args.metadata !== undefined && { metadata: args.metadata as AssetMetadata | null }),
           ...(args.fipeCode !== undefined && { fipeCode: optStr(args.fipeCode) }),
           ...(args.acquiredAt !== undefined && { acquiredAt: optDate(args.acquiredAt) }),
@@ -319,15 +344,25 @@ export async function executeWrite(
             ...(args.fundingMode !== undefined && {
               fundingMode: optStr(args.fundingMode) as GoalFundingMode | null,
             }),
-            ...(args.manualSavedCents !== undefined && { manualSavedCents: optCents(args.manualSavedCents) }),
-            ...(args.monthlyCostCents !== undefined && { monthlyCostCents: optCents(args.monthlyCostCents) }),
+            ...(args.manualSavedCents !== undefined && {
+              manualSavedCents: optCents(args.manualSavedCents),
+            }),
+            ...(args.monthlyCostCents !== undefined && {
+              monthlyCostCents: optCents(args.monthlyCostCents),
+            }),
             ...(args.realReturnPct !== undefined && { realReturnPct: optNum(args.realReturnPct) }),
           },
         },
       );
       if (!result.ok) throw new Error(result.message);
       const after = serialize(result.goal);
-      return { entityType: "goal", entityId: result.goal.id, before: null, after, reversible: true };
+      return {
+        entityType: "goal",
+        entityId: result.goal.id,
+        before: null,
+        after,
+        reversible: true,
+      };
     }
 
     case "goal_update": {
@@ -419,7 +454,8 @@ function buildRegisterDebtInput(
           args.revolvingMonthlyRate === undefined || args.revolvingMonthlyRate === null
             ? null
             : monthlyRate(args.revolvingMonthlyRate),
-        installmentPurchases: (args.installmentPurchases as InstallmentPurchase[] | undefined) ?? [],
+        installmentPurchases:
+          (args.installmentPurchases as InstallmentPurchase[] | undefined) ?? [],
       };
     case "overdraft":
       return {

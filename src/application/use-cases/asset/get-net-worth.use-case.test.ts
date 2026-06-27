@@ -44,6 +44,7 @@ function makeAsset(
     depreciationRatePctYear: overrides.depreciationRatePctYear ?? 0,
     purchaseDate: overrides.purchaseDate ?? null,
     purchasePriceCents: overrides.purchasePriceCents ?? null,
+    monthlyCostEstimateCents: null,
     createdAt: overrides.createdAt ?? new Date("2026-01-01"),
     updatedAt: overrides.updatedAt ?? new Date("2026-01-01"),
     anchorAt: overrides.anchorAt ?? null,
@@ -128,7 +129,9 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
     update: vi.fn(),
     findById: vi.fn(),
     findActiveByProfile: vi.fn(async (profileId: string) =>
-      assets.filter((a) => a.profileId === profileId && a.deactivatedAt === null && a.deletedAt === null),
+      assets.filter(
+        (a) => a.profileId === profileId && a.deactivatedAt === null && a.deletedAt === null,
+      ),
     ),
     createDefaultWallet: vi.fn(),
     findActiveByProfileAndCategory: vi.fn(),
@@ -169,9 +172,7 @@ function buildDeps({ assets, debts, allocationsByAsset, rate = null }: BuildDeps
 
   const rates: ExchangeRateRepositoryPort = {
     upsertDaily: vi.fn(),
-    findLatest: vi.fn(async () =>
-      rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null,
-    ),
+    findLatest: vi.fn(async () => (rate ? ({ rateDecimal: rate, asOf: NOW } as never) : null)),
   };
   const overrides: UserFxOverrideRepositoryPort = {
     find: vi.fn(async () => null),

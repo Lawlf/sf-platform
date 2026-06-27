@@ -3,7 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import { Money } from "@/domain/value-objects/money.vo";
 
-import { ensureDefaultWallet, type EnsureDefaultWalletDeps } from "./ensure-default-wallet.use-case";
+import {
+  ensureDefaultWallet,
+  type EnsureDefaultWalletDeps,
+} from "./ensure-default-wallet.use-case";
 
 function cashAsset(): AssetEntity {
   return {
@@ -21,6 +24,7 @@ function cashAsset(): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     anchorAt: null,
     createdAt: new Date(),
     updatedAt: new Date(),

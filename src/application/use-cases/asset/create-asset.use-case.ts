@@ -134,6 +134,7 @@ export async function createAsset(
     depreciationRatePctYear: input.depreciationRatePctYear ?? 0,
     purchaseDate: input.purchaseDate ?? null,
     purchasePriceCents: input.purchasePriceCents ?? null,
+    monthlyCostEstimateCents: null,
     createdAt: now,
     updatedAt: now,
     anchorAt: null,

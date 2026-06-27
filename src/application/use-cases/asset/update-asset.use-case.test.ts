@@ -52,6 +52,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2025-01-01"),
     updatedAt: new Date("2025-01-01"),
     anchorAt: null,
@@ -90,6 +91,53 @@ describe("updateAsset", () => {
       expect(result.value.updatedAt).toEqual(new Date("2026-06-01T00:00:00Z"));
     }
     expect(assets.update).toHaveBeenCalledTimes(1);
+  });
+
+  it("seta a estimativa mensal de custo", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ monthlyCostEstimateCents: null }),
+    );
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", monthlyCostEstimateCents: 90000n },
+    );
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) expect(result.value.monthlyCostEstimateCents).toBe(90000n);
+  });
+
+  it("limpa a estimativa mensal com null", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ monthlyCostEstimateCents: 90000n }),
+    );
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", monthlyCostEstimateCents: null },
+    );
+    if (isOk(result)) expect(result.value.monthlyCostEstimateCents).toBeNull();
+  });
+
+  it("estimativa omitida preserva a existente", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ monthlyCostEstimateCents: 50000n }),
+    );
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", label: "Novo nome" },
+    );
+    if (isOk(result)) expect(result.value.monthlyCostEstimateCents).toBe(50000n);
+  });
+
+  it("rejeita estimativa mensal negativa", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset());
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", monthlyCostEstimateCents: -1n },
+    );
+    expect(isErr(result)).toBe(true);
   });
 
   it("returns AssetNotFound when repository returns null (scoped by userId)", async () => {

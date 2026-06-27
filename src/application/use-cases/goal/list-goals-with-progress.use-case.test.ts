@@ -31,6 +31,7 @@ function makeAsset(id: string, currentValueCents: bigint, currency: Currency = "
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2024-01-01"),
     updatedAt: new Date("2024-01-01"),
     anchorAt: null,
@@ -161,7 +162,11 @@ describe("listGoalsWithProgress", () => {
     const goal = makeSavingsGoal("a1", 1_000_000n);
     const deps = buildDeps({ goal, asset, rate: "5.00" });
 
-    const result = await listGoalsWithProgress(deps, { userId: "user-1", profileId: "profile-1", isPro: true });
+    const result = await listGoalsWithProgress(deps, {
+      userId: "user-1",
+      profileId: "profile-1",
+      isPro: true,
+    });
 
     expect(result).toHaveLength(1);
     expect(result[0]?.progress.currentCents).toBe(500_000n);
@@ -172,7 +177,11 @@ describe("listGoalsWithProgress", () => {
     const goal = makeSavingsGoal("a1", 1_000_000n);
     const deps = buildDeps({ goal, asset });
 
-    const result = await listGoalsWithProgress(deps, { userId: "user-1", profileId: "profile-1", isPro: true });
+    const result = await listGoalsWithProgress(deps, {
+      userId: "user-1",
+      profileId: "profile-1",
+      isPro: true,
+    });
 
     expect(result[0]?.progress.currentCents).toBe(100_000n);
   });

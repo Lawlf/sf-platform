@@ -22,6 +22,7 @@ function cashAsset(over: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     anchorAt: null,
     createdAt: new Date("2026-06-01T00:00:00Z"),
     updatedAt: new Date("2026-06-01T00:00:00Z"),

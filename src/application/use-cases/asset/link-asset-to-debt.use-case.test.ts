@@ -95,6 +95,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2025-01-01"),
     updatedAt: new Date("2025-01-01"),
     anchorAt: null,
@@ -271,7 +272,9 @@ describe("linkAssetToDebt", () => {
     const debts = makeDebtRepo();
     const clock = makeClock();
     (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset());
-    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeDebt({ userId: "other", profileId: "profile-2" }));
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeDebt({ userId: "other", profileId: "profile-2" }),
+    );
 
     const result = await linkAssetToDebt(
       { assets, allocations, debts, clock },

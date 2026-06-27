@@ -23,6 +23,7 @@ function inv(id: string, type: string, cents: bigint): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: NOW,
     updatedAt: NOW,
     anchorAt: null,
@@ -40,7 +41,11 @@ describe("captureInvestmentSnapshot", () => {
     const replaceMonth = vi.fn(async () => {});
     await captureInvestmentSnapshot(
       { snapshots: { replaceMonth, listForProfile: vi.fn() } as never, clock: { now: () => NOW } },
-      { userId: "u1", profileId: "profile-1", assets: [inv("a", "crypto", 100n), inv("b", "crypto", 50n), inv("c", "fixed_income", 200n)] },
+      {
+        userId: "u1",
+        profileId: "profile-1",
+        assets: [inv("a", "crypto", 100n), inv("b", "crypto", 50n), inv("c", "fixed_income", 200n)],
+      },
     );
     expect(replaceMonth).toHaveBeenCalledTimes(1);
     const [userId, profileId, month, rows] = replaceMonth.mock.calls[0] as unknown[];

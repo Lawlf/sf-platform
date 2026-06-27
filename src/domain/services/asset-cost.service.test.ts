@@ -84,6 +84,56 @@ describe("AssetCostService", () => {
     expect(view.month.netCents).toBe(150000n);
   });
 
+  it("projeta anual pelos últimos 12 meses reais quando há histórico cheio", () => {
+    const proj = AssetCostService.projectAnnual(
+      [
+        tx({ amountCents: 10000n, occurredAt: new Date("2025-07-05T00:00:00Z") }),
+        tx({ amountCents: 20000n, occurredAt: new Date("2026-06-05T00:00:00Z") }),
+      ],
+      { referenceDate: REF, monthlyEstimateCents: null },
+    );
+    expect(proj.basis).toBe("trailing_12m");
+    expect(proj.annualCents).toBe(30000n);
+  });
+
+  it("extrapola anual quando o histórico é parcial", () => {
+    const proj = AssetCostService.projectAnnual(
+      [
+        tx({ amountCents: 30000n, occurredAt: new Date("2026-05-10T00:00:00Z") }),
+        tx({ amountCents: 10000n, occurredAt: new Date("2026-06-10T00:00:00Z") }),
+      ],
+      { referenceDate: REF, monthlyEstimateCents: null },
+    );
+    expect(proj.basis).toBe("extrapolated");
+    expect(proj.annualCents).toBe(240000n);
+  });
+
+  it("usa a estimativa quando não há gasto atrelado suficiente", () => {
+    const proj = AssetCostService.projectAnnual([], {
+      referenceDate: REF,
+      monthlyEstimateCents: 90000n,
+    });
+    expect(proj.basis).toBe("estimate");
+    expect(proj.annualCents).toBe(1080000n);
+  });
+
+  it("basis none quando não há nem gasto nem estimativa", () => {
+    const proj = AssetCostService.projectAnnual([], {
+      referenceDate: REF,
+      monthlyEstimateCents: null,
+    });
+    expect(proj.basis).toBe("none");
+    expect(proj.annualCents).toBe(0n);
+  });
+
+  it("um único mês de gasto não projeta sozinho (cai pra estimativa ou none)", () => {
+    const proj = AssetCostService.projectAnnual(
+      [tx({ amountCents: 10000n, occurredAt: new Date("2026-06-10T00:00:00Z") })],
+      { referenceDate: REF, monthlyEstimateCents: null },
+    );
+    expect(proj.basis).toBe("none");
+  });
+
   it("sincePurchase é null sem data de compra e preenchido com ela", () => {
     const txs = [
       tx({ amountCents: 10000n, occurredAt: new Date("2024-01-10T00:00:00Z") }),

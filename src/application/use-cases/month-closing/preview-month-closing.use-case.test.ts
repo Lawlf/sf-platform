@@ -33,6 +33,7 @@ function makeAsset(currentValueCents: bigint, currency: Currency = "BRL"): Asset
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2025-01-01T00:00:00Z"),
     updatedAt: new Date("2025-01-01T00:00:00Z"),
     anchorAt: null,

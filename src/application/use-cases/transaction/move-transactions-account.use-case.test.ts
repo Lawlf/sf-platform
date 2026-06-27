@@ -23,6 +23,7 @@ function cashAsset(id: string, cents: bigint): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     anchorAt: null,
     createdAt: new Date("2026-06-01"),
     updatedAt: new Date("2026-06-01"),

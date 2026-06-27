@@ -31,6 +31,7 @@ function cryptoAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: NOW,
     updatedAt: NOW,
     anchorAt: null,
@@ -84,7 +85,9 @@ describe("refreshCryptoQuote", () => {
   });
 
   it("erro quando o ativo não é cripto", async () => {
-    const asset = cryptoAsset({ metadata: { kind: "investment", investmentType: "stocks", ticker: "PETR4", shares: 100 } });
+    const asset = cryptoAsset({
+      metadata: { kind: "investment", investmentType: "stocks", ticker: "PETR4", shares: 100 },
+    });
     const { deps: d } = deps(asset);
     const res = await refreshCryptoQuote(d, { profileId: "profile-1", assetId: "a1" });
     expect(isOk(res)).toBe(false);

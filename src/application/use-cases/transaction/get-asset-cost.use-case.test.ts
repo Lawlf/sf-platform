@@ -22,6 +22,7 @@ function asset(over: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 10,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     anchorAt: null,
     createdAt: new Date("2026-01-01T00:00:00Z"),
     updatedAt: new Date("2026-01-01T00:00:00Z"),
@@ -57,10 +58,7 @@ function txn(over: Partial<TransactionEntity> = {}): TransactionEntity {
   };
 }
 
-function makeDeps(
-  found: AssetEntity | null,
-  txns: TransactionEntity[],
-): GetAssetCostDeps {
+function makeDeps(found: AssetEntity | null, txns: TransactionEntity[]): GetAssetCostDeps {
   return {
     transactions: { listByAttributedAsset: vi.fn(async () => txns) },
     assets: { findById: vi.fn(async () => found) },

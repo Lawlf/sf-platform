@@ -41,8 +41,7 @@ export async function recordContribution(
   }
 
   const accepts =
-    goal.type === "emergency_fund" ||
-    (goal.type === "savings" && goal.fundingMode === "manual");
+    goal.type === "emergency_fund" || (goal.type === "savings" && goal.fundingMode === "manual");
   if (!accepts) {
     return {
       ok: false,
@@ -83,7 +82,9 @@ async function applyToReserve(
   if (linked && linked.category === "cash") {
     await deps.assets.update({
       ...linked,
-      currentValue: linked.currentValue.add(Money.fromCents(amountCents, linked.currentValue.currency)),
+      currentValue: linked.currentValue.add(
+        Money.fromCents(amountCents, linked.currentValue.currency),
+      ),
       updatedAt: deps.clock.now(),
     });
     return;
@@ -105,6 +106,7 @@ async function applyToReserve(
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: now,
     updatedAt: now,
     anchorAt: null,
