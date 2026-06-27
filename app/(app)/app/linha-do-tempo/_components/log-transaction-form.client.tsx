@@ -6,8 +6,12 @@ import {
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
+  Car,
   Check,
   CircleDashed,
+  Home,
+  Landmark,
+  Package,
   Pencil,
   Plus,
   Tag,
@@ -52,6 +56,10 @@ import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
 import { IncomeFreeBalanceResult } from "../../renda/_components/income-free-balance-result";
 import { createCashAccount } from "../_actions/create-cash-account.action";
 import {
+  listAttributableAssets,
+  type AttributableAssetOption,
+} from "../_actions/list-attributable-assets.action";
+import {
   listCashAccounts,
   type CashAccountOption,
 } from "../_actions/list-cash-accounts.action";
@@ -94,6 +102,22 @@ function segmentClass(active: boolean, tone: keyof typeof SEGMENT_ACTIVE): strin
 
 const SELECT_TRIGGER_CLASS = "h-11 rounded-xl border-[1.5px]";
 
+const CHIP_BASE =
+  "focus-ring inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1.5 text-[0.8125rem] font-semibold transition-all";
+
+function chipClass(active: boolean): string {
+  return active
+    ? `${CHIP_BASE} border-[color:var(--color-brand-500)]/55 bg-[color:var(--color-brand-500)]/16 text-[color:var(--color-brand-500)]`
+    : `${CHIP_BASE} border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]`;
+}
+
+function assetCategoryIcon(category: AttributableAssetOption["category"]) {
+  if (category === "vehicle") return Car;
+  if (category === "real_estate") return Home;
+  if (category === "investment") return Landmark;
+  return Package;
+}
+
 function todayIso(defaultMonthIso?: string): string {
   if (defaultMonthIso) {
     const parsed = new Date(defaultMonthIso);
@@ -127,6 +151,10 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const [occurredAt, setOccurredAt] = useState<string>(() => todayIso(defaultMonthIso));
   const [accounts, setAccounts] = useState<CashAccountOption[] | null>(null);
   const [accountId, setAccountId] = useState<string>(DEFAULT_ACCOUNT_VALUE);
+  const [attributableAssets, setAttributableAssets] = useState<AttributableAssetOption[] | null>(
+    null,
+  );
+  const [assetId, setAssetId] = useState<string>("");
   const [showNewAccount, setShowNewAccount] = useState(false);
   const [newAccountName, setNewAccountName] = useState("");
   // Progressive disclosure: agendado e data ficam escondidos atrás de links. O
@@ -161,6 +189,9 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     });
     void listCategoriesQuery().then((result) => {
       if (active) setCatalog(result);
+    });
+    void listAttributableAssets().then((result) => {
+      if (active) setAttributableAssets(result);
     });
     return () => {
       active = false;
@@ -233,6 +264,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         direction,
         status,
         accountId: accountId === DEFAULT_ACCOUNT_VALUE ? null : accountId,
+        assetId: assetId || null,
         category: category === NO_CATEGORY_VALUE ? null : category,
         occurredAtIso: occurredAt
           ? new Date(`${occurredAt}T12:00:00.000Z`).toISOString()
@@ -331,6 +363,39 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
           </p>
         ) : null}
       </div>
+
+      {attributableAssets && attributableAssets.length > 0 ? (
+        <div className="flex flex-col gap-1.5">
+          <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+            É de algum bem? (opcional)
+          </span>
+          <div className="flex flex-wrap gap-1.5">
+            <button
+              type="button"
+              aria-pressed={assetId === ""}
+              onClick={() => setAssetId("")}
+              className={chipClass(assetId === "")}
+            >
+              Nenhum
+            </button>
+            {attributableAssets.map((a) => {
+              const Icon = assetCategoryIcon(a.category);
+              return (
+                <button
+                  key={a.id}
+                  type="button"
+                  aria-pressed={assetId === a.id}
+                  onClick={() => setAssetId(a.id)}
+                  className={chipClass(assetId === a.id)}
+                >
+                  <Icon size={14} strokeWidth={2} aria-hidden />
+                  {a.label}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      ) : null}
 
       <div className={`flex flex-col gap-1.5 ${showCategory ? "" : "hidden"}`}>
         <span className="flex items-center justify-between">

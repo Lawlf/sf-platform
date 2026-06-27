@@ -195,6 +195,7 @@ function txn(over: Partial<TransactionEntity>): TransactionEntity {
     description: "Café",
     category: null,
     accountId: "wallet-1",
+    assetId: null,
     occurredAt: utc(2026, 6, 7),
     status: "paid",
     excludedFromTotals: false,

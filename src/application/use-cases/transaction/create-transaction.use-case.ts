@@ -31,6 +31,7 @@ export interface CreateTransactionInput {
   description: string;
   category: string | null;
   accountId: string | null;
+  assetId?: string | null;
   occurredAt: Date | null;
   status?: TransactionStatus;
   source?: TransactionSource;
@@ -85,6 +86,7 @@ export async function createTransaction(
     description: input.description,
     category: input.category,
     accountId: account.id,
+    assetId: input.assetId ?? null,
     occurredAt: input.occurredAt ?? deps.clock.now(),
     status,
     excludedFromTotals: false,

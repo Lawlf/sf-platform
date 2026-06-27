@@ -31,6 +31,7 @@ function wallet(over: Partial<AssetEntity>): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: utc(2026, 6, 1),
     updatedAt: utc(2026, 6, 1),
     deactivatedAt: null,
@@ -118,7 +119,12 @@ describe("getWalletBalance", () => {
 
   it("creates a dedicated Carteira (needsAnchor) when the user has none", async () => {
     const r = await getWalletBalance(
-      deps({ assets: { findActiveByProfileAndCategory: async () => [], createDefaultWallet: async () => {} } }),
+      deps({
+        assets: {
+          findActiveByProfileAndCategory: async () => [],
+          createDefaultWallet: async () => {},
+        },
+      }),
       { userId: "u1", profileId: "profile-1" },
     );
     if (!isOk(r)) throw new Error("expected ok");
@@ -126,7 +132,15 @@ describe("getWalletBalance", () => {
   });
 
   it("flags needsAnchor when the wallet has never been anchored", async () => {
-    const r = await getWalletBalance(deps({ assets: { findActiveByProfileAndCategory: async () => [wallet({ anchorAt: null })], createDefaultWallet: async () => {} } }), { userId: "u1", profileId: "profile-1" });
+    const r = await getWalletBalance(
+      deps({
+        assets: {
+          findActiveByProfileAndCategory: async () => [wallet({ anchorAt: null })],
+          createDefaultWallet: async () => {},
+        },
+      }),
+      { userId: "u1", profileId: "profile-1" },
+    );
     if (!isOk(r)) throw new Error("expected ok");
     expect(r.value.needsAnchor).toBe(true);
   });

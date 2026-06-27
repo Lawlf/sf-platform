@@ -13,6 +13,11 @@ const inputSchema = z.object({
     .string()
     .regex(/^-?\d+$/, "Valor inválido.")
     .optional(),
+  monthlyCostEstimateCents: z
+    .string()
+    .regex(/^\d+$/, "Valor inválido.")
+    .nullable()
+    .optional(),
 });
 
 export const updateAssetAction = action({
@@ -21,6 +26,12 @@ export const updateAssetAction = action({
   handler: async (input, { profileId }) => {
     const currentValueCents =
       input.currentValueCents !== undefined ? BigInt(input.currentValueCents) : undefined;
+    const monthlyCostEstimateCents =
+      input.monthlyCostEstimateCents === undefined
+        ? undefined
+        : input.monthlyCostEstimateCents === null
+          ? null
+          : BigInt(input.monthlyCostEstimateCents);
 
     unwrap(
       await updateAsset(
@@ -30,6 +41,7 @@ export const updateAssetAction = action({
           assetId: input.assetId,
           ...(input.label !== undefined ? { label: input.label } : {}),
           ...(currentValueCents !== undefined ? { currentValueCents } : {}),
+          ...(monthlyCostEstimateCents !== undefined ? { monthlyCostEstimateCents } : {}),
         },
       ),
     );

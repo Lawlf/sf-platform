@@ -16,6 +16,7 @@ const BASE: Omit<AssetEntity, "id" | "label" | "currentValue" | "metadata"> = {
   depreciationRatePctYear: 0,
   purchaseDate: null,
   purchasePriceCents: null,
+  monthlyCostEstimateCents: null,
   createdAt: new Date("2026-06-10T00:00:00Z"),
   updatedAt: new Date("2026-06-10T00:00:00Z"),
   anchorAt: null,

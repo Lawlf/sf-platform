@@ -6,7 +6,12 @@ import { Money } from "@/domain/value-objects/money.vo";
  * dinheiro sai e pra onde entra quando ele não escolhe outra conta. Saldo
  * inicial zero.
  */
-export function buildDefaultWallet(userId: string, profileId: string, id: string, now: Date): AssetEntity {
+export function buildDefaultWallet(
+  userId: string,
+  profileId: string,
+  id: string,
+  now: Date,
+): AssetEntity {
   return {
     id,
     userId,
@@ -22,6 +27,7 @@ export function buildDefaultWallet(userId: string, profileId: string, id: string
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: now,
     updatedAt: now,
     anchorAt: null,

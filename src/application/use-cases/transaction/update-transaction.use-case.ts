@@ -23,6 +23,8 @@ export interface UpdateTransactionInput {
   amountCents?: bigint;
   /** Nova data. Omitido = não muda. */
   occurredAt?: Date;
+  /** Patrimônio atribuído. Omitido = não muda; null = desatrela. Só metadado, não mexe saldo. */
+  assetId?: string | null;
 }
 
 /**
@@ -51,6 +53,7 @@ export async function updateTransaction(
     description: description && description.length > 0 ? description : existing.description,
     amount: newAmount,
     occurredAt: input.occurredAt ?? existing.occurredAt,
+    assetId: input.assetId !== undefined ? input.assetId : existing.assetId,
   };
 
   const amountChanged = newAmount.toCents() !== existing.amount.toCents();

@@ -42,6 +42,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2024-01-01T00:00:00Z"),
     updatedAt: new Date("2024-01-01T00:00:00Z"),
     anchorAt: null,
@@ -75,9 +76,7 @@ afterEach(async () => {
 });
 
 afterAll(async () => {
-  await getDb().execute(
-    sql`delete from assets where label like ${ASSET_LABEL_PREFIX + "%"}`,
-  );
+  await getDb().execute(sql`delete from assets where label like ${ASSET_LABEL_PREFIX + "%"}`);
   await getDb().execute(sql`delete from users where email = ${TEST_EMAIL}`);
   await closeDb();
 });

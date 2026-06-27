@@ -249,6 +249,11 @@ export function registerMcpWriteTools(server: McpServer): void {
         description: z.string().min(1).max(200),
         category: z.string().min(1).max(60).optional(),
         occurredAt: isoDate.optional(),
+        assetId: z
+          .string()
+          .uuid()
+          .optional()
+          .describe("Patrimônio ao qual atribuir o gasto (custo de ter o bem). Opcional."),
         currency,
         idempotencyKey,
       },

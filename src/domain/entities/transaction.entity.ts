@@ -36,6 +36,14 @@ export interface TransactionEntity {
    * Lançamentos novos sempre recebem uma conta resolvida no use-case.
    */
   accountId: string | null;
+  /**
+   * Patrimônio ao qual este lançamento é atribuído (custo ou renda de ter o
+   * bem): gasolina do carro, IPTU do apê, aluguel recebido. Opcional e só
+   * metadado de relatório, NUNCA altera o valor do ativo nem entra em motor
+   * macro (prescrição/comprometido). Distinto de `accountId`, que é a conta de
+   * caixa onde o dinheiro de fato mexeu.
+   */
+  assetId: string | null;
   occurredAt: Date;
   /** paid move o saldo da conta; scheduled não (conta a pagar futura). */
   status: TransactionStatus;

@@ -16,6 +16,7 @@ function txn(id: string, iso: string): TransactionEntity {
     description: "x",
     category: null,
     accountId: "acc1",
+    assetId: null,
     status: "paid",
     excludedFromTotals: false,
     source: "ofx_import",
@@ -37,8 +38,7 @@ function fakeRepo(rows: TransactionEntity[]) {
         const bo = opts.beforeOccurredAt.getTime();
         const bid = opts.beforeId;
         filtered = rows.filter(
-          (r) =>
-            r.occurredAt.getTime() < bo || (r.occurredAt.getTime() === bo && r.id < bid),
+          (r) => r.occurredAt.getTime() < bo || (r.occurredAt.getTime() === bo && r.id < bid),
         );
       }
       return filtered.slice(0, opts.limit);

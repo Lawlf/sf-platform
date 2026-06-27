@@ -29,6 +29,7 @@ function asset(
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: NOW,
     updatedAt: NOW,
     anchorAt: null,
@@ -51,7 +52,10 @@ describe("refreshAllUserCrypto", () => {
   it("deduplica coinIds entre Pro e atualiza cada ativo", async () => {
     const assetsByProfile: Record<string, AssetEntity[]> = {
       "profile-u1": [asset("a1", "u1", "BTC", "bitcoin", 0.2)],
-      "profile-u2": [asset("a2", "u2", "BTC", "bitcoin", 1), asset("a3", "u2", "ETH", "ethereum", 3)],
+      "profile-u2": [
+        asset("a2", "u2", "BTC", "bitcoin", 1),
+        asset("a3", "u2", "ETH", "ethereum", 3),
+      ],
     };
     const update = vi.fn(async () => {});
     const upsertMany = vi.fn(async () => {});
@@ -60,7 +64,9 @@ describe("refreshAllUserCrypto", () => {
       users: { findAllPro: vi.fn(async () => [{ id: "u1" }, { id: "u2" }]) } as never,
       profiles: makeProfiles() as never,
       assets: {
-        findActiveByProfileAndCategory: vi.fn(async (profileId: string) => assetsByProfile[profileId] ?? []),
+        findActiveByProfileAndCategory: vi.fn(
+          async (profileId: string) => assetsByProfile[profileId] ?? [],
+        ),
         update,
       } as never,
       quotes: {
@@ -107,7 +113,9 @@ describe("refreshAllUserCrypto", () => {
       users: { findAllPro: vi.fn(async () => [{ id: "u1" }]) } as never,
       profiles: makeProfiles() as never,
       assets: {
-        findActiveByProfileAndCategory: vi.fn(async (profileId: string) => assetsByProfile[profileId] ?? []),
+        findActiveByProfileAndCategory: vi.fn(
+          async (profileId: string) => assetsByProfile[profileId] ?? [],
+        ),
         update,
       } as never,
       quotes: { fetchByIds: vi.fn(async () => []) } as never,

@@ -154,6 +154,7 @@ const createTransactionSchema = z.object({
   occurredAtIso: z.string().nullable().optional(),
   direction: z.enum(["in", "out"]).optional(),
   accountId: z.string().nullable().optional(),
+  assetId: z.string().nullable().optional(),
   status: z.enum(["paid", "scheduled"]).optional(),
 });
 
@@ -212,6 +213,7 @@ export const createTransactionAction = action({
           description,
           category,
           accountId: input.accountId ?? null,
+          assetId: input.assetId ?? null,
           occurredAt,
           status,
         },

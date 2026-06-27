@@ -81,6 +81,7 @@ function makeAsset(overrides: {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: overrides.createdAt ?? new Date(Date.UTC(2026, 0, 1)),
     updatedAt: new Date(Date.UTC(2026, 0, 1)),
     anchorAt: null,
@@ -338,6 +339,7 @@ describe("TimelineService.buildTimeline", () => {
       description: "x",
       category: null,
       accountId: "acc1",
+      assetId: null,
       occurredAt: new Date(Date.UTC(2026, 1, 15)),
       status: "scheduled",
       excludedFromTotals: false,
@@ -356,9 +358,18 @@ describe("TimelineService.buildTimeline", () => {
       to,
       transactions: [
         tx({ id: "out-feb" }),
-        tx({ id: "in-mar", direction: "in", amount: Money.fromCents(30_000n), occurredAt: new Date(Date.UTC(2026, 2, 10)) }),
+        tx({
+          id: "in-mar",
+          direction: "in",
+          amount: Money.fromCents(30_000n),
+          occurredAt: new Date(Date.UTC(2026, 2, 10)),
+        }),
         tx({ id: "deleted", occurredAt: new Date(Date.UTC(2026, 0, 5)), deletedAt: new Date() }),
-        tx({ id: "usd", occurredAt: new Date(Date.UTC(2026, 0, 5)), amount: Money.fromCents(99_000n, "USD") }),
+        tx({
+          id: "usd",
+          occurredAt: new Date(Date.UTC(2026, 0, 5)),
+          amount: Money.fromCents(99_000n, "USD"),
+        }),
       ],
     });
     expect(tl.points[0]!.freeBalance.toCents()).toBe(0n); // jan: deleted + USD ignorados

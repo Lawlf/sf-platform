@@ -25,6 +25,7 @@ function cashAsset(over: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     anchorAt: null,
     createdAt: new Date("2026-06-01T00:00:00Z"),
     updatedAt: new Date("2026-06-01T00:00:00Z"),
@@ -47,6 +48,7 @@ function scheduledTxn(over: Partial<TransactionEntity> = {}): TransactionEntity 
     description: "Aluguel",
     category: null,
     accountId: "acc1",
+    assetId: null,
     occurredAt: new Date("2026-06-20T12:00:00Z"),
     status: "scheduled",
     excludedFromTotals: false,
@@ -61,7 +63,11 @@ function scheduledTxn(over: Partial<TransactionEntity> = {}): TransactionEntity 
 function makeDeps(
   due: TransactionEntity[],
   account: AssetEntity | null = cashAsset(),
-): { deps: PostDueScheduledTransactionsDeps; updatedAssets: AssetEntity[]; updatedTxns: TransactionEntity[] } {
+): {
+  deps: PostDueScheduledTransactionsDeps;
+  updatedAssets: AssetEntity[];
+  updatedTxns: TransactionEntity[];
+} {
   const updatedAssets: AssetEntity[] = [];
   const updatedTxns: TransactionEntity[] = [];
   const deps: PostDueScheduledTransactionsDeps = {

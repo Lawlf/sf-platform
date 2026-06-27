@@ -35,6 +35,7 @@ function makeAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date("2025-01-01"),
     updatedAt: new Date("2025-01-01"),
     anchorAt: null,

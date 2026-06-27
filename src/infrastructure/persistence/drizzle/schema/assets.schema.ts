@@ -37,7 +37,9 @@ export const assets = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    profileId: uuid("profile_id").notNull().references(() => profiles.id, { onDelete: "cascade" }),
+    profileId: uuid("profile_id")
+      .notNull()
+      .references(() => profiles.id, { onDelete: "cascade" }),
     category: assetCategory("category").notNull(),
     label: text("label").notNull(),
     currentValueCents: bigint("current_value_cents", { mode: "bigint" }).notNull(),
@@ -52,6 +54,9 @@ export const assets = pgTable(
       .default("0"),
     purchaseDate: timestamp("purchase_date", { withTimezone: true }),
     purchasePriceCents: bigint("purchase_price_cents", { mode: "bigint" }),
+    // Estimativa recorrente de custo mensal do bem (caminho macro). Só
+    // informativo; o card compara com o custo real dos lançamentos atrelados.
+    monthlyCostEstimateCents: bigint("monthly_cost_estimate_cents", { mode: "bigint" }),
     createdAt: timestamp("created_at", { withTimezone: true })
       .notNull()
       .default(sql`now()`),

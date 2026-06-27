@@ -96,6 +96,14 @@ export interface AssetEntity {
    * `shares * avgPriceCents` para consistência com o restante do app.
    */
   purchasePriceCents: bigint | null;
+  /**
+   * Estimativa recorrente de quanto o bem custa por mês, em centavos. Caminho
+   * macro: quem não atrela cada lançamento põe um número único aqui ("carro
+   * ~R$900/mês"). Só informativo (não mexe no valor nem em motor macro); o card
+   * compara com o custo real dos lançamentos atrelados. `null` quando não
+   * estimado.
+   */
+  monthlyCostEstimateCents: bigint | null;
   createdAt: Date;
   updatedAt: Date;
   /**

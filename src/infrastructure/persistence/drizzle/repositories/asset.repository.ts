@@ -1,6 +1,5 @@
 import { and, eq, inArray, isNotNull, isNull } from "drizzle-orm";
 
-
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type {
   AssetCategory,
@@ -129,6 +128,7 @@ function toEntity(row: AssetRow): AssetEntity {
     depreciationRatePctYear: Number.parseFloat(row.depreciationRatePctYear),
     purchaseDate: row.purchaseDate ?? null,
     purchasePriceCents: row.purchasePriceCents ?? null,
+    monthlyCostEstimateCents: row.monthlyCostEstimateCents ?? null,
     createdAt: row.createdAt,
     updatedAt: row.updatedAt,
     deactivatedAt: row.deactivatedAt,
@@ -172,6 +172,7 @@ export class AssetRepository implements AssetRepositoryPort {
         depreciationRatePctYear: asset.depreciationRatePctYear.toFixed(2),
         purchaseDate: asset.purchaseDate,
         purchasePriceCents: asset.purchasePriceCents,
+        monthlyCostEstimateCents: asset.monthlyCostEstimateCents,
         createdAt: asset.createdAt,
         updatedAt: asset.updatedAt,
         deactivatedAt: asset.deactivatedAt,
@@ -208,6 +209,7 @@ export class AssetRepository implements AssetRepositoryPort {
         depreciationRatePctYear: asset.depreciationRatePctYear.toFixed(2),
         purchaseDate: asset.purchaseDate,
         purchasePriceCents: asset.purchasePriceCents,
+        monthlyCostEstimateCents: asset.monthlyCostEstimateCents,
         createdAt: asset.createdAt,
         updatedAt: asset.updatedAt,
         deactivatedAt: asset.deactivatedAt,
@@ -237,6 +239,7 @@ export class AssetRepository implements AssetRepositoryPort {
         depreciationRatePctYear: asset.depreciationRatePctYear.toFixed(2),
         purchaseDate: asset.purchaseDate,
         purchasePriceCents: asset.purchasePriceCents,
+        monthlyCostEstimateCents: asset.monthlyCostEstimateCents,
         updatedAt: asset.updatedAt,
         deactivatedAt: asset.deactivatedAt,
         deactivationKind: asset.deactivationKind,
@@ -261,7 +264,11 @@ export class AssetRepository implements AssetRepositoryPort {
       .select()
       .from(assets)
       .where(
-        and(eq(assets.profileId, profileId), isNull(assets.deactivatedAt), isNull(assets.deletedAt)),
+        and(
+          eq(assets.profileId, profileId),
+          isNull(assets.deactivatedAt),
+          isNull(assets.deletedAt),
+        ),
       );
     return rows.map(toEntity);
   }
@@ -284,7 +291,10 @@ export class AssetRepository implements AssetRepositoryPort {
     return rows.map(toEntity);
   }
 
-  async findByIdWithAllocations(id: string, profileId: string): Promise<AssetWithAllocations | null> {
+  async findByIdWithAllocations(
+    id: string,
+    profileId: string,
+  ): Promise<AssetWithAllocations | null> {
     const asset = await this.findById(id, profileId);
     if (!asset) return null;
     const allocs = await getDb()
@@ -364,7 +374,13 @@ export class AssetRepository implements AssetRepositoryPort {
     const rows = await getDb()
       .select({ key: assets.externalAccountKey })
       .from(assets)
-      .where(and(eq(assets.profileId, profileId), isNotNull(assets.externalAccountKey), isNull(assets.deletedAt)));
+      .where(
+        and(
+          eq(assets.profileId, profileId),
+          isNotNull(assets.externalAccountKey),
+          isNull(assets.deletedAt),
+        ),
+      );
     return rows.map((r) => r.key).filter((v): v is string => v !== null);
   }
 }

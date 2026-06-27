@@ -51,6 +51,7 @@ function makeTransaction(
     description: `${DESC_PREFIX}café`,
     category: "alimentação",
     accountId: null,
+    assetId: null,
     status: "paid" as const,
     excludedFromTotals: false,
     source: "manual" as const,

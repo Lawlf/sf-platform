@@ -37,6 +37,7 @@ function makeAsset(
     depreciationRatePctYear: overrides.depreciationRatePctYear ?? 0,
     purchaseDate: overrides.purchaseDate ?? null,
     purchasePriceCents: overrides.purchasePriceCents ?? null,
+    monthlyCostEstimateCents: null,
     createdAt: overrides.createdAt ?? new Date("2026-01-01"),
     updatedAt: overrides.updatedAt ?? new Date("2026-01-01"),
     anchorAt: overrides.anchorAt ?? null,

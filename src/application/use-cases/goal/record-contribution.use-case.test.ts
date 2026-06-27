@@ -52,6 +52,7 @@ function makeCashAsset(overrides: Partial<AssetEntity> = {}): AssetEntity {
     depreciationRatePctYear: 0,
     purchaseDate: null,
     purchasePriceCents: null,
+    monthlyCostEstimateCents: null,
     createdAt: new Date(),
     updatedAt: new Date(),
     anchorAt: null,
@@ -144,7 +145,12 @@ describe("recordContribution", () => {
     const goal = makeGoal({ linkedAssetId: "a1" });
     const h = makeHarness(goal, asset);
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 25000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 25000n,
+    });
 
     expect(r.ok).toBe(true);
     expect(h.assetStore.get("a1")!.currentValue.toCents()).toBe(75000n);
@@ -158,7 +164,12 @@ describe("recordContribution", () => {
     const goal = makeGoal({ linkedAssetId: null });
     const h = makeHarness(goal);
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 30000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 30000n,
+    });
 
     expect(r.ok).toBe(true);
     expect(h.assetStore.size).toBe(1);
@@ -178,7 +189,12 @@ describe("recordContribution", () => {
     });
     const h = makeHarness(goal);
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 15000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 15000n,
+    });
 
     expect(r.ok).toBe(true);
     expect(h.goalStore.get("g1")!.manualSavedCents).toBe(25000n);
@@ -187,10 +203,20 @@ describe("recordContribution", () => {
   });
 
   it("savings manual sem manualSavedCents inicial trata como zero", async () => {
-    const goal = makeGoal({ type: "savings", fundingMode: "manual", manualSavedCents: null, targetCents: 50000n });
+    const goal = makeGoal({
+      type: "savings",
+      fundingMode: "manual",
+      manualSavedCents: null,
+      targetCents: 50000n,
+    });
     const h = makeHarness(goal);
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 15000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 15000n,
+    });
 
     expect(r.ok).toBe(true);
     expect(h.goalStore.get("g1")!.manualSavedCents).toBe(15000n);
@@ -200,7 +226,12 @@ describe("recordContribution", () => {
     const goal = makeGoal({ type: "savings", fundingMode: "linked", linkedAssetId: "a1" });
     const h = makeHarness(goal);
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 15000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 15000n,
+    });
 
     expect(r.ok).toBe(false);
     expect(h.contributions).toHaveLength(0);
@@ -209,7 +240,12 @@ describe("recordContribution", () => {
   it("rejeita financial_independence e debt_payoff", async () => {
     for (const type of ["financial_independence", "debt_payoff"] as const) {
       const h = makeHarness(makeGoal({ type }));
-      const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 15000n });
+      const r = await recordContribution(h.deps, {
+        userId: "u1",
+        profileId: "profile-1",
+        goalId: "g1",
+        amountCents: 15000n,
+      });
       expect(r.ok).toBe(false);
       expect(h.contributions).toHaveLength(0);
     }
@@ -217,8 +253,18 @@ describe("recordContribution", () => {
 
   it("rejeita valor <= 0", async () => {
     const h = makeHarness(makeGoal());
-    const zero = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 0n });
-    const neg = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: -1n });
+    const zero = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 0n,
+    });
+    const neg = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: -1n,
+    });
     expect(zero.ok).toBe(false);
     expect(neg.ok).toBe(false);
     expect(h.contributions).toHaveLength(0);
@@ -226,7 +272,12 @@ describe("recordContribution", () => {
 
   it("rejeita meta de outro dono", async () => {
     const h = makeHarness(makeGoal({ userId: "outro", profileId: "profile-2" }));
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 15000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 15000n,
+    });
     expect(r.ok).toBe(false);
   });
 
@@ -235,7 +286,12 @@ describe("recordContribution", () => {
     const goal = makeGoal({ linkedAssetId: "a1" });
     const h = makeHarness(goal, asset, { snapshotThrows: true });
 
-    const r = await recordContribution(h.deps, { userId: "u1", profileId: "profile-1", goalId: "g1", amountCents: 25000n });
+    const r = await recordContribution(h.deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      goalId: "g1",
+      amountCents: 25000n,
+    });
 
     expect(r.ok).toBe(true);
     expect(h.contributions).toHaveLength(1);
