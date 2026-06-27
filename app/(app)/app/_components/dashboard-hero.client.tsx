@@ -145,13 +145,13 @@ export function DashboardHeroClient({
 
   const todayMode = useWallet ? "wallet" : hasRowDates ? "realized" : "projection";
 
+  // Eyebrow sempre pelo TEMPO, nunca pela entidade interna (Carteira é nome de
+  // motor; vazar pro herói quebra o frame "fechar o mês").
   const eyebrow = showCelebration
     ? `${capitalize(CURRENT_MONTH_NAME)} · fechado`
-    : todayMode === "wallet"
-      ? "Saldo da Carteira · hoje"
-      : todayMode === "projection"
-        ? `Seu mês · no fim de ${CURRENT_MONTH_NAME}`
-        : "Seu mês · hoje";
+    : todayMode === "projection"
+      ? `Seu mês · no fim de ${CURRENT_MONTH_NAME}`
+      : "Seu mês · hoje";
 
   const bigFormatted = useWallet
     ? walletBal.reactiveBalance.formatted
@@ -167,11 +167,14 @@ export function DashboardHeroClient({
 
   const negative = !positive && !noIncome;
 
-  // Tratamento de estado negativo (buraco): herói escuro/alerta em vez do
-  // laranja, com acento vermelho na linha "falta" e no selo.
+  // Escada de 3 tons (não gangorra festa-vs-castigo): laranja-festa vibrante só
+  // no fechamento no azul; meio do mês positivo = marca calma; falta = marrom
+  // morno sem drama (sinal honesto fica no número/linha, não no clima).
   const heroSurface = negative
-    ? "border border-[color:var(--border-soft)] bg-[linear-gradient(135deg,#2a221d_0%,#231c18_100%)] shadow-[0_12px_28px_rgba(0,0,0,0.4)]"
-    : "border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#d96813_0%,#c25d15_55%,#ba5717_100%)] shadow-[0_12px_28px_rgba(239,122,26,0.28)]";
+    ? "border border-[color:var(--border-soft)] bg-[linear-gradient(135deg,#2a221d_0%,#231c18_100%)] shadow-[0_2px_10px_rgba(0,0,0,0.18)]"
+    : showCelebration && positive
+      ? "border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#d96813_0%,#c25d15_55%,#ba5717_100%)] shadow-[0_12px_28px_rgba(239,122,26,0.28)]"
+      : "border border-[color:var(--color-brand-500)]/20 bg-[linear-gradient(135deg,#b35d22_0%,#9e4f1c_100%)] shadow-[0_4px_14px_rgba(239,122,26,0.15)]";
 
   const bigColor = negative ? "text-white" : "text-white";
   const eyebrowColor = negative ? "text-white/[0.92]" : "text-white";

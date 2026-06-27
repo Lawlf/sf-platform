@@ -112,26 +112,32 @@ export function presentMove(
       const gap = m.metrics.reserveGapReais ?? 0;
       const months = m.metrics.monthsToReserve;
       const minSafety = m.reasonCode === "below_min_safety";
+      const goalActive = m.reasonCode === "reserve_goal_active";
       return {
         headline: minSafety
           ? "Junte um colchão pequeno antes de atacar a dívida."
-          : "Direcione sua sobra para a reserva de emergência.",
+          : goalActive
+            ? "Complete sua meta de reserva antes de investir."
+            : "Direcione sua sobra para a reserva de emergência.",
         impact:
           months == null
             ? `Faltam ${brl(gap)} para o seu colchão ficar completo.`
             : `Faltam ${brl(gap)}, cerca de ${monthsLabel(months)} no seu ritmo.`,
         reason: minSafety
           ? "Com os dados que você registrou, vale ter um mínimo de segurança antes de atacar a dívida."
-          : "Com os dados que você registrou, sua reserva ainda não cobre um imprevisto.",
+          : goalActive
+            ? "Você definiu uma meta de reserva e ela ainda não fechou; vale completá-la antes de investir a sobra."
+            : "Com os dados que você registrou, sua reserva ainda não cobre um imprevisto.",
       };
     }
     case "invest": {
       const monthly = m.metrics.monthlyContributionReais ?? 0;
       const growth = m.metrics.projectedGrowthReais ?? 0;
+      const total = m.metrics.projectedTotalReais ?? monthly * 12 + growth;
       return {
         headline: `Sua sobra pode render: comece com ${brl(monthly)} por mês.`,
-        impact: `Em 12 meses, isso pode render cerca de ${brl(growth)}.`,
-        reason: "Com os dados que você registrou, você não tem dívida cara e a reserva está completa.",
+        impact: `Em 12 meses, isso vira cerca de ${brl(total)}, com ${brl(growth)} de rendimento.`,
+        reason: "Com os dados que você registrou, você não tem dívida cara e já tem um colchão para imprevistos.",
       };
     }
     case "reduce_commitment": {

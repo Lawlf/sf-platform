@@ -507,6 +507,7 @@ export async function fetchHouseholdInsight(
       debts: repos.debts,
       incomes: repos.incomes,
       assets: repos.assets,
+      goals: repos.goals,
       rates: repos.exchangeRates,
       overrides: repos.userFxOverrides,
       clock,
@@ -553,9 +554,12 @@ export async function fetchHouseholdInsight(
       const gap = dom.metrics.reserveGapReais ?? 0;
       const months = dom.metrics.monthsToReserve;
       const minSafety = dom.reasonCode === "below_min_safety";
+      const goalActive = dom.reasonCode === "reserve_goal_active";
       headline = minSafety
         ? "Juntem um colchão antes de atacar as dívidas."
-        : "Direcionem a sobra para a reserva de emergência.";
+        : goalActive
+          ? "Completem a meta de reserva da casa antes de investir."
+          : "Direcionem a sobra para a reserva de emergência.";
       impact =
         months == null
           ? `Faltam ${brl(gap)} para o colchão da casa ficar completo.`
@@ -565,8 +569,9 @@ export async function fetchHouseholdInsight(
     case "invest": {
       const monthly = dom.metrics.monthlyContributionReais ?? 0;
       const growth = dom.metrics.projectedGrowthReais ?? 0;
+      const total = dom.metrics.projectedTotalReais ?? monthly * 12 + growth;
       headline = `A sobra da casa pode render: comecem com ${brl(monthly)} por mês.`;
-      impact = `Em 12 meses, isso pode render cerca de ${brl(growth)}.`;
+      impact = `Em 12 meses, isso vira cerca de ${brl(total)}, com ${brl(growth)} de rendimento.`;
       break;
     }
     case "reduce_commitment": {

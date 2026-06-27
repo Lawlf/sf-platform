@@ -22,6 +22,8 @@ export interface PrescribeFromEntitiesInput {
   paymentsThisMonth?: DebtPaymentEntity[];
   adjustments?: DebtAmountAdjustmentEntity[];
   settlements?: TimelineSettlement[];
+  /** alvo da meta de reserva de emergência ativa do usuário, em reais. undefined se não houver. */
+  reserveGoalTargetReais?: number | undefined;
 }
 
 export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescription {
@@ -66,6 +68,11 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
 
   const hasEstimatedIncome = incomes.some((i) => i.isEstimated);
 
+  const reserveGoalGapReais =
+    input.reserveGoalTargetReais != null
+      ? Math.max(0, input.reserveGoalTargetReais - reserveReais)
+      : undefined;
+
   return PrescriptionEngine.prescribe({
     now,
     debts,
@@ -74,6 +81,7 @@ export function prescribeFromEntities(input: PrescribeFromEntitiesInput): Prescr
     freeBalanceReais,
     committedPct,
     reserveReais,
+    reserveGoalGapReais,
     hasEstimatedIncome,
     config: PRESCRIPTION_CONFIG,
   });

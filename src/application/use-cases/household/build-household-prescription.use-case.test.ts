@@ -103,6 +103,9 @@ function makeDeps(opts: {
     assets: {
       findActiveByProfile: vi.fn(async () => []),
     },
+    goals: {
+      listForProfile: vi.fn(async () => []),
+    },
     now: () => NOW,
     ...makeFxDeps(),
   };
@@ -196,6 +199,7 @@ describe("buildHouseholdPrescription", () => {
       debts: { listForProfile: vi.fn(async () => []) },
       incomes: { listForProfile },
       assets: { findActiveByProfile: vi.fn(async () => []) },
+      goals: { listForProfile: vi.fn(async () => []) },
       now: () => NOW,
       ...makeFxDeps(),
     };
@@ -225,6 +229,7 @@ describe("buildHouseholdPrescription", () => {
       debts: { listForProfile: vi.fn(async () => []) },
       incomes: { listForProfile: vi.fn(async () => [income]) },
       assets: { findActiveByProfile: vi.fn(async () => []) },
+      goals: { listForProfile: vi.fn(async () => []) },
       now: () => NOW,
       rates: { upsertDaily: vi.fn(), findLatest },
       overrides: {

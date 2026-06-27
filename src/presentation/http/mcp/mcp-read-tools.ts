@@ -122,6 +122,7 @@ export function registerMcpReadTools(server: McpServer): void {
           debtPayments: repos.debtPayments,
           debtAmountAdjustments: repos.debtAmountAdjustments,
           recurringSettlements: repos.recurringSettlements,
+          goals: repos.goals,
           now: () => clock.now(),
           rates: repos.exchangeRates,
           overrides: repos.userFxOverrides,

@@ -100,7 +100,9 @@ function classify(s: PrescriptionSnapshot): CompleteState {
     if (s.reserveReais < minSafety) return "no_cushion";
     return "bleeding";
   }
-  return s.reserveReais < reserveFloor ? "no_cushion" : "ready_to_grow";
+  if (s.reserveReais < reserveFloor) return "no_cushion";
+  if ((s.reserveGoalGapReais ?? 0) > 0) return "no_cushion";
+  return "ready_to_grow";
 }
 
 export function hasExpensiveDebt(s: PrescriptionSnapshot): boolean {
@@ -210,12 +212,19 @@ function buildReserveMove(s: PrescriptionSnapshot): PrescriptionMove {
   const minSafety = s.monthlyEssentialReais * s.config.minSafetyMonths;
   const floor = s.monthlyEssentialReais * s.config.reserveFloorMonths;
   const belowMinSafety = hasExpensiveDebt(s) && s.reserveReais < minSafety;
+  const goalGap = s.reserveGoalGapReais ?? 0;
+  const usingGoal = !belowMinSafety && s.reserveReais >= floor && goalGap > 0;
   const target = belowMinSafety ? minSafety : floor;
-  const gap = Math.max(0, target - s.reserveReais);
+  const gap = usingGoal ? goalGap : Math.max(0, target - s.reserveReais);
   const monthly = Math.max(0, s.freeBalanceReais);
   const monthsToReserve = monthly > 0 ? Math.ceil(gap / monthly) : null;
+  const reasonCode = belowMinSafety
+    ? "below_min_safety"
+    : usingGoal
+      ? "reserve_goal_active"
+      : "below_reserve_floor";
   return {
-    type: "build_reserve", reasonCode: belowMinSafety ? "below_min_safety" : "below_reserve_floor",
+    type: "build_reserve", reasonCode,
     metrics: { reserveGapReais: gap, monthsToReserve, monthlyContributionReais: Math.min(monthly, gap) },
     rankImpactReais: gap,
   };
@@ -230,7 +239,8 @@ function buildInvest(s: PrescriptionSnapshot): PrescriptionMove {
   const growth = Math.max(0, balance - contributed);
   return {
     type: "invest", reasonCode: "no_expensive_debt_reserve_ok",
-    metrics: { monthlyContributionReais: monthly, projectedGrowthReais: growth }, rankImpactReais: growth,
+    metrics: { monthlyContributionReais: monthly, projectedGrowthReais: growth, projectedTotalReais: balance },
+    rankImpactReais: growth,
   };
 }
 

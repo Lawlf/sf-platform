@@ -156,6 +156,21 @@ describe("PrescriptionEngine — dominant move metrics", () => {
     expect(out.dominant?.metrics.monthlyContributionReais).toBe(1000);
     expect(out.dominant?.metrics.projectedGrowthReais ?? 0).toBeGreaterThan(0);
   });
+  it("reserve floor met but active reserve goal unfinished -> build_reserve over invest", () => {
+    const out = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [], reserveReais: 6000, freeBalanceReais: 1000, reserveGoalGapReais: 5924,
+    }));
+    expect(out.dominant?.type).toBe("build_reserve");
+    expect(out.dominant?.reasonCode).toBe("reserve_goal_active");
+    expect(out.dominant?.metrics.reserveGapReais).toBeCloseTo(5924, 2);
+    expect(out.dominant?.metrics.monthsToReserve).toBe(6);
+  });
+  it("active reserve goal already met (gap 0) stays invest", () => {
+    const out = PrescriptionEngine.prescribe(baseSnapshot({
+      debts: [], reserveReais: 6000, freeBalanceReais: 1000, reserveGoalGapReais: 0,
+    }));
+    expect(out.dominant?.type).toBe("invest");
+  });
   it("tight: reduce_commitment reports the reduction needed to clear the red", () => {
     const out = PrescriptionEngine.prescribe(baseSnapshot({ freeBalanceReais: -300 }));
     expect(out.dominant?.type).toBe("reduce_commitment");
