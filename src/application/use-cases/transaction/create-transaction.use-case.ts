@@ -87,6 +87,7 @@ export async function createTransaction(
     accountId: account.id,
     occurredAt: input.occurredAt ?? deps.clock.now(),
     status,
+    excludedFromTotals: false,
     source: input.source ?? "manual",
     externalId: input.externalId ?? null,
     deletedAt: null,

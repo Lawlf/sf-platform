@@ -3,6 +3,18 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 export type UserRole = "user" | "admin";
 export type UserPlan = "free" | "pro";
 export type ContentDiagnosticAnswer = "pagar-divida" | "guardar" | "investir" | "fechar-mes";
+export type AcquisitionChannel =
+  | "founder_direct"
+  | "friend_referral"
+  | "messaging_group"
+  | "influencer"
+  | "instagram"
+  | "tiktok"
+  | "youtube"
+  | "facebook"
+  | "free_calculator"
+  | "google_search"
+  | "other";
 
 export interface UserEntity {
   id: string;
@@ -18,6 +30,8 @@ export interface UserEntity {
   contentDiagnosticAnsweredAt: Date | null;
   onboardingWizardSeenAt: Date | null;
   homeTourDismissedAt: Date | null;
+  acquisitionChannel: AcquisitionChannel | null;
+  acquisitionChannelOther: string | null;
   quickAccess: string[];
   username: string | null;
   profileFlair: string | null;

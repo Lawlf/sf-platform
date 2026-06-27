@@ -10,6 +10,7 @@ import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
 import type { IncomeSettlementEntity } from "@/domain/entities/income-settlement.entity";
 import type { IncomeEntity } from "@/domain/entities/income.entity";
+import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { AssetValuationService } from "@/domain/services/asset-valuation.service";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { effectiveIncomeCentsForMonth } from "@/domain/services/income-settlement.service";
@@ -91,6 +92,14 @@ export interface BuildTimelineInput {
    * passam o mês atual para a curva refletir parcelas/faturas que ainda vêm.
    */
   currentMonth?: MonthYear;
+  /**
+   * Lançamentos avulsos (entrada/saída pontual, inclui agendados futuros). O
+   * net do mês (entradas - saídas) entra no `freeBalance` daquele mês, pra a
+   * curva refletir um avulso agendado lá na frente (ex: IPVA de março). Só conta
+   * em BRL; `totalIncome`/`totalDebtPayments` (estruturais) não são afetados.
+   * Opcional para backward compat.
+   */
+  transactions?: TransactionEntity[];
 }
 
 export function incomeMonthlyEquivalent(
@@ -345,6 +354,22 @@ export function monthlyDebtOutflow(args: {
   return items;
 }
 
+function transactionNetForMonth(
+  transactions: TransactionEntity[] | undefined,
+  month: MonthYear,
+): bigint {
+  if (!transactions) return 0n;
+  let net = 0n;
+  for (const t of transactions) {
+    if (t.deletedAt !== null) continue;
+    if (t.excludedFromTotals) continue;
+    if (t.amount.currency !== "BRL") continue;
+    if (!MonthYear.fromDate(t.occurredAt).equals(month)) continue;
+    net += t.direction === "in" ? t.amount.toCents() : -t.amount.toCents();
+  }
+  return net;
+}
+
 function assetsAtMonthEnd(assets: AssetEntity[], month: MonthYear): Money {
   const last = month.lastDay();
   return assets
@@ -403,7 +428,10 @@ export class TimelineService {
         adjustments: input.adjustments,
         settlements: input.settlements,
       }).reduce((acc, it) => acc.add(it.amount), Money.fromCents(0n));
-      const freeBalance = totalIncome.subtract(totalDebtPayments);
+      const txnNetCents = transactionNetForMonth(input.transactions, m);
+      const freeBalance = totalIncome
+        .subtract(totalDebtPayments)
+        .add(Money.fromCents(txnNetCents));
       const assetsTotal = assetsAtMonthEnd(input.assets, m);
       const debtsBalance = debtsBalanceAtMonthEnd(input.debts, input.payments, m);
       const netWorth = assetsTotal.subtract(debtsBalance);

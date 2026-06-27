@@ -1,7 +1,7 @@
 import { and, desc, eq, gt, lt } from "drizzle-orm";
 
 import type { SessionEntity } from "@/domain/entities/session.entity";
-import type { UserEntity } from "@/domain/entities/user.entity";
+import type { AcquisitionChannel, UserEntity } from "@/domain/entities/user.entity";
 import type {
   SessionRepositoryPort,
   SessionWithUser,
@@ -39,6 +39,8 @@ function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
     contentDiagnosticAnsweredAt: row.contentDiagnosticAnsweredAt,
     onboardingWizardSeenAt: row.onboardingWizardSeenAt,
     homeTourDismissedAt: row.homeTourDismissedAt,
+    acquisitionChannel: (row.acquisitionChannel as AcquisitionChannel | null) ?? null,
+    acquisitionChannelOther: row.acquisitionChannelOther,
     quickAccess: (row.quickAccess as string[] | null) ?? [],
     username: row.username,
     profileFlair: row.profileFlair,

@@ -197,6 +197,7 @@ function txn(over: Partial<TransactionEntity>): TransactionEntity {
     accountId: "wallet-1",
     occurredAt: utc(2026, 6, 7),
     status: "paid",
+    excludedFromTotals: false,
     source: "manual",
     externalId: null,
     createdAt: utc(2026, 6, 7),

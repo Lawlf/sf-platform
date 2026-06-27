@@ -52,6 +52,7 @@ function makeTransaction(
     category: "alimentação",
     accountId: null,
     status: "paid" as const,
+    excludedFromTotals: false,
     source: "manual" as const,
     externalId: null,
     deletedAt: null,

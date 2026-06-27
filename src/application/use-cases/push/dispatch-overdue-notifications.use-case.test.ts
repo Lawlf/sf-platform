@@ -28,6 +28,8 @@ function makeUser(): UserEntity {
     contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: null,
     homeTourDismissedAt: null,
+    acquisitionChannel: null,
+    acquisitionChannelOther: null,
     quickAccess: [],
     username: null,
     profileFlair: null,
@@ -127,7 +129,7 @@ function baseDeps(
 
 describe("dispatchOverdueNotifications", () => {
   it("envia um push quando há vencido novo", async () => {
-    const { deps } = baseDeps([{ debtId: "c1", label: "Cartão", dueDate: new Date(2026, 5, 10), cycleIso: "2026-06", amount: null }]);
+    const { deps } = baseDeps([{ debtId: "c1", label: "Cartão", kind: "credit_card", dueDate: new Date(2026, 5, 10), cycleIso: "2026-06", amount: null }]);
     const r = await dispatchOverdueNotifications(deps);
     expect(r.pushesSent).toBeGreaterThan(0);
   });
@@ -140,7 +142,7 @@ describe("dispatchOverdueNotifications", () => {
 
   it("pula quem desligou push ou debtDue", async () => {
     const { deps } = baseDeps(
-      [{ debtId: "c1", label: "X", dueDate: new Date(), cycleIso: "2026-06", amount: null }],
+      [{ debtId: "c1", label: "X", kind: "credit_card", dueDate: new Date(), cycleIso: "2026-06", amount: null }],
       makePrefs({ pushEnabled: false }),
     );
     const r = await dispatchOverdueNotifications(deps);

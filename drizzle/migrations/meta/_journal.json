@@ -561,6 +561,27 @@
       "when": 1782492987265,
       "tag": "0079_outstanding_wild_child",
       "breakpoints": true
+    },
+    {
+      "idx": 80,
+      "version": "7",
+      "when": 1782494184848,
+      "tag": "0080_yielding_nekra",
+      "breakpoints": true
+    },
+    {
+      "idx": 81,
+      "version": "7",
+      "when": 1782510165292,
+      "tag": "0081_tearful_black_tom",
+      "breakpoints": true
+    },
+    {
+      "idx": 82,
+      "version": "7",
+      "when": 1782522913328,
+      "tag": "0082_wonderful_butterfly",
+      "breakpoints": true
     }
   ]
 }

@@ -17,6 +17,7 @@ import type { DebtAmountAdjustmentRepositoryPort } from "@/domain/ports/reposito
 import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import type { IncomeRepositoryPort } from "@/domain/ports/repositories/income.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { StoryDetectionService, type StoryCard } from "@/domain/services/story-detection.service";
 import { TimelineService, type MonthlyDataPoint } from "@/domain/services/timeline.service";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -64,6 +65,8 @@ export interface GetTimelineForUserDeps extends ConvertEntityDeps {
   // Opcional para preservar compat com testes legados que mockam só os 4 acima.
   // Quando ausente, a timeline é calculada sem ajustes históricos (valor base).
   debtAmountAdjustments?: Pick<DebtAmountAdjustmentRepositoryPort, "listForProfile">;
+  // Opcional: quando presente, avulsos do mês entram no freeBalance da curva.
+  transactions?: Pick<TransactionRepositoryPort, "listForProfileInRange">;
 }
 
 function findOldestUserDate(
@@ -132,7 +135,7 @@ export async function getTimelineForUser(
 
   // Busca um mês a mais (antes de `from`) para contexto de stories (diff vs prev).
   const fetchFrom = from.previous();
-  const [incomes, debts, payments, assets, adjustments] = await Promise.all([
+  const [incomes, debts, payments, assets, adjustments, transactions] = await Promise.all([
     deps.incomes.listForProfile(input.profileId),
     deps.debts.listForProfile(input.profileId, { status: "all" }),
     deps.debtPayments.listForProfileInRange(input.profileId, {
@@ -141,6 +144,9 @@ export async function getTimelineForUser(
     }),
     deps.assets.findActiveByProfile(input.profileId),
     deps.debtAmountAdjustments ? deps.debtAmountAdjustments.listForProfile(input.profileId) : Promise.resolve([]),
+    deps.transactions
+      ? deps.transactions.listForProfileInRange(input.profileId, fetchFrom.firstDay(), to.lastDay())
+      : Promise.resolve([]),
   ]);
 
   const convertedIncomes: IncomeEntity[] = [];
@@ -189,6 +195,7 @@ export async function getTimelineForUser(
     from: fetchFrom,
     to,
     adjustments: convertedAdjustments,
+    transactions,
     currentMonth: input.now ?? MonthYear.fromDate(new Date()),
   });
   const pagePoints = timeline.points.filter((p) => !p.month.isBefore(from));

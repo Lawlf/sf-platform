@@ -1,9 +1,15 @@
+import { getAcquisitionBreakdown } from "../_actions/metrics-queries";
 import { getTopUsers, getUsageSummary } from "../_actions/usage-queries";
+import { AcquisitionBreakdown } from "../_components/acquisition-breakdown";
 import { KpiCard } from "../_components/kpi-card";
 import { fmtDate, fmtDuration } from "../_lib/format";
 
 export default async function UsoPage() {
-  const [summary, topUsers] = await Promise.all([getUsageSummary(), getTopUsers(10)]);
+  const [summary, topUsers, acquisition] = await Promise.all([
+    getUsageSummary(),
+    getTopUsers(10),
+    getAcquisitionBreakdown(),
+  ]);
 
   return (
     <div className="flex flex-col gap-6">
@@ -19,6 +25,8 @@ export default async function UsoPage() {
           hint="média por sessão-dia (30d)"
         />
       </section>
+
+      <AcquisitionBreakdown data={acquisition} />
 
       <section className="glass-light overflow-x-auto rounded-2xl p-4">
         <h2 className="mb-3 text-[0.875rem] font-semibold text-[color:var(--text-primary)]">

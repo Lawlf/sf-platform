@@ -12,6 +12,7 @@ import type {
   RecurringFrequency,
 } from "@/domain/entities/debt.entity";
 import type { IncomeEntity, IncomeFrequency } from "@/domain/entities/income.entity";
+import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
@@ -323,6 +324,46 @@ describe("TimelineService.buildTimeline", () => {
       expect(p.assetsTotal.toCents()).toBe(0n);
       expect(p.debtsBalance.toCents()).toBe(0n);
     }
+  });
+
+  it("avulso entra no freeBalance do seu mês (inclui agendado futuro), só em BRL", () => {
+    const from = MonthYear.from(2026, 1);
+    const to = MonthYear.from(2026, 3);
+    const tx = (over: Partial<TransactionEntity>): TransactionEntity => ({
+      id: "t",
+      userId: "u1",
+      profileId: "p1",
+      direction: "out",
+      amount: Money.fromCents(50_000n),
+      description: "x",
+      category: null,
+      accountId: "acc1",
+      occurredAt: new Date(Date.UTC(2026, 1, 15)),
+      status: "scheduled",
+      excludedFromTotals: false,
+      source: "manual",
+      externalId: null,
+      createdAt: new Date(Date.UTC(2026, 0, 1)),
+      deletedAt: null,
+      ...over,
+    });
+    const tl = TimelineService.buildTimeline({
+      incomes: [],
+      debts: [],
+      payments: [],
+      assets: [],
+      from,
+      to,
+      transactions: [
+        tx({ id: "out-feb" }),
+        tx({ id: "in-mar", direction: "in", amount: Money.fromCents(30_000n), occurredAt: new Date(Date.UTC(2026, 2, 10)) }),
+        tx({ id: "deleted", occurredAt: new Date(Date.UTC(2026, 0, 5)), deletedAt: new Date() }),
+        tx({ id: "usd", occurredAt: new Date(Date.UTC(2026, 0, 5)), amount: Money.fromCents(99_000n, "USD") }),
+      ],
+    });
+    expect(tl.points[0]!.freeBalance.toCents()).toBe(0n); // jan: deleted + USD ignorados
+    expect(tl.points[1]!.freeBalance.toCents()).toBe(-50_000n); // fev: saída agendada
+    expect(tl.points[2]!.freeBalance.toCents()).toBe(30_000n); // mar: entrada
   });
 
   it("projeta a obrigação de dívida não-recorrente nos meses a partir de currentMonth", () => {

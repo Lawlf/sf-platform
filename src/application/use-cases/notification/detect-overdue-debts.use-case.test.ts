@@ -58,6 +58,7 @@ describe("detectOverdueDebts", () => {
         {
           debtId: "c1",
           label: "Cartão Nubank",
+          kind: "credit_card",
           dueDate: new Date(2026, 5, 10),
           cycleIso: "2026-06",
           amount: null,
@@ -78,6 +79,7 @@ describe("detectOverdueDebts", () => {
         {
           debtId: "c1",
           label: "Cartão",
+          kind: "credit_card",
           dueDate: new Date(2026, 5, 10),
           cycleIso: "2026-06",
           amount: null,

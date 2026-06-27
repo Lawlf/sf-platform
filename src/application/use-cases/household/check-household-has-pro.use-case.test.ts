@@ -31,6 +31,8 @@ function makeUser(id: string, isPro: boolean): UserEntity {
     contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: NOW,
     homeTourDismissedAt: null,
+    acquisitionChannel: null,
+    acquisitionChannelOther: null,
     quickAccess: [],
     username: null,
     profileFlair: null,

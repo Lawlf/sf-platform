@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Pencil, TrendingDown, TrendingUp, Wallet } from "lucide-react";
+import { ChevronRight, Pencil, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState } from "react";
@@ -84,12 +84,22 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
   const cardLink = detailHref ? (
     <Link href={detailHref} aria-label="Ver Carteira" className="absolute inset-0 z-[1]" />
   ) : null;
+  // Seta de affordância: sinaliza que o card é clicável (só quando vira link).
+  const cardChevron = detailHref ? (
+    <ChevronRight
+      size={26}
+      strokeWidth={2.25}
+      aria-hidden
+      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
+    />
+  ) : null;
 
   if (data.needsAnchor) {
     return (
       <>
         <CardShell>
           {cardLink}
+          {cardChevron}
           <div className="relative flex flex-col gap-3">
             <CardHeading />
             <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
@@ -127,6 +137,7 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
     <>
       <CardShell>
         {cardLink}
+        {cardChevron}
         <div className="relative flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <CardHeading />

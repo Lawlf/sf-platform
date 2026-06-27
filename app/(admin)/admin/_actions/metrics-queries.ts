@@ -3,6 +3,7 @@ import { unstable_cache } from "next/cache";
 
 import type { Payment } from "@/domain/entities/payment.entity";
 import type {
+  AcquisitionBreakdown,
   AdminMetricsSummary,
   DailyPoint,
 } from "@/domain/ports/repositories/admin-metrics.repository";
@@ -71,6 +72,12 @@ export const getAdminSeries = unstable_cache(
     return { revenue, signups };
   },
   ["admin-series"],
+  { revalidate: REVALIDATE_SECONDS, tags: [ADMIN_METRICS_TAG] },
+);
+
+export const getAcquisitionBreakdown = unstable_cache(
+  async (): Promise<AcquisitionBreakdown> => repo().getAcquisitionBreakdown(),
+  ["admin-acquisition-breakdown"],
   { revalidate: REVALIDATE_SECONDS, tags: [ADMIN_METRICS_TAG] },
 );
 

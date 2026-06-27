@@ -1,6 +1,7 @@
-import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { DebtEntity, DebtKind } from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtDueAcknowledgementRepositoryPort } from "@/domain/ports/repositories/debt-due-acknowledgement.repository";
+import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
 import { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
@@ -8,6 +9,7 @@ import { ok, type Result } from "@/shared/errors/result";
 export interface OverdueItem {
   debtId: string;
   label: string;
+  kind: DebtKind;
   dueDate: Date;
   cycleIso: string;
   amount: Money | null;
@@ -16,6 +18,7 @@ export interface OverdueItem {
 export interface GetOverdueDebtsDeps {
   debts: DebtRepositoryPort;
   acknowledgements: DebtDueAcknowledgementRepositoryPort;
+  payments: DebtPaymentRepositoryPort;
   clock: Clock;
 }
 
@@ -39,10 +42,20 @@ export async function getOverdueDebts(
     if (due.dueDate > today) continue;
     const cycleIso = isoMonth(due.dueDate);
     if (paid.has(`${debt.id}:${cycleIso}`)) continue;
+    if (debt.kind !== "recurring" && (await hasPaymentInCycle(deps, debt.id, cycleIso))) continue;
     items.push({ ...due, cycleIso });
   }
   items.sort((a, b) => a.dueDate.getTime() - b.dueDate.getTime());
   return ok(items);
+}
+
+async function hasPaymentInCycle(
+  deps: GetOverdueDebtsDeps,
+  debtId: string,
+  cycleIso: string,
+): Promise<boolean> {
+  const payments = await deps.payments.listForDebt(debtId);
+  return payments.some((p) => isoMonth(p.paidAt) === cycleIso);
 }
 
 function daysInMonth(year: number, month: number): number {
@@ -52,14 +65,14 @@ function daysInMonth(year: number, month: number): number {
 function currentCycleDue(
   debt: DebtEntity,
   today: Date,
-): { debtId: string; label: string; dueDate: Date; amount: Money | null } | null {
+): { debtId: string; label: string; kind: DebtKind; dueDate: Date; amount: Money | null } | null {
   const dueDay = monthlyDueDay(debt);
   if (dueDay === null) return null;
   const year = today.getFullYear();
   const month = today.getMonth();
   const clampedDay = Math.min(dueDay, daysInMonth(year, month));
   const dueDate = new Date(year, month, clampedDay);
-  return { debtId: debt.id, label: debt.label, dueDate, amount: monthlyAmount(debt) };
+  return { debtId: debt.id, label: debt.label, kind: debt.kind, dueDate, amount: monthlyAmount(debt) };
 }
 
 function monthlyDueDay(debt: DebtEntity): number | null {

@@ -4,7 +4,9 @@ import { notFound } from "next/navigation";
 import { fetchGoalsLinkedToAsset } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { getAssetDetail } from "@/application/use-cases/asset/get-asset-detail.use-case";
 import { listDebts } from "@/application/use-cases/debt/list-debts.use-case";
+import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projection.service";
+import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
@@ -12,6 +14,8 @@ import { isOk } from "@/shared/errors/result";
 import { formatDateSafe } from "@/shared/format/date-format";
 import { formatCents } from "@/shared/format/money-format";
 
+import { buildCategoryLabeler } from "../../_actions/_category-labels";
+import { listCategoriesQuery } from "../../_actions/category-queries";
 import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
@@ -21,6 +25,8 @@ import {
   fetchAccountTransactionsPage,
 } from "./_actions/account-transactions-queries";
 import { AccountTransactionsSection } from "./_components/account-transactions";
+import type { AssetCostView } from "./_components/asset-cost-card";
+import { AssetCostCategoriesSection } from "./_components/asset-cost-categories-section.client";
 import {
   AssetDetailView,
   type AvailableDebtView,
@@ -91,6 +97,79 @@ export default async function AssetDetailPage({ params }: PageProps) {
     allocationOriginalFormatted: l.allocationOriginal.format(),
     outstandingOnAssetFormatted: l.outstandingOnAsset.format(),
   }));
+
+  const assetNoun =
+    asset.category === "vehicle"
+      ? "veículo"
+      : asset.category === "real_estate"
+        ? "imóvel"
+        : asset.category === "investment"
+          ? "investimento"
+          : "bem";
+
+  const costCategories =
+    asset.category === "cash" ? [] : await repos.assetCostCategories.listByAsset(asset.id, profileId);
+
+  let monthlyExpensesCents = 0n;
+  if (costCategories.length > 0) {
+    const nowMonth = MonthYear.fromDate(new Date());
+    const fromMonth = nowMonth.previous().previous();
+    const txns = await repos.transactions.listForProfileInRange(
+      profileId,
+      fromMonth.firstDay(),
+      nowMonth.lastDay(),
+    );
+    const keys = new Set(costCategories.map((c) => c.categoryKey));
+    let outCents = 0n;
+    for (const t of txns) {
+      if (t.excludedFromTotals) continue;
+      if (t.direction !== "out" || t.status !== "paid") continue;
+      if (!t.category || !keys.has(t.category)) continue;
+      if (t.amount.currency !== "BRL") continue;
+      outCents += t.amount.toCents();
+    }
+    monthlyExpensesCents = outCents / 3n;
+  }
+
+  const costLabeler = await buildCategoryLabeler(user.id);
+  const linkedCostCategories = costCategories.map((c) => ({
+    key: c.categoryKey,
+    label: costLabeler(c.categoryKey) ?? c.categoryKey,
+  }));
+  const costCatalog = asset.category === "cash" ? null : await listCategoriesQuery();
+
+  let costSummary: AssetCostView | null = null;
+  if (asset.category !== "cash" && (linkedDebts.length > 0 || costCategories.length > 0)) {
+    const cur = asset.currentValue.currency;
+    const valueCents = asset.currentValue.toCents();
+    const owedCents = valueCents - netWorth.toCents();
+    let monthlyReais = 0;
+    for (const l of linkedDebts) {
+      const svc = monthlyDebtService(l.debt);
+      if (!isOk(svc)) continue;
+      const principalCents = l.debt.originalPrincipal.toCents();
+      const frac =
+        principalCents > 0n
+          ? Number(l.allocationOriginal.toCents()) / Number(principalCents)
+          : 1;
+      monthlyReais += svc.value * frac;
+    }
+    const installmentCents = BigInt(Math.round(monthlyReais * 100));
+    const totalCents = installmentCents + monthlyExpensesCents;
+    costSummary = {
+      noun: assetNoun,
+      hasDebt: linkedDebts.length > 0,
+      valueFormatted: asset.currentValue.format(),
+      owedFormatted: formatCents(owedCents < 0n ? -owedCents : owedCents, cur),
+      ownFormatted: netWorth.format(),
+      ownIsNegative: netWorth.isNegative(),
+      owedPct: valueCents > 0n ? (Number(owedCents) / Number(valueCents)) * 100 : 100,
+      monthlyTotalFormatted: totalCents > 0n ? formatCents(totalCents, cur) : null,
+      monthlyInstallmentFormatted: installmentCents > 0n ? formatCents(installmentCents, cur) : null,
+      monthlyExpensesFormatted:
+        monthlyExpensesCents > 0n ? formatCents(monthlyExpensesCents, cur) : null,
+    };
+  }
 
   let cashYield: CashYieldView | null = null;
   if (asset.category === "cash" && asset.metadata && asset.metadata.kind === "cash") {
@@ -248,6 +327,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
           items={txnPreview?.items ?? []}
           total={txnTotal}
           framing={txnFraming}
+          seeAllHref="/app/lancamentos"
         />
       </PageShell>
     );
@@ -310,7 +390,16 @@ export default async function AssetDetailPage({ params }: PageProps) {
         description={description}
         depreciation={depreciation}
         linkedGoals={linkedGoals}
+        costSummary={costSummary}
       />
+      {!isCash ? (
+        <AssetCostCategoriesSection
+          assetId={asset.id}
+          noun={assetNoun}
+          linked={linkedCostCategories}
+          catalog={costCatalog}
+        />
+      ) : null}
       {isCash ? (
         <AccountTransactionsSection
           accountId={asset.id}

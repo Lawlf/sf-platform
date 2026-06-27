@@ -10,6 +10,8 @@ function user(over: Partial<UserEntity> = {}): UserEntity {
     role: "user", plan: "free", isPro: false, deactivatedAt: null, deactivationReason: null,
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null, onboardingWizardSeenAt: null,
     homeTourDismissedAt: null, quickAccess: [], baseCurrency: "BRL", username: null, profileFlair: null,
+    acquisitionChannel: null,
+    acquisitionChannelOther: null,
     createdAt: new Date(), updatedAt: new Date(), ...over,
   };
 }

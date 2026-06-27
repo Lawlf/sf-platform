@@ -26,6 +26,7 @@ function txn(
     category: opts.category ?? null,
     accountId: null,
     status: "paid",
+    excludedFromTotals: false,
     source: "manual",
     externalId: null,
     createdAt: new Date(iso),

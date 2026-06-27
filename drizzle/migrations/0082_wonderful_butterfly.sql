@@ -1,0 +1,1 @@
+ALTER TABLE "transactions" ADD COLUMN "excluded_from_totals" boolean DEFAULT false NOT NULL;

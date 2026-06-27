@@ -10,13 +10,14 @@ export type WizardStepId =
   | "result-prescription"
   | "result-goal"
   | "result-networth"
-  | "result-month-closing";
+  | "result-month-closing"
+  | "acquisition";
 
 const PATHS: Record<ContentDiagnosticAnswer, WizardStepId[]> = {
-  "pagar-divida": ["focus", "income", "debt", "result-prescription"],
-  guardar: ["focus", "income", "goal", "result-goal"],
-  investir: ["focus", "income", "asset", "result-networth"],
-  "fechar-mes": ["focus", "income", "expense", "result-month-closing"],
+  "pagar-divida": ["focus", "income", "debt", "result-prescription", "acquisition"],
+  guardar: ["focus", "income", "goal", "result-goal", "acquisition"],
+  investir: ["focus", "income", "asset", "result-networth", "acquisition"],
+  "fechar-mes": ["focus", "income", "expense", "result-month-closing", "acquisition"],
 };
 
 export const WIZARD_TOTAL_STEPS = Math.max(...Object.values(PATHS).map((p) => p.length));

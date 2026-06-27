@@ -93,7 +93,7 @@ export function ResultPrescription({
       title="Por onde começar"
       description="Com o que você cadastrou, já dá pra apontar o primeiro alvo."
       onBack={onBack}
-      primary={{ label: "Ir para o início", onClick: onFinish, loading: finishing }}
+      primary={{ label: "Continuar", onClick: onFinish, loading: finishing }}
     >
       {!loaded ? (
         <div className="flex justify-center py-6">

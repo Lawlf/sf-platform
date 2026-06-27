@@ -17,6 +17,7 @@ function txn(id: string, iso: string): TransactionEntity {
     category: null,
     accountId: "acc1",
     status: "paid",
+    excludedFromTotals: false,
     source: "ofx_import",
     externalId: null,
     createdAt: new Date(iso),

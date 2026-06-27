@@ -2,6 +2,7 @@ import { SystemClock } from "@/infrastructure/clock/system-clock";
 import { AchievementProgressRepository } from "@/infrastructure/persistence/drizzle/repositories/achievement-progress.repository";
 import { AdminAuditLogRepository } from "@/infrastructure/persistence/drizzle/repositories/admin-audit-log.repository";
 import { AdminMetricsRepository } from "@/infrastructure/persistence/drizzle/repositories/admin-metrics.repository";
+import { AssetCostCategoryRepository } from "@/infrastructure/persistence/drizzle/repositories/asset-cost-category.repository";
 import { AssetDebtAllocationRepository } from "@/infrastructure/persistence/drizzle/repositories/asset-debt-allocation.repository";
 import { AssetRepository } from "@/infrastructure/persistence/drizzle/repositories/asset.repository";
 import { CryptoPriceCatalogRepository } from "@/infrastructure/persistence/drizzle/repositories/crypto-price-catalog.repository";
@@ -61,6 +62,7 @@ export const repos = {
   achievementProgress: new AchievementProgressRepository(),
   adminAuditLogs: new AdminAuditLogRepository(),
   adminMetrics: new AdminMetricsRepository(),
+  assetCostCategories: new AssetCostCategoryRepository(),
   assetDebtAllocations: new AssetDebtAllocationRepository(),
   assets: new AssetRepository(),
   cryptoPriceCatalog: new CryptoPriceCatalogRepository(),

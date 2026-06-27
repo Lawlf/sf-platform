@@ -16,9 +16,16 @@ export interface DailyPoint {
   value: number; // cents (revenue) or count (signups)
 }
 
+export interface AcquisitionBreakdown {
+  byChannel: { channel: string; count: number }[];
+  unanswered: number; // never asked or skipped the wizard step
+  otherDetails: string[]; // free text from the "other" chip
+}
+
 export interface AdminMetricsRepositoryPort {
   getSummary(now: Date): Promise<AdminMetricsSummary>;
   getRevenueSeries(now: Date, days: number): Promise<DailyPoint[]>;
   getSignupSeries(now: Date, days: number): Promise<DailyPoint[]>;
+  getAcquisitionBreakdown(): Promise<AcquisitionBreakdown>;
   listRecentPayments(limit: number): Promise<Payment[]>;
 }

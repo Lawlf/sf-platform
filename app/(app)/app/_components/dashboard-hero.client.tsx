@@ -4,7 +4,7 @@ import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { type ReactNode, useMemo } from "react";
+import { useMemo } from "react";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 
@@ -33,15 +33,6 @@ function stripMinus(formatted: string): string {
 
 // Estimativa semanal arredondada pro inteiro: centavo numa aproximacao induz
 // leitura de "saldo exato de banco", justo o que o numero nao e.
-function formatBrlWhole(cents: bigint): string {
-  const reais = Math.round(Number(cents) / 100);
-  return reais.toLocaleString("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-    maximumFractionDigits: 0,
-  });
-}
-
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -74,9 +65,7 @@ interface Props {
 export function DashboardHeroClient({
   monthIso,
   initialData,
-  previousMonth = null,
   milestone = null,
-  safeToSpend = null,
 }: Props) {
   const month = useMemo(() => MonthYear.fromIso(monthIso), [monthIso]);
   const timelineHref = `/app/linha-do-tempo/${monthIso}` as Route;
@@ -127,13 +116,6 @@ export function DashboardHeroClient({
   const floor = leftover(floorCents);
   const floorFmt = stripMinus(formatBrl(floorCents));
 
-  // Fio de progresso: comparo a sobra realizada do mes passado com a projecao
-  // de agora. So aparece quando ha mes anterior e ha renda no mes atual.
-  const prevCents = previousMonth ? BigInt(previousMonth.freeCents) : null;
-  const showProgress = prevCents !== null && !noIncomeState;
-  const prevPositive = (prevCents ?? 0n) >= 0n;
-  const prevAbs = stripMinus(formatBrl(prevCents ?? 0n));
-  const prevVerb = prevPositive ? "sobrou" : "faltou";
 
   // Valor "hoje" do herói, por prioridade:
   //   a) carteira ancorada → saldo reativo;
@@ -184,28 +166,6 @@ export function DashboardHeroClient({
   const showNudge = noIncome;
 
   const negative = !positive && !noIncome;
-
-  // Linha "quanto posso gastar": so quando o heroi nao e a propria ma noticia.
-  // underwater e perWeek=0 em mes vermelho so ecoam o heroi; tight-by-goal e o
-  // unico apertado cuja causa o numero grande nao explica (a meta come a folga).
-  let safeLine: ReactNode = null;
-  if (safeToSpend && !noIncome) {
-    if (safeToSpend.state === "tight-by-goal") {
-      const withoutGoal = formatBrlWhole(BigInt(safeToSpend.perWeekWithoutGoalCents));
-      safeLine = <>Esse mês a meta come a folga; sem ela sobrariam uns {withoutGoal}/semana.</>;
-    } else if (safeToSpend.state === "ok" && !negative) {
-      const perWeekCents = BigInt(safeToSpend.perWeekCents);
-      safeLine =
-        perWeekCents > 0n ? (
-          <>
-            Dá pra gastar uns <HideableValue>{formatBrlWhole(perWeekCents)}</HideableValue> por
-            semana sem furar o mês.
-          </>
-        ) : (
-          <>Essa semana, melhor não contar com gasto livre.</>
-        );
-    }
-  }
 
   // Tratamento de estado negativo (buraco): herói escuro/alerta em vez do
   // laranja, com acento vermelho na linha "falta" e no selo.
@@ -317,13 +277,6 @@ export function DashboardHeroClient({
                 </span>
               </>
             ) : null}
-            {safeLine ? (
-              <span
-                className={`mt-2 block text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}
-              >
-                {safeLine}
-              </span>
-            ) : null}
             {hasVariableIncome ? (
               <span className={`mt-2 block text-[0.8125rem] font-semibold leading-snug ${sublineColor}`}>
                 {floor.positive ? (
@@ -349,17 +302,6 @@ export function DashboardHeroClient({
                   {nudgeText}
                 </span>
               </>
-            ) : null}
-            {showProgress ? (
-              <span className="mt-1.5 block text-[0.75rem] leading-snug text-white/65">
-                {projCents > (prevCents ?? 0n)
-                  ? "Melhor que "
-                  : projCents < (prevCents ?? 0n)
-                    ? "Abaixo de "
-                    : "No mesmo ritmo de "}
-                {previousMonth?.label?.toLowerCase()} ({prevVerb}{" "}
-                <HideableValue>{prevAbs}</HideableValue>)
-              </span>
             ) : null}
             <div className="mt-2.5 flex flex-wrap items-center gap-2">
               {showBadge ? (

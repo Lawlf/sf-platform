@@ -83,6 +83,18 @@ export interface SerializedStoryRow {
   dateIso: string;
 }
 
+/** Lançamento avulso (entrada/saída pontual). Mostrado em rollup por dia na timeline. */
+export interface SerializedTransactionRow {
+  id: string;
+  direction: "in" | "out";
+  amount: SerializedMoney;
+  description: string;
+  category: string | null;
+  dateIso: string;
+  status: "paid" | "scheduled";
+  accountId: string | null;
+}
+
 export type TimelineEventKind =
   | "asset_added"
   | "income_added"
@@ -139,6 +151,7 @@ export interface SerializedMonthDetail {
   payments: SerializedPaymentRow[];
   incomes: SerializedIncomeRow[];
   expenses: SerializedExpenseRow[];
+  transactions: SerializedTransactionRow[];
   stories: SerializedStoryRow[];
   events: SerializedTimelineEvent[];
   patrimony: SerializedPatrimony;
@@ -250,6 +263,7 @@ export async function fetchMonthDetail(input: {
     adjustmentsRaw,
     settlementsRaw,
     incomeSettlementsRaw,
+    transactionsRaw,
   ] = await Promise.all([
     debtPayments.listForProfileInRange(profileId, { from: month.firstDay(), to: month.lastDay() }),
     debts.listForProfile(profileId, { status: "all" }),
@@ -262,6 +276,7 @@ export async function fetchMonthDetail(input: {
     debtAmountAdjustmentsRepo.listForProfile(profileId),
     settlementsRepo.listForProfile(profileId),
     incomeSettlementsRepo.listForProfile(profileId),
+    repos.transactions.listForProfileInRange(profileId, month.firstDay(), month.lastDay()),
   ]);
 
   const settlements: TimelineSettlement[] = settlementsRaw.map((s) => ({
@@ -498,12 +513,44 @@ export async function fetchMonthDetail(input: {
     })
     .reduce((acc, inc) => acc + monthlyIncomeCents(inc, monthTarget, incomeSettlementsRaw), 0n);
 
+  const serializedTransactions: SerializedTransactionRow[] = transactionsRaw
+    .filter((t) => !t.excludedFromTotals)
+    .map((t) => ({
+    id: t.id,
+    direction: t.direction,
+    amount: serializeMoney(t.amount),
+    description: t.description,
+    category: t.category,
+    dateIso: t.occurredAt.toISOString(),
+    status: t.status,
+    accountId: t.accountId,
+  }));
+
+  // Avulso só agrega no número quando está em BRL (base). Multi-moeda na Carteira
+  // é raro; somar cents de moedas diferentes mentiria. Aparece no rollup do dia
+  // de qualquer forma. realized = já pago; agendado conta só no full (projeção).
+  const txn = { income: 0n, outflow: 0n, realizedIncome: 0n, realizedOutflow: 0n };
+  for (const t of transactionsRaw) {
+    if (t.excludedFromTotals) continue;
+    if (t.amount.currency !== BASE_CURRENCY) continue;
+    const c = t.amount.toCents();
+    const realized = t.status === "paid";
+    if (t.direction === "in") {
+      txn.income += c;
+      if (realized) txn.realizedIncome += c;
+    } else {
+      txn.outflow += c;
+      if (realized) txn.realizedOutflow += c;
+    }
+  }
+
   const totals = computeMonthTotals({
     incomes: serializedIncomes,
     expenses: serializedExpenses,
     payments: serializedPayments,
     activeDebts: debtsConverted.filter((d) => d.status === "active"),
     estimatedIncomeCents,
+    transactions: txn,
   });
 
   return {
@@ -512,6 +559,7 @@ export async function fetchMonthDetail(input: {
     payments: serializedPayments,
     incomes: serializedIncomes,
     expenses: serializedExpenses,
+    transactions: serializedTransactions,
     stories: serializedStories,
     events,
     patrimony,
@@ -539,21 +587,32 @@ function computeMonthTotals(args: {
   payments: SerializedPaymentRow[];
   activeDebts: DebtEntity[];
   estimatedIncomeCents: bigint;
+  transactions: {
+    income: bigint;
+    outflow: bigint;
+    realizedIncome: bigint;
+    realizedOutflow: bigint;
+  };
 }): SerializedMonthTotals {
   const today = new Date().toISOString().slice(0, 10);
 
-  const incomeCents = sumCents(args.incomes);
-  const outflowCents = sumCents(args.expenses) + sumCents(args.payments);
-  const realizedIncomeCents = sumRealizedCents(args.incomes, today);
+  const recurringIncomeCents = sumCents(args.incomes);
+  const incomeCents = recurringIncomeCents + args.transactions.income;
+  const outflowCents = sumCents(args.expenses) + sumCents(args.payments) + args.transactions.outflow;
+  const realizedIncomeCents = sumRealizedCents(args.incomes, today) + args.transactions.realizedIncome;
   const realizedOutflowCents =
-    sumRealizedCents(args.expenses, today) + sumRealizedCents(args.payments, today);
+    sumRealizedCents(args.expenses, today) +
+    sumRealizedCents(args.payments, today) +
+    args.transactions.realizedOutflow;
 
   const serviceReais = args.activeDebts.reduce((acc, d) => {
     const svc = monthlyDebtService(d);
     return isOk(svc) ? acc + svc.value : acc;
   }, 0);
   const serviceMoney = Money.from(serviceReais);
-  const incomeMoney = Money.fromCents(incomeCents);
+  // Comprometido é estrutural (serviço de dívida / renda recorrente). Avulso
+  // pontual não dilui o comprometido, então o denominador exclui transações.
+  const incomeMoney = Money.fromCents(recurringIncomeCents);
   const committedPct = isOk(serviceMoney)
     ? IncomeCommittedService.compute({
         totalMonthlyIncome: incomeMoney,
@@ -562,7 +621,7 @@ function computeMonthTotals(args: {
     : 0;
 
   return {
-    income: serializeMoney(incomeMoney),
+    income: serializeMoney(Money.fromCents(incomeCents)),
     outflow: serializeMoney(Money.fromCents(outflowCents)),
     free: serializeMoney(Money.fromCents(incomeCents - outflowCents)),
     realizedIncome: serializeMoney(Money.fromCents(realizedIncomeCents)),

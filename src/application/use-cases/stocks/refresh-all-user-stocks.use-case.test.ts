@@ -26,6 +26,8 @@ function makeUser(id: string, overrides: Partial<UserEntity> = {}): UserEntity {
     contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: null,
     homeTourDismissedAt: null,
+    acquisitionChannel: null,
+    acquisitionChannelOther: null,
     quickAccess: [],
     username: null,
     profileFlair: null,

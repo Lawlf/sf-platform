@@ -1,5 +1,14 @@
 import { sql } from "drizzle-orm";
-import { bigint, index, pgTable, text, timestamp, uniqueIndex, uuid } from "drizzle-orm/pg-core";
+import {
+  bigint,
+  boolean,
+  index,
+  pgTable,
+  text,
+  timestamp,
+  uniqueIndex,
+  uuid,
+} from "drizzle-orm/pg-core";
 
 import { assets } from "./assets.schema";
 import { profiles } from "./profiles.schema";
@@ -21,6 +30,10 @@ export const transactions = pgTable(
     accountId: uuid("account_id").references(() => assets.id, { onDelete: "set null" }),
     occurredAt: timestamp("occurred_at", { withTimezone: true }).notNull(),
     status: text("status").notNull().default("paid"),
+    // "Não contar no mês": transferência entre contas / dinheiro mudando de lugar
+    // / item que o usuário decide ignorar. Sai dos totais de fluxo (mês, timeline,
+    // dossiê) mas continua na lista, marcado. Não mexe no saldo da conta.
+    excludedFromTotals: boolean("excluded_from_totals").notNull().default(false),
     source: text("source").notNull().default("manual"),
     externalId: text("external_id"),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().default(sql`now()`),

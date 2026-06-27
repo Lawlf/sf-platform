@@ -14,6 +14,7 @@ function user(): UserEntity {
     role: "user", plan: "pro", isPro: true, deactivatedAt: null, deactivationReason: null,
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: null, homeTourDismissedAt: null,
+    acquisitionChannel: null, acquisitionChannelOther: null,
     createdAt: NOW, updatedAt: NOW, quickAccess: [], username: null, profileFlair: null, baseCurrency: "BRL",
   };
 }

@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useEffect, useId, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -103,7 +104,18 @@ function todayIso(defaultMonthIso?: string): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+function tomorrowIso(): string {
+  const d = new Date();
+  d.setDate(d.getDate() + 1);
+  return d.toISOString().slice(0, 10);
+}
+
+function isFutureIso(iso: string): boolean {
+  return iso > new Date().toISOString().slice(0, 10);
+}
+
 export function LogTransactionForm({ defaultMonthIso }: Props) {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const t = useCopy(lancarCopy);
   const [pending, startTransition] = useTransition();
@@ -166,7 +178,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     if (name.length === 0) return;
     setServerError(null);
     startAccountTransition(async () => {
-      const result = await createCashAccount(name);
+      const result = await createCashAccount({ label: name });
       if (!result.ok) {
         setServerError(result.message);
         return;
@@ -210,6 +222,10 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
       setServerError("Descreva o que foi.");
       return;
     }
+    if (status === "scheduled" && !isFutureIso(occurredAt)) {
+      setServerError("Um agendamento precisa de uma data futura.");
+      return;
+    }
     startTransition(async () => {
       const result = await createTransactionAction({
         amountCents: values.amountCents.toString(),
@@ -226,21 +242,30 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         setServerError(result.message ?? "Não foi possível registrar o lançamento.");
         return;
       }
-      form.reset({ amountCents: 0n, description: "" });
-      setCategory(NO_CATEGORY_VALUE);
-      setStatus("paid");
-      setOccurredAt(todayIso(defaultMonthIso));
-      setShowSchedule(false);
-      setShowDate(false);
-      setShowCategory(false);
       await queryClient.invalidateQueries({ queryKey: ["annual-report"] });
-      toast.success(direction === "in" ? "Entrada registrada." : "Saída registrada.");
-      if (result.data?.event) setEventResult(result.data.event);
+      const wasScheduled = status === "scheduled";
+      toast.success(
+        wasScheduled
+          ? "Agendado. Entra no saldo no dia."
+          : direction === "in"
+            ? "Entrada registrada."
+            : "Saída registrada.",
+      );
+      if (result.data?.event) {
+        setEventResult(result.data.event);
+        return;
+      }
+      router.push("/app/lancamentos" as Route);
     });
   }
 
   if (eventResult) {
-    return <IncomeFreeBalanceResult event={eventResult} onDone={() => setEventResult(null)} />;
+    return (
+      <IncomeFreeBalanceResult
+        event={eventResult}
+        onDone={() => router.push("/app/lancamentos" as Route)}
+      />
+    );
   }
 
   return (
@@ -507,7 +532,11 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
             <button
               type="button"
               aria-pressed={status === "scheduled"}
-              onClick={() => setStatus("scheduled")}
+              onClick={() => {
+                setStatus("scheduled");
+                setShowDate(true);
+                if (!isFutureIso(occurredAt)) setOccurredAt(tomorrowIso());
+              }}
               className={segmentClass(status === "scheduled", "brand")}
             >
               <CalendarClock size={15} strokeWidth={2.25} aria-hidden />
@@ -529,9 +558,15 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
             id={dateId}
             type="date"
             value={occurredAt}
+            min={status === "scheduled" ? tomorrowIso() : undefined}
             onChange={(e) => setOccurredAt(e.target.value)}
             className={wizardInputClass}
           />
+          {status === "scheduled" ? (
+            <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
+              Entra no saldo no dia. Até lá, fica como previsto.
+            </p>
+          ) : null}
         </div>
       ) : null}
 
@@ -552,7 +587,9 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
               type="button"
               onClick={() => {
                 setShowSchedule(true);
+                setShowDate(true);
                 setStatus("scheduled");
+                setOccurredAt(tomorrowIso());
               }}
               className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
             >

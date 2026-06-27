@@ -9,7 +9,7 @@ describe("catalog", () => {
     expect(CATALOG_KEYS).toEqual([
       "add_debt", "add_income", "add_asset", "add_transaction",
       "sim_quitacao", "sim_extra", "sim_estrategia", "sim_compra", "sim_regra_de_tres", "sim_hub",
-      "metas", "timeline", "dividas", "renda", "patrimonio", "comprei", "notificacoes",
+      "metas", "timeline", "dividas", "renda", "patrimonio", "transactions_list", "comprei", "notificacoes",
       "documentos",
     ]);
   });

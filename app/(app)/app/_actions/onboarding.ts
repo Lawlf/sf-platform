@@ -9,11 +9,14 @@ import {
   type OnboardingState,
 } from "@/application/use-cases/onboarding/get-onboarding-state.use-case";
 import { markWizardSeen } from "@/application/use-cases/onboarding/mark-wizard-seen.use-case";
+import { setAcquisitionChannel } from "@/application/use-cases/onboarding/set-acquisition-channel.use-case";
 import { setOnboardingFocus } from "@/application/use-cases/onboarding/set-onboarding-focus.use-case";
 import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { action, unwrap } from "@/presentation/actions/action";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+
+import { acquisitionChannelSchema } from "./acquisition.schema";
 
 export async function fetchOnboardingState(): Promise<OnboardingState> {
   const user = await requireUser();
@@ -77,5 +80,17 @@ export const setOnboardingFocusAction = action({
   schema: z.enum(["pagar-divida", "guardar", "investir", "fechar-mes"]),
   handler: async (focus, { userId }) => {
     unwrap(await setOnboardingFocus({ users: repos.users, clock }, { userId, focus }));
+  },
+});
+
+export const setAcquisitionChannelAction = action({
+  schema: acquisitionChannelSchema,
+  handler: async ({ channel, detail }, { userId }) => {
+    unwrap(
+      await setAcquisitionChannel(
+        { users: repos.users },
+        { userId, channel, ...(detail !== undefined ? { detail } : {}) },
+      ),
+    );
   },
 });

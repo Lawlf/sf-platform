@@ -1,8 +1,9 @@
-import { and, desc, eq, gte, isNotNull, sql } from "drizzle-orm";
+import { and, desc, eq, gte, isNotNull, isNull, sql } from "drizzle-orm";
 
 import { monthlyCentsFor } from "@/application/use-cases/admin/mrr";
 import type { Payment } from "@/domain/entities/payment.entity";
 import type {
+  AcquisitionBreakdown,
   AdminMetricsRepositoryPort,
   AdminMetricsSummary,
   DailyPoint,
@@ -130,6 +131,37 @@ export class AdminMetricsRepository implements AdminMetricsRepositoryPort {
       .groupBy(sql`date_trunc('day', ${users.createdAt} AT TIME ZONE 'UTC')`)
       .orderBy(sql`date_trunc('day', ${users.createdAt} AT TIME ZONE 'UTC')`);
     return rows.map((r) => ({ day: r.day, value: Number(r.value) }));
+  }
+
+  async getAcquisitionBreakdown(): Promise<AcquisitionBreakdown> {
+    const db = getDb();
+
+    const channelRows = await db
+      .select({
+        channel: users.acquisitionChannel,
+        n: sql<string>`COUNT(*)`,
+      })
+      .from(users)
+      .where(isNotNull(users.acquisitionChannel))
+      .groupBy(users.acquisitionChannel)
+      .orderBy(desc(sql`COUNT(*)`));
+
+    const [unansweredRow] = await db
+      .select({ n: sql<string>`COUNT(*)` })
+      .from(users)
+      .where(isNull(users.acquisitionChannel));
+
+    const otherRows = await db
+      .select({ detail: users.acquisitionChannelOther })
+      .from(users)
+      .where(isNotNull(users.acquisitionChannelOther))
+      .orderBy(desc(users.createdAt));
+
+    return {
+      byChannel: channelRows.map((r) => ({ channel: r.channel ?? "", count: Number(r.n) })),
+      unanswered: Number(unansweredRow?.n ?? 0),
+      otherDetails: otherRows.map((r) => r.detail).filter((d): d is string => d !== null),
+    };
   }
 
   async listRecentPayments(limit: number): Promise<Payment[]> {

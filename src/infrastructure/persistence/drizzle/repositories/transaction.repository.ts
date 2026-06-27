@@ -26,6 +26,7 @@ function rowToEntity(row: TransactionRow): TransactionEntity {
     accountId: row.accountId ?? null,
     occurredAt: row.occurredAt,
     status: row.status as TransactionStatus,
+    excludedFromTotals: row.excludedFromTotals,
     source: row.source as TransactionSource,
     externalId: row.externalId ?? null,
     createdAt: row.createdAt,
@@ -46,6 +47,7 @@ function entityToRow(entity: Omit<TransactionEntity, "createdAt">): NewTransacti
     accountId: entity.accountId,
     occurredAt: entity.occurredAt,
     status: entity.status,
+    excludedFromTotals: entity.excludedFromTotals,
     source: entity.source,
     externalId: entity.externalId,
     deletedAt: entity.deletedAt,
@@ -207,6 +209,37 @@ export class TransactionRepository implements TransactionRepositoryPort {
       )
       .orderBy(desc(transactions.occurredAt));
     return rows.map(rowToEntity);
+  }
+
+  async listDueScheduled(asOf: Date): Promise<TransactionEntity[]> {
+    const rows = await getDb()
+      .select()
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.status, "scheduled"),
+          lte(transactions.occurredAt, asOf),
+          isNull(transactions.deletedAt),
+        ),
+      )
+      .orderBy(transactions.occurredAt);
+    return rows.map(rowToEntity);
+  }
+
+  async setCategoryForIds(profileId: string, ids: string[], category: string | null): Promise<void> {
+    if (ids.length === 0) return;
+    await getDb()
+      .update(transactions)
+      .set({ category })
+      .where(and(eq(transactions.profileId, profileId), inArray(transactions.id, ids)));
+  }
+
+  async setExcludedForIds(profileId: string, ids: string[], excluded: boolean): Promise<void> {
+    if (ids.length === 0) return;
+    await getDb()
+      .update(transactions)
+      .set({ excludedFromTotals: excluded })
+      .where(and(eq(transactions.profileId, profileId), inArray(transactions.id, ids)));
   }
 
   async softDelete(id: string, deletedAt: Date): Promise<void> {
