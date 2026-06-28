@@ -13,6 +13,7 @@ export interface UserRepositoryPort {
   markOnboardingWizardSeen(id: string): Promise<void>;
   markHomeTourDismissed(id: string): Promise<void>;
   deactivate(id: string, reason: string | null): Promise<void>;
+  delete(id: string): Promise<void>;
   update(user: UserEntity): Promise<void>;
   /**
    * Retorna todos os usuários ativos com `isPro = true`. Usado pelo cron

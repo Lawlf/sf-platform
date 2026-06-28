@@ -49,7 +49,7 @@ export class UserRepository implements UserRepositoryPort {
     const rows = await getDb()
       .select()
       .from(users)
-      .where(sql`lower(${users.email}) = ${normalized}`)
+      .where(and(sql`lower(${users.email}) = ${normalized}`, isNull(users.deactivatedAt)))
       .limit(1);
     return rows[0] ? toEntity(rows[0]) : null;
   }
@@ -95,6 +95,10 @@ export class UserRepository implements UserRepositoryPort {
       .update(users)
       .set({ deactivatedAt: new Date(), deactivationReason: reason })
       .where(eq(users.id, id));
+  }
+
+  async delete(id: string): Promise<void> {
+    await getDb().delete(users).where(eq(users.id, id));
   }
 
   async update(user: UserEntity): Promise<void> {

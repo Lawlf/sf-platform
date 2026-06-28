@@ -1,11 +1,12 @@
 import { cookies } from "next/headers";
 import { after, NextResponse, type NextRequest } from "next/server";
 
+import { signInReviewerDemo } from "@/application/use-cases/auth/sign-in-reviewer-demo.use-case";
 import { verifyMagicLinkByCode } from "@/application/use-cases/auth/verify-magic-link-by-code.use-case";
 import { buildSessionCookie } from "@/infrastructure/auth/session-cookie";
 import { WebCryptoHasher } from "@/infrastructure/auth/web-crypto-hasher";
 import { WebCryptoRandomGenerator } from "@/infrastructure/auth/web-crypto-random-generator";
-import { loadEnv } from "@/infrastructure/config/env";
+import { getReviewDemoConfig, loadEnv } from "@/infrastructure/config/env";
 import { clock, repos } from "@/infrastructure/container";
 import { sendWelcomeFreeEmail } from "@/infrastructure/email/send-welcome-free";
 import { getClientIp } from "@/infrastructure/http/client-ip";
@@ -61,6 +62,30 @@ export async function POST(req: NextRequest) {
   if (!emailBucket.ok) {
     console.warn("[verify-code] suppressed", { reason: "email-bucket", emailHash });
     return genericInvalid();
+  }
+
+  const reviewDemo = getReviewDemoConfig();
+  if (reviewDemo && parsed.data.email.trim().toLowerCase() === reviewDemo.email.trim().toLowerCase()) {
+    const demoResult = await signInReviewerDemo(
+      {
+        users: repos.users,
+        subscriptions: repos.subscriptions,
+        profiles: repos.profiles,
+        sessions: repos.sessions,
+        hasher,
+        random: new WebCryptoRandomGenerator(),
+        clock,
+      },
+      reviewDemo,
+      { emailRaw: parsed.data.email, code: parsed.data.code, ip, userAgent },
+    );
+    if (isErr(demoResult)) {
+      console.warn("[verify-code] demo failed", { code: demoResult.error.code });
+      return genericInvalid();
+    }
+    const cookieStore = await cookies();
+    cookieStore.set(buildSessionCookie(demoResult.value.rawSessionId));
+    return NextResponse.json({ ok: true }, { status: 200 });
   }
 
   const result = await verifyMagicLinkByCode(

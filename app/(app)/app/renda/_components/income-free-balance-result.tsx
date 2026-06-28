@@ -5,7 +5,7 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { MaskMoneyText } from "../../_components/money-visibility/mask-money-text.client";
-import type { IncomeFreeBalanceEvent } from "../_actions/create-income.action";
+import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 
 const BRL = new Intl.NumberFormat("pt-BR", {
   style: "currency",

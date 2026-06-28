@@ -79,6 +79,7 @@ function makeUserRepo(): UserRepositoryPort {
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn(),
+    delete: vi.fn(),
     update: vi.fn(),
     findAllPro: vi.fn(async () => [makeUser()]),
     findAllActive: vi.fn(async () => []),
