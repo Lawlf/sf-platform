@@ -9,8 +9,6 @@ import { incomeFormSchema } from "@/presentation/http/validators/income.validato
 import { awardEventAchievement } from "../../_actions/_achievements";
 import { computeFreeBalanceEvent, type IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 
-export type { IncomeFreeBalanceEvent };
-
 export const createIncomeAction = action({
   schema: incomeFormSchema,
   revalidates: ["incomes", "home", "timeline"],

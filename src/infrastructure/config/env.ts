@@ -55,6 +55,17 @@ const envSchema = z.object({
   // o PWABuilder gera no empacotamento; preencher depois do primeiro build.
   ANDROID_PACKAGE_NAME: emptyToUndefined,
   ANDROID_CERT_SHA256: emptyToUndefined,
+
+  // Credencial de revisão da Google Play. O revisor não acessa a caixa de email
+  // do magic link, então este par habilita um bypass reutilizável (não expira)
+  // para uma única conta demo promovida a Pro. Deixar ambos vazios em prod
+  // desativa o bypass. O código deve ter 6 dígitos (formato do input do app).
+  REVIEW_DEMO_EMAIL: emptyToUndefined,
+  REVIEW_DEMO_CODE: z
+    .string()
+    .optional()
+    .transform((v) => (v && v.length > 0 ? v : undefined))
+    .refine((v) => v === undefined || /^\d{6}$/.test(v), "REVIEW_DEMO_CODE must be 6 digits"),
 });
 
 export type Env = z.infer<typeof envSchema>;
@@ -154,6 +165,14 @@ export interface R2Config {
   accessKey: string;
   secret: string;
   bucket: string;
+}
+
+/** Returns null unless both REVIEW_DEMO_EMAIL and REVIEW_DEMO_CODE are set. */
+export function getReviewDemoConfig(
+  env: Env = loadEnv(),
+): { email: string; code: string } | null {
+  if (!env.REVIEW_DEMO_EMAIL || !env.REVIEW_DEMO_CODE) return null;
+  return { email: env.REVIEW_DEMO_EMAIL, code: env.REVIEW_DEMO_CODE };
 }
 
 export function requireR2Config(env: Env = loadEnv()): R2Config {

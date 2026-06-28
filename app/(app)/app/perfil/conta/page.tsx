@@ -9,6 +9,7 @@ import { PrefSection } from "../acessibilidade/_components/pref-section";
 
 import { AccountNameForm } from "./_components/account-name-form";
 import { DeactivateForm } from "./_components/deactivate-form";
+import { DeleteAccountForm } from "./_components/delete-account-form";
 import { GoogleLinkRow } from "./_components/google-link-row";
 
 export const metadata: Metadata = { title: "Conta" };
@@ -72,6 +73,14 @@ export default async function ContaPage() {
           description="Sua conta será desativada imediatamente. Os dados ficam retidos conforme nossa política de privacidade (LGPD). Você não poderá entrar novamente; fale com o suporte para reativar."
         >
           <DeactivateForm />
+        </PrefSection>
+
+        <PrefSection
+          eyebrow="Zona de perigo"
+          title="Excluir conta"
+          description="Apaga sua conta e todos os dados permanentemente. Não tem como desfazer."
+        >
+          <DeleteAccountForm email={user.email} />
         </PrefSection>
       </div>
     </PageShell>

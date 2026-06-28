@@ -73,3 +73,10 @@ pf-pj.md
 # local bank statement test files (personal financial data, never commit)
 *.ofx
 account_statement_*.csv
+
+# android twa signing material (keystore + plaintext passwords, never commit)
+/Sabor - Google Play package/
+*.keystore
+*.aab
+*.apk
+signing-key-info.txt

@@ -17,7 +17,8 @@ import { incomeCopy } from "../../_lib/copy/catalogs";
 import { useCopy } from "../../_lib/copy/use-copy";
 import { queryKeys } from "../../_lib/query-keys";
 import { parseIncomeSeed } from "../../simular/_lib/income-seed";
-import { createIncomeAction, type IncomeFreeBalanceEvent } from "../_actions/create-income.action";
+import { createIncomeAction } from "../_actions/create-income.action";
+import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 import { IncomeFreeBalanceResult } from "./income-free-balance-result";
 
 const formSchema = z.object({
