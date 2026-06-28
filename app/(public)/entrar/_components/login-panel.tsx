@@ -8,6 +8,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
 
+import { useStandalone } from "@/app/_shared/standalone";
 import { Button } from "@/app/components/ui/button";
 import { Spinner } from "@/app/components/ui/spinner";
 
@@ -36,6 +37,7 @@ export function LoginPanel({ errorMessage }: LoginPanelProps) {
   const [pending, setPending] = useState(false);
   const [verifying, setVerifying] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const { isStandalone, isReady } = useStandalone();
   const codeInputRef = useRef<HTMLInputElement>(null);
 
   const emailForm = useForm<EmailValues>({
@@ -145,17 +147,23 @@ export function LoginPanel({ errorMessage }: LoginPanelProps) {
     router.push("/" as Route);
   }
 
+  const showBack = step === "code" || (isReady && !isStandalone);
+
   return (
     <>
-      <button
-        type="button"
-        onClick={onBack}
-        className="focus-ring absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-[color:var(--color-brand-800)] transition hover:bg-[color:var(--color-brand-50)]"
-        aria-label={step === "code" ? "Voltar para a etapa de email" : "Voltar para a página inicial"}
-      >
-        <span aria-hidden>←</span>
-        Voltar
-      </button>
+      {showBack ? (
+        <button
+          type="button"
+          onClick={onBack}
+          className="focus-ring absolute left-4 top-4 z-10 inline-flex items-center gap-1.5 rounded-full px-3 py-2 text-sm font-semibold text-[color:var(--color-brand-800)] transition hover:bg-[color:var(--color-brand-50)]"
+          aria-label={
+            step === "code" ? "Voltar para a etapa de email" : "Voltar para a página inicial"
+          }
+        >
+          <span aria-hidden>←</span>
+          Voltar
+        </button>
+      ) : null}
 
       <section className="relative z-10 w-full max-w-md">
         <BrandBlock />
