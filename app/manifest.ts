@@ -5,19 +5,21 @@ import {
   OFX_SHARE_TARGET_PATH,
 } from "./ofx-share-target";
 
+const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
+
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/app",
     name: "Sabor Financeiro",
     short_name: "Sabor",
     description: "O sabor de uma vida financeira saudável.",
-    start_url: "/app",
-    scope: "/",
+    start_url: `${siteUrl}/app`,
+    scope: `${siteUrl}/`,
     display: "standalone",
     display_override: ["window-controls-overlay", "standalone"],
     launch_handler: { client_mode: "navigate-existing" },
     background_color: "#fdf8f3",
-    theme_color: "#f28e25",
+    theme_color: "#fdf8f3",
     lang: "pt-BR",
     dir: "ltr",
     orientation: "portrait",

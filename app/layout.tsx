@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 
 import "./globals.css";
 import "@/shared/zod-locale";
+import { StandaloneProvider } from "@/app/_shared/standalone";
 import { AnalyticsConsentBanner } from "@/app/components/analytics-consent-banner";
 import { AnalyticsGated } from "@/app/components/analytics-gated.client";
 import { PostHogProvider } from "@/app/components/providers/posthog-provider";
@@ -153,7 +154,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       </head>
       <body className="font-sans antialiased">
         <PostHogProvider>
-          <QueryProvider>{children}</QueryProvider>
+          <QueryProvider>
+            <StandaloneProvider>{children}</StandaloneProvider>
+          </QueryProvider>
           <AnalyticsConsentBanner />
         </PostHogProvider>
         <Toaster richColors closeButton position="top-right" />
