@@ -37,7 +37,7 @@ export async function getUpcomingDueDates(
 export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
   switch (debt.kind) {
     case "financing": {
-      const elapsed = monthDiff(debt.startDate, now);
+      const elapsed = Math.max(0, monthDiff(debt.startDate, now));
       const next = new Date(debt.startDate);
       next.setMonth(debt.startDate.getMonth() + elapsed + 1);
       return {
@@ -51,22 +51,18 @@ export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
       // Vencimento no dia escolhido (`dueDay`); sem dia definido, cai pro dia
       // de `startDate`. Mesma regra do cartão pra o lembrete bater no dia certo.
       const day = debt.dueDay ?? debt.startDate.getDate();
-      const due = new Date(now.getFullYear(), now.getMonth(), day);
-      if (due < now) due.setMonth(due.getMonth() + 1);
       return {
         debtId: debt.id,
         label: debt.label,
-        dueDate: due,
+        dueDate: rollMonthlyDue(day, now, debt.startDate),
         amount: debt.monthlyInstallment,
       };
     }
     case "credit_card": {
-      const due = new Date(now.getFullYear(), now.getMonth(), debt.dueDay);
-      if (due < now) due.setMonth(due.getMonth() + 1);
       return {
         debtId: debt.id,
         label: debt.label,
-        dueDate: due,
+        dueDate: rollMonthlyDue(debt.dueDay, now, debt.startDate),
         amount: debt.currentStatement,
       };
     }
@@ -75,19 +71,31 @@ export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
     case "recurring": {
       if (debt.recurringFrequency !== "monthly") return null;
       const day = debt.dueDay ?? debt.startDate.getDate();
-      const y = now.getFullYear();
-      const m = now.getMonth();
-      const clampedDay = Math.min(day, new Date(y, m + 1, 0).getDate());
-      const due = new Date(y, m, clampedDay);
-      if (due < now) due.setMonth(due.getMonth() + 1);
       return {
         debtId: debt.id,
         label: debt.label,
-        dueDate: due,
+        dueDate: rollMonthlyDue(day, now, debt.startDate),
         amount: Money.fromCents(debt.recurringAmountCents),
       };
     }
   }
+}
+
+function rollMonthlyDue(day: number, now: Date, startDate: Date): Date {
+  const start = startOfDay(startDate);
+  const year = now.getFullYear();
+  let month = now.getMonth();
+  const inMonth = () => new Date(year, month, Math.min(day, new Date(year, month + 1, 0).getDate()));
+  let due = inMonth();
+  while (due < now || due < start) {
+    month += 1;
+    due = inMonth();
+  }
+  return due;
+}
+
+function startOfDay(d: Date): Date {
+  return new Date(d.getFullYear(), d.getMonth(), d.getDate());
 }
 
 function monthDiff(a: Date, b: Date): number {

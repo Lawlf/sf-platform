@@ -301,6 +301,37 @@ describe("getUpcomingDueDates", () => {
     expect(due!.dueDate).toEqual(new Date(2026, 5, 5));
   });
 
+  it("recorrente com startDate futuro só vence a partir do mês de início", () => {
+    // Aluguel começa 07/08/2026; hoje 29/06/2026. Primeiro vencimento = 07/08.
+    const debt = makeRecurringDebt({
+      recurringFrequency: "monthly",
+      dueDay: null,
+      recurringAmountCents: 150000n,
+      startDate: new Date(2026, 7, 7),
+    });
+    const due = nextDueForExported(debt, new Date(2026, 5, 29));
+    expect(due!.dueDate).toEqual(new Date(2026, 7, 7));
+  });
+
+  it("não inclui dívida com startDate futuro fora do horizonte", async () => {
+    const debts = makeDebtRepo();
+    const now = new Date(2026, 5, 29); // 29/06/2026
+    const rent = makeRecurringDebt({
+      dueDay: null,
+      recurringAmountCents: 150000n,
+      startDate: new Date(2026, 7, 7), // 07/08/2026, fora dos 30 dias
+    });
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([rent]);
+
+    const result = await getUpcomingDueDates(
+      { debts, clock: makeClock(now) },
+      { userId: "user-1", profileId: "profile-1", horizonDays: 30 },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) expect(result.value).toHaveLength(0);
+  });
+
   it("recorrente semanal e anual não geram vencimento no v1", () => {
     for (const freq of ["weekly", "annual"] as const) {
       const debt = makeRecurringDebt({ recurringFrequency: freq, dueDay: 10, recurringAmountCents: 1000n });
