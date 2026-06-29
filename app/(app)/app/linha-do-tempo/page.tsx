@@ -3,10 +3,12 @@ import { Suspense } from "react";
 
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
+import { fetchForwardMilestones } from "../_actions/forward-milestones-queries";
 import { fetchPlanningProjection } from "../_actions/planning-queries";
 import { fetchTimelinePage } from "../_actions/timeline-queries";
 import { PageShell } from "../_components/page-shell";
 
+import { ForwardMilestones } from "./_components/forward-milestones.client";
 import {
   PatrimonyTrajectoryChart,
   type TrajectoryPoint,
@@ -106,6 +108,7 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
     : [];
 
   const projectionInitial = await fetchPlanningProjection();
+  const forwardMilestones = await fetchForwardMilestones(projectionInitial?.goals ?? []);
 
   return (
     <PageShell title="Linha do tempo" description="Sua trajetória financeira mês a mês.">
@@ -119,6 +122,18 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
         oldestUserDataIso={oldestUserDataIso}
       />
       <PatrimonyTrajectoryChart points={trajectoryPoints} projectionInitial={projectionInitial} />
+      {forwardMilestones.length > 0 ? (
+        <>
+          <ForwardMilestones milestones={forwardMilestones} />
+          <div className="flex items-center gap-3 px-1">
+            <span className="h-px flex-1 bg-[color:var(--border-soft)]" aria-hidden />
+            <span className="text-[0.6875rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-muted)]">
+              Mês a mês
+            </span>
+            <span className="h-px flex-1 bg-[color:var(--border-soft)]" aria-hidden />
+          </div>
+        </>
+      ) : null}
       <Suspense fallback={<TimelineSkeleton />}>
         <TimelineContent />
       </Suspense>
