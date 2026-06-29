@@ -2,13 +2,20 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, ChevronRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { formatCents } from "@/shared/format/money-format";
 
@@ -71,6 +78,8 @@ export function RecurringDebtForm({
   const [step, setStep] = useState<Step>(1);
   const [pending, startTransition] = useTransition();
   const [pendingFrequency, setPendingFrequency] = useState<Frequency | null>(null);
+  const [showEnd, setShowEnd] = useState(false);
+  const [showNote, setShowNote] = useState(false);
   const [serverError, setServerError] = useState<string | null>(null);
 
   const labelId = useId();
@@ -153,48 +162,57 @@ export function RecurringDebtForm({
         description="Quantas vezes esse compromisso aparece no seu fluxo."
         onBack={() => router.push("/app/dividas/nova" as Route)}
       >
-        <div role="radiogroup" aria-label="Frequência" className="grid grid-cols-3 gap-2">
+        <div role="radiogroup" aria-label="Frequência" className="flex flex-col gap-2.5">
           <button
             type="button"
             onClick={() => selectFrequency("monthly")}
             aria-pressed={values.recurringFrequency === "monthly"}
             disabled={pendingFrequency !== null}
-            className={`rounded-xl border-[1.5px] p-4 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
+            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
               values.recurringFrequency === "monthly" || pendingFrequency === "monthly"
                 ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[0.9375rem] font-bold">Mensal</div>
-            <div className="mt-1 text-[0.6875rem] opacity-80">Todo mês</div>
+            <span>
+              <span className="block text-[0.9375rem] font-bold">Mensal</span>
+              <span className="mt-0.5 block text-[0.75rem] opacity-80">Todo mês</span>
+            </span>
+            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
           </button>
           <button
             type="button"
             onClick={() => selectFrequency("weekly")}
             aria-pressed={values.recurringFrequency === "weekly"}
             disabled={pendingFrequency !== null}
-            className={`rounded-xl border-[1.5px] p-4 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
+            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
               values.recurringFrequency === "weekly" || pendingFrequency === "weekly"
                 ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[0.9375rem] font-bold">Semanal</div>
-            <div className="mt-1 text-[0.6875rem] opacity-80">Toda semana</div>
+            <span>
+              <span className="block text-[0.9375rem] font-bold">Semanal</span>
+              <span className="mt-0.5 block text-[0.75rem] opacity-80">Toda semana</span>
+            </span>
+            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
           </button>
           <button
             type="button"
             onClick={() => selectFrequency("annual")}
             aria-pressed={values.recurringFrequency === "annual"}
             disabled={pendingFrequency !== null}
-            className={`rounded-xl border-[1.5px] p-4 text-center transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
+            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
               values.recurringFrequency === "annual" || pendingFrequency === "annual"
                 ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
                 : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
             }`}
           >
-            <div className="text-[0.9375rem] font-bold">Anual</div>
-            <div className="mt-1 text-[0.6875rem] opacity-80">Uma vez por ano</div>
+            <span>
+              <span className="block text-[0.9375rem] font-bold">Anual</span>
+              <span className="mt-0.5 block text-[0.75rem] opacity-80">Uma vez por ano</span>
+            </span>
+            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
           </button>
         </div>
         <p className="mt-3 text-[0.75rem] leading-[1.5] text-[color:var(--text-primary)] opacity-65">
@@ -259,24 +277,11 @@ export function RecurringDebtForm({
           />
         </WizardField>
 
-        <WizardField
-          label="Data de fim (opcional)"
-          htmlFor={endDateId}
-          helper="Deixe em branco se não tem prazo definido."
-        >
-          <input
-            id={endDateId}
-            type="date"
-            {...form.register("endDate")}
-            className={wizardInputClass}
-          />
-        </WizardField>
-
         {values.recurringFrequency === "monthly" ? (
           <WizardField
             label="Dia do pagamento (opcional)"
             htmlFor={dueDayId}
-            helper="Dia do mês em que o pagamento cai (1 a 31). Usado pra avisar no calendário."
+            helper="Dia do mês em que o pagamento cai (1 a 31). Usado pra te lembrar quando chegar perto."
             error={errors.dueDay?.message}
           >
             <input
@@ -298,29 +303,78 @@ export function RecurringDebtForm({
           </WizardField>
         ) : null}
 
-        <WizardField
-          label="Categoria (opcional)"
-          htmlFor={categoryId}
-          helper="Só pra organizar. Não muda nenhum cálculo."
-        >
-          <select id={categoryId} {...form.register("expenseCategory")} className={wizardInputClass}>
-            {categories.map((c) => (
-              <option key={c.key} value={c.key}>
-                {c.label}
-              </option>
-            ))}
-          </select>
-        </WizardField>
+        {showEnd ? (
+          <WizardField
+            label="Data de fim (opcional)"
+            htmlFor={endDateId}
+            helper="Deixe em branco se não tem prazo definido."
+          >
+            <input
+              id={endDateId}
+              type="date"
+              {...form.register("endDate")}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowEnd(true)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Adicionar data de término
+          </button>
+        )}
 
-        <WizardField label="Observações (opcional)" htmlFor={notesId}>
-          <textarea
-            id={notesId}
-            {...form.register("notes")}
-            placeholder="Algum detalhe que ajude a lembrar"
-            rows={3}
-            className={`${wizardInputClass} resize-y`}
-          />
-        </WizardField>
+        {showNote ? (
+          <>
+            <WizardField
+              label="Categoria (opcional)"
+              htmlFor={categoryId}
+              helper="Só pra organizar. Não muda nenhum cálculo."
+            >
+              <Controller
+                control={form.control}
+                name="expenseCategory"
+                render={({ field }) => (
+                  <Select value={field.value} onValueChange={field.onChange}>
+                    <SelectTrigger
+                      id={categoryId}
+                      className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </WizardField>
+
+            <WizardField label="Observações (opcional)" htmlFor={notesId}>
+              <textarea
+                id={notesId}
+                {...form.register("notes")}
+                placeholder="Algum detalhe que ajude a lembrar"
+                rows={3}
+                className={`${wizardInputClass} resize-y`}
+              />
+            </WizardField>
+          </>
+        ) : (
+          <button
+            type="button"
+            onClick={() => setShowNote(true)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+          >
+            Adicionar categoria e anotação
+          </button>
+        )}
       </WizardShell>
     );
   }

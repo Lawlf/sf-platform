@@ -1,10 +1,18 @@
 "use client";
 
-import { Check, ChevronDown, ImagePlus, Loader2, X } from "lucide-react";
+import { Check, ImagePlus, Loader2, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef, useState } from "react";
+
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 import {
   requestFeedbackUploadAction,
@@ -131,26 +139,18 @@ export function ContactForm() {
   return (
     <section className="glass-light p-5">
       <WizardField label="O que é?" htmlFor="contact-kind">
-        <div className="relative">
-          <select
-            id="contact-kind"
-            value={kind}
-            onChange={(e) => setKind(e.target.value as Kind)}
-            className={simSelectClass}
-          >
+        <Select value={kind} onValueChange={(v) => setKind(v as Kind)}>
+          <SelectTrigger id="contact-kind" className={`${simSelectClass} h-auto w-full`}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
             {KINDS.map((k) => (
-              <option key={k.value} value={k.value}>
+              <SelectItem key={k.value} value={k.value}>
                 {k.label}
-              </option>
+              </SelectItem>
             ))}
-          </select>
-          <ChevronDown
-            size={18}
-            strokeWidth={2}
-            aria-hidden
-            className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-          />
-        </div>
+          </SelectContent>
+        </Select>
       </WizardField>
 
       <WizardField

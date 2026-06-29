@@ -4,9 +4,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { Spinner } from "@/app/components/ui/spinner";
 import type { IncomeSourceBreakdown } from "@/domain/entities/income.entity";
 import { type Currency, CURRENCIES } from "@/domain/value-objects/money.vo";
@@ -205,11 +212,25 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
           <label className={labelClass} htmlFor="renda-edit-frequency">
             Com que frequência cai?
           </label>
-          <select id="renda-edit-frequency" {...form.register("frequency")} className={fieldClass}>
-            <option value="monthly">Todo mês</option>
-            <option value="weekly">Toda semana</option>
-            <option value="one_off">Uma vez só</option>
-          </select>
+          <Controller
+            control={form.control}
+            name="frequency"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger
+                  id="renda-edit-frequency"
+                  className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
+                >
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="monthly">Todo mês</SelectItem>
+                  <SelectItem value="weekly">Toda semana</SelectItem>
+                  <SelectItem value="one_off">Uma vez só</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
+          />
         </div>
 
         {frequency === "monthly" ? (
@@ -217,18 +238,31 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
             <label className={labelClass} htmlFor="renda-edit-payment-day">
               Que dia do mês?
             </label>
-            <select
-              id="renda-edit-payment-day"
-              {...form.register("paymentDay", { setValueAs: (v) => (v ? Number(v) : null) })}
-              className={fieldClass}
-            >
-              <option value="">Não tem dia certo</option>
-              {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                <option key={d} value={d}>
-                  Dia {d}
-                </option>
-              ))}
-            </select>
+            <Controller
+              control={form.control}
+              name="paymentDay"
+              render={({ field }) => (
+                <Select
+                  value={field.value != null ? String(field.value) : "none"}
+                  onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))}
+                >
+                  <SelectTrigger
+                    id="renda-edit-payment-day"
+                    className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Não tem dia certo</SelectItem>
+                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                      <SelectItem key={d} value={String(d)}>
+                        Dia {d}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </div>
         ) : (
           <div>

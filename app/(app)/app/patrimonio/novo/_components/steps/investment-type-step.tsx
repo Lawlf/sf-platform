@@ -48,10 +48,11 @@ export function InvestmentTypeStep({
           };
           return (
             <WizardField label="Tipo">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2.5">
                 {INVESTMENT_TYPE_OPTIONS.map((opt) => (
                   <WizardRadioCard
                     key={opt.id}
+                    chevron
                     title={opt.title}
                     description={opt.description}
                     active={field.value === opt.id}

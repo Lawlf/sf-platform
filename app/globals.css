@@ -597,3 +597,9 @@
     }
   }
 }
+
+@media (max-width: 767px) {
+  html[data-focus-mode="true"] .app-shell {
+    padding-bottom: 0;
+  }
+}

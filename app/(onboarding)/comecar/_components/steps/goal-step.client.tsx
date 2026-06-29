@@ -5,6 +5,13 @@ import { toast } from "sonner";
 
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import { createGoalAction } from "@/app/(app)/app/metas/_actions/goal-actions";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 import {
   formatCents,
@@ -62,18 +69,22 @@ export function GoalStep({
       primary={{ label: "Continuar", onClick: submit, loading: saving }}
       secondary={{ label: "Pular esta etapa", onClick: onSkip }}
     >
-      <label className="flex flex-col gap-1 text-sm font-semibold">
-        Meses de reserva
-        <select
-          value={months}
-          onChange={(e) => setMonths(e.target.value)}
-          className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal"
-        >
-          <option value="3">3 meses</option>
-          <option value="6">6 meses</option>
-          <option value="12">12 meses</option>
-        </select>
-      </label>
+      <div className="flex flex-col gap-1 text-sm font-semibold">
+        <label htmlFor="onb-goal-months">Meses de reserva</label>
+        <Select value={months} onValueChange={setMonths}>
+          <SelectTrigger
+            id="onb-goal-months"
+            className="h-auto w-full rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 font-normal"
+          >
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="3">3 meses</SelectItem>
+            <SelectItem value="6">6 meses</SelectItem>
+            <SelectItem value="12">12 meses</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
 
       <div className="mt-1 flex flex-col gap-3">
         <GoalPreview incomeCents={incomeCents} months={Number(months)} />
