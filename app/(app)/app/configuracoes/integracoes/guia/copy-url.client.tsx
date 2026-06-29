@@ -24,7 +24,7 @@ export function CopyUrl({ url }: { url: string }) {
       <button
         type="button"
         onClick={copy}
-        aria-label="Copiar URL do conector"
+        aria-label={copied ? "URL copiada" : "Copiar URL do conector"}
         className="focus-ring flex flex-none items-center gap-1.5 rounded-xl border border-[color:var(--color-brand-500)]/40 bg-[color:var(--color-brand-500)]/[0.14] px-3 py-2.5 text-[0.8125rem] font-bold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.22]"
       >
         {copied ? (

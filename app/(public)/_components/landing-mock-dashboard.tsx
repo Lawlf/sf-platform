@@ -209,13 +209,7 @@ export function LandingMockDashboard() {
                     </span>
                   </span>
                 </div>
-                <div
-                  className="relative mt-2.5 h-2.5 overflow-hidden rounded-full"
-                  style={{
-                    background:
-                      "linear-gradient(90deg, #bbf7d0 0% 15%, #dcfce7 15% 30%, #fef3c7 30% 50%, #fee2e2 50% 100%)",
-                  }}
-                >
+                <div className="commitment-track relative mt-2.5 h-2.5 overflow-hidden rounded-full">
                   <div
                     className="absolute inset-y-0 left-0 rounded-full"
                     style={{

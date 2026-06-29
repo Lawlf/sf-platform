@@ -12,7 +12,7 @@ import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
-import { buildForwardMilestones, type GoalEtaInput } from "./forward-milestones.service";
+import { buildForwardMilestones } from "./forward-milestones.service";
 
 const NOW = new Date(Date.UTC(2026, 5, 15)); // 2026-06-15, currentIso = "2026-06"
 
@@ -177,14 +177,10 @@ function makeScheduledOut(o: {
   };
 }
 
-function goal(o: { goalId?: string; title?: string; etaMonth: number | null }): GoalEtaInput {
-  return { goalId: o.goalId ?? "goal-1", title: o.title ?? "Reserva de emergência", etaMonth: o.etaMonth };
-}
-
-const EMPTY = { now: NOW, debts: [] as DebtEntity[], transactions: [] as TransactionEntity[], goals: [] as GoalEtaInput[] };
+const EMPTY = { now: NOW, debts: [] as DebtEntity[], transactions: [] as TransactionEntity[] };
 
 describe("buildForwardMilestones", () => {
-  it("financing debt yields a debt_payoff fact at startDate + termMonths - 1", () => {
+  it("financing debt yields a debt_payoff at startDate + termMonths - 1", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
       debts: [makeFinancing({ startDate: new Date(Date.UTC(2026, 0, 1)), termMonths: 12 })],
@@ -192,14 +188,13 @@ describe("buildForwardMilestones", () => {
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({
       kind: "debt_payoff",
-      group: "fact",
       entityLabel: "Financiamento do carro",
       monthIso: "2026-12",
       href: "/app/dividas/fin-1",
     });
   });
 
-  it("personal_loan also yields a debt_payoff fact", () => {
+  it("personal_loan also yields a debt_payoff", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
       debts: [makePersonalLoan({ startDate: new Date(Date.UTC(2026, 0, 1)), termMonths: 9 })],
@@ -213,7 +208,7 @@ describe("buildForwardMilestones", () => {
     expect(out).toHaveLength(0);
   });
 
-  it("recurring with expectedEndDate yields a recurring_end fact at that month", () => {
+  it("recurring with expectedEndDate yields a recurring_end at that month", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
       debts: [makeRecurring({ expectedEndDate: new Date(Date.UTC(2026, 11, 10)) })],
@@ -221,7 +216,6 @@ describe("buildForwardMilestones", () => {
     expect(out).toHaveLength(1);
     expect(out[0]).toMatchObject({
       kind: "recurring_end",
-      group: "fact",
       entityLabel: "Plano de saúde",
       monthIso: "2026-12",
       href: "/app/dividas/rec-1",
@@ -241,26 +235,23 @@ describe("buildForwardMilestones", () => {
     expect(out).toHaveLength(0);
   });
 
-  it("future scheduled out transaction yields a scheduled_charge fact linking to lancamentos", () => {
+  it("future scheduled out transaction yields a scheduled_charge linking to lancamentos", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
-      debts: [makeFinancing({ termMonths: 12 })], // a fact so block is not suppressed
       transactions: [makeScheduledOut({ id: "t1", occurredAt: new Date(Date.UTC(2026, 8, 5)), description: "IPVA do carro" })],
     });
-    const sched = out.filter((m) => m.kind === "scheduled_charge");
-    expect(sched).toHaveLength(1);
-    expect(sched[0]).toMatchObject({
-      group: "fact",
+    expect(out).toHaveLength(1);
+    expect(out[0]).toMatchObject({
+      kind: "scheduled_charge",
       entityLabel: "IPVA do carro",
       monthIso: "2026-09",
       href: "/app/lancamentos",
     });
   });
 
-  it("paid, incoming, excluded, past, and other-month scheduled transactions are filtered out", () => {
+  it("paid, incoming, excluded, and past scheduled transactions are filtered out", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
-      debts: [makeFinancing({ termMonths: 12 })],
       transactions: [
         makeScheduledOut({ id: "paid", occurredAt: new Date(Date.UTC(2026, 8, 5)), status: "paid" }),
         makeScheduledOut({ id: "in", occurredAt: new Date(Date.UTC(2026, 8, 5)), direction: "in" }),
@@ -268,13 +259,12 @@ describe("buildForwardMilestones", () => {
         makeScheduledOut({ id: "past", occurredAt: new Date(Date.UTC(2026, 2, 5)) }),
       ],
     });
-    expect(out.filter((m) => m.kind === "scheduled_charge")).toHaveLength(0);
+    expect(out).toHaveLength(0);
   });
 
   it("caps scheduled charges to the 3 nearest", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
-      debts: [makeFinancing({ termMonths: 12 })],
       transactions: [
         makeScheduledOut({ id: "t4", occurredAt: new Date(Date.UTC(2027, 3, 5)) }),
         makeScheduledOut({ id: "t1", occurredAt: new Date(Date.UTC(2026, 7, 5)) }),
@@ -282,42 +272,11 @@ describe("buildForwardMilestones", () => {
         makeScheduledOut({ id: "t2", occurredAt: new Date(Date.UTC(2026, 9, 5)) }),
       ],
     });
-    const sched = out.filter((m) => m.kind === "scheduled_charge");
-    expect(sched.map((m) => m.monthIso)).toEqual(["2026-08", "2026-10", "2026-12"]);
+    expect(out.map((m) => m.monthIso)).toEqual(["2026-08", "2026-10", "2026-12"]);
   });
 
-  it("goal with etaMonth >= 1 within window yields a projection milestone", () => {
-    const out = buildForwardMilestones({
-      ...EMPTY,
-      debts: [makeFinancing({ termMonths: 12 })],
-      goals: [goal({ etaMonth: 4, title: "Reserva de emergência", goalId: "g9" })],
-    });
-    const proj = out.filter((m) => m.group === "projection");
-    expect(proj).toHaveLength(1);
-    expect(proj[0]).toMatchObject({
-      kind: "goal_complete",
-      group: "projection",
-      entityLabel: "Reserva de emergência",
-      monthIso: "2026-10",
-      href: "/app/metas/g9",
-    });
-  });
-
-  it("goal with etaMonth 0 or null is excluded", () => {
-    const out = buildForwardMilestones({
-      ...EMPTY,
-      debts: [makeFinancing({ termMonths: 12 })],
-      goals: [goal({ etaMonth: 0 }), goal({ goalId: "g2", etaMonth: null })],
-    });
-    expect(out.filter((m) => m.group === "projection")).toHaveLength(0);
-  });
-
-  it("suppresses everything when there is no dated fact (projection never shows alone)", () => {
-    const out = buildForwardMilestones({
-      ...EMPTY,
-      goals: [goal({ etaMonth: 4 })],
-    });
-    expect(out).toHaveLength(0);
+  it("returns empty when nothing is dated", () => {
+    expect(buildForwardMilestones({ ...EMPTY })).toHaveLength(0);
   });
 
   it("drops milestones beyond the 24-month window", () => {
@@ -331,7 +290,7 @@ describe("buildForwardMilestones", () => {
     expect(out.map((m) => m.href)).toEqual(["/app/dividas/near"]);
   });
 
-  it("sorts facts ascending by month within the block", () => {
+  it("sorts ascending by month", () => {
     const out = buildForwardMilestones({
       ...EMPTY,
       debts: [

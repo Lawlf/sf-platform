@@ -21,6 +21,7 @@ export function EarlyWithdrawalChart({ series }: { series: EarlyWithdrawalSample
     leva: Number(s.netCents) / 100,
   }));
   const last = series[series.length - 1]!;
+  const ariaLabel = `Quanto você leva ao sacar em cada dia, já com IOF e imposto. No dia 30, sem IOF, leva ${brl(last.netCents)}.`;
 
   return (
     <div>
@@ -28,7 +29,7 @@ export function EarlyWithdrawalChart({ series }: { series: EarlyWithdrawalSample
         Se sacar antes de 30 dias, o IOF come o que rendeu, começando quase total e zerando no dia
         30. Veja quanto você levaria sacando em cada dia.
       </p>
-      <div className="mt-3 h-40 w-full">
+      <div className="mt-3 h-40 w-full" role="img" aria-label={ariaLabel}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
             <defs>
@@ -83,6 +84,25 @@ export function EarlyWithdrawalChart({ series }: { series: EarlyWithdrawalSample
           </AreaChart>
         </ResponsiveContainer>
       </div>
+      <table className="sr-only">
+        <caption>Quanto você leva sacando em cada dia</caption>
+        <thead>
+          <tr>
+            <th>Dia</th>
+            <th>Rendeu</th>
+            <th>Você leva</th>
+          </tr>
+        </thead>
+        <tbody>
+          {series.map((s) => (
+            <tr key={s.day}>
+              <td>{s.day}</td>
+              <td>{brl(s.grossCents)}</td>
+              <td>{brl(s.netCents)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[0.6875rem] text-[color:var(--text-secondary)]">
         <span className="inline-flex items-center gap-1.5">
           <span className="h-2 w-2 rounded-full bg-[color:var(--color-brand-500)]" aria-hidden />

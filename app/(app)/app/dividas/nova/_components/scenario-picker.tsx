@@ -26,7 +26,7 @@ export function ScenarioPicker({
 }: Props) {
   return (
     <WizardField label={label}>
-      <div className="grid grid-cols-2 gap-2">
+      <div role="radiogroup" aria-label={label} className="grid grid-cols-2 gap-2">
         <WizardRadioCard
           title={newTitle}
           description={newDescription}

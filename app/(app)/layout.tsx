@@ -86,6 +86,12 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
           <InstallProvider isPro={user.isPro}>
           <CopyProvider value={activeIsPj ? "PJ_MEI" : "PF"}>
           <div className="app-shell relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
+            <a
+              href="#main-content"
+              className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[100] focus:rounded-lg focus:bg-[color:var(--color-brand-500)] focus:px-4 focus:py-2 focus:text-sm focus:font-semibold focus:text-white focus:shadow-lg"
+            >
+              Pular para o conteúdo
+            </a>
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
             <Sidebar
@@ -120,7 +126,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
                 graceUntilIso={profilesPayload.graceUntilIso}
               />
             ) : null}
-            {children}
+            <main id="main-content">{children}</main>
 
             <div className="md:hidden">
               <BottomNavGate activeIsPj={activeIsPj} />

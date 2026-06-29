@@ -65,11 +65,13 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
   }
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <h2 className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">Já caiu?</h2>
-      <p className="mt-1 text-[0.75rem] leading-snug text-[color:var(--text-secondary)]">
-        Confirme o que entrou pra ver quanto você tem garantido este mês.
-      </p>
+    <section className="flex flex-col">
+      <div className="px-1">
+        <h2 className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">Já caiu?</h2>
+        <p className="mt-1 text-[0.75rem] leading-snug text-[color:var(--text-secondary)]">
+          Confirme o que entrou pra ver quanto você tem garantido este mês.
+        </p>
+      </div>
       <ul className="mt-3 flex flex-col gap-2">
         {toConfirm.map((income) => {
           const busy = pending && pendingId === income.id;

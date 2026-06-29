@@ -132,10 +132,24 @@
 
   /* Alto contraste: reforça textos secundários e bordas. */
   [data-contrast="high"] {
-    --text-secondary: rgba(31, 29, 28, 0.92);
-    --text-muted: rgba(31, 29, 28, 0.78);
+    --text-secondary: rgb(31, 29, 28);
+    --text-muted: rgb(31, 29, 28);
     --border-soft: rgba(31, 29, 28, 0.2);
     --border-strong: rgba(31, 29, 28, 0.32);
+  }
+
+  /* Cores semânticas como texto no claro reprovam AA 4.5:1 (verde 3.12,
+     âmbar 2.78). Só no alto contraste, escurece pra passar. No escuro já
+     passam (7+); escurecer lá reduziria o contraste. */
+  [data-theme="light"][data-contrast="high"] {
+    --semantic-positive: #15803d;
+    --semantic-warning: #854d0e;
+    --semantic-negative: #b91c1c;
+  }
+
+  /* Daltônico + alto contraste: mantém o azul (4.91:1) em vez do verde. */
+  [data-cb="on"][data-theme="light"][data-contrast="high"] {
+    --semantic-positive: #0072b2;
   }
 
   /* Trilho da barra de renda comprometida. No modo daltônico troca o
@@ -160,12 +174,11 @@
   }
 
   [data-theme="dark"][data-contrast="high"] {
-    --text-secondary: rgba(253, 248, 243, 0.95);
-    --text-muted: rgba(253, 248, 243, 0.8);
+    --text-secondary: rgb(253, 248, 243);
+    --text-muted: rgb(253, 248, 243);
     --border-soft: rgba(253, 248, 243, 0.24);
     --border-strong: rgba(253, 248, 243, 0.36);
   }
-
 
   html {
     scrollbar-gutter: stable;

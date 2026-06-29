@@ -20,9 +20,12 @@ interface Props {
 
 // Âncora factual: as dívidas fora do mês não pesam no comprometido, mas
 // continuam no total que se deve. Sem comemorar a queda, sem cobrar.
-function OutOfMonthAnchor({ summary }: { summary: OutOfMonthSummary }) {
+function OutOfMonthAnchor({ summary, bare = false }: { summary: OutOfMonthSummary; bare?: boolean }) {
+  const shell = bare
+    ? "mt-3 flex items-start gap-2.5 border-t border-[color:var(--border-soft)] pt-3"
+    : "mt-3 flex items-start gap-2.5 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3.5 py-3";
   return (
-    <div className="mt-3 flex items-start gap-2.5 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3.5 py-3">
+    <div className={shell}>
       <span className="mt-0.5 shrink-0 text-[color:var(--text-muted)]">
         <CalendarOff size={16} strokeWidth={2} aria-hidden />
       </span>
@@ -53,7 +56,7 @@ export function CommitmentSectionClient({ monthIso, initialData, hasDebt, outOfM
           className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[18px] backdrop-blur-xl"
         >
           <p className="font-semibold">Nenhuma dívida pesando no seu mês agora.</p>
-          <OutOfMonthAnchor summary={outOfMonth} />
+          <OutOfMonthAnchor summary={outOfMonth} bare />
         </section>
       );
     }

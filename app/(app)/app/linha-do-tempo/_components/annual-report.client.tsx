@@ -24,17 +24,19 @@ const CONSUMO_ROWS = [
   { key: "resto", label: "Resto" },
 ] as const;
 
+// Paleta categórica segura para daltonismo (Okabe-Ito + Tol), ordenada para
+// fatias vizinhas contrastarem em deuteranopia/protanopia/tritanopia.
 const PIE_COLORS = [
-  "#ef7a1a",
-  "#f0a04b",
-  "#3b82f6",
-  "#10b981",
-  "#8b5cf6",
-  "#ec4899",
-  "#14b8a6",
-  "#f59e0b",
-  "#6366f1",
-  "#94a3b8",
+  "#e69f00",
+  "#0072b2",
+  "#009e73",
+  "#cc79a7",
+  "#56b4e9",
+  "#d55e00",
+  "#f0e442",
+  "#999999",
+  "#117733",
+  "#882255",
 ];
 
 function barHeightPct(value: bigint, max: bigint): number {
@@ -245,7 +247,13 @@ function CategoryDetail({ data }: { data: AnnualReportPayload }) {
 
       {open ? (
         <div className="border-t border-[color:var(--border-soft)] px-5 pb-5 pt-4">
-          <div className="h-48 w-full">
+          <div
+            className="h-48 w-full"
+            role="img"
+            aria-label={`Gasto por categoria no ano. ${data.byCategory
+              .map((c) => `${c.label} ${hidden ? "R$ •••" : c.totalFormatted}`)
+              .join(", ")}.`}
+          >
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
                 <Pie
@@ -321,7 +329,11 @@ export function AnnualReport({ initialData }: Props) {
         <span className="text-[0.625rem] font-bold uppercase tracking-[0.7px] text-[color:var(--color-brand-800)]">
           Gasto mês a mês em {data.year}
         </span>
-        <div className="mt-5 flex items-end justify-between gap-1.5">
+        <div
+          className="mt-5 flex items-end justify-between gap-1.5"
+          role="img"
+          aria-label={`Gasto mês a mês em ${data.year}. Total no ano ${data.totalFormatted}.`}
+        >
           {data.byMonth.map((m) => {
             const h = barHeightPct(BigInt(m.totalCents), maxMonth);
             return (
@@ -340,6 +352,25 @@ export function AnnualReport({ initialData }: Props) {
             );
           })}
         </div>
+        <table className="sr-only">
+          <caption>Gasto mês a mês em {data.year}</caption>
+          <thead>
+            <tr>
+              <th>Mês</th>
+              <th>Gasto</th>
+            </tr>
+          </thead>
+          <tbody>
+            {data.byMonth.map((m) => (
+              <tr key={m.month}>
+                <td>{m.label}</td>
+                <td>
+                  <HideableValue>{m.totalFormatted}</HideableValue>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </section>
 
       <ConsumoBreakdown data={data} />

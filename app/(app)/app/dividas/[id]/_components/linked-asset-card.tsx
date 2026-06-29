@@ -6,8 +6,8 @@ export function LinkedAssetCard({ assets }: { assets: { id: string; label: strin
   if (assets.length === 0) return null;
 
   return (
-    <section className="flex flex-col gap-2 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
+    <section className="flex flex-col gap-2">
+      <h2 className="px-1 text-sm font-semibold text-[color:var(--text-primary)]">
         {assets.length === 1 ? "Bem ligado a essa dívida" : "Bens ligados a essa dívida"}
       </h2>
       {assets.map((a) => (

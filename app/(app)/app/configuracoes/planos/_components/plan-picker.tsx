@@ -113,8 +113,8 @@ export function PlanPicker({ plans }: Props) {
   const price = fmtBRL.format(Number(selected.priceCents) / 100);
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-5 backdrop-blur-xl">
-      <div className="flex items-baseline justify-between gap-3">
+    <section className="flex flex-col">
+      <div className="flex items-baseline justify-between gap-3 px-1">
         <div>
           <p className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Virar Pro
@@ -126,7 +126,7 @@ export function PlanPicker({ plans }: Props) {
       </div>
 
       <div
-        role="tablist"
+        role="group"
         aria-label="Plano"
         className="relative mt-4 grid grid-cols-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-1"
         style={{ ["--tab-count" as string]: ordered.length }}
@@ -145,8 +145,7 @@ export function PlanPicker({ plans }: Props) {
           return (
             <button
               key={plan.id}
-              role="tab"
-              aria-selected={isActive}
+              aria-pressed={isActive}
               type="button"
               onClick={() => setSelectedSlug(plan.slug)}
               className={
