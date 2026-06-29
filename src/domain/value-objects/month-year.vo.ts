@@ -90,6 +90,29 @@ export class MonthYear {
     return `${name} ${String(this.year).slice(2)}`;
   }
 
+  /**
+   * Rótulo por extenso em PT-BR: "Julho 2026". Para títulos onde "Jul 26"
+   * confunde leigo (o "26" lê como dia). Ano completo desfaz a ambiguidade.
+   */
+  formatLong(): string {
+    const names = [
+      "Janeiro",
+      "Fevereiro",
+      "Março",
+      "Abril",
+      "Maio",
+      "Junho",
+      "Julho",
+      "Agosto",
+      "Setembro",
+      "Outubro",
+      "Novembro",
+      "Dezembro",
+    ];
+    const name = names[this.month - 1] ?? "?";
+    return `${name} ${this.year}`;
+  }
+
   toDate(day = 1): Date {
     return new Date(Date.UTC(this.year, this.month - 1, day, 0, 0, 0, 0));
   }

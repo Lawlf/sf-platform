@@ -87,6 +87,9 @@ function buildBreadcrumb(pathname: string): Array<{ label: string; href: string 
     acc += `/${seg}`;
     if ((seg === "nova" || seg === "novo") && i < rest.length - 1) continue;
     if (/^[0-9a-f-]{30,}$/i.test(seg)) continue;
+    // O mês (2026-07) já aparece como título dentro da tela; na trilha viraria
+    // "2026 07" (ISO cru) e destoa. Mantém só "Linha do tempo".
+    if (rest[i - 1] === "linha-do-tempo" && /^\d{4}-\d{2}$/.test(seg)) continue;
     const inSimulator = rest[i - 1] === "simular";
     const label =
       (inSimulator ? SIM_SEGMENT_LABELS[seg] : undefined) ??

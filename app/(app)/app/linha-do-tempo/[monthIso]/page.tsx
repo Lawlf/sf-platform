@@ -2,6 +2,7 @@ import {
   AlertTriangle,
   ArrowRight,
   Award,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   Flame,
@@ -103,7 +104,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
 
   let monthLabel: string;
   try {
-    monthLabel = MonthYear.fromIso(monthIso).format();
+    monthLabel = MonthYear.fromIso(monthIso).formatLong();
   } catch {
     return notFound();
   }
@@ -140,15 +141,17 @@ export default async function MonthDetailPage({ params }: PageProps) {
   const patrimonyDeltaCents = data.patrimony.previous
     ? BigInt(data.patrimony.current.netWorth.cents) - BigInt(data.patrimony.previous.netWorth.cents)
     : null;
-  const patrimonySub =
-    patrimonyDeltaCents !== null
-      ? {
-          label: `${patrimonyDeltaCents >= 0n ? "+" : "-"}${formatBrl(
-            patrimonyDeltaCents < 0n ? -patrimonyDeltaCents : patrimonyDeltaCents,
-          )} esse mês`,
-          tone: (patrimonyDeltaCents >= 0n ? "positive" : "negative") as "positive" | "negative",
-        }
-      : null;
+  const patrimonySub: { label: string; tone: "positive" | "negative" | "muted" } | null =
+    patrimonyDeltaCents === null
+      ? null
+      : patrimonyDeltaCents === 0n
+        ? { label: "sem mudança", tone: "muted" }
+        : {
+            label: `${patrimonyDeltaCents > 0n ? "+" : "-"}${formatBrl(
+              patrimonyDeltaCents < 0n ? -patrimonyDeltaCents : patrimonyDeltaCents,
+            )} esse mês`,
+            tone: patrimonyDeltaCents > 0n ? "positive" : "negative",
+          };
 
   const tiles = buildTiles({
     isCurrent,
@@ -203,33 +206,43 @@ export default async function MonthDetailPage({ params }: PageProps) {
     flowEntries.length > 0 || acquiredEntries.length > 0 || revaluedEntries.length > 0;
 
   return (
-    <PageShell
-      title={monthLabel}
-      description={subtitleFor({ isCurrent, isPast })}
-      backHref={"/app/linha-do-tempo" as Route}
-    >
-      <div className="flex items-center justify-between gap-1">
-        <Link
-          href={`/app/linha-do-tempo/${prevIso}` as Route}
-          aria-label="Mês anterior"
-          className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
-        >
-          <ChevronLeft size={20} strokeWidth={2.25} aria-hidden />
-        </Link>
-        <Link
-          href={"/app/linha-do-tempo" as Route}
-          className="focus-ring rounded-lg px-3 py-1.5 text-[0.9375rem] font-bold capitalize text-[color:var(--text-primary)] transition-colors hover:bg-[color:var(--surface-2)]"
-        >
-          {monthLabel}
-        </Link>
-        <Link
-          href={`/app/linha-do-tempo/${nextIso}` as Route}
-          aria-label="Próximo mês"
-          className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
-        >
-          <ChevronRight size={20} strokeWidth={2.25} aria-hidden />
-        </Link>
-      </div>
+    <PageShell backHref={"/app/linha-do-tempo" as Route}>
+      <header className="relative flex flex-col gap-1">
+        <div className="flex items-center justify-between gap-1">
+          <Link
+            href={`/app/linha-do-tempo/${prevIso}` as Route}
+            aria-label="Mês anterior"
+            className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
+          >
+            <ChevronLeft size={20} strokeWidth={2.25} aria-hidden />
+          </Link>
+          <Link
+            href={"/app/linha-do-tempo" as Route}
+            aria-label="Escolher outro mês"
+            className="focus-ring flex items-center gap-1.5 rounded-lg px-2 py-1 transition-colors hover:bg-[color:var(--surface-2)]"
+          >
+            <h1 className="text-2xl font-bold capitalize tracking-tight text-[color:var(--text-primary)] md:text-3xl">
+              {monthLabel}
+            </h1>
+            <ChevronDown
+              size={18}
+              strokeWidth={2.25}
+              aria-hidden
+              className="shrink-0 text-[color:var(--text-muted)]"
+            />
+          </Link>
+          <Link
+            href={`/app/linha-do-tempo/${nextIso}` as Route}
+            aria-label="Próximo mês"
+            className="focus-ring flex size-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
+          >
+            <ChevronRight size={20} strokeWidth={2.25} aria-hidden />
+          </Link>
+        </div>
+        <p className="text-center text-sm text-[color:var(--text-secondary)]">
+          {subtitleFor({ isCurrent, isPast })}
+        </p>
+      </header>
 
       <section className="rounded-[18px] border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl md:p-5">
         <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
@@ -257,7 +270,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
       ) : (
         <div className="flex flex-col gap-8">
           {flowEntries.length > 0 ? (
-            <Block heading="Dinheiro do mês">
+            <Block heading="Entradas e saídas">
               {isCurrent ? (
                 <>
                   <SubSection
@@ -296,7 +309,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
 function subtitleFor({ isCurrent, isPast }: { isCurrent: boolean; isPast: boolean }): string {
   if (isCurrent) return "O que entrou, o que ainda vem e como o mês fecha.";
   if (isPast) return "O que entrou, o que saiu e como o mês fechou.";
-  return "O que deve entrar e sair nesse mês.";
+  return "O que deve entrar e sair.";
 }
 
 interface TileSpec {
@@ -318,7 +331,7 @@ function buildTiles(args: {
   remainingOutflowCents: bigint;
   netWorthFormatted: string;
   patrimonyTone: "positive" | "negative" | "muted";
-  patrimonySub: { label: string; tone: "positive" | "negative" } | null;
+  patrimonySub: { label: string; tone: "positive" | "negative" | "muted" } | null;
 }): TileSpec[] {
   const {
     isCurrent,
