@@ -7,6 +7,7 @@ import { useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/app/components/ui/button";
 import { PurchaseSimulationService } from "@/domain/services/purchase-simulation.service";
+import { todayIso } from "@/shared/format/dates";
 
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
@@ -70,13 +71,6 @@ function defaultDepKindForCategory(category: AssetCategoryUi): DepreciationKindU
   return "depreciating";
 }
 
-function todayIso(): string {
-  const d = new Date();
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, "0");
-  const dd = String(d.getDate()).padStart(2, "0");
-  return `${yyyy}-${mm}-${dd}`;
-}
 
 export function PurchaseSimulatorClient() {
   const router = useRouter();

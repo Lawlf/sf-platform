@@ -9,6 +9,7 @@ import { z } from "zod";
 import { fetchDashboardSnapshot } from "@/app/(app)/app/_actions/dashboard-queries";
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { todayIso } from "@/shared/format/dates";
 import {
   Select,
   SelectContent,
@@ -53,10 +54,6 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-function todayIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export function ExpenseStep({
   stepNumber,

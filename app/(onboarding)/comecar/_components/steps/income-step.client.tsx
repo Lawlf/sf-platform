@@ -8,6 +8,7 @@ import { z } from "zod";
 
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { todayIso } from "@/shared/format/dates";
 
 import { upsertOnboardingIncomeAction } from "../../_actions/onboarding-entities";
 
@@ -22,11 +23,6 @@ const schema = z.object({
 });
 type FormValues = z.infer<typeof schema>;
 
-function todayIso(): string {
-  // Server action accepts an ISO date string; build from the client date.
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 export function IncomeStep({
   stepNumber,
