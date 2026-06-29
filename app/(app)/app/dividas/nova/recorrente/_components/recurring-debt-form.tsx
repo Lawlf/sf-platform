@@ -19,7 +19,7 @@ import {
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { formatCents } from "@/shared/format/money-format";
 
-import { todayIso } from "../../../_lib/dates";
+import { todayIso } from "@/shared/format/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";

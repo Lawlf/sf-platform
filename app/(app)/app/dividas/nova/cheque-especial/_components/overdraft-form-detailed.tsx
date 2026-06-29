@@ -14,7 +14,7 @@ import { formatCents } from "@/shared/format/money-format";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
-import { todayIso } from "../../../_lib/dates";
+import { todayIso } from "@/shared/format/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";

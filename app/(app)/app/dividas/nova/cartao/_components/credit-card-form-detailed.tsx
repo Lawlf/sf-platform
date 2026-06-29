@@ -17,7 +17,7 @@ import {
   InstallmentPurchasesEditor,
   sumMonthlyCents,
 } from "../../../_components/installment-purchases-editor";
-import { todayIso } from "../../../_lib/dates";
+import { todayIso } from "@/shared/format/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";
