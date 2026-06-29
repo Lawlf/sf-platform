@@ -79,7 +79,7 @@ export function BottomNav({ activeIsPj }: { activeIsPj: boolean }) {
     <>
       <nav
         aria-label="Navegação rápida"
-        className="glass-tier-2 fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex h-[72px] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-end justify-around px-2 py-2"
+        className="glass-floating fixed bottom-[calc(0.5rem+env(safe-area-inset-bottom))] left-1/2 z-20 flex h-[72px] w-[calc(100%-2rem)] max-w-md -translate-x-1/2 items-end justify-around px-2 py-2"
       >
         {leftItems.map(renderItem)}
         <button

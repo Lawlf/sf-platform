@@ -12,30 +12,23 @@ describe("wizard-machine", () => {
     expect(stepsForFocus(null)).toEqual(["focus"]);
   });
 
-  it("pagar-divida: focus, income, debt, result, acquisition", () => {
-    expect(stepsForFocus("pagar-divida")).toEqual([
-      "focus",
-      "income",
-      "debt",
-      "result-prescription",
-      "acquisition",
-    ]);
+  it("pagar-divida: focus, income, debt, acquisition", () => {
+    expect(stepsForFocus("pagar-divida")).toEqual(["focus", "income", "debt", "acquisition"]);
   });
 
-  it("guardar: focus, income, goal, result, acquisition", () => {
-    expect(stepsForFocus("guardar")).toEqual(["focus", "income", "goal", "result-goal", "acquisition"]);
+  it("guardar: focus, income, goal, acquisition", () => {
+    expect(stepsForFocus("guardar")).toEqual(["focus", "income", "goal", "acquisition"]);
   });
 
-  it("investir: focus, income, asset, result, acquisition", () => {
-    expect(stepsForFocus("investir")).toEqual(["focus", "income", "asset", "result-networth", "acquisition"]);
+  it("investir: focus, income, asset, acquisition", () => {
+    expect(stepsForFocus("investir")).toEqual(["focus", "income", "asset", "acquisition"]);
   });
 
   it("nextStep advances along the focus path, acquisition last", () => {
     const steps = stepsForFocus("guardar");
     expect(nextStep(steps, "focus")).toBe("income");
     expect(nextStep(steps, "income")).toBe("goal");
-    expect(nextStep(steps, "goal")).toBe("result-goal");
-    expect(nextStep(steps, "result-goal")).toBe("acquisition");
+    expect(nextStep(steps, "goal")).toBe("acquisition");
     expect(nextStep(steps, "acquisition")).toBeNull();
   });
 

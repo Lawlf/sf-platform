@@ -14,6 +14,7 @@ export type AcquisitionChannel =
   | "facebook"
   | "free_calculator"
   | "google_search"
+  | "dont_remember"
   | "other";
 
 export interface UserEntity {
@@ -24,6 +25,8 @@ export interface UserEntity {
   role: UserRole;
   plan: UserPlan;
   isPro: boolean;
+  proGraceUntil: Date | null;
+  freeKeptProfileId: string | null;
   deactivatedAt: Date | null;
   deactivationReason: string | null;
   contentDiagnosticAnswer: ContentDiagnosticAnswer | null;

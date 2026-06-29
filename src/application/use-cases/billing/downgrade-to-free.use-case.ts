@@ -24,7 +24,18 @@ export async function downgradeToFree(deps: DowngradeToFreeDeps, userId: string)
   const user = await deps.users.findById(userId);
   if (!user) return;
   if (user.isPro || user.plan === "pro") {
-    const updated = { ...user, isPro: false, plan: "free" as const, updatedAt: deps.clock.now() };
+    const now = deps.clock.now();
+    // 7 dias de graça: todos os perfis seguem acessíveis pra a pessoa escolher qual
+    // mantém no Free. A escolha anterior é zerada pra ela decidir de novo.
+    const proGraceUntil = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+    const updated = {
+      ...user,
+      isPro: false,
+      plan: "free" as const,
+      proGraceUntil,
+      freeKeptProfileId: null,
+      updatedAt: now,
+    };
     await deps.users.update(updated);
   }
   try {

@@ -9,7 +9,7 @@ function user(over: Partial<UserEntity> = {}): UserEntity {
     id: "u1", email: "arthur@x.com", emailVerifiedAt: null, displayName: "Arthur Fernandes",
     role: "user", plan: "free", isPro: false, deactivatedAt: null, deactivationReason: null,
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null, onboardingWizardSeenAt: null,
-    homeTourDismissedAt: null, quickAccess: [], baseCurrency: "BRL", username: null, profileFlair: null,
+    homeTourDismissedAt: null, quickAccess: [], baseCurrency: "BRL", proGraceUntil: null, freeKeptProfileId: null, username: null, profileFlair: null,
     acquisitionChannel: null,
     acquisitionChannelOther: null,
     createdAt: new Date(), updatedAt: new Date(), ...over,

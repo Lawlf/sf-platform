@@ -45,7 +45,6 @@ export const wizardFormSchema = z.object({
   currentValueCents: z.bigint().nonnegative("Valor inválido."),
   currency: z.enum(CURRENCIES),
   purchasePriceCents: z.bigint().nullable().optional(),
-  monthlyCostEstimateCents: null,
   acquiredAt: z.string().optional().nullable(),
 
   // vehicle
@@ -160,7 +159,6 @@ export function AssetWizardClient({
       currentValueCents: 0n as unknown as bigint,
       currency: defaultCurrency,
       purchasePriceCents: null,
-      monthlyCostEstimateCents: null,
       acquiredAt: "",
       brand: "",
       model: "",

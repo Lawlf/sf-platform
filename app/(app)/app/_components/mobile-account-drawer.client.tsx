@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, SlidersHorizontal } from "lucide-react";
+import { Lock, Plus, SlidersHorizontal } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,9 +28,10 @@ interface Props {
   avatarUrl?: string | null | undefined;
   profiles: SerializedProfile[];
   activeProfileId?: string | undefined;
+  canCreate?: boolean;
 }
 
-export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl, profiles, activeProfileId }: Props) {
+export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl, profiles, activeProfileId, canCreate = true }: Props) {
   const router = useRouter();
   const [createOpen, setCreateOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -55,27 +56,33 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
           <div className="flex flex-col gap-1">
             {profiles.map((profile) => {
               const active = profile.id === activeId;
+              const locked = profile.locked;
               return (
                 <button
                   key={profile.id}
                   type="button"
                   role="menuitemradio"
                   aria-checked={active}
-                  disabled={pending || active}
+                  disabled={pending || active || locked}
                   onClick={() => handleSwitch(profile.id)}
-                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
+                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"} ${locked ? "opacity-60" : ""}`}
                 >
                   <UserAvatar
-                    dataUrl={active ? avatarUrl : undefined}
-                    displayName={displayName}
+                    dataUrl={profile.isPrimary ? avatarUrl : undefined}
+                    displayName={profile.displayName ?? displayName}
                     className={`flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.75rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
                   />
                   <span className="flex min-w-0 flex-1 flex-col items-start">
                     <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
                       {profile.displayName ?? displayName}
                     </span>
-                    <span className="text-[0.75rem] text-[color:var(--text-muted)]">{profileSubtitle(profile)}</span>
+                    <span className="text-[0.75rem] text-[color:var(--text-muted)]">
+                      {locked ? "Guardado · volta com o Pro" : profileSubtitle(profile)}
+                    </span>
                   </span>
+                  {locked ? (
+                    <Lock size={15} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+                  ) : null}
                 </button>
               );
             })}
@@ -109,7 +116,7 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
         </SheetContent>
       </Sheet>
 
-      <CreateProfileSheet open={createOpen} onOpenChange={setCreateOpen} />
+      <CreateProfileSheet open={createOpen} onOpenChange={setCreateOpen} canCreate={canCreate} />
     </>
   );
 }

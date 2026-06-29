@@ -12,6 +12,13 @@ import {
 } from "@/app/components/ui/sheet";
 
 const TOPICS = {
+  perfis: {
+    title: "Perfis",
+    tag: "Conceito",
+    body: "Um perfil é um conjunto separado de renda, dívidas e patrimônio. Você troca de perfil no topo do app e todos os números mudam junto, como se fosse outra conta. A maioria das pessoas usa um só, e tá certo. Vale criar outro quando você tem um dinheiro que vive em caixa separado do pessoal. O caso mais comum é o MEI: o que o negócio fatura, o boleto do MEI e o que ele deve ficam de um lado; sua vida pessoal fica do outro, sem misturar. Quem toca um segundo negócio, um CNPJ à parte ou um projeto com caixa próprio também pode dar a cada um o seu perfil.",
+    technical:
+      "Cada perfil guarda a própria renda, dívidas, patrimônio, metas e categorias, separados dos outros. O que é da sua conta (login, plano, preferências) vale pra todos os perfis ao mesmo tempo. Excluir um perfil apaga só os dados dele; os outros continuam intactos.",
+  },
   patrimonio: {
     title: "Patrimônio",
     tag: "Conceito",

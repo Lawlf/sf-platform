@@ -21,9 +21,10 @@ export interface MobileTopBarProps {
   notificationCount?: number;
   profiles?: SerializedProfile[];
   activeProfileId?: string;
+  canCreate?: boolean;
 }
 
-export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId }: MobileTopBarProps) {
+export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId, canCreate = true }: MobileTopBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const longPressFired = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -36,7 +37,6 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
   const notificationLabel = notificationCount > 99 ? "99+" : String(notificationCount);
 
   function startPress() {
-    if (!multiProfile) return;
     longPressFired.current = false;
     timer.current = setTimeout(() => {
       longPressFired.current = true;
@@ -76,8 +76,8 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
             className="focus-ring flex flex-none select-none items-center rounded-full transition-opacity [-webkit-touch-callout:none] active:opacity-80"
           >
             <UserAvatar
-              dataUrl={avatarUrl}
-              displayName={displayName}
+              dataUrl={activeProfile?.isPrimary ? avatarUrl : undefined}
+              displayName={activeProfile?.displayName ?? displayName}
               className="flex h-11 w-11 items-center justify-center rounded-full bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.9375rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.35)]"
             />
           </Link>
@@ -143,6 +143,7 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
         avatarUrl={avatarUrl}
         profiles={profiles}
         activeProfileId={activeProfileId}
+        canCreate={canCreate}
       />
     </header>
   );

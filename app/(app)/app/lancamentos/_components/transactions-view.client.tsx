@@ -1,5 +1,6 @@
 "use client";
 
+import { useQueryClient } from "@tanstack/react-query";
 import {
   ArrowDownLeft,
   ArrowUpRight,
@@ -49,6 +50,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 import type { CategoryCatalog } from "../../_actions/category-queries";
 import { categoryIcon } from "../../_components/category-icons";
 import { MoneyInput } from "../../_components/money-input";
+import { queryKeys } from "../../_lib/query-keys";
 import { setSelectionBarActive } from "../../_lib/selection-bar";
 import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
 import { createCashAccount } from "../../linha-do-tempo/_actions/create-cash-account.action";
@@ -171,6 +173,7 @@ export function TransactionsView({
   categoryHistory,
 }: Props) {
   const router = useRouter();
+  const queryClient = useQueryClient();
   const [items, setItems] = useState<SerializedTxn[]>(transactions);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL_VALUE);
@@ -244,8 +247,22 @@ export function TransactionsView({
 
   const days = useMemo(() => groupByDay(filtered), [filtered]);
 
+  function invalidateProjection() {
+    void queryClient.invalidateQueries({ queryKey: ["timeline"] });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.netWorth });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
+    void queryClient.invalidateQueries({ queryKey: queryKeys.positionDetail });
+  }
+
   function onSaved(updated: SerializedTxn) {
     setItems((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
+    invalidateProjection();
+  }
+
+  function onDeleted(id: string) {
+    setItems((prev) => prev.filter((t) => t.id !== id));
+    invalidateProjection();
   }
 
   const bulkCategories = useMemo(() => {
@@ -299,6 +316,7 @@ export function TransactionsView({
         ),
       );
       toast.success(`${ids.length} categorizado${ids.length > 1 ? "s" : ""}.`);
+      invalidateProjection();
       setBulkSheet(false);
       exitSelect();
     });
@@ -346,6 +364,7 @@ export function TransactionsView({
         prev.map((t) => (idSet.has(t.id) ? { ...t, excludedFromTotals: excluded } : t)),
       );
       toast.success(excluded ? "Tirado do mês." : "Voltou a contar.");
+      invalidateProjection();
       setExcludeSheet(false);
       exitSelect();
     });
@@ -361,6 +380,7 @@ export function TransactionsView({
         return;
       }
       toast.success(`Movido pra ${label}.`);
+      invalidateProjection();
       setMoveSheet(false);
       exitSelect();
     });
@@ -386,6 +406,7 @@ export function TransactionsView({
         return;
       }
       toast.success(`Guardado em ${created.data.account.label}.`);
+      invalidateProjection();
       setNewAccountName("");
       setNewAccountIsReserve(false);
       setCreateAccountSheet(false);
@@ -405,6 +426,7 @@ export function TransactionsView({
       const idSet = new Set(ids);
       setItems((prev) => prev.filter((t) => !idSet.has(t.id)));
       toast.success(`${ids.length} apagado${ids.length > 1 ? "s" : ""}.`);
+      invalidateProjection();
       setDeleteSheet(false);
       exitSelect();
     });
@@ -545,7 +567,7 @@ export function TransactionsView({
             setEditing(null);
           }}
           onDeleted={(id) => {
-            setItems((prev) => prev.filter((t) => t.id !== id));
+            onDeleted(id);
             setEditing(null);
           }}
         />

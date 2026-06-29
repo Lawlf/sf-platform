@@ -15,7 +15,7 @@ function user(): UserEntity {
     contentDiagnosticAnswer: null, contentDiagnosticAnsweredAt: null,
     onboardingWizardSeenAt: null, homeTourDismissedAt: null,
     acquisitionChannel: null, acquisitionChannelOther: null,
-    createdAt: NOW, updatedAt: NOW, quickAccess: [], username: null, profileFlair: null, baseCurrency: "BRL",
+    createdAt: NOW, updatedAt: NOW, quickAccess: [], username: null, profileFlair: null, baseCurrency: "BRL", proGraceUntil: null, freeKeptProfileId: null,
   };
 }
 

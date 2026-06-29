@@ -33,26 +33,54 @@ function fakeRepo(profilesList: ProfileEntity[], ensured?: ProfileEntity): Profi
 describe("resolveActiveProfileId", () => {
   it("retorna o PF quando não há cookie", async () => {
     const repo = fakeRepo([pf("u1")]);
-    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: null, now: NOW });
+    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: null, now: NOW, isPro: true, proGraceUntil: null, freeKeptProfileId: null });
     expect(id).toBe("pf-1");
   });
 
   it("retorna o perfil do cookie quando ele pertence ao usuário", async () => {
     const repo = fakeRepo([pf("u1"), pj("u1")]);
-    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: "pj-1", now: NOW });
+    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: "pj-1", now: NOW, isPro: true, proGraceUntil: null, freeKeptProfileId: null });
     expect(id).toBe("pj-1");
   });
 
   it("ignora cookie de perfil que não pertence ao usuário e cai pro PF", async () => {
     const repo = fakeRepo([pf("u1")]);
-    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: "alheio", now: NOW });
+    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: "alheio", now: NOW, isPro: true, proGraceUntil: null, freeKeptProfileId: null });
     expect(id).toBe("pf-1");
   });
 
   it("cria o PF (ensure) quando o usuário ainda não tem nenhum", async () => {
     const repo = fakeRepo([], pf("u1", "pf-novo"));
-    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: null, now: NOW });
+    const id = await resolveActiveProfileId({ profiles: repo }, { userId: "u1", cookieProfileId: null, now: NOW, isPro: true, proGraceUntil: null, freeKeptProfileId: null });
     expect(repo.ensurePfProfile).toHaveBeenCalledWith("u1", NOW);
     expect(id).toBe("pf-novo");
+  });
+
+  it("Free fora da graça: ignora cookie de perfil trancado e cai no mantido", async () => {
+    const repo = fakeRepo([pf("u1"), pj("u1")]);
+    const id = await resolveActiveProfileId(
+      { profiles: repo },
+      { userId: "u1", cookieProfileId: "pj-1", now: NOW, isPro: false, proGraceUntil: null, freeKeptProfileId: null },
+    );
+    expect(id).toBe("pf-1");
+  });
+
+  it("Free na graça: cookie de qualquer perfil ainda vale", async () => {
+    const repo = fakeRepo([pf("u1"), pj("u1")]);
+    const grace = new Date(NOW.getTime() + 1000);
+    const id = await resolveActiveProfileId(
+      { profiles: repo },
+      { userId: "u1", cookieProfileId: "pj-1", now: NOW, isPro: false, proGraceUntil: grace, freeKeptProfileId: null },
+    );
+    expect(id).toBe("pj-1");
+  });
+
+  it("Free fora da graça: respeita o perfil escolhido (kept)", async () => {
+    const repo = fakeRepo([pf("u1"), pj("u1")]);
+    const id = await resolveActiveProfileId(
+      { profiles: repo },
+      { userId: "u1", cookieProfileId: "pj-1", now: NOW, isPro: false, proGraceUntil: null, freeKeptProfileId: "pj-1" },
+    );
+    expect(id).toBe("pj-1");
   });
 });

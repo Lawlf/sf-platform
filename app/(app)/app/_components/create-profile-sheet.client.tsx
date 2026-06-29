@@ -1,6 +1,8 @@
 "use client";
 
-import { Building2, UserRound } from "lucide-react";
+import { ArrowRight, Building2, Lock, UserRound } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 
@@ -24,9 +26,43 @@ type TaxClassification = "mei" | "manual";
 interface Props {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  // Free que já tem 1 perfil não cria mais: o sheet vira convite pro Pro.
+  canCreate?: boolean;
 }
 
-export function CreateProfileSheet({ open, onOpenChange }: Props) {
+function CreateProfilePaywall({ onClose }: { onClose: () => void }) {
+  return (
+    <SheetContent side="bottom" className="flex flex-col gap-5">
+      <SheetHeader>
+        <span
+          className="grid h-10 w-10 place-items-center rounded-xl text-white"
+          style={{ background: "linear-gradient(135deg,#f28e25,#ef7a1a)" }}
+        >
+          <Lock size={18} strokeWidth={2.2} aria-hidden />
+        </span>
+        <SheetTitle>Um perfil pro seu dinheiro. Outro pro MEI.</SheetTitle>
+        <SheetDescription>
+          No Free você mantém 1 perfil, completo e seu pra sempre. O Pro abre um segundo perfil
+          separado de ponta a ponta: renda, dívida e patrimônio próprios, sem um misturar com o outro.
+        </SheetDescription>
+      </SheetHeader>
+
+      <SheetFooter>
+        <Button type="button" variant="glass" onClick={onClose}>
+          Agora não
+        </Button>
+        <Button asChild variant="brand">
+          <Link href={"/app/configuracoes/planos" as Route} onClick={onClose}>
+            Conhecer o Pro
+            <ArrowRight size={16} strokeWidth={2.5} aria-hidden />
+          </Link>
+        </Button>
+      </SheetFooter>
+    </SheetContent>
+  );
+}
+
+export function CreateProfileSheet({ open, onOpenChange, canCreate = true }: Props) {
   const router = useRouter();
   const [profileType, setProfileType] = useState<ProfileType>("PF");
   const [displayName, setDisplayName] = useState("");
@@ -61,6 +97,14 @@ export function CreateProfileSheet({ open, onOpenChange }: Props) {
       handleOpenChange(false);
       router.refresh();
     });
+  }
+
+  if (!canCreate) {
+    return (
+      <Sheet open={open} onOpenChange={onOpenChange}>
+        <CreateProfilePaywall onClose={() => onOpenChange(false)} />
+      </Sheet>
+    );
   }
 
   return (

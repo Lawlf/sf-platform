@@ -14,6 +14,8 @@ function makeUser(overrides: Partial<UserEntity> = {}): UserEntity {
     role: "user",
     plan: "free",
     isPro: false,
+    proGraceUntil: null,
+    freeKeptProfileId: null,
     deactivatedAt: null,
     deactivationReason: null,
     contentDiagnosticAnswer: null,

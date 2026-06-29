@@ -8,24 +8,37 @@ import { setAcquisitionChannelAction } from "@/app/(app)/app/_actions/onboarding
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
 import type { AcquisitionChannel } from "@/domain/entities/user.entity";
 
-const GROUPS: { value: AcquisitionChannel; label: string }[][] = [
-  [
-    { value: "founder_direct", label: "Falei com quem criou" },
-    { value: "friend_referral", label: "Indicação de amigo" },
-    { value: "messaging_group", label: "Grupo de WhatsApp/Telegram" },
-    { value: "influencer", label: "Influenciador" },
-  ],
-  [
-    { value: "instagram", label: "Instagram" },
-    { value: "tiktok", label: "TikTok" },
-    { value: "youtube", label: "YouTube" },
-    { value: "facebook", label: "Facebook" },
-  ],
-  [
-    { value: "free_calculator", label: "Calculadora grátis" },
-    { value: "google_search", label: "Google" },
-    { value: "other", label: "Outro" },
-  ],
+const GROUPS: {
+  eyebrow: string;
+  options: { value: AcquisitionChannel; label: string }[];
+}[] = [
+  {
+    eyebrow: "Indicação",
+    options: [
+      { value: "friend_referral", label: "Indicação de amigo" },
+      { value: "influencer", label: "Alguém que sigo indicou" },
+      { value: "founder_direct", label: "Falei com quem criou" },
+      { value: "messaging_group", label: "Grupo de WhatsApp/Telegram" },
+    ],
+  },
+  {
+    eyebrow: "Redes sociais",
+    options: [
+      { value: "instagram", label: "Instagram" },
+      { value: "tiktok", label: "TikTok" },
+      { value: "youtube", label: "YouTube" },
+      { value: "facebook", label: "Facebook" },
+    ],
+  },
+  {
+    eyebrow: "Outros",
+    options: [
+      { value: "google_search", label: "Google" },
+      { value: "free_calculator", label: "Usei uma calculadora de vocês" },
+      { value: "dont_remember", label: "Não lembro" },
+      { value: "other", label: "Outro" },
+    ],
+  },
 ];
 
 export function AcquisitionStep({
@@ -69,11 +82,11 @@ export function AcquisitionStep({
     <WizardShell
       currentStep={stepNumber}
       totalSteps={totalSteps}
-      title="Pergunta rápida, é pra gente"
-      description="Como você chegou no Sabor? Ajuda a gente a saber o que está funcionando. Um toque e pronto."
+      title="Última coisa: como você chegou aqui?"
+      description="Um toque ajuda a gente a saber o que está dando certo. Em 10 segundos você entra."
       onBack={onBack}
       primary={{
-        label: "Concluir",
+        label: "Entrar no app",
         onClick: confirm,
         disabled: !canSubmit,
         loading: saving || finishing,
@@ -81,28 +94,33 @@ export function AcquisitionStep({
       }}
       secondary={{ label: "Pular", onClick: onSkip }}
     >
-      <div className="flex flex-col gap-3">
-        {GROUPS.map((group, gi) => (
-          <div key={gi} className="flex flex-wrap gap-2">
-            {group.map(({ value, label }) => {
-              const active = selected === value;
-              return (
-                <button
-                  key={value}
-                  type="button"
-                  aria-pressed={active}
-                  onClick={() => setSelected(value)}
-                  disabled={finishing || saving}
-                  className={`rounded-full border px-4 py-2 text-sm transition ${
-                    active
-                      ? "border-[color:var(--color-brand-500)] bg-[color:var(--surface-2)] font-semibold"
-                      : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
-                  }`}
-                >
-                  {label}
-                </button>
-              );
-            })}
+      <div className="flex flex-col gap-4">
+        {GROUPS.map((group) => (
+          <div key={group.eyebrow} className="flex flex-col gap-2">
+            <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)] opacity-55">
+              {group.eyebrow}
+            </span>
+            <div className="flex flex-wrap items-start gap-2">
+              {group.options.map(({ value, label }) => {
+                const active = selected === value;
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setSelected(value)}
+                    disabled={finishing || saving}
+                    className={`rounded-full border px-4 py-2 text-sm transition ${
+                      active
+                        ? "border-[color:var(--color-brand-500)] bg-[color:var(--surface-2)] font-semibold"
+                        : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
+                    }`}
+                  >
+                    {label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         ))}
         {isOther ? (
@@ -112,7 +130,7 @@ export function AcquisitionStep({
             onChange={(e) => setDetail(e.target.value)}
             maxLength={120}
             autoFocus
-            placeholder="Me conta como você chegou (seu contador, ouvi falar, ou não lembro direito)"
+            placeholder="De onde veio? Pode ser bem rápido"
             className="mt-1 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-4 py-3 text-sm"
           />
         ) : null}

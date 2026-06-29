@@ -22,6 +22,8 @@ function makeUser(): UserEntity {
     role: "user",
     plan: "pro",
     isPro: true,
+    proGraceUntil: null,
+    freeKeptProfileId: null,
     deactivatedAt: null,
     deactivationReason: null,
     contentDiagnosticAnswer: null,
