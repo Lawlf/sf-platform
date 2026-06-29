@@ -11,9 +11,8 @@ import {
   SelectTrigger,
 } from "@/app/components/ui/select";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+import { applyCentsKey, coerceToCents, parseCentsFromString } from "@/shared/format/money-input";
 import { formatCents } from "@/shared/format/money-format";
-
-const MAX_CENTS = 999_999_999_99n;
 
 const CURRENCY_NAME: Record<Currency, string> = {
   BRL: "Real",
@@ -46,7 +45,7 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
       control={props.control}
       name={props.name}
       render={({ field, fieldState }) => {
-        const cents = toCents(field.value);
+        const cents = coerceToCents(field.value);
         const display = cents === 0n ? "" : formatCents(cents, currency);
 
         function commit(next: bigint) {
@@ -56,41 +55,15 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
 
         function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
           if (e.metaKey || e.ctrlKey) return;
-          if (e.key === "Backspace") {
-            e.preventDefault();
-            commit(cents / 10n);
-            return;
-          }
-          if (e.key === "Delete") {
-            e.preventDefault();
-            commit(0n);
-            return;
-          }
-          if (/^[0-9]$/.test(e.key)) {
-            e.preventDefault();
-            const digit = BigInt(e.key);
-            const next = cents * 10n + digit;
-            if (next > MAX_CENTS) return;
-            commit(next);
-            return;
-          }
-          if (
-            ["Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
-          ) {
-            return;
-          }
+          const result = applyCentsKey(cents, e.key);
+          if (result.kind === "ignore") return;
           e.preventDefault();
+          if (result.kind === "commit") commit(result.cents);
         }
 
         function handleChange(e: ChangeEvent<HTMLInputElement>) {
-          const raw = e.target.value.replace(/[^\d]/g, "");
-          if (raw === "") {
-            commit(0n);
-            return;
-          }
-          const next = BigInt(raw);
-          if (next > MAX_CENTS) return;
-          commit(next);
+          const next = parseCentsFromString(e.target.value);
+          if (next !== null) commit(next);
         }
 
         return (
@@ -171,17 +144,3 @@ export function MoneyInput<TFieldValues extends FieldValues>(props: MoneyInputPr
   );
 }
 
-function toCents(value: unknown): bigint {
-  if (typeof value === "bigint") return value;
-  if (typeof value === "number" && Number.isFinite(value)) {
-    return BigInt(Math.round(value));
-  }
-  if (typeof value === "string" && value !== "") {
-    try {
-      return BigInt(value);
-    } catch {
-      return 0n;
-    }
-  }
-  return 0n;
-}

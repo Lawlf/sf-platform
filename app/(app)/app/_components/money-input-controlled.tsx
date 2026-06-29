@@ -3,9 +3,8 @@
 import type { ChangeEvent, KeyboardEvent } from "react";
 
 import type { Currency } from "@/domain/value-objects/money.vo";
+import { applyCentsKey, parseCentsFromString } from "@/shared/format/money-input";
 import { formatCents } from "@/shared/format/money-format";
-
-const MAX_CENTS = 999_999_999_99n;
 
 export interface MoneyInputControlledProps {
   value: bigint;
@@ -26,38 +25,15 @@ export function MoneyInputControlled(props: MoneyInputControlledProps) {
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.metaKey || e.ctrlKey) return;
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      props.onChange(cents / 10n);
-      return;
-    }
-    if (e.key === "Delete") {
-      e.preventDefault();
-      props.onChange(0n);
-      return;
-    }
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-      const next = cents * 10n + BigInt(e.key);
-      if (next > MAX_CENTS) return;
-      props.onChange(next);
-      return;
-    }
-    if (["Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-      return;
-    }
+    const result = applyCentsKey(cents, e.key);
+    if (result.kind === "ignore") return;
     e.preventDefault();
+    if (result.kind === "commit") props.onChange(result.cents);
   }
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value.replace(/[^\d]/g, "");
-    if (raw === "") {
-      props.onChange(0n);
-      return;
-    }
-    const next = BigInt(raw);
-    if (next > MAX_CENTS) return;
-    props.onChange(next);
+    const next = parseCentsFromString(e.target.value);
+    if (next !== null) props.onChange(next);
   }
 
   return (
