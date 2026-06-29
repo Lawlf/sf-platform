@@ -72,6 +72,7 @@ function currentCycleDue(
   const month = today.getMonth();
   const clampedDay = Math.min(dueDay, daysInMonth(year, month));
   const dueDate = new Date(year, month, clampedDay);
+  if (dueDate < startOfDay(debt.startDate)) return null;
   return { debtId: debt.id, label: debt.label, kind: debt.kind, dueDate, amount: monthlyAmount(debt) };
 }
 

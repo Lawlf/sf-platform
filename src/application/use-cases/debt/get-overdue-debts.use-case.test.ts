@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CreditCardDebt, DebtEntity, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
+import type { CreditCardDebt, DebtEntity, RecurringDebt } from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtDueAcknowledgementRepositoryPort } from "@/domain/ports/repositories/debt-due-acknowledgement.repository";
 import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
@@ -100,6 +100,7 @@ function makeRecurringDebt(overrides: {
   id: string;
   dueDay: number | null;
   recurringAmountCents?: bigint;
+  startDate?: Date;
 }): RecurringDebt {
   return {
     id: overrides.id,
@@ -109,7 +110,7 @@ function makeRecurringDebt(overrides: {
     status: "active",
     originalPrincipal: makeMoney(0n),
     currentBalance: makeMoney(0n),
-    startDate: new Date("2026-01-10"),
+    startDate: overrides.startDate ?? new Date("2026-01-10"),
     expectedEndDate: null,
     notes: null,
     createdAt: new Date("2026-01-01"),
@@ -231,6 +232,43 @@ describe("getOverdueDebts", () => {
     );
     if (!isOk(res)) throw new Error("expected ok");
     expect(res.value.map((i) => i.debtId)).toEqual(["c1", "c2", "c3"]);
+  });
+
+  it("nao marca vencido quando a dívida ainda nao comecou (startDate futuro)", async () => {
+    // Aluguel com inicio em 07/08/2026; hoje 29/06/2026. Nao venceu nada ainda.
+    const debt = makeRecurringDebt({
+      id: "rent",
+      dueDay: null,
+      recurringAmountCents: 150000n,
+      startDate: new Date("2026-08-07"),
+    });
+    const repo = makeDebtRepo([debt]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 29)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(0);
+  });
+
+  it("marca vencido no mes de inicio quando o dueDay ja passou", async () => {
+    // Inicio 07/08/2026; hoje 15/08/2026 => venceu o ciclo de agosto.
+    const debt = makeRecurringDebt({
+      id: "rent",
+      dueDay: null,
+      recurringAmountCents: 150000n,
+      startDate: new Date("2026-08-07"),
+    });
+    const repo = makeDebtRepo([debt]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 7, 15)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(1);
+    expect(res.value[0]!.cycleIso).toBe("2026-08");
   });
 
   it("recorrente com dueDay=31 em mes de 30 dias usa ultimo dia do mes", async () => {
