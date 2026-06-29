@@ -2,6 +2,7 @@
 
 import type { ChangeEvent } from "react";
 import { useEffect, useRef, useState } from "react";
+import { formatPercentDisplay, parsePercentInput } from "@/shared/format/percent-input";
 import {
   type Control,
   Controller,
@@ -37,29 +38,22 @@ function PercentInputInner<TFieldValues extends FieldValues>(props: InnerProps<T
   const numericValue =
     typeof field.value === "number" && Number.isFinite(field.value) ? (field.value as number) : 0;
 
-  const [display, setDisplay] = useState<string>(numericValue === 0 ? "" : String(numericValue));
+  const [display, setDisplay] = useState<string>(formatPercentDisplay(numericValue));
   const focusedRef = useRef(false);
 
   // Sincroniza o display quando o valor muda de fora (ex: botão de estimativa),
   // sem atropelar a digitação do usuário.
   useEffect(() => {
     if (!focusedRef.current) {
-      setDisplay(numericValue === 0 ? "" : String(numericValue));
+      setDisplay(formatPercentDisplay(numericValue));
     }
   }, [numericValue]);
 
   function onChange(e: ChangeEvent<HTMLInputElement>) {
     const raw = e.target.value;
     setDisplay(raw);
-    if (raw === "") {
-      field.onChange(0);
-      return;
-    }
-    const normalized = raw.replace(",", ".");
-    const parsed = Number(normalized);
-    if (Number.isFinite(parsed)) {
-      field.onChange(parsed);
-    }
+    const parsed = parsePercentInput(raw);
+    if (parsed !== null) field.onChange(parsed);
   }
 
   function onFocus() {
@@ -71,7 +65,7 @@ function PercentInputInner<TFieldValues extends FieldValues>(props: InnerProps<T
 
   function onBlur() {
     focusedRef.current = false;
-    setDisplay(numericValue === 0 ? "" : String(numericValue));
+    setDisplay(formatPercentDisplay(numericValue));
     field.onBlur();
   }
 
