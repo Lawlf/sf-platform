@@ -24,11 +24,16 @@ const EST_TOOLTIP_H = 210;
 // retornam null (ex: HomeGoalCard sem meta) deixam o wrapper com altura 0 -> o passo
 // é removido da sequência (não aparece nem conta no "X de N"). O gate por dado real
 // (hasGoal) roda antes para não depender do timing do esqueleto do Suspense.
+//
+// A ordem dos cards na home é dinâmica (home-layout.ts varia por estado), então
+// ordenamos pela posição REAL no DOM para o tour fluir topo->baixo em vez de seguir
+// a ordem fixa da lista (que fazia o scroll pular pra frente e pra trás).
 function visibleSteps(hasGoal: boolean): CoachmarkStep[] {
-  return gateSteps(COACHMARK_STEPS, { hasGoal }).filter((s) => {
-    const el = document.querySelector(s.target);
-    return !!el && el.getBoundingClientRect().height > 0;
-  });
+  return gateSteps(COACHMARK_STEPS, { hasGoal })
+    .map((step) => ({ step, top: document.querySelector(step.target)?.getBoundingClientRect() }))
+    .filter((s): s is { step: CoachmarkStep; top: DOMRect } => !!s.top && s.top.height > 0)
+    .sort((a, b) => a.top.top - b.top.top)
+    .map((s) => s.step);
 }
 
 export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: boolean }) {
@@ -117,8 +122,14 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
       return;
     }
     const r = el.getBoundingClientRect();
-    const finalTop = Math.max(PAD, (window.innerHeight - r.height) / 2);
-    place({ top: finalTop, left: r.left, width: r.width, height: r.height });
+    // Prevê a posição final REAL pós-scroll. scrollIntoView(center) tenta centralizar,
+    // mas o scroll satura em [0, maxScroll]: no 1o passo (topo) e no último (fim) ele
+    // não centraliza, então assumir o centro fazia o box nascer no meio e pular pro lugar.
+    const maxScroll = Math.max(0, document.documentElement.scrollHeight - window.innerHeight);
+    const desiredDelta = r.top + r.height / 2 - window.innerHeight / 2;
+    const newScrollY = Math.min(Math.max(0, window.scrollY + desiredDelta), maxScroll);
+    const predictedTop = r.top - (newScrollY - window.scrollY);
+    place({ top: predictedTop, left: r.left, width: r.width, height: r.height });
     el.scrollIntoView({ block: "center", behavior: "smooth" });
 
     const settle = () => measure();

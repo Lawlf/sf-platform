@@ -23,10 +23,6 @@ import { ExpenseStep } from "./steps/expense-step.client";
 import { FocusStep } from "./steps/focus-step.client";
 import { GoalStep } from "./steps/goal-step.client";
 import { IncomeStep } from "./steps/income-step.client";
-import { ResultGoal } from "./steps/result-goal.client";
-import { ResultMonthClosing } from "./steps/result-month-closing.client";
-import { ResultNetWorth } from "./steps/result-networth.client";
-import { ResultPrescription } from "./steps/result-prescription.client";
 
 export function OnboardingWizardClient({
   initialFocus,
@@ -126,39 +122,16 @@ export function OnboardingWizardClient({
       <ExpenseStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
-  if (current === "result-month-closing") {
-    return (
-      <ResultMonthClosing stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
-    );
-  }
-  if (current === "result-prescription") {
-    return (
-      <ResultPrescription stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
-    );
-  }
-
   if (current === "goal") {
     return (
       <GoalStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
-  if (current === "result-goal") {
-    return (
-      <ResultGoal stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
-    );
-  }
-
   if (current === "asset") {
     return (
       <AssetStep stepNumber={stepNumber} totalSteps={steps.length} onDone={advance} onBack={goBack} onSkip={advance} />
     );
   }
-  if (current === "result-networth") {
-    return (
-      <ResultNetWorth stepNumber={stepNumber} totalSteps={steps.length} onFinish={advance} onBack={goBack} finishing={finishing} />
-    );
-  }
-
   if (current === "acquisition") {
     return (
       <AcquisitionStep

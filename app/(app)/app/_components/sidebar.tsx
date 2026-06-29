@@ -9,6 +9,7 @@ import {
   FileText,
   HomeIcon,
   LineChart,
+  Lock,
   LogOut,
   MessageCircle,
   PanelRightClose,
@@ -136,9 +137,10 @@ export interface SidebarProps {
   activeProfileId: string;
   hasHousehold: boolean;
   notificationCount: number;
+  canCreate?: boolean;
 }
 
-export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold, notificationCount }: SidebarProps) {
+export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfileId, hasHousehold, notificationCount, canCreate = true }: SidebarProps) {
   const pathname = usePathname();
   const isOnConteudoImmersive =
     pathname.startsWith("/app/conteudo/trilha") ||
@@ -313,6 +315,7 @@ export function Sidebar({ displayName, avatarUrl, isPro, profiles, activeProfile
         collapsed={collapsed}
         profiles={profiles}
         activeProfileId={activeProfileId}
+        canCreate={canCreate}
       />
     </aside>
   );
@@ -331,6 +334,7 @@ function AccountZone({
   collapsed,
   profiles,
   activeProfileId,
+  canCreate,
 }: {
   displayName: string;
   avatarUrl?: string | null | undefined;
@@ -338,6 +342,7 @@ function AccountZone({
   collapsed: boolean;
   profiles: SerializedProfile[];
   activeProfileId: string;
+  canCreate: boolean;
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
@@ -442,8 +447,15 @@ function AccountZone({
         <Plus size={15} strokeWidth={2} aria-hidden />
       </span>
       <span className="flex min-w-0 flex-1 flex-col items-start">
-        <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">Criar perfil</span>
-        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Separe o dinheiro de uma empresa MEI do seu pessoal.</span>
+        <span className="flex items-center gap-1.5">
+          <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">Criar perfil</span>
+          {!canCreate ? (
+            <span className="flex-none rounded bg-[color:var(--color-brand-500)]/[0.16] px-1.5 py-px text-[0.5625rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
+              Pro
+            </span>
+          ) : null}
+        </span>
+        <span className="text-[0.6875rem] text-[color:var(--text-muted)]">Separe o dinheiro de um negócio (MEI, por exemplo) do seu pessoal.</span>
       </span>
     </button>
   );
@@ -510,6 +522,7 @@ function AccountZone({
 
               {profiles.map((profile) => {
                 const active = profile.id === activeProfileId;
+                const locked = profile.locked;
                 const subtitle = profileSubtitle(profile);
                 return (
                   <button
@@ -517,21 +530,26 @@ function AccountZone({
                     type="button"
                     role="menuitemradio"
                     aria-checked={active}
-                    disabled={pending || active}
+                    disabled={pending || active || locked}
                     onClick={() => handleSwitch(profile.id)}
-                    className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
+                    className={`focus-ring flex w-full items-center gap-2.5 rounded-lg px-2.5 py-2 transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"} ${locked ? "opacity-60" : ""}`}
                   >
                     <UserAvatar
-                      dataUrl={active ? avatarUrl : undefined}
-                      displayName={displayName}
+                      dataUrl={profile.isPrimary ? avatarUrl : undefined}
+                      displayName={profile.displayName ?? displayName}
                       className={`flex h-7 w-7 flex-none items-center justify-center rounded-md bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.625rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
                     />
                     <span className="flex min-w-0 flex-1 flex-col items-start">
                       <span className="truncate text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
                         {profile.displayName ?? displayName}
                       </span>
-                      <span className="text-[0.6875rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                      <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                        {locked ? "Guardado · volta com o Pro" : subtitle}
+                      </span>
                     </span>
+                    {locked ? (
+                      <Lock size={13} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+                    ) : null}
                   </button>
                 );
               })}
@@ -559,7 +577,7 @@ function AccountZone({
         </div>
       ) : null}
 
-      <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} />
+      <CreateProfileSheet open={sheetOpen} onOpenChange={setSheetOpen} canCreate={canCreate} />
 
       {collapsed ? (
         <SimpleTooltip label="Conta" side="right">

@@ -9,6 +9,7 @@ export const ACQUISITION_LABELS: Record<string, string> = {
   facebook: "Facebook",
   free_calculator: "Calculadora grátis",
   google_search: "Google",
+  dont_remember: "Não lembro",
   other: "Outro",
 };
 

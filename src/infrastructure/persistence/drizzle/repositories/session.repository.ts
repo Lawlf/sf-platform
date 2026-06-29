@@ -33,6 +33,8 @@ function userRowToEntity(row: typeof users.$inferSelect): UserEntity {
     role: row.role,
     plan: row.plan,
     isPro: row.isPro,
+    proGraceUntil: row.proGraceUntil,
+    freeKeptProfileId: row.freeKeptProfileId,
     deactivatedAt: row.deactivatedAt,
     deactivationReason: row.deactivationReason,
     contentDiagnosticAnswer: row.contentDiagnosticAnswer,

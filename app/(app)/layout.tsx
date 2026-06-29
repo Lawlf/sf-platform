@@ -22,6 +22,7 @@ import { MoneyVisibilityProvider } from "./app/_components/money-visibility/mone
 import { OfflineBanner } from "./app/_components/offline-banner.client";
 import { OfflineCacheWarmer } from "./app/_components/offline-cache-warmer.client";
 import { OfflineNavGuard } from "./app/_components/offline-nav-guard.client";
+import { ProfileLockBanner } from "./app/_components/profile-lock-banner.client";
 import { InstallProvider } from "./app/_components/pwa/install-provider.client";
 import { Sidebar } from "./app/_components/sidebar";
 import { Topbar } from "./app/_components/topbar";
@@ -95,6 +96,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
               hasHousehold={hasHousehold}
               notificationCount={notificationCount}
+              canCreate={profilesPayload?.canCreate ?? true}
             />
             <Topbar />
             <MobileTopBar
@@ -103,6 +105,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
               notificationCount={notificationCount}
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
+              canCreate={profilesPayload?.canCreate ?? true}
             />
 
             <UsageHeartbeat />
@@ -110,6 +113,13 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <OfflineNavGuard />
             <OfflineCacheWarmer />
             <OfflineBanner />
+            {profilesPayload ? (
+              <ProfileLockBanner
+                inGrace={profilesPayload.inGrace}
+                hasLocked={profilesPayload.hasLocked}
+                graceUntilIso={profilesPayload.graceUntilIso}
+              />
+            ) : null}
             {children}
 
             <div className="md:hidden">

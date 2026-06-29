@@ -36,7 +36,7 @@ function makeUser(id: string, isPro: boolean): UserEntity {
     quickAccess: [],
     username: null,
     profileFlair: null,
-    baseCurrency: "BRL",
+    baseCurrency: "BRL", proGraceUntil: null, freeKeptProfileId: null,
     createdAt: NOW,
     updatedAt: NOW,
   };

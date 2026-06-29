@@ -4,7 +4,9 @@ export interface CoachmarkStep {
   body: string;
 }
 
-// Ordem segue a posicao visual na home (topo para baixo) para o scroll fluir natural.
+// A ordem aqui é só a lista de candidatos. A home renderiza os cards em ordem
+// dinâmica (home-layout.ts), então o tour ordena pela posição real no DOM em tempo
+// de execução (ver visibleSteps em home-coachmarks.client.tsx).
 export const COACHMARK_STEPS: CoachmarkStep[] = [
   {
     target: '[data-tour="hero"]',
@@ -20,6 +22,11 @@ export const COACHMARK_STEPS: CoachmarkStep[] = [
     target: '[data-tour="next-step"]',
     title: "Seu próximo passo",
     body: "Todo mês mostramos o movimento certo para você, com base nos seus números.",
+  },
+  {
+    target: '[data-tour="projection"]',
+    title: "Sua projeção",
+    body: "No ritmo atual, quanto o que é seu cresce por mês e onde chega com o tempo.",
   },
   {
     target: '[data-tour="goals"]',

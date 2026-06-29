@@ -20,6 +20,10 @@ export const users = pgTable(
     role: userRole("role").notNull().default("user"),
     plan: userPlan("plan").notNull().default("free"),
     isPro: boolean("is_pro").notNull().default(false),
+    // Lock-on-downgrade de perfis: durante a graça (7 dias pós-downgrade) todos os
+    // perfis ficam acessíveis; depois, só o freeKeptProfileId (ou o primary) no Free.
+    proGraceUntil: timestamp("pro_grace_until", { withTimezone: true }),
+    freeKeptProfileId: uuid("free_kept_profile_id"),
     baseCurrency: text("base_currency").notNull().default("BRL"),
     deactivatedAt: timestamp("deactivated_at", { withTimezone: true }),
     deactivationReason: text("deactivation_reason"),

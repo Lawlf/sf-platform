@@ -13,6 +13,7 @@ export const acquisitionChannelSchema = z
       "facebook",
       "free_calculator",
       "google_search",
+      "dont_remember",
       "other",
     ]),
     detail: z.string().trim().max(120).optional(),

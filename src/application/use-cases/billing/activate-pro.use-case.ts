@@ -19,7 +19,15 @@ export async function activatePro(deps: ActivateProDeps, userId: string): Promis
   if (!user) return;
   const wasFreeBefore = !user.isPro || user.plan !== "pro";
   if (wasFreeBefore) {
-    const updated = { ...user, isPro: true, plan: "pro" as const, updatedAt: deps.clock.now() };
+    // Volta pro Pro: destranca tudo, zera graça e a escolha de perfil único.
+    const updated = {
+      ...user,
+      isPro: true,
+      plan: "pro" as const,
+      proGraceUntil: null,
+      freeKeptProfileId: null,
+      updatedAt: deps.clock.now(),
+    };
     await deps.users.update(updated);
     // Deactivated accounts must not receive any e-mail (LGPD: account hidden,
     // data retained but no outreach). Keep the billing flag consistent, skip
