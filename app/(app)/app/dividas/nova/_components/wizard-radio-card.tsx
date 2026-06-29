@@ -24,8 +24,9 @@ export function WizardRadioCard({
     return (
       <button
         type="button"
+        role="radio"
         onClick={onSelect}
-        aria-pressed={active}
+        aria-checked={active}
         className={`flex w-full items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-3.5 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
           active
             ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/12"
@@ -66,8 +67,9 @@ export function WizardRadioCard({
   return (
     <button
       type="button"
+      role="radio"
       onClick={onSelect}
-      aria-pressed={active}
+      aria-checked={active}
       className={`rounded-xl border-[1.5px] p-3 text-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
         active
           ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/12"

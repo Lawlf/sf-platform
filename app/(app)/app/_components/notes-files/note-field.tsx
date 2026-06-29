@@ -47,6 +47,7 @@ export function NoteField({ entityType, entityId, initialBody }: Props) {
   return (
     <div>
       <textarea
+        aria-label="Anotação"
         value={body}
         onChange={(e) => {
           setBody(e.target.value);

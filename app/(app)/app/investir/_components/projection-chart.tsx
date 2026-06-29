@@ -36,12 +36,14 @@ export function ProjectionChart({
     imposto: Number(p.taxCents) / 100,
   }));
 
+  const ariaLabel = `Quanto rende mês a mês sobre ${brl(principalCents)}. No mês ${last.month} você fica com ${brl(last.netYieldCents)}${hasTax ? `, imposto ${brl(last.taxCents)}` : ", isento de imposto"}.`;
+
   return (
     <div>
       <p className="mb-1 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
         Quanto rende, mês a mês (sobre {brl(principalCents)})
       </p>
-      <div className="h-40 w-full">
+      <div className="h-40 w-full" role="img" aria-label={ariaLabel}>
         <ResponsiveContainer width="100%" height="100%">
           <AreaChart data={data} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
             <defs>
@@ -96,6 +98,26 @@ export function ProjectionChart({
           </AreaChart>
         </ResponsiveContainer>
       </div>
+
+      <table className="sr-only">
+        <caption>Rendimento mês a mês</caption>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Fica com você</th>
+            <th>Imposto</th>
+          </tr>
+        </thead>
+        <tbody>
+          {points.map((p) => (
+            <tr key={p.month}>
+              <td>{p.month}</td>
+              <td>{brl(p.netYieldCents)}</td>
+              <td>{brl(p.taxCents)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
 
       <div className="mt-1 flex flex-wrap gap-x-4 gap-y-1 text-[0.6875rem] text-[color:var(--text-secondary)]">
         <span className="inline-flex items-center gap-1.5">

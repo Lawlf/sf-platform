@@ -62,7 +62,11 @@ export function InvestmentEvolutionCard() {
       </h2>
 
       {enoughHistory ? (
-        <div className="mt-3 h-44 w-full">
+        <div
+          className="mt-3 h-44 w-full"
+          role="img"
+          aria-label={`Evolução dos investimentos por mês. Total atual ${fmtBrl(totalReais)}.`}
+        >
           <ResponsiveContainer width="100%" height="100%">
             <AreaChart data={chartData} margin={{ top: 6, right: 6, bottom: 0, left: 0 }}>
               <XAxis
@@ -105,6 +109,30 @@ export function InvestmentEvolutionCard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
+      ) : null}
+
+      {enoughHistory ? (
+        <table className="sr-only">
+          <caption>Evolução dos investimentos por mês</caption>
+          <thead>
+            <tr>
+              <th>Mês</th>
+              {data.types.map((t) => (
+                <th key={t}>{labelFor(t)}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {data.months.map((m) => (
+              <tr key={m.month}>
+                <td>{m.month}</td>
+                {data.types.map((t) => (
+                  <td key={t}>{fmtBrl(Number(m.byType[t] ?? "0") / 100)}</td>
+                ))}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       ) : null}
 
       <div className="mt-3 flex flex-col gap-1.5 text-[0.8125rem]">

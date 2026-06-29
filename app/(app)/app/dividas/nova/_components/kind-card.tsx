@@ -27,8 +27,9 @@ export function KindCard({ icon, title, description, selected, onSelect }: KindC
   return (
     <button
       type="button"
+      role="radio"
       onClick={handleClick}
-      aria-pressed={filled}
+      aria-checked={filled}
       disabled={pending}
       className={`flex w-full items-center gap-3 rounded-[14px] border-[1.5px] p-3 backdrop-blur-[16px] transition-all duration-200 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
         filled

@@ -134,6 +134,7 @@ export function HouseholdPanel({
                       onClick={() => handleSetRole(m.userId, "admin")}
                       className="focus-ring rounded p-1 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
                       title="Tornar admin"
+                      aria-label="Tornar administrador"
                     >
                       <Shield size={14} strokeWidth={2} aria-hidden />
                     </button>
@@ -144,6 +145,7 @@ export function HouseholdPanel({
                       onClick={() => handleSetRole(m.userId, "member")}
                       className="focus-ring rounded p-1 text-[color:var(--text-muted)] hover:text-[color:var(--text-primary)]"
                       title="Rebaixar para membro"
+                      aria-label="Rebaixar para membro"
                     >
                       <MoreHorizontal size={14} strokeWidth={2} aria-hidden />
                     </button>

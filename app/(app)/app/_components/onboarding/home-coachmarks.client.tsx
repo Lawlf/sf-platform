@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { dismissHomeTourAction } from "../../_actions/onboarding";
+import { useFocusTrap } from "../../_lib/a11y/use-focus-trap";
 
 import { COACHMARK_STEPS, type CoachmarkStep, gateSteps } from "./coachmark-steps";
 
@@ -47,12 +48,16 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
   // slide); entre passos o box plana até o componente.
   const [entered, setEntered] = useState(false);
 
+  const dialogRef = useRef<HTMLDivElement>(null);
+
   const step = steps[index];
 
   function finish() {
     setOpen(false);
     void dismissHomeTourAction();
   }
+
+  useFocusTrap(dialogRef, open && ready && !!step, { onEscape: finish });
 
   // Posiciona spotlight + tooltip a partir de um retângulo (em coords de viewport).
   const place = useCallback((r: Rect) => {
@@ -160,8 +165,10 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
 
   return (
     <div
+      ref={dialogRef}
       className="fixed inset-0 z-[100] animate-in fade-in duration-300"
       role="dialog"
+      aria-modal="true"
       aria-label="Tour da tela inicial"
     >
       {/* Spotlight: um buraco sobre o alvo via box-shadow gigante. Se o alvo não é
@@ -194,8 +201,10 @@ export function HomeCoachmarks({ active, hasGoal }: { active: boolean; hasGoal: 
             top: pos.top,
           }}
         >
-          <p className="text-sm font-semibold">{step.title}</p>
-          <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{step.body}</p>
+          <div aria-live="polite">
+            <p className="text-sm font-semibold">{step.title}</p>
+            <p className="mt-1 text-sm text-[color:var(--text-secondary)]">{step.body}</p>
+          </div>
           <div className="mt-4 flex items-center justify-between">
             <button
               type="button"

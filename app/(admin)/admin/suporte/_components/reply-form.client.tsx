@@ -62,6 +62,7 @@ export function ReplyForm({
           : "Resposta única e direta: o usuário recebe, mas não responde de volta por aqui."}
       </p>
       <textarea
+        aria-label="Resposta"
         value={reply}
         onChange={(e) => setReply(e.target.value)}
         rows={4}

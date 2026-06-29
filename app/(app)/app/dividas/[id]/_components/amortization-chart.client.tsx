@@ -55,7 +55,6 @@ export function AmortizationChart({ rows, selectedMonth, onSelect }: Props) {
             data={rows}
             margin={{ top: 8, right: 0, bottom: 0, left: 0 }}
             barCategoryGap="22%"
-            accessibilityLayer={false}
           >
             <XAxis
               dataKey="month"
@@ -113,6 +112,29 @@ export function AmortizationChart({ rows, selectedMonth, onSelect }: Props) {
           </BarChart>
         </ResponsiveContainer>
       </div>
+      <table className="sr-only">
+        <caption>Amortização mês a mês</caption>
+        <thead>
+          <tr>
+            <th>Mês</th>
+            <th>Abatido</th>
+            <th>Juros</th>
+            <th>Quanto falta</th>
+            <th>Situação</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.month}>
+              <td>{r.monthLabel}</td>
+              <td>{r.abateLabel}</td>
+              <td>{r.juroLabel}</td>
+              <td>{r.remainingBalanceLabel}</td>
+              <td>{r.paid ? "Pago" : "A pagar"}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

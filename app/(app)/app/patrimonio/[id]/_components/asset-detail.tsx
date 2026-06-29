@@ -273,8 +273,8 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         hasLinkedDebts={props.linkedDebts.length > 0}
       />
 
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-        <div className="flex items-center justify-between">
+      <section className="flex flex-col">
+        <div className="flex items-center justify-between px-1">
           <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Metas vinculadas</h2>
           <Link
             href={
@@ -307,7 +307,7 @@ export function AssetDetailView(props: AssetDetailViewProps) {
             ))}
           </ul>
         ) : (
-          <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
+          <p className="mt-2 px-1 text-[0.6875rem] text-[color:var(--text-muted)]">
             Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
           </p>
         )}
@@ -823,8 +823,8 @@ function LinkedDebtsSection({
     return null;
   }
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Dívidas vinculadas</h2>
+    <section className="flex flex-col">
+      <h2 className="px-1 text-sm font-semibold text-[color:var(--text-primary)]">Dívidas vinculadas</h2>
       <ul className="mt-3 flex flex-col gap-2">
         {linkedDebts.map((d) => (
           <LinkedDebtRow key={d.debtId} assetId={assetId} debt={d} />
@@ -1258,10 +1258,14 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
           ) : null}
 
           <div className="flex flex-col gap-1.5">
-            <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+            <label
+              htmlFor="asset-detail-notes"
+              className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]"
+            >
               Observações (opcional)
             </label>
             <textarea
+              id="asset-detail-notes"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               placeholder="Detalhes que queira lembrar depois."

@@ -23,6 +23,7 @@ import { useRouter } from "next/navigation";
 import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 
+import { useFocusTrap } from "../_lib/a11y/use-focus-trap";
 import { isOfflineRoute } from "../_lib/offline/offline-routes";
 import { useOnline } from "../_lib/offline/use-online";
 import { SETTINGS_ADVANCED_SECTIONS, SETTINGS_SECTIONS } from "../_lib/settings-items";
@@ -150,6 +151,9 @@ export function CommandPalette() {
   const [canScrollDown, setCanScrollDown] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(dialogRef, open, { onEscape: () => setOpen(false), initialFocus: inputRef });
 
   function updateScrollHint() {
     const el = listRef.current;
@@ -255,6 +259,7 @@ export function CommandPalette() {
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Pesquisar"

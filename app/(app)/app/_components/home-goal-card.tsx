@@ -63,6 +63,7 @@ export async function HomeGoalCard() {
             aria-valuenow={pct}
             aria-valuemin={0}
             aria-valuemax={100}
+            aria-label={`Progresso da meta: ${pct.toFixed(0)}%`}
           />
         </div>
       )}

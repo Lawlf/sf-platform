@@ -108,7 +108,7 @@ export default async function LinhaDoTempoPage({ searchParams }: PageProps) {
     : [];
 
   const projectionInitial = await fetchPlanningProjection();
-  const forwardMilestones = await fetchForwardMilestones(projectionInitial?.goals ?? []);
+  const forwardMilestones = await fetchForwardMilestones();
 
   return (
     <PageShell title="Linha do tempo" description="Sua trajetória financeira mês a mês.">

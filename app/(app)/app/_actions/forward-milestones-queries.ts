@@ -4,7 +4,6 @@ import { addMonthsClamped } from "@/domain/services/debt-calendar.service";
 import {
   buildForwardMilestones,
   type ForwardMilestone,
-  type GoalEtaInput,
 } from "@/domain/services/forward-milestones.service";
 import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
@@ -12,7 +11,7 @@ import { getCurrentUser } from "@/presentation/http/middleware/cached-current-us
 
 const WINDOW_MONTHS = 24;
 
-export async function fetchForwardMilestones(goals: GoalEtaInput[]): Promise<ForwardMilestone[]> {
+export async function fetchForwardMilestones(): Promise<ForwardMilestone[]> {
   const user = await getCurrentUser();
   if (!user) return [];
 
@@ -25,11 +24,5 @@ export async function fetchForwardMilestones(goals: GoalEtaInput[]): Promise<For
     repos.transactions.listForProfileInRange(profileId, now, rangeEnd),
   ]);
 
-  return buildForwardMilestones({
-    now,
-    debts,
-    transactions,
-    goals,
-    windowMonths: WINDOW_MONTHS,
-  });
+  return buildForwardMilestones({ now, debts, transactions, windowMonths: WINDOW_MONTHS });
 }

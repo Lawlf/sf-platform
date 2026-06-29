@@ -123,8 +123,16 @@ export function UnifiedTrajectoryChart({
   const markToday = Boolean(todayIso) && hasFuture && past.length > 0;
   const ticks = markToday ? [firstIso, todayIso!, lastIso] : [firstIso, lastIso];
 
+  const startReais = pastRows.length > 0 ? pastRows[0]!.past : null;
+  const todayReais = pastRows.length > 0 ? pastRows[pastRows.length - 1]!.past : null;
+  const projectedReais = futureRows.length > 0 ? futureRows[futureRows.length - 1]!.future : null;
+  const fmtSummary = (v: number | null) =>
+    v === null ? "sem dado" : hidden ? "R$ •••" : brl0(v);
+  const ariaLabel = `Trajetória do patrimônio. Início ${fmtSummary(startReais)}, hoje ${fmtSummary(todayReais)}${hasFuture ? `, projetado no ritmo atual ${fmtSummary(projectedReais)}` : ""}.`;
+
   return (
-    <div className="h-44 w-full">
+    <>
+    <div className="h-44 w-full" role="img" aria-label={ariaLabel}>
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 8 }}>
           <defs>
@@ -184,5 +192,29 @@ export function UnifiedTrajectoryChart({
         </AreaChart>
       </ResponsiveContainer>
     </div>
+    <table className="sr-only">
+      <caption>Patrimônio mês a mês</caption>
+      <thead>
+        <tr>
+          <th>Mês</th>
+          <th>Patrimônio</th>
+          <th>Situação</th>
+        </tr>
+      </thead>
+      <tbody>
+        {data.map((d) => {
+          const value = d.past ?? d.future ?? 0;
+          const projected = d.past === null;
+          return (
+            <tr key={d.iso}>
+              <td>{shortMonth(d.iso)}</td>
+              <td>{hidden ? "R$ •••" : brl0(value)}</td>
+              <td>{projected ? "projetado" : "realizado"}</td>
+            </tr>
+          );
+        })}
+      </tbody>
+    </table>
+    </>
   );
 }

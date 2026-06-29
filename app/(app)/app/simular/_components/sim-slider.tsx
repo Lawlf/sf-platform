@@ -17,7 +17,7 @@ interface SimSliderProps {
 // WebKit descarta o trilho nativo (e o fundo do input some no tema escuro).
 // Classes literais: o JIT do Tailwind escaneia o source estaticamente.
 const SLIDER_CLASS =
-  "w-full cursor-pointer appearance-none bg-transparent focus-visible:outline-none " +
+  "focus-ring w-full cursor-pointer appearance-none rounded-full bg-transparent " +
   "[&::-webkit-slider-runnable-track]:h-2 [&::-webkit-slider-runnable-track]:rounded-full [&::-webkit-slider-runnable-track]:bg-[color:var(--border-strong)] " +
   "[&::-webkit-slider-thumb]:-mt-1 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-0 [&::-webkit-slider-thumb]:bg-[color:var(--color-brand-500)] [&::-webkit-slider-thumb]:shadow-[0_1px_3px_rgba(0,0,0,0.3)] " +
   "[&::-moz-range-track]:h-2 [&::-moz-range-track]:rounded-full [&::-moz-range-track]:bg-[color:var(--border-strong)] " +
@@ -54,6 +54,7 @@ export function SimSlider({
         max={max}
         step={step}
         value={value}
+        aria-valuetext={displayValue}
         onChange={(e) => onChange(parseFloat(e.target.value))}
         className={SLIDER_CLASS}
       />

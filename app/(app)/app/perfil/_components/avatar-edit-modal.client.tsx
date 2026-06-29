@@ -3,6 +3,8 @@
 import { Check, X, ZoomIn } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+import { useFocusTrap } from "../../_lib/a11y/use-focus-trap";
+
 const BOX = 256;
 const OUTPUT = 256;
 
@@ -27,6 +29,9 @@ export function AvatarEditModal({ source, pending, onCancel, onConfirm }: Avatar
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const drag = useRef<{ x: number; y: number } | null>(null);
+  const dialogRef = useRef<HTMLDivElement>(null);
+
+  useFocusTrap(dialogRef, true, { onEscape: onCancel });
 
   const effScale = baseScale * zoom;
   const dispW = ready ? imgRef.current!.naturalWidth * effScale : BOX;
@@ -93,6 +98,7 @@ export function AvatarEditModal({ source, pending, onCancel, onConfirm }: Avatar
 
   return (
     <div
+      ref={dialogRef}
       role="dialog"
       aria-modal="true"
       aria-label="Ajustar foto de perfil"
