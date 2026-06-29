@@ -37,8 +37,9 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
           };
           return (
             <WizardField label="O que é">
-              <div className="grid grid-cols-2 gap-2">
+              <div className="flex flex-col gap-2.5">
                 <WizardRadioCard
+                  chevron
                   icon={cardIcon(Car)}
                   title="Veículo"
                   description="Carro, moto..."
@@ -46,6 +47,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
                   onSelect={() => pick("vehicle")}
                 />
                 <WizardRadioCard
+                  chevron
                   icon={cardIcon(House)}
                   title="Imóvel"
                   description="Casa, apto..."
@@ -53,6 +55,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
                   onSelect={() => pick("real_estate")}
                 />
                 <WizardRadioCard
+                  chevron
                   icon={cardIcon(TrendingUp)}
                   title="Investimento"
                   description="Ações, fundo, renda fixa, cripto."
@@ -60,6 +63,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
                   onSelect={() => pick("investment")}
                 />
                 <WizardRadioCard
+                  chevron
                   icon={cardIcon(PiggyBank)}
                   title="Dinheiro em conta"
                   description="Conta, poupança, reserva."
@@ -67,6 +71,7 @@ export function CategoryStep({ form, visualStep, onBack, onNext, totalSteps }: C
                   onSelect={() => pick("cash")}
                 />
                 <WizardRadioCard
+                  chevron
                   icon={cardIcon(Package)}
                   title="Outro"
                   description="Qualquer bem"

@@ -1,6 +1,14 @@
 import type { Route } from "next";
 import Link from "next/link";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
+
 import { fmtDate } from "../_lib/format";
 
 import {
@@ -52,7 +60,8 @@ export default async function SuportePage({ searchParams }: PageProps) {
   const defaultTo = ymd(new Date(now.getFullYear(), now.getMonth() + 1, 0));
 
   const status = (sp.status ?? "todos") as FeedbackStatusFilter;
-  const kind = sp.kind ?? "";
+  const kindParam = sp.kind ?? "";
+  const kind = kindParam === "todos" ? "" : kindParam;
   const from = sp.from ?? defaultFrom;
   const to = sp.to ?? defaultTo;
   const page = Math.max(1, Number.parseInt(sp.page ?? "1", 10) || 1);
@@ -82,32 +91,40 @@ export default async function SuportePage({ searchParams }: PageProps) {
         method="get"
         className="flex flex-wrap items-end gap-3 rounded-2xl border border-[color:var(--border-soft)] p-4"
       >
-        <label className="flex flex-col gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-          Status
-          <select
-            name="status"
-            defaultValue={status}
-            className="rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.8125rem] text-[color:var(--text-primary)]"
-          >
-            <option value="todos">Todos</option>
-            <option value="aberto">Aberto</option>
-            <option value="respondido">Respondido</option>
-            <option value="fechado">Fechado</option>
-          </select>
-        </label>
-        <label className="flex flex-col gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-          Tipo
-          <select
-            name="kind"
-            defaultValue={kind}
-            className="rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.8125rem] text-[color:var(--text-primary)]"
-          >
-            <option value="">Todos</option>
-            <option value="problema">Problema</option>
-            <option value="sugestao">Sugestão</option>
-            <option value="duvida">Dúvida</option>
-          </select>
-        </label>
+        <div className="flex flex-col gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <label htmlFor="filter-status">Status</label>
+          <Select name="status" defaultValue={status}>
+            <SelectTrigger
+              id="filter-status"
+              className="h-auto w-full rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.8125rem] text-[color:var(--text-primary)]"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="aberto">Aberto</SelectItem>
+              <SelectItem value="respondido">Respondido</SelectItem>
+              <SelectItem value="fechado">Fechado</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+          <label htmlFor="filter-kind">Tipo</label>
+          <Select name="kind" defaultValue={kind || "todos"}>
+            <SelectTrigger
+              id="filter-kind"
+              className="h-auto w-full rounded-lg border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2 text-[0.8125rem] text-[color:var(--text-primary)]"
+            >
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="todos">Todos</SelectItem>
+              <SelectItem value="problema">Problema</SelectItem>
+              <SelectItem value="sugestao">Sugestão</SelectItem>
+              <SelectItem value="duvida">Dúvida</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         <label className="flex flex-col gap-1 text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
           De
           <input

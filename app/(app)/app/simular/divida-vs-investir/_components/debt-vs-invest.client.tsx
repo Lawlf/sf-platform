@@ -1,9 +1,16 @@
 "use client";
 
-import { ChevronDown, PiggyBank, Scale, TrendingUp } from "lucide-react";
+import { PiggyBank, Scale, TrendingUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import { DebtVsInvestService } from "@/domain/services/debt-vs-invest.service";
 
 import { MoneyInput } from "../../../_components/money-input";
@@ -62,25 +69,18 @@ export function DebtVsInvestClient({ debts }: { debts: DebtItem[] }) {
             label="Dívida em jogo"
             helper={`Juro desta dívida: ${debtRate.toLocaleString("pt-BR", { minimumFractionDigits: 1, maximumFractionDigits: 1 })}% ao ano.`}
           >
-            <div className="relative">
-              <select
-                value={debtId}
-                onChange={(e) => setDebtId(e.target.value)}
-                className={simSelectClass}
-              >
+            <Select value={debtId} onValueChange={setDebtId}>
+              <SelectTrigger className={`${simSelectClass} h-auto w-full`}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {debts.map((d) => (
-                  <option key={d.id} value={d.id}>
+                  <SelectItem key={d.id} value={d.id}>
                     {d.label} - {d.balanceFormatted}
-                  </option>
+                  </SelectItem>
                 ))}
-              </select>
-              <ChevronDown
-                size={18}
-                strokeWidth={2}
-                aria-hidden
-                className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-              />
-            </div>
+              </SelectContent>
+            </Select>
           </WizardField>
 
           <MoneyInput

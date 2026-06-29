@@ -1,12 +1,18 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { ChevronDown } from "lucide-react";
 import { useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField } from "../../../dividas/nova/_components/wizard-field";
@@ -69,21 +75,24 @@ export function ExtraForm({
         className="glass-light flex flex-col gap-3 p-4"
       >
         <WizardField label="Dívida">
-          <div className="relative">
-            <select {...form.register("debtId")} className={simSelectClass}>
-              {debts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.label} - {d.currentBalanceFormatted}
-                </option>
-              ))}
-            </select>
-            <ChevronDown
-              size={18}
-              strokeWidth={2}
-              aria-hidden
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-            />
-          </div>
+          <Controller
+            control={form.control}
+            name="debtId"
+            render={({ field }) => (
+              <Select value={field.value} onValueChange={field.onChange}>
+                <SelectTrigger className={`${simSelectClass} h-auto w-full`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {debts.map((d) => (
+                    <SelectItem key={d.id} value={d.id}>
+                      {d.label} - {d.currentBalanceFormatted}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            )}
+          />
         </WizardField>
 
         <MoneyInput

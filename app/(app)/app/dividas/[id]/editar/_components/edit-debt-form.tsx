@@ -5,10 +5,17 @@ import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useRef, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
 import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 import type { DebtKind } from "@/domain/entities/debt.entity";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
@@ -399,17 +406,24 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
       {kind === "recurring" ? (
         <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
           <WizardField label="Categoria" htmlFor={categoryId}>
-            <select
-              id={categoryId}
-              {...form.register("expenseCategory")}
-              className={wizardInputClass}
-            >
-              {categories.map((c) => (
-                <option key={c.key} value={c.key}>
-                  {c.label}
-                </option>
-              ))}
-            </select>
+            <Controller
+              control={form.control}
+              name="expenseCategory"
+              render={({ field }) => (
+                <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                  <SelectTrigger id={categoryId} className={`${wizardInputClass} h-auto w-full`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {categories.map((c) => (
+                      <SelectItem key={c.key} value={c.key}>
+                        {c.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </WizardField>
           <MoneyInput
             control={form.control}
@@ -418,14 +432,21 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
             currency={currency}
           />
           <WizardField label="Frequência" htmlFor={frequencyId}>
-            <select
-              id={frequencyId}
-              {...form.register("recurringFrequency")}
-              className={wizardInputClass}
-            >
-              <option value="monthly">Mensal</option>
-              <option value="weekly">Semanal</option>
-            </select>
+            <Controller
+              control={form.control}
+              name="recurringFrequency"
+              render={({ field }) => (
+                <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                  <SelectTrigger id={frequencyId} className={`${wizardInputClass} h-auto w-full`}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Mensal</SelectItem>
+                    <SelectItem value="weekly">Semanal</SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            />
           </WizardField>
           <WizardField
             label="Dia do pagamento (opcional)"

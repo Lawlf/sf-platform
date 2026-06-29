@@ -6,6 +6,8 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { Spinner } from "@/app/components/ui/spinner";
 
+import { setFocusMode } from "../../../_lib/focus-mode";
+
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
 export interface WizardShellCtaProps {
@@ -56,16 +58,30 @@ export function WizardShell({
     headingRef.current?.focus();
   }, [currentStep]);
 
+  useEffect(() => {
+    setFocusMode(true);
+    return () => setFocusMode(false);
+  }, []);
+
+  const isPicker = !primary && !secondary;
+
   return (
-    <main className="relative mx-auto flex w-full max-w-md flex-col px-4 pt-4 pb-6 md:max-w-2xl lg:max-w-3xl">
+    <main
+      className={`relative mx-auto flex w-full max-w-md flex-col px-4 pb-6 pt-7 md:max-w-2xl md:pt-4 lg:max-w-3xl ${
+        isPicker ? "min-h-[calc(100dvh-72px)] md:min-h-0" : ""
+      }`}
+    >
       <div className="relative z-10 flex items-center gap-[10px]">
         <button
           type="button"
           onClick={handleBack}
           aria-label="Voltar"
-          className="flex h-8 w-8 items-center justify-center rounded-lg bg-[color:var(--surface-2)] text-[color:var(--text-primary)] backdrop-blur-sm transition-colors hover:bg-[color:var(--surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)]"
+          className={`flex h-8 items-center justify-center rounded-lg bg-[color:var(--surface-2)] text-[color:var(--text-primary)] backdrop-blur-sm transition-colors hover:bg-[color:var(--surface-1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
+            hideSteps ? "gap-1.5 px-2.5" : "w-8"
+          }`}
         >
           <ArrowLeft size={16} strokeWidth={2} aria-hidden />
+          {hideSteps ? <span className="text-[0.8125rem] font-semibold">Voltar</span> : null}
         </button>
         {hideSteps ? (
           <div className="flex-1" />
@@ -101,7 +117,9 @@ export function WizardShell({
 
       <div
         key={currentStep}
-        className="relative z-10 mt-8 animate-in fade-in-0 duration-150 md:mt-10"
+        className={`relative z-10 mt-5 animate-in fade-in-0 duration-150 md:mt-10 ${
+          isPicker ? "my-auto md:my-0" : ""
+        }`}
       >
         <h1
           ref={headingRef}

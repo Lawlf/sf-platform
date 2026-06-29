@@ -85,7 +85,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
         <MoneyVisibilityProvider initialHidden={hideValues}>
           <InstallProvider isPro={user.isPro}>
           <CopyProvider value={activeIsPj ? "PJ_MEI" : "PF"}>
-          <div className="relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
+          <div className="app-shell relative min-h-screen pb-24 pt-[72px] md:pb-0 md:pl-[var(--sidebar-w)] md:pt-[56px] md:transition-[padding] md:duration-200">
             <div className="bg-blob-bottom-left hidden md:block" aria-hidden />
             <div className="bg-blob-mid" aria-hidden />
             <Sidebar

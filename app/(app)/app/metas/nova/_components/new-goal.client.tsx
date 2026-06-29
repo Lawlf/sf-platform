@@ -1,13 +1,20 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle, ChevronDown } from "lucide-react";
+import { AlertTriangle } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
-import { useForm, useWatch } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 
 import { Button } from "@/app/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/app/components/ui/select";
 
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
@@ -149,26 +156,18 @@ function DebtPayoffStep({
             </p>
           ) : (
             <WizardField label="Dívida" htmlFor={selectId}>
-              <div className="relative">
-                <select
-                  id={selectId}
-                  className={simSelectClass}
-                  value={selectedDebtId}
-                  onChange={(e) => handleDebtChange(e.target.value)}
-                >
+              <Select value={selectedDebtId} onValueChange={handleDebtChange}>
+                <SelectTrigger id={selectId} className={`${simSelectClass} h-auto w-full`}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
                   {debts.map((d) => (
-                    <option key={d.id} value={d.id}>
+                    <SelectItem key={d.id} value={d.id}>
                       {d.label} ({brl(d.balanceCents)})
-                    </option>
+                    </SelectItem>
                   ))}
-                </select>
-                <ChevronDown
-                  size={18}
-                  strokeWidth={2}
-                  aria-hidden
-                  className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-                />
-              </div>
+                </SelectContent>
+              </Select>
             </WizardField>
           )}
           <WizardField label="Título da meta" htmlFor={titleId} helper="Como você quer chamar essa meta.">
@@ -384,25 +383,27 @@ function SavingsStep({
               </p>
             ) : (
               <WizardField label="Ativo vinculado" htmlFor={assetSelectId}>
-                <div className="relative">
-                  <select
-                    id={assetSelectId}
-                    className={simSelectClass}
-                    {...form.register("linkedAssetId")}
-                  >
-                    {assets.map((a) => (
-                      <option key={a.id} value={a.id}>
-                        {a.label} ({brl(a.valueCents)})
-                      </option>
-                    ))}
-                  </select>
-                  <ChevronDown
-                    size={18}
-                    strokeWidth={2}
-                    aria-hidden
-                    className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-                  />
-                </div>
+                <Controller
+                  control={form.control}
+                  name="linkedAssetId"
+                  render={({ field }) => (
+                    <Select value={field.value} onValueChange={field.onChange}>
+                      <SelectTrigger
+                        id={assetSelectId}
+                        className={`${simSelectClass} h-auto w-full`}
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {assets.map((a) => (
+                          <SelectItem key={a.id} value={a.id}>
+                            {a.label} ({brl(a.valueCents)})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  )}
+                />
               </WizardField>
             )
           ) : (

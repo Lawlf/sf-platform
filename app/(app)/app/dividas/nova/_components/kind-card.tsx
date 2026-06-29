@@ -1,5 +1,6 @@
 "use client";
 
+import { ChevronRight } from "lucide-react";
 import { type ReactNode, useState } from "react";
 
 export interface KindCardProps {
@@ -62,6 +63,14 @@ export function KindCard({ icon, title, description, selected, onSelect }: KindC
           </span>
         ) : null}
       </span>
+      <ChevronRight
+        size={18}
+        strokeWidth={2}
+        aria-hidden
+        className={`shrink-0 transition-colors duration-200 ${
+          filled ? "text-white/90" : "text-[color:var(--text-primary)] opacity-40"
+        }`}
+      />
     </button>
   );
 }
