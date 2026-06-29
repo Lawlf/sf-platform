@@ -1,8 +1,8 @@
 import { getUpcomingDueDates } from "@/application/use-cases/dashboard/get-upcoming-due-dates.use-case";
 import type { Clock } from "@/domain/ports/clock.port";
 import { clock, repos } from "@/infrastructure/container";
-import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
+import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
 
 export interface UpcomingDuePayload {
@@ -12,7 +12,7 @@ export interface UpcomingDuePayload {
   amountFormatted: string | null;
 }
 
-const BANNER_HORIZON_DAYS = 7;
+const AGENDA_HORIZON_DAYS = 30;
 
 export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
   const user = await getCurrentUser();
@@ -24,7 +24,7 @@ export async function fetchUpcomingDues(): Promise<UpcomingDuePayload[]> {
 
   const result = await getUpcomingDueDates(
     { debts: repos.debts, clock: dayClock },
-    { userId: user.id, profileId, horizonDays: BANNER_HORIZON_DAYS },
+    { userId: user.id, profileId, horizonDays: AGENDA_HORIZON_DAYS },
   );
   const dues = isOk(result) ? result.value : [];
 
