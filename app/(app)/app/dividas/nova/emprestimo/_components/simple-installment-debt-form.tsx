@@ -18,7 +18,7 @@ import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { ComputedCard } from "../../_components/computed-card";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "../../_components/wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 
 // Modo "divida simples": o ICP so sabe "pago X por mes, faltam Y parcelas".

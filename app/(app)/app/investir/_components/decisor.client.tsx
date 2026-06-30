@@ -10,7 +10,7 @@ import { useForm } from "react-hook-form";
 import { SavingsComparisonService } from "@/domain/services/savings-comparison.service";
 
 import { WizardField } from "@/ui/wizard-field";
-import { WizardMoneyField } from "../../dividas/nova/_components/wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { findInstrument } from "../_lib/instruments";
