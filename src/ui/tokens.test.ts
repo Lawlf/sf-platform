@@ -15,7 +15,7 @@ function cssVar(name: string): string {
 
 const norm = (s: string) => s.replace(/\s+/g, " ").trim();
 
-describe("tokens parity with globals.css @theme", () => {
+describe("tokens parity with globals.css", () => {
   it("brand ramp matches", () => {
     for (const [step, value] of Object.entries(color.brand)) {
       expect(cssVar(`color-brand-${step}`)).toBe(value);
