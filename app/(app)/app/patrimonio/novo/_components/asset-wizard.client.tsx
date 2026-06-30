@@ -11,6 +11,7 @@ import { z } from "zod";
 
 import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+import { todayIso } from "@/shared/format/dates";
 
 import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
 import { invalidateAssetCaches } from "../../_lib/invalidate";
@@ -424,7 +425,7 @@ export function AssetWizardClient({
       const startDate =
         values.acquiredAt && values.acquiredAt.length > 0
           ? values.acquiredAt
-          : new Date().toISOString().slice(0, 10);
+          : todayIso();
 
       const debtResult = await createDebtForAssetAction({
         kind,

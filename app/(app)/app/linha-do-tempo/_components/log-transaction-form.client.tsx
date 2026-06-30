@@ -40,6 +40,7 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 import { activeCategories } from "@/domain/categories/resolve-categories";
+import { todayIso, toIsoDate } from "@/shared/format/dates";
 
 import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 import {
@@ -118,24 +119,24 @@ function assetCategoryIcon(category: AttributableAssetOption["category"]) {
   return Package;
 }
 
-function todayIso(defaultMonthIso?: string): string {
+function initialOccurredAt(defaultMonthIso?: string): string {
   if (defaultMonthIso) {
     const parsed = new Date(defaultMonthIso);
     if (!Number.isNaN(parsed.getTime())) {
-      return parsed.toISOString().slice(0, 10);
+      return toIsoDate(parsed);
     }
   }
-  return new Date().toISOString().slice(0, 10);
+  return todayIso();
 }
 
 function tomorrowIso(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
-  return d.toISOString().slice(0, 10);
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
 function isFutureIso(iso: string): boolean {
-  return iso > new Date().toISOString().slice(0, 10);
+  return iso > todayIso();
 }
 
 export function LogTransactionForm({ defaultMonthIso }: Props) {
@@ -148,7 +149,7 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const [direction, setDirection] = useState<Direction>("out");
   const [status, setStatus] = useState<Status>("paid");
   const [category, setCategory] = useState<string>(NO_CATEGORY_VALUE);
-  const [occurredAt, setOccurredAt] = useState<string>(() => todayIso(defaultMonthIso));
+  const [occurredAt, setOccurredAt] = useState<string>(() => initialOccurredAt(defaultMonthIso));
   const [accounts, setAccounts] = useState<CashAccountOption[] | null>(null);
   const [accountId, setAccountId] = useState<string>(DEFAULT_ACCOUNT_VALUE);
   const [attributableAssets, setAttributableAssets] = useState<AttributableAssetOption[] | null>(

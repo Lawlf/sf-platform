@@ -6,6 +6,7 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { todayIso } from "@/shared/format/dates";
 
 import { fetchMonthDetail } from "../_actions/timeline-month-detail";
 import { daysUntilNextMonth, nextMonthFloorCents } from "../_lib/month-close";
@@ -29,8 +30,7 @@ export function NextMonthBridge({ currentMonthIso }: { currentMonthIso: string }
     timeZone: "UTC",
   }).format(nextMonth.toDate());
   const nextName = capitalize(nextNameLower);
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const days = daysUntilNextMonth(currentMonthIso, todayIso);
+  const days = daysUntilNextMonth(currentMonthIso, todayIso());
   const whenLabel = days <= 1 ? "começa amanhã" : `começa em ${days} dias`;
 
   const { data } = useQuery({

@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { todayIso } from "@/shared/format/dates";
+
 import { settleIncomeAction } from "../_actions/planning-actions";
 import type { SerializedIncomeRow } from "../_actions/timeline-month-detail";
 import { queryKeys } from "../_lib/query-keys";
@@ -30,7 +32,7 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
   const [pendingId, setPendingId] = useState<string | null>(null);
   const [settledIds, setSettledIds] = useState<Set<string>>(new Set());
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIso();
   const toConfirm = useMemo(
     () =>
       incomes.filter(
