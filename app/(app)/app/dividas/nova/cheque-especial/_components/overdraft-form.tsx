@@ -20,7 +20,7 @@ import { ComputedCard } from "../../_components/computed-card";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
-import { WizardShell } from "../../_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 
 const formSchema = z.object({

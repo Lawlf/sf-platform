@@ -6,7 +6,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
 import { KindCard } from "../../_components/kind-card";
-import { WizardShell } from "../../_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 
 function withLinkAsset(href: string, linkAssetId: string | null): Route {
   if (!linkAssetId) return href as Route;

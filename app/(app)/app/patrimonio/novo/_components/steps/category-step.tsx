@@ -5,7 +5,7 @@ import { Controller } from "react-hook-form";
 
 import { WizardField } from "@/ui/wizard-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
-import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import type { AssetWizardForm, Category } from "../asset-wizard.client";
 
 const cardIcon = (Icon: typeof Car) => <Icon size={18} strokeWidth={2} aria-hidden />;

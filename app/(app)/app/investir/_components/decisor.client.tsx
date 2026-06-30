@@ -12,7 +12,7 @@ import { SavingsComparisonService } from "@/domain/services/savings-comparison.s
 import { WizardField } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
-import { WizardShell } from "../../dividas/nova/_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { findInstrument } from "../_lib/instruments";
 import { optionsForHorizon, type ComparableProduct, type Horizon } from "../_lib/options";
 import { earlyWithdrawalSeries, projectSeries } from "../_lib/projection";

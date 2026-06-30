@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { fetchDashboardSnapshot } from "@/app/(app)/app/_actions/dashboard-queries";
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import { todayIso } from "@/shared/format/dates";
 import {
   Select,
