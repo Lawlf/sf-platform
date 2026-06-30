@@ -8,7 +8,7 @@ import { Spinner } from "@/app/components/ui/spinner";
 
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../../../dividas/nova/_components/wizard-money-field";
-import { WizardRadioCard } from "../../../../dividas/nova/_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";
 import {
   listActiveDebtsForLinking,

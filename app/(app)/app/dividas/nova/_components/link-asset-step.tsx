@@ -13,7 +13,7 @@ import {
 
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "./wizard-money-field";
-import { WizardRadioCard } from "./wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 export type LinkAssetChoice = "unset" | "no" | "existing" | "new";
 

@@ -13,7 +13,7 @@ import {
 
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { BreakdownLine, ResultCard } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
 

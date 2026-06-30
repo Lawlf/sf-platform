@@ -3,7 +3,7 @@
 import { Controller } from "react-hook-form";
 
 import { WizardField } from "@/ui/wizard-field";
-import { WizardRadioCard } from "../../../../dividas/nova/_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";
 import type { AssetWizardForm, InvestmentType } from "../asset-wizard.client";
 
