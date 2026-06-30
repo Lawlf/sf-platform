@@ -100,6 +100,7 @@ function makeFinancing(userId = "user-1"): FinancingDebt {
     termMonths: 60,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     deletedAt: null,
     recurringFrequency: null,
     recurringAmountCents: null,

@@ -8,9 +8,18 @@ import { useRouter } from "next/navigation";
 import { useId, useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
+import { Spinner } from "@/app/components/ui/spinner";
 import type { Currency } from "@/domain/value-objects/money.vo";
 import { todayIso } from "@/shared/format/dates";
+import { SummaryList } from "@/ui/summary-list";
+import { WizardChoiceGroup } from "@/ui/wizard-choice-group";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
+import { WizardPercentField } from "@/ui/wizard-percent-field";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
+import { fetchIncomes, type IncomeListItemPayload } from "../../../../_actions/income-queries";
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { computeCetAnnualText, computePriceInstallmentCents } from "../../../_lib/amortization";
@@ -34,12 +43,6 @@ import {
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
 import { ScenarioPicker } from "../../_components/scenario-picker";
-import { SummaryList } from "@/ui/summary-list";
-import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "@/ui/wizard-money-field";
-import { WizardPercentField } from "@/ui/wizard-percent-field";
-import { WizardRadioCard } from "@/ui/wizard-radio-card";
-import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { buildLinkSummary, debtCreatedHref, linkAssetDefaultsFor } from "../../_lib/link-asset";
 import {
   NEW_STEP2_FIELDS,
@@ -109,6 +112,8 @@ export function PersonalLoanForm({
   const installmentId = useId();
   const startDateId = useId();
   const dueDayId = useId();
+  const payrollDeductedId = useId();
+  const linkedIncomeFieldId = useId();
   const cashInflowId = useId();
   const newCashNameId = useId();
   const newCashBalanceId = useId();
@@ -129,6 +134,8 @@ export function PersonalLoanForm({
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
+            payrollDeducted: false,
+            linkedIncomeId: null,
             ...linkAssetDefaultsFor(initialLinkAssetId),
             ...cashInflowDefaults,
           } as FormValues)
@@ -149,6 +156,8 @@ export function PersonalLoanForm({
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
+            payrollDeducted: false,
+            linkedIncomeId: null,
             ...linkAssetDefaultsFor(initialLinkAssetId),
             ...cashInflowDefaults,
           } as FormValues),
@@ -258,6 +267,21 @@ export function PersonalLoanForm({
   const existingCashAssetId =
     (values as { existingCashAssetId?: string | null | undefined }).existingCashAssetId ?? null;
 
+  // Consignado: desconto direto na folha, atrelado a uma renda.
+  const payrollDeducted = Boolean(
+    (values as { payrollDeducted?: boolean | undefined }).payrollDeducted,
+  );
+  const linkedIncomeIdValue =
+    (values as { linkedIncomeId?: string | null | undefined }).linkedIncomeId ?? null;
+
+  const { data: incomes, isLoading: loadingIncomes } = useQuery<IncomeListItemPayload[]>({
+    queryKey: ["loan-linked-incomes"],
+    queryFn: () => fetchIncomes(),
+    enabled: step === 3 && payrollDeducted,
+    staleTime: 30_000,
+  });
+  const activeIncomes = (incomes ?? []).filter((i) => i.isActive);
+
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
     // Trocar de cenário NÃO apaga o que serve pros dois (nome, parcela, taxa,
@@ -271,6 +295,10 @@ export function PersonalLoanForm({
       startDate: values.startDate ?? todayIso(),
       expectedEndDate: values.expectedEndDate ?? null,
       notes: values.notes ?? null,
+      payrollDeducted:
+        (values as { payrollDeducted?: boolean | undefined }).payrollDeducted ?? false,
+      linkedIncomeId:
+        (values as { linkedIncomeId?: string | null | undefined }).linkedIncomeId ?? null,
     };
     if (next === "new") {
       form.reset(
@@ -408,6 +436,13 @@ export function PersonalLoanForm({
     );
     fd.set("expectedEndDate", v.expectedEndDate ?? "");
     fd.set("notes", v.notes ?? "");
+    // z.coerce.boolean() no validator do servidor trata qualquer string não-vazia
+    // como true; por isso só manda a chave quando for true (mesmo padrão do "flat"
+    // no form de financiamento), nunca "false" literal.
+    if (v.payrollDeducted) {
+      fd.set("payrollDeducted", "true");
+      fd.set("linkedIncomeId", v.linkedIncomeId ?? "");
+    }
     if (currentBalanceForServer !== null) {
       fd.set("currentBalanceCents", currentBalanceForServer.toString());
     }
@@ -787,25 +822,85 @@ export function PersonalLoanForm({
           />
         </WizardField>
 
-        <WizardField
-          label="Que dia do mês? (opcional)"
-          htmlFor={dueDayId}
-          error={(errors as { dueDay?: { message?: string } }).dueDay?.message}
-          helper="O dia que sai da conta. A gente te lembra antes."
-        >
-          <input
-            id={dueDayId}
-            type="number"
-            inputMode="numeric"
-            min={1}
-            max={31}
-            placeholder="Ex: 10"
-            {...form.register("dueDay" as never, {
-              setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
-            })}
-            className={wizardInputClass}
+        <WizardField label="É consignado? (descontado direto do salário)" htmlFor={payrollDeductedId}>
+          <WizardChoiceGroup
+            ariaLabel="É consignado?"
+            value={payrollDeducted ? "yes" : "no"}
+            onChange={(v) => {
+              const isYes = v === "yes";
+              formAny.setValue("payrollDeducted", isYes, {
+                shouldValidate: true,
+                shouldDirty: true,
+              });
+              if (!isYes) {
+                formAny.setValue("linkedIncomeId", null, {
+                  shouldValidate: true,
+                  shouldDirty: true,
+                });
+              }
+            }}
+            options={[
+              { value: "yes", title: "Sim", description: "Desconto direto da folha de pagamento." },
+              { value: "no", title: "Não", description: "Eu mesmo pago, sai da minha conta." },
+            ]}
           />
         </WizardField>
+
+        {payrollDeducted ? (
+          <WizardField
+            label="De qual renda sai o desconto?"
+            htmlFor={linkedIncomeFieldId}
+            error={(errors as { linkedIncomeId?: { message?: string } }).linkedIncomeId?.message}
+            helper="O valor dessa renda deve ser o bruto, antes do desconto do consignado. O app abate o consignado para você."
+          >
+            {loadingIncomes ? (
+              <div className="flex justify-center py-4">
+                <Spinner size={20} />
+              </div>
+            ) : activeIncomes.length > 0 ? (
+              <div id={linkedIncomeFieldId} className="flex flex-col gap-2">
+                {activeIncomes.map((income) => (
+                  <WizardRadioCard
+                    key={income.id}
+                    title={income.label}
+                    description={income.amount.formatted}
+                    active={linkedIncomeIdValue === income.id}
+                    onSelect={() =>
+                      formAny.setValue("linkedIncomeId", income.id, {
+                        shouldValidate: true,
+                        shouldDirty: true,
+                      })
+                    }
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-primary)] opacity-80">
+                Cadastre uma renda antes de marcar como consignado.
+              </div>
+            )}
+          </WizardField>
+        ) : (
+          <WizardField
+            label="Que dia do mês? (opcional)"
+            htmlFor={dueDayId}
+            error={(errors as { dueDay?: { message?: string } }).dueDay?.message}
+            helper="O dia que sai da conta. A gente te lembra antes."
+          >
+            <input
+              id={dueDayId}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={31}
+              placeholder="Ex: 10"
+              {...form.register("dueDay" as never, {
+                setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
+              })}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        )}
 
         {scenario === "new" ? (
           <WizardField

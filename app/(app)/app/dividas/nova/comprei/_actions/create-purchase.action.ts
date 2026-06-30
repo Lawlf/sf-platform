@@ -6,11 +6,13 @@ import { createAsset } from "@/application/use-cases/asset/create-asset.use-case
 import { linkAssetToDebt } from "@/application/use-cases/asset/link-asset-to-debt.use-case";
 import { updateAsset } from "@/application/use-cases/asset/update-asset.use-case";
 import { registerDebt } from "@/application/use-cases/debt/register-debt.use-case";
+import { createTransaction } from "@/application/use-cases/transaction/create-transaction.use-case";
 import type { AssetEntity, AssetMetadata } from "@/domain/entities/asset.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { clock, repos } from "@/infrastructure/container";
@@ -74,12 +76,17 @@ export interface ExecutePurchaseInput {
   downPaymentCents?: bigint;
   financingAnnualRatePct?: number;
   financingTermMonths?: number;
+  // Conta de onde saiu a entrada do financiamento. Se preenchida e a entrada
+  // for > 0, vira um lançamento real de saída (honestidade macro); se vazia,
+  // a entrada permanece apenas informacional (só reduz o principal da dívida).
+  downPaymentFromAccountId?: string | null;
 }
 
 export interface ExecutePurchaseDeps {
   assets: AssetRepositoryPort;
   allocations: AssetDebtAllocationRepositoryPort;
   debts: DebtRepositoryPort;
+  transactions: Pick<TransactionRepositoryPort, "create">;
   clock: Clock;
 }
 
@@ -456,6 +463,45 @@ async function reduceCashAssetBalance(
   return undefined;
 }
 
+// Entrada do financiamento: se o usuário escolheu de qual conta saiu o
+// dinheiro, registra um lançamento de saída real (paga hoje) atribuído ao
+// bem comprado. Não-fatal (como linkPurchaseToDebt): a dívida e o bem ficam
+// de pé mesmo se esse lançamento falhar.
+async function recordDownPaymentOutflow(
+  deps: ExecutePurchaseDeps,
+  input: ExecutePurchaseInput,
+  assetId: string | null,
+  name: string,
+  now: Date,
+): Promise<string | undefined> {
+  if (input.paymentMethod !== "financing") return undefined;
+  const downPayment = input.downPaymentCents ?? 0n;
+  if (downPayment <= 0n) return undefined;
+  const accountId = input.downPaymentFromAccountId;
+  if (!accountId || accountId.trim().length === 0) return undefined;
+
+  try {
+    const result = await createTransaction(deps, {
+      userId: input.userId,
+      profileId: input.profileId,
+      direction: "out",
+      amount: Money.fromCents(downPayment),
+      description: `Entrada - ${name}`,
+      category: null,
+      accountId,
+      assetId,
+      occurredAt: now,
+      status: "paid",
+    });
+    if (!isOk(result)) {
+      return "Não foi possível registrar a saída da entrada na conta selecionada.";
+    }
+    return undefined;
+  } catch {
+    return "Não foi possível registrar a saída da entrada na conta selecionada.";
+  }
+}
+
 // Orquestrador puro (sem `requireUser`, sem `revalidatePath`): é isto que os
 // testes exercitam. O server action abaixo só monta deps e delega.
 export async function executePurchase(
@@ -506,6 +552,11 @@ export async function executePurchase(
     warning = warning ? `${warning}. ${balanceWarning}` : balanceWarning;
   }
 
+  const downPaymentWarning = await recordDownPaymentOutflow(deps, input, assetId, name, now);
+  if (downPaymentWarning) {
+    warning = warning ? `${warning}. ${downPaymentWarning}` : downPaymentWarning;
+  }
+
   return warning ? { ok: true, assetId, debtId, warning } : { ok: true, assetId, debtId };
 }
 
@@ -536,6 +587,7 @@ const inputSchema = z
     downPaymentCents: z.string().regex(/^\d+$/).optional(),
     financingAnnualRatePct: z.number().min(0).max(100).optional(),
     financingTermMonths: z.number().int().min(1).max(420).optional(),
+    downPaymentFromAccountId: z.string().uuid().nullable().optional(),
   })
   .superRefine((v, ctx) => {
     if (v.cashOnboarding === "create") {
@@ -595,6 +647,7 @@ export const createPurchaseAction = action({
       assets: repos.assets,
       allocations: repos.assetDebtAllocations,
       debts: repos.debts,
+      transactions: repos.transactions,
       clock,
     };
 
@@ -622,6 +675,7 @@ export const createPurchaseAction = action({
       ...(v.financingTermMonths !== undefined
         ? { financingTermMonths: v.financingTermMonths }
         : {}),
+      downPaymentFromAccountId: v.downPaymentFromAccountId ?? null,
     });
 
     if (!result.ok) throw new ActionError(result.message);

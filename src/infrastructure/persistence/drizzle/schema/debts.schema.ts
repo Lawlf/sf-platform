@@ -1,6 +1,7 @@
 import { sql } from "drizzle-orm";
 import {
   bigint,
+  boolean,
   index,
   integer,
   jsonb,
@@ -11,6 +12,7 @@ import {
   uuid,
 } from "drizzle-orm/pg-core";
 
+import { incomes } from "./incomes.schema";
 import { profiles } from "./profiles.schema";
 import { users } from "./users.schema";
 
@@ -53,6 +55,9 @@ export const debts = pgTable(
     monthlyAdminFeeCents: bigint("monthly_admin_fee_cents", { mode: "bigint" }),
     // Personal loan-specific (annualRateDecimal + termMonths reused)
     monthlyInstallmentCents: bigint("monthly_installment_cents", { mode: "bigint" }),
+    // Personal loan "consignado" (payroll-deducted): plumbing only, no behavior yet.
+    payrollDeducted: boolean("payroll_deducted"),
+    linkedIncomeId: uuid("linked_income_id").references(() => incomes.id, { onDelete: "set null" }),
     // Credit card-specific
     creditLimitCents: bigint("credit_limit_cents", { mode: "bigint" }),
     statementDay: integer("statement_day"),

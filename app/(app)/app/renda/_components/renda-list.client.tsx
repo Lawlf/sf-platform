@@ -6,8 +6,9 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
+import { formatCents } from "@/shared/format/money-format";
 
-import { fetchIncomes } from "../../_actions/income-queries";
+import { fetchIncomes, type IncomeListItemPayload } from "../../_actions/income-queries";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import { queryKeys } from "../../_lib/query-keys";
 
@@ -26,6 +27,20 @@ const FREQUENCY_ICON: Record<string, typeof Repeat> = {
   weekly: Repeat,
   one_off: TrendingUp,
 };
+
+function consignadoHolerite(
+  income: IncomeListItemPayload,
+): { deductionFormatted: string; sobraFormatted: string } | null {
+  if (!income.consignadoDeductionCents) return null;
+  const deductionCents = BigInt(income.consignadoDeductionCents);
+  if (deductionCents <= 0n) return null;
+  const amountCents = BigInt(income.amount.cents);
+  const sobraCents = amountCents - deductionCents > 0n ? amountCents - deductionCents : 0n;
+  return {
+    deductionFormatted: formatCents(deductionCents),
+    sobraFormatted: formatCents(sobraCents),
+  };
+}
 
 export function RendaListClient() {
   const { data: incomes } = useSuspenseQuery({
@@ -94,6 +109,16 @@ export function RendaListClient() {
                         </>
                       ) : null}
                     </div>
+                    {(() => {
+                      const holerite = consignadoHolerite(income);
+                      if (!holerite) return null;
+                      return (
+                        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
+                          Consignado: <HideableValue>-{holerite.deductionFormatted}</HideableValue>{" "}
+                          · sobram <HideableValue>{holerite.sobraFormatted}</HideableValue>
+                        </div>
+                      );
+                    })()}
                   </div>
                   <div className="flex shrink-0 items-center gap-1">
                     <SimpleTooltip label="Editar">

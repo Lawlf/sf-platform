@@ -40,6 +40,9 @@ export const financingFormSchema = z.object({
     ])
     .nullable()
     .default(null),
+  // Financiamento "antiga" (em andamento): stream flat parcela x contagens,
+  // sem solver de taxa a partir do principal.
+  flat: z.coerce.boolean().optional(),
 }).superRefine((d, ctx) => {
   if (d.annualRatePct === null && d.monthlyInstallmentCents === null) {
     ctx.addIssue({
@@ -82,6 +85,9 @@ export const personalLoanFormSchema = z.object({
     ])
     .nullable()
     .default(null),
+  // Consignado (desconto em folha): plumbing pra feature futura.
+  payrollDeducted: z.coerce.boolean().optional(),
+  linkedIncomeId: z.string().uuid().nullable().optional(),
 });
 
 export const installmentPurchaseItemSchema = z.object({

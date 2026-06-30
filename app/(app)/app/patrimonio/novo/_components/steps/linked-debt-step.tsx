@@ -6,9 +6,9 @@ import { Controller, useFieldArray } from "react-hook-form";
 
 import { Spinner } from "@/app/components/ui/spinner";
 
+import { WizardChoiceGroup } from "@/ui/wizard-choice-group";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "@/ui/wizard-money-field";
-import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import {
   listActiveDebtsForLinking,
@@ -160,26 +160,20 @@ export function LinkedDebtStep({
         name="linkedDebtChoice"
         render={({ field }) => (
           <WizardField label="Vincular dívida">
-            <div className="grid grid-cols-3 gap-2">
-              <WizardRadioCard
-                title="Não tem"
-                description="Sem dívida vinculada."
-                active={field.value === "no"}
-                onSelect={handlePickNo}
-              />
-              <WizardRadioCard
-                title="Já cadastrei"
-                description="Escolher da lista."
-                active={field.value === "yes"}
-                onSelect={handlePickYes}
-              />
-              <WizardRadioCard
-                title="Cadastrar nova"
-                description="Criar agora aqui."
-                active={field.value === "new"}
-                onSelect={handlePickNew}
-              />
-            </div>
+            <WizardChoiceGroup<"no" | "yes" | "new">
+              ariaLabel="Vincular dívida"
+              value={field.value as "no" | "yes" | "new" | undefined}
+              options={[
+                { value: "no", title: "Não tem", description: "Sem dívida vinculada." },
+                { value: "yes", title: "Já cadastrei", description: "Escolher da lista." },
+                { value: "new", title: "Cadastrar nova", description: "Criar agora aqui." },
+              ]}
+              onChange={(v) => {
+                if (v === "no") handlePickNo();
+                else if (v === "yes") handlePickYes();
+                else handlePickNew();
+              }}
+            />
           </WizardField>
         )}
       />
@@ -270,17 +264,12 @@ export function LinkedDebtStep({
             name="newDebtKind"
             render={({ field }) => (
               <WizardField label="Tipo da dívida">
-                <div className="grid grid-cols-3 gap-2">
-                  {NEW_DEBT_KIND_OPTIONS.map((opt) => (
-                    <WizardRadioCard
-                      key={opt.value}
-                      title={opt.title}
-                      description={opt.description}
-                      active={field.value === opt.value}
-                      onSelect={() => field.onChange(opt.value)}
-                    />
-                  ))}
-                </div>
+                <WizardChoiceGroup<NewDebtKind>
+                  ariaLabel="Tipo da dívida"
+                  value={field.value as NewDebtKind | undefined}
+                  options={NEW_DEBT_KIND_OPTIONS}
+                  onChange={(v) => field.onChange(v)}
+                />
               </WizardField>
             )}
           />

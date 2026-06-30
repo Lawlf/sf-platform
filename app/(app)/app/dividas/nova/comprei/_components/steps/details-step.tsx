@@ -37,6 +37,7 @@ export interface DetailsStepProps {
   watch: UseFormWatch<NewPurchaseFormValues>;
   onSelectCreditCardOption: (id: string | null) => void;
   onSelectCashOnboarding: (choice: "create" | "skip") => void;
+  onSelectDownPaymentAccount: (id: string | null) => void;
 }
 
 interface SingleCashAccountOptInProps {
@@ -84,6 +85,59 @@ function SingleCashAccountOptIn({ account, selected, onChoose }: SingleCashAccou
   );
 }
 
+interface DownPaymentAccountPickerProps {
+  accounts: CashAssetPayload[];
+  selectedId: string | null;
+  onSelect: (id: string | null) => void;
+}
+
+function DownPaymentAccountPicker({
+  accounts,
+  selectedId,
+  onSelect,
+}: DownPaymentAccountPickerProps) {
+  const primed = useRef(false);
+
+  // Pré-seleciona a Carteira (ou a primeira conta) assim que a lista carrega,
+  // mas só uma vez: o usuário pode trocar para "não tirar de conta nenhuma"
+  // de propósito e isso não pode ser sobrescrito depois.
+  useEffect(() => {
+    if (primed.current) return;
+    if (accounts.length === 0) return;
+    primed.current = true;
+    const carteira = accounts.find((a) => a.label === "Carteira");
+    onSelect(carteira ? carteira.id : null);
+  }, [accounts, onSelect]);
+
+  return (
+    <div className="mt-3">
+      <div className="mb-1.5 text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-primary)] opacity-80">
+        Saiu de qual conta? (opcional)
+      </div>
+      <div className="flex flex-col gap-2">
+        {accounts.map((asset) => {
+          const active = selectedId === asset.id;
+          return (
+            <WizardRadioCard
+              key={asset.id}
+              title={asset.label}
+              description={`Saldo atual: ${asset.currentValue.formatted}`}
+              active={active}
+              onSelect={() => onSelect(asset.id)}
+            />
+          );
+        })}
+        <WizardRadioCard
+          title="Não tirar de conta nenhuma"
+          description="A entrada só reduz o valor financiado, sem mexer no saldo."
+          active={selectedId === null}
+          onSelect={() => onSelect(null)}
+        />
+      </div>
+    </div>
+  );
+}
+
 export function DetailsStep({
   control,
   register,
@@ -91,6 +145,7 @@ export function DetailsStep({
   watch,
   onSelectCreditCardOption,
   onSelectCashOnboarding,
+  onSelectDownPaymentAccount,
 }: DetailsStepProps) {
   const paymentMethod = watch("paymentMethod");
   const valueCents = watch("valueCents");
@@ -115,7 +170,7 @@ export function DetailsStep({
   const { data: cashAssets, isLoading: loadingCash } = useQuery<CashAssetPayload[]>({
     queryKey: ["comprei", "cash-assets"],
     queryFn: () => listCashAssetsForPurchase(),
-    enabled: paymentMethod === "cash",
+    enabled: paymentMethod === "cash" || paymentMethod === "financing",
     staleTime: 30_000,
   });
 
@@ -344,6 +399,8 @@ export function DetailsStep({
 
   if (paymentMethod === "financing") {
     const downPaymentCents = watch("downPaymentCents");
+    const downPaymentFromAccountId = watch("downPaymentFromAccountId");
+    const hasDownPayment = typeof downPaymentCents === "bigint" && downPaymentCents > 0n;
     const principal =
       typeof valueCents === "bigint" && typeof downPaymentCents === "bigint"
         ? valueCents - downPaymentCents
@@ -362,6 +419,20 @@ export function DetailsStep({
             placeholder="R$ 0,00"
           />
         </WizardField>
+
+        {hasDownPayment ? (
+          loadingCash ? (
+            <div className="mt-3 flex justify-center py-4">
+              <Spinner size={20} />
+            </div>
+          ) : (
+            <DownPaymentAccountPicker
+              accounts={cashAssets ?? []}
+              selectedId={downPaymentFromAccountId}
+              onSelect={onSelectDownPaymentAccount}
+            />
+          )
+        ) : null}
 
         <WizardField
           label="Em quantas parcelas?"

@@ -25,6 +25,7 @@ export interface UpdateDebtInput {
   label?: string;
   notes?: string | null;
   expectedEndDate?: Date | null;
+  startDate?: Date;
   // Per-kind editable fields (ignored when kind doesn't apply).
   currentBalance?: Money;
   annualInterestRate?: InterestRate;
@@ -58,6 +59,7 @@ export async function updateDebt(
     ...(input.label !== undefined && { label: input.label }),
     ...(input.notes !== undefined && { notes: input.notes }),
     ...(input.expectedEndDate !== undefined && { expectedEndDate: input.expectedEndDate }),
+    ...(input.startDate !== undefined && { startDate: input.startDate }),
     updatedAt: now,
   };
 

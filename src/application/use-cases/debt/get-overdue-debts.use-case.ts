@@ -72,7 +72,14 @@ function currentCycleDue(
   const month = today.getMonth();
   const clampedDay = Math.min(dueDay, daysInMonth(year, month));
   const dueDate = new Date(year, month, clampedDay);
-  if (dueDate < startOfDay(debt.startDate)) return null;
+  const startBoundary = startOfDay(debt.startDate);
+  // Empréstimo: a 1ª parcela vence no 1º `dueDay` estritamente APÓS o início
+  // (ninguém deve uma parcela no dia em que pegou o empréstimo), então um
+  // vencimento no próprio dia de início pertence ao ciclo seguinte (`<=`).
+  // Recorrente/cartão: o ciclo do mês de início conta (o aluguel do mês começa
+  // naquele mês), então só exclui vencimentos estritamente antes do início (`<`).
+  const firstDueAfterStart = debt.kind === "personal_loan";
+  if (firstDueAfterStart ? dueDate <= startBoundary : dueDate < startBoundary) return null;
   return { debtId: debt.id, label: debt.label, kind: debt.kind, dueDate, amount: monthlyAmount(debt) };
 }
 
@@ -82,8 +89,10 @@ function monthlyDueDay(debt: DebtEntity): number | null {
       return debt.dueDay;
     // Sem dia informado o sistema não inventa vencimento: o usuário não definiu
     // quando paga, então não há ciclo a cobrar (nem "venceu").
+    // Consignado é descontado direto na folha: nunca tem ciclo de vencimento
+    // manual, logo nunca pode estar "vencido".
     case "personal_loan":
-      return debt.dueDay;
+      return debt.payrollDeducted ? null : debt.dueDay;
     case "recurring":
       return debt.recurringFrequency === "monthly"
         ? (debt.dueDay ?? debt.startDate.getDate())

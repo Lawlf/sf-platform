@@ -75,6 +75,8 @@ function makeDebt(userId = "user-1"): PersonalLoanDebt {
     deletedAt: null,
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     annualInterestRate: rateR.value,
     termMonths: 6,
     monthlyInstallment: originalR.value,

@@ -60,6 +60,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
         defaults={{
           label: debt.label,
           notes: debt.notes,
+          startDate: toIsoDate(debt.startDate),
           expectedEndDate: debt.expectedEndDate
             ? toIsoDate(debt.expectedEndDate)
             : null,

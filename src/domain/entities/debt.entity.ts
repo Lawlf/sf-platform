@@ -43,6 +43,13 @@ export interface FinancingDebt extends BaseDebt {
   termMonths: number;
   monthlyInsurance: Money | null;
   monthlyAdminFee: Money | null;
+  /**
+   * Parcela fixa armazenada (financiamento "em andamento" sem PRICE/SAC). Se
+   * presente, é a fonte de verdade do serviço mensal (fluxo plano) e a
+   * amortização PRICE/SAC abaixo é ignorada. `null` em financiamentos novos
+   * que ainda calculam a parcela via amortização.
+   */
+  monthlyInstallment: Money | null;
 }
 
 export interface PersonalLoanDebt extends BaseDebt {
@@ -53,6 +60,10 @@ export interface PersonalLoanDebt extends BaseDebt {
   // Dia do mês (1-31) em que a parcela sai da conta. `null` cai pro dia de
   // `startDate` na geração do lembrete de vencimento.
   dueDay: number | null;
+  // Consignado (desconto em folha): plumbing pra feature futura, sem
+  // comportamento ainda.
+  payrollDeducted: boolean;
+  linkedIncomeId: string | null;
 }
 
 export interface InstallmentPurchase {

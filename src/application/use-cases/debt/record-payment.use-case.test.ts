@@ -76,6 +76,8 @@ function makeDebt(opts: { userId?: string; currentBalance?: number } = {}): Pers
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),

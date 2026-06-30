@@ -31,6 +31,11 @@ export default async function PagarPage({ params }: PageProps) {
     redirect(`/app/dividas/${debt.id}` as Route);
   }
 
+  // Consignado é descontado direto na folha: não existe pagamento manual.
+  if (debt.kind === "personal_loan" && debt.payrollDeducted) {
+    redirect(`/app/dividas/${debt.id}` as Route);
+  }
+
   // Compute next installment number: count of payments + 1 (capped at schedule length).
   const nextMonth = Math.min((payments.length ?? 0) + 1, amortization?.installments.length ?? 0);
   const next = amortization?.installmentAt(nextMonth) ?? null;

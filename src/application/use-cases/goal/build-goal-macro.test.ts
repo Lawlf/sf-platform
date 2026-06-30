@@ -40,6 +40,8 @@ function makePersonalLoan({
     profileId: "profile-1",
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     label: "Emprestimo",
     status: "active",
     originalPrincipal: Money.fromCents(originalPrincipalCents, currency),

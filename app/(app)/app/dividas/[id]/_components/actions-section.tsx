@@ -26,6 +26,7 @@ export function ActionsSection({ debt, linkedGoals = [] }: Props) {
   const hasPayoffGoal = payoffGoal !== undefined;
   const isActive = debt.status === "active";
   const isRecurring = debt.kind === "recurring";
+  const isPayrollLoan = debt.kind === "personal_loan" && debt.payrollDeducted;
   const payLabel = debt.kind === "credit_card" ? "Paguei a fatura" : "Paguei a parcela";
 
   if (!isActive) {
@@ -52,7 +53,7 @@ export function ActionsSection({ debt, linkedGoals = [] }: Props) {
       <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Ações</h2>
 
       <div className="mt-3 flex flex-col gap-5">
-        {!isRecurring ? (
+        {!isRecurring && !isPayrollLoan ? (
           <Button asChild className="w-full">
             <Link href={`/app/dividas/${debt.id}/pagar` as Route}>{payLabel}</Link>
           </Button>

@@ -37,8 +37,19 @@ export const createDebtAction = action({
         throw new ActionError(parsed.error.issues[0]?.message ?? "Entrada inválida.");
       }
       const d = parsed.data;
-      let financingAnnualPct = d.annualRatePct;
-      if (financingAnnualPct === null) {
+      let financingAnnualPct: number;
+      let monthlyInstallmentForDebt: Money | null = null;
+
+      if (d.flat) {
+        // Financiamento "antiga": a parcela já é a fonte de verdade do stream
+        // flat (currentBalance/principal vêm derivados do form). Não resolve
+        // taxa a partir do principal; taxa segue opcional, default 0.
+        if (d.monthlyInstallmentCents === null) {
+          throw new ActionError("Informe a parcela mensal.");
+        }
+        financingAnnualPct = d.annualRatePct ?? 0;
+        monthlyInstallmentForDebt = Money.fromCents(d.monthlyInstallmentCents, d.currency);
+      } else if (d.annualRatePct === null) {
         if (d.monthlyInstallmentCents === null) {
           throw new ActionError("Informe a taxa ou a parcela mensal.");
         }
@@ -47,6 +58,8 @@ export const createDebtAction = action({
           throw new ActionError("A parcela informada não bate com o valor e o prazo; revise.");
         }
         financingAnnualPct = solved;
+      } else {
+        financingAnnualPct = d.annualRatePct;
       }
       const annualRate = InterestRate.fromAnnual(financingAnnualPct / 100);
       if (!isOk(annualRate)) throw new ActionError("Taxa anual inválida.");
@@ -72,6 +85,7 @@ export const createDebtAction = action({
             : null,
         currentBalance:
           d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents, d.currency) : null,
+        monthlyInstallment: monthlyInstallmentForDebt,
       });
       if (!isOk(r)) throw new ActionError("Falha ao salvar dívida.");
       await awardEventAchievement(userId, "primeiro-passo");
@@ -109,6 +123,8 @@ export const createDebtAction = action({
         currentBalance:
           d.currentBalanceCents !== null ? Money.fromCents(d.currentBalanceCents, d.currency) : null,
         dueDay: d.dueDay,
+        payrollDeducted: d.payrollDeducted ?? false,
+        linkedIncomeId: d.linkedIncomeId ?? null,
       });
       if (!isOk(r)) throw new ActionError("Falha ao salvar dívida.");
       await awardEventAchievement(userId, "primeiro-passo");

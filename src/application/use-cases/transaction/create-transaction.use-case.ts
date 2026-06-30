@@ -37,6 +37,7 @@ export interface CreateTransactionInput {
   status?: TransactionStatus;
   source?: TransactionSource;
   externalId?: string | null;
+  skipBalanceEffect?: boolean;
 }
 
 async function resolveAccount(
@@ -71,7 +72,7 @@ export async function createTransaction(
       ? input.amount
       : input.amount.convert(1, account.currentValue.currency);
 
-  if (status === "paid") {
+  if (status === "paid" && !input.skipBalanceEffect) {
     const next =
       input.direction === "out"
         ? account.currentValue.subtract(amount)

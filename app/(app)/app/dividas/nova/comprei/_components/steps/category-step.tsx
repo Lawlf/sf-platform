@@ -3,8 +3,9 @@
 import { Car, GraduationCap, Package, Plane, Smartphone, Sofa } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { KindCard } from "@/ui/kind-card";
 import type { PurchaseCategory } from "../../_actions/create-purchase.action";
+
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 interface CategoryOption {
   id: PurchaseCategory;
@@ -60,12 +61,13 @@ export function CategoryStep({ onSelectCategory }: CategoryStepProps) {
   return (
     <div role="radiogroup" aria-label="Categoria da compra" className="flex flex-col gap-2">
       {CATEGORIES.map((c) => (
-        <KindCard
+        <WizardRadioCard
           key={c.id}
           icon={c.icon}
           title={c.title}
           description={c.description}
-          selected={false}
+          active={false}
+          variant="primary"
           onSelect={() => onSelectCategory(c.id)}
         />
       ))}

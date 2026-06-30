@@ -14,10 +14,11 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
+
 import { addHubCopy } from "../_lib/copy/catalogs";
 import { useCopy } from "../_lib/copy/use-copy";
 import { useOnline } from "../_lib/offline/use-online";
-import { KindCard } from "@/ui/kind-card";
 
 interface IntentOption {
   id: string;
@@ -99,12 +100,13 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
         </SheetHeader>
         <div role="list" className="flex flex-col gap-2">
           {primary.map((intent) => (
-            <KindCard
+            <WizardRadioCard
               key={intent.id}
               icon={intent.icon}
               title={intent.title}
               description={intent.description}
-              selected={false}
+              active={false}
+              variant="primary"
               onSelect={() => select(intent.href)}
             />
           ))}
@@ -112,12 +114,13 @@ export function AddIntentSheet({ open, onOpenChange }: AddIntentSheetProps) {
             Mais
           </p>
           {more.map((intent) => (
-            <KindCard
+            <WizardRadioCard
               key={intent.id}
               icon={intent.icon}
               title={intent.title}
               description={intent.description}
-              selected={false}
+              active={false}
+              variant="primary"
               onSelect={() => select(intent.href)}
             />
           ))}

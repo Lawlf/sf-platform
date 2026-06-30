@@ -61,6 +61,8 @@ function makePersonalLoan(
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     annualInterestRate: makeRate(0.24),
     termMonths: 24,
     monthlyInstallment: makeMoney(installment),

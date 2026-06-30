@@ -80,6 +80,46 @@ describe("registerDebt", () => {
     }
   });
 
+  it("creates a financing debt with a stored monthlyInstallment (flat parcela stream)", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const principal = makeMoney(58320);
+    const balance = Money.fromCents(4617000n);
+    const installment = Money.fromCents(243000n);
+    const rate = makeRate(0);
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        userId: "user-1",
+        profileId: "profile-1",
+        label: "Financiamento em andamento",
+        notes: null,
+        startDate: new Date("2026-01-01"),
+        expectedEndDate: null,
+        kind: "financing",
+        originalPrincipal: principal,
+        currentBalance: balance,
+        annualInterestRate: rate,
+        termMonths: 24,
+        amortizationMethod: "PRICE",
+        monthlyInsurance: null,
+        monthlyAdminFee: null,
+        monthlyInstallment: installment,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    expect(arg.kind).toBe("financing");
+    expect(arg.currentBalance.toCents()).toBe(4617000n);
+    if (arg.kind === "financing") {
+      expect(arg.monthlyInstallment?.toCents()).toBe(243000n);
+    }
+  });
+
   it("creates a personal_loan debt", async () => {
     const debts = makeDebtRepo();
     const clock = makeClock();
@@ -112,6 +152,45 @@ describe("registerDebt", () => {
     if (arg.kind === "personal_loan") {
       expect(arg.monthlyInstallment.toCents()).toBe(monthlyInstallment.toCents());
       expect(arg.termMonths).toBe(12);
+      expect(arg.payrollDeducted).toBe(false);
+      expect(arg.linkedIncomeId).toBeNull();
+    }
+  });
+
+  it("creates a personal_loan debt with payrollDeducted and linkedIncomeId", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock();
+    (debts.create as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const principal = makeMoney(10000);
+    const monthlyInstallment = makeMoney(950);
+    const linkedIncomeId = "550e8400-e29b-41d4-a716-446655440000";
+
+    const result = await registerDebt(
+      { debts, clock },
+      {
+        userId: "user-2",
+        profileId: "profile-1",
+        label: "Consignado INSS",
+        notes: null,
+        startDate: new Date("2026-02-01"),
+        expectedEndDate: null,
+        kind: "personal_loan",
+        originalPrincipal: principal,
+        annualInterestRate: makeRate(0.24),
+        termMonths: 12,
+        monthlyInstallment,
+        payrollDeducted: true,
+        linkedIncomeId,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    const arg = (debts.create as ReturnType<typeof vi.fn>).mock.calls[0]![0] as DebtEntity;
+    expect(arg.kind).toBe("personal_loan");
+    if (arg.kind === "personal_loan") {
+      expect(arg.payrollDeducted).toBe(true);
+      expect(arg.linkedIncomeId).toBe(linkedIncomeId);
     }
   });
 

@@ -168,6 +168,49 @@ describe("createTransaction", () => {
     if (r._tag === "ok") expect(r.value.assetId).toBeNull();
   });
 
+  it("saída paga sem skipBalanceEffect reduz o saldo da conta", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      direction: "out",
+      amount: Money.fromCents(20000n),
+      description: "Entrada - Financiamento carro",
+      category: null,
+      accountId: "acc1",
+      assetId: "asset-carro",
+      occurredAt: new Date("2026-05-01T00:00:00Z"),
+      status: "paid",
+    });
+    expect(r._tag).toBe("ok");
+    const upd = (deps.assets.update as ReturnType<typeof vi.fn>).mock.calls[0]![0] as AssetEntity;
+    expect(upd.currentValue.toCents()).toBe(80000n);
+  });
+
+  it("saída paga com skipBalanceEffect não altera o saldo mas persiste o lançamento", async () => {
+    const deps = makeDeps();
+    const r = await createTransaction(deps, {
+      userId: "u1",
+      profileId: "profile-1",
+      direction: "out",
+      amount: Money.fromCents(20000n),
+      description: "Entrada - Financiamento carro",
+      category: null,
+      accountId: "acc1",
+      assetId: "asset-carro",
+      occurredAt: new Date("2026-05-01T00:00:00Z"),
+      status: "paid",
+      skipBalanceEffect: true,
+    });
+    expect(r._tag).toBe("ok");
+    expect(deps.assets.update).not.toHaveBeenCalled();
+    if (r._tag === "ok") {
+      expect(r.value.assetId).toBe("asset-carro");
+      expect(r.value.occurredAt).toEqual(new Date("2026-05-01T00:00:00Z"));
+      expect(r.value.amount.toCents()).toBe(20000n);
+    }
+  });
+
   it("sem conta mas com ativo cash existente, usa o primeiro", async () => {
     const deps = makeDeps();
     const r = await createTransaction(deps, {
