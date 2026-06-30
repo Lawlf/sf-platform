@@ -30,7 +30,7 @@ import {
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
 import { RateEstimateHint } from "../../_components/rate-estimate-hint";
-import { SummaryList } from "../../_components/summary-list";
+import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";

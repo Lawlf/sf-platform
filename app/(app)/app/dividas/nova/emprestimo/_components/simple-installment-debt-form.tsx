@@ -16,7 +16,7 @@ import { todayIso } from "@/shared/format/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { ComputedCard } from "../../_components/computed-card";
-import { SummaryList } from "../../_components/summary-list";
+import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardShell } from "../../_components/wizard-shell";

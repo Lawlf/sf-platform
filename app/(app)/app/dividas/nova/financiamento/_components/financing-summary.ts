@@ -1,7 +1,7 @@
 import { type ReactNode } from "react";
 
 import { formatCentsBRL } from "../../../_lib/format";
-import { type SummaryItem } from "../../_components/summary-list";
+import { type SummaryItem } from "@/ui/summary-list";
 import { type FinancingFormValues } from "../_schema";
 
 interface SummaryInputs {

@@ -19,7 +19,7 @@ import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import { RateEstimateHint } from "../../_components/rate-estimate-hint";
-import { SummaryList } from "../../_components/summary-list";
+import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
