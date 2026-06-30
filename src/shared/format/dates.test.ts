@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { todayIso, todayIsoUtc, toIsoDate } from "./dates";
+import { toLocalIsoDate, todayIso, todayIsoUtc, toIsoDate } from "./dates";
+
+describe("toLocalIsoDate", () => {
+  it("formats a Date as its LOCAL yyyy-mm-dd", () => {
+    const d = new Date(2026, 5, 15);
+    expect(toLocalIsoDate(d)).toBe("2026-06-15");
+  });
+});
 
 describe("todayIso", () => {
   it("returns the local calendar date as yyyy-mm-dd", () => {

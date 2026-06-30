@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { InvestmentGoalService } from "@/domain/services/investment-goal.service";
+import { toLocalIsoDate } from "@/shared/format/dates";
 
 import { MoneyInput } from "../../../_components/money-input";
 import { ResultCard, ResultStat } from "../../_components/sim-result";
@@ -156,7 +157,7 @@ export function InvestmentGoalClient({ prefill }: { prefill: { initialCents: str
               deadlineIso: (() => {
                 const d = new Date();
                 d.setFullYear(d.getFullYear() + years);
-                return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+                return toLocalIsoDate(d);
               })(),
             }}
           />

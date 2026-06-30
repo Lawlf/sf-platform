@@ -5,6 +5,7 @@ import { useMemo } from "react";
 import { useForm, useWatch } from "react-hook-form";
 
 import { CompoundGrowthService } from "@/domain/services/compound-growth.service";
+import { toLocalIsoDate } from "@/shared/format/dates";
 
 import { FeedbackThumbs } from "../../../_components/feedback/feedback-thumbs.client";
 import { MoneyInput } from "../../../_components/money-input";
@@ -168,7 +169,7 @@ export function CompoundGrowthClient({ prefill }: PrefillProps) {
 function deadlineFromYears(years: number): string {
   const d = new Date();
   d.setFullYear(d.getFullYear() + years);
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  return toLocalIsoDate(d);
 }
 
 function normalizeCents(value: unknown): bigint {
