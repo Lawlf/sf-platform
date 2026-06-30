@@ -17,7 +17,7 @@ import {
 } from "@/app/components/ui/select";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
 import { simSelectClass } from "../../../simular/_components/sim-result";
 import { SimSlider } from "../../../simular/_components/sim-slider";

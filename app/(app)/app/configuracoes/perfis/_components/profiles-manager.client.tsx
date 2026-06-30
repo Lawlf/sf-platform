@@ -21,7 +21,7 @@ import type { ProfilesPayload, SerializedProfile } from "../../../_actions/profi
 import { setKeptProfileAction } from "../../../_actions/switch-profile.action";
 import { CreateProfileSheet } from "../../../_components/create-profile-sheet.client";
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
-import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 function profileTypeLabel(profile: SerializedProfile): string {
   if (profile.type === "PF") return "Pessoal";

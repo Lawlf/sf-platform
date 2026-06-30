@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 
 import { Spinner } from "@/app/components/ui/spinner";
 
-import { wizardInputClass } from "../../../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 import { fetchCryptoPriceAction } from "../../../_actions/fetch-crypto-price.action";
 import { searchCryptoAction } from "../../../_actions/search-crypto.action";
 

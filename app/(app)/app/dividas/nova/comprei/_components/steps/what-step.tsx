@@ -3,7 +3,7 @@
 import { useId } from "react";
 import { type Control, type FieldErrors, type UseFormRegister } from "react-hook-form";
 
-import { WizardField, wizardInputClass } from "../../../_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../../_components/wizard-money-field";
 import type { NewPurchaseFormValues } from "../new-purchase-wizard.client";
 

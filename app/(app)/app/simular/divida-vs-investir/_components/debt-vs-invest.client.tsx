@@ -14,7 +14,7 @@ import {
 import { DebtVsInvestService } from "@/domain/services/debt-vs-invest.service";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardField } from "../../../dividas/nova/_components/wizard-field";
+import { WizardField } from "@/ui/wizard-field";
 import { ResultCard, ResultStat, simSelectClass } from "../../_components/sim-result";
 import { SimSlider } from "../../_components/sim-slider";
 

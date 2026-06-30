@@ -9,7 +9,7 @@ import { useForm } from "react-hook-form";
 
 import { SavingsComparisonService } from "@/domain/services/savings-comparison.service";
 
-import { WizardField } from "../../dividas/nova/_components/wizard-field";
+import { WizardField } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../dividas/nova/_components/wizard-radio-card";
 import { WizardShell } from "../../dividas/nova/_components/wizard-shell";

@@ -11,7 +11,7 @@ import {
   type ActiveAssetPayload,
 } from "../_actions/list-active-assets.action";
 
-import { WizardField, wizardInputClass } from "./wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "./wizard-money-field";
 import { WizardRadioCard } from "./wizard-radio-card";
 

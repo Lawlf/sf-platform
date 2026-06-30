@@ -18,7 +18,7 @@ import {
   requestFeedbackUploadAction,
   submitFeedbackAction,
 } from "../../_actions/submit-feedback.action";
-import { WizardField, wizardInputClass } from "../../dividas/nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { simSelectClass } from "../../simular/_components/sim-result";
 
 type Kind = "problema" | "sugestao" | "duvida";

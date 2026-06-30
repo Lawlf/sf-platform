@@ -10,7 +10,7 @@ import { PurchaseSimulationService } from "@/domain/services/purchase-simulation
 import { todayIso } from "@/shared/format/dates";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardField, wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
 import { SimSlider } from "../../_components/sim-slider";
 import { savePurchaseAction } from "../_actions/save-purchase.action";

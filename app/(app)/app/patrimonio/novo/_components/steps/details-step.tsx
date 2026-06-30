@@ -7,7 +7,7 @@ import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { formatCents } from "@/shared/format/money-format";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
-import { WizardField, wizardInputClass } from "../../../../dividas/nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../../../dividas/nova/_components/wizard-radio-card";
 import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";

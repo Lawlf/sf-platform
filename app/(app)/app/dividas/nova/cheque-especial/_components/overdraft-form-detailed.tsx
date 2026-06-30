@@ -20,7 +20,7 @@ import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import { RateEstimateHint } from "../../_components/rate-estimate-hint";
 import { SummaryList } from "../../_components/summary-list";
-import { WizardField, wizardInputClass } from "../../_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardShell } from "../../_components/wizard-shell";

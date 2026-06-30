@@ -19,7 +19,7 @@ import {
 import { saveEntityNoteAction } from "../../../../_actions/entity-notes.action";
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
-import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardRadioCard } from "../../../nova/_components/wizard-radio-card";
 import { recordPaymentAction } from "../_actions/record-payment.action";
 

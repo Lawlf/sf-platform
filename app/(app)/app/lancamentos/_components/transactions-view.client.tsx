@@ -52,7 +52,7 @@ import { categoryIcon } from "../../_components/category-icons";
 import { MoneyInput } from "../../_components/money-input";
 import { queryKeys } from "../../_lib/query-keys";
 import { setSelectionBarActive } from "../../_lib/selection-bar";
-import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 import { createCashAccount } from "../../linha-do-tempo/_actions/create-cash-account.action";
 import {
   listCashAccounts,

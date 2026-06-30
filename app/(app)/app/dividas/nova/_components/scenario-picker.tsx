@@ -1,6 +1,6 @@
 "use client";
 
-import { WizardField } from "./wizard-field";
+import { WizardField } from "@/ui/wizard-field";
 import { WizardRadioCard } from "./wizard-radio-card";
 
 type Scenario = "new" | "ongoing";

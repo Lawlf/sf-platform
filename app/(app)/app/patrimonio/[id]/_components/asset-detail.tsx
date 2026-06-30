@@ -31,7 +31,7 @@ import {
 import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
-import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../../dividas/nova/_components/wizard-money-field";
 import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
 import { buildGoalSeedQuery } from "../../../simular/_lib/goal-seed";

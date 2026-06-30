@@ -9,7 +9,7 @@ import { z } from "zod";
 import { Button } from "@/app/components/ui/button";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardField } from "../../../dividas/nova/_components/wizard-field";
+import { WizardField } from "@/ui/wizard-field";
 import {
   ResultCard,
   ResultError,

@@ -17,7 +17,7 @@ import {
 } from "@/domain/categories/default-categories";
 
 import { createCategoryAction } from "../configuracoes/categorias/_actions/category-actions";
-import { wizardInputClass } from "../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 import { categoryIcon } from "./category-icons";
 

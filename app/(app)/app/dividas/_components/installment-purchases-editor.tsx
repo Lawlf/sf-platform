@@ -13,7 +13,7 @@ import type {
 } from "react-hook-form";
 
 import { formatCentsBRL } from "../_lib/format";
-import { WizardField, wizardInputClass } from "../nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../nova/_components/wizard-money-field";
 
 
