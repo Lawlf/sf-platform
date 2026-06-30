@@ -21,7 +21,7 @@ import { ComputedCard } from "../../_components/computed-card";
 import { validateLinkAssetStep } from "../../_components/link-asset-step";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "../../_components/wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import {
   buildLinkSummary,

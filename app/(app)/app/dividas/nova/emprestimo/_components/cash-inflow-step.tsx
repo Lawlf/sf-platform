@@ -6,7 +6,7 @@ import { Spinner } from "@/app/components/ui/spinner";
 
 import { type CashAssetForLoanPayload } from "../../_actions/list-cash-assets-for-loan.action";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "../../_components/wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 type CashTarget = "existing" | "new" | "spent";

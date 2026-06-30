@@ -12,7 +12,7 @@ import {
 } from "../_actions/list-active-assets.action";
 
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "./wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 export type LinkAssetChoice = "unset" | "no" | "existing" | "new";

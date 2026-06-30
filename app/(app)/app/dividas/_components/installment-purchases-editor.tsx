@@ -14,7 +14,7 @@ import type {
 
 import { formatCentsBRL } from "../_lib/format";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
-import { WizardMoneyField } from "../nova/_components/wizard-money-field";
+import { WizardMoneyField } from "@/ui/wizard-money-field";
 
 
 export interface InstallmentPurchaseValue {
