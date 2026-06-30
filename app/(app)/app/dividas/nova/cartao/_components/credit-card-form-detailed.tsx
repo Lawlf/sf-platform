@@ -33,7 +33,7 @@ import { RateEstimateHint } from "../../_components/rate-estimate-hint";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "@/ui/wizard-money-field";
-import { WizardPercentField } from "../../_components/wizard-percent-field";
+import { WizardPercentField } from "@/ui/wizard-percent-field";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { DEBT_RATE_ESTIMATES } from "../../_lib/debt-rate-estimates";
 import {
