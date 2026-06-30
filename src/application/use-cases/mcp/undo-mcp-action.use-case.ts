@@ -212,6 +212,7 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
         termMonths: num(s.termMonths),
         monthlyInsurance: optMoney(s.monthlyInsurance),
         monthlyAdminFee: optMoney(s.monthlyAdminFee),
+        monthlyInstallment: optMoney(s.monthlyInstallment),
       };
     case "personal_loan":
       return {
@@ -221,6 +222,8 @@ function deserializeDebt(s: Record<string, unknown>): DebtEntity {
         termMonths: num(s.termMonths),
         monthlyInstallment: money(s.monthlyInstallment),
         dueDay: optNum(s.dueDay),
+        payrollDeducted: optBoolFalse(s.payrollDeducted),
+        linkedIncomeId: optStr(s.linkedIncomeId),
       };
     case "credit_card":
       return {
@@ -338,6 +341,11 @@ function num(value: unknown): number {
 function optNum(value: unknown): number | null {
   if (value === undefined || value === null) return null;
   return num(value);
+}
+
+function optBoolFalse(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  return bool(value);
 }
 
 function date(value: unknown): Date {

@@ -12,6 +12,7 @@ import { PriceAmortizationService } from "./amortization/price-amortization.serv
 import { SacAmortizationService } from "./amortization/sac-amortization.service";
 import { IncomeCommittedService } from "./income-committed.service";
 import { WEEKS_PER_MONTH } from "./monthly-frequency";
+import { payrollLoanCurrentBalance } from "./payroll-loan.service";
 
 export interface FinancialSnapshotInput {
   userId: string;
@@ -49,7 +50,7 @@ export class FinancialHealthService {
     const totalIncome = totalIncomeR.value;
 
     const totalDebtBalanceNumber = owedDebts.reduce(
-      (sum, d) => sum + d.currentBalance.toNumber(),
+      (sum, d) => sum + effectiveDebtBalance(d, input.asOfDate).toNumber(),
       0,
     );
     const totalDebtBalanceR = Money.from(totalDebtBalanceNumber);
@@ -129,6 +130,18 @@ function monthlyEquivalent(income: IncomeEntity, asOf: Date): number {
   }
 }
 
+/**
+ * Saldo usado nas agregações do snapshot. Consignado (payrollDeducted) ignora
+ * o `currentBalance` armazenado (fica congelado, sem pagamento manual) e usa
+ * o saldo derivado por tempo decorrido.
+ */
+function effectiveDebtBalance(debt: DebtEntity, asOfDate: Date): Money {
+  if (debt.kind === "personal_loan" && debt.payrollDeducted) {
+    return payrollLoanCurrentBalance(debt, asOfDate);
+  }
+  return debt.currentBalance;
+}
+
 export function monthlyRateFor(debt: DebtEntity): number {
   switch (debt.kind) {
     case "financing":
@@ -147,6 +160,9 @@ export function monthlyRateFor(debt: DebtEntity): number {
 export function monthlyDebtService(debt: DebtEntity): Result<number, InvalidAmortizationParamsError> {
   switch (debt.kind) {
     case "financing": {
+      if (debt.monthlyInstallment) {
+        return ok(debt.monthlyInstallment.toNumber());
+      }
       const svcImpl =
         debt.amortizationMethod === "PRICE" ? PriceAmortizationService : SacAmortizationService;
       const s = svcImpl.generate({

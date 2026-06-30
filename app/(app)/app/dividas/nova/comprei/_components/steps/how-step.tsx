@@ -3,8 +3,9 @@
 import { Banknote, CreditCard, Home, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { KindCard } from "@/ui/kind-card";
 import type { PaymentMethod } from "../../_actions/create-purchase.action";
+
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 interface PaymentOption {
   id: PaymentMethod;
@@ -48,12 +49,13 @@ export function HowStep({ onSelectMethod }: HowStepProps) {
   return (
     <div role="radiogroup" aria-label="Método de pagamento" className="flex flex-col gap-2">
       {METHODS.map((m) => (
-        <KindCard
+        <WizardRadioCard
           key={m.id}
           icon={m.icon}
           title={m.title}
           description={m.description}
-          selected={false}
+          active={false}
+          variant="primary"
           onSelect={() => onSelectMethod(m.id)}
         />
       ))}

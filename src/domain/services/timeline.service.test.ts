@@ -117,6 +117,7 @@ function makeFinancing(overrides: {
     termMonths: 360,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     createdAt: overrides.createdAt ?? new Date(Date.UTC(2026, 0, 1)),
     updatedAt: new Date(Date.UTC(2026, 0, 1)),
     deletedAt: null,

@@ -46,6 +46,7 @@ const schema = z.object({
   expectedEndDate: z
     .union([z.coerce.date(), z.literal("").transform(() => null)])
     .optional(),
+  startDate: z.coerce.date().optional(),
   currentBalanceCents: z
     .union([positiveBigint, z.literal("").transform(() => null)])
     .optional(),
@@ -106,9 +107,10 @@ export const updateDebtAction = action({
     }
     const currency = existing.currentBalance.currency;
 
+    const effectiveStartDate = d.startDate ?? existing.startDate;
     if (
       d.expectedEndDate instanceof Date &&
-      d.expectedEndDate.getTime() < existing.startDate.getTime()
+      d.expectedEndDate.getTime() < effectiveStartDate.getTime()
     ) {
       throw new ActionError("A data de término não pode ser antes do início.");
     }
@@ -142,6 +144,7 @@ export const updateDebtAction = action({
     if (d.label !== undefined) input.label = d.label;
     if (d.notes !== undefined) input.notes = d.notes;
     if (d.expectedEndDate !== undefined) input.expectedEndDate = d.expectedEndDate;
+    if (d.startDate !== undefined) input.startDate = d.startDate;
     if (annualInterestRate !== undefined) input.annualInterestRate = annualInterestRate;
     if (d.statementDay != null) input.statementDay = d.statementDay;
     if (d.dueDay != null) input.dueDay = d.dueDay;

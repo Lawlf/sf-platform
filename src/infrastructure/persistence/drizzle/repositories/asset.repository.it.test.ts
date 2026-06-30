@@ -46,6 +46,8 @@ beforeAll(async () => {
     label: `${LABEL_PREFIX}loan`,
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     status: "active",
     originalPrincipal: Money.fromCents(500_000n),
     currentBalance: Money.fromCents(500_000n),

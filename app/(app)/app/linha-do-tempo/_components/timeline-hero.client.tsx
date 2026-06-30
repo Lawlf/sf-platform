@@ -79,7 +79,7 @@ export function TimelineHero({
 
   return (
     <>
-      <header className="sticky top-[58px] z-10 -mx-4 rounded-b-2xl px-4 py-4 backdrop-blur-2xl backdrop-saturate-150 md:-mx-0 md:top-[56px] md:px-0 md:py-5">
+      <header className="sticky top-[58px] z-10 -mx-4 rounded-b-2xl px-4 py-4 md:-mx-0 md:top-[48px] md:px-0 md:py-5">
         <div
           role="region"
           aria-label="Resumo do mês"

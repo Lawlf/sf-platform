@@ -43,6 +43,8 @@ function makeDebt(label: string): PersonalLoanDebt {
     label: `${LABEL_PREFIX}${label}`,
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     status: "active",
     originalPrincipal: Money.fromCents(1_000_000n),
     currentBalance: Money.fromCents(1_000_000n),

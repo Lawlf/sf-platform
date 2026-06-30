@@ -35,6 +35,7 @@ function makeDeps(overrides: Partial<Deps> = {}): Deps {
     create: vi.fn(),
     markEmailVerified: vi.fn(),
     deactivate: vi.fn(),
+    delete: vi.fn(),
     update: vi.fn(),
     findAllPro: vi.fn().mockResolvedValue([]),
   };

@@ -156,6 +156,7 @@ const createTransactionSchema = z.object({
   accountId: z.string().nullable().optional(),
   assetId: z.string().nullable().optional(),
   status: z.enum(["paid", "scheduled"]).optional(),
+  skipBalanceEffect: z.boolean().optional(),
 });
 
 export const createTransactionAction = action({
@@ -216,6 +217,7 @@ export const createTransactionAction = action({
           assetId: input.assetId ?? null,
           occurredAt,
           status,
+          skipBalanceEffect: input.skipBalanceEffect ?? false,
         },
       ),
     );

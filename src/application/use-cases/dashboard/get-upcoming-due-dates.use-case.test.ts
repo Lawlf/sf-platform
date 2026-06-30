@@ -64,6 +64,7 @@ function makeFinancing(overrides: Partial<FinancingDebt> = {}): FinancingDebt {
     termMonths: 60,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     deletedAt: null,
     recurringFrequency: null,
     recurringAmountCents: null,
@@ -89,6 +90,8 @@ function makePersonalLoan(overrides: Partial<PersonalLoanDebt> = {}): PersonalLo
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(950),
@@ -241,6 +244,46 @@ describe("getUpcomingDueDates", () => {
     expect(due.dueDate.getMonth()).toBe(4); // May
     expect(due.dueDate.getDate()).toBe(20);
     expect(due.amount).not.toBeNull();
+  });
+
+  it("gera nenhum vencimento para consignado (personal_loan com payrollDeducted)", async () => {
+    const debts = makeDebtRepo();
+    const now = new Date(2026, 4, 1); // 2026-05-01 local
+    const loan = makePersonalLoan({
+      startDate: new Date(2026, 0, 10),
+      dueDay: 20,
+      payrollDeducted: true,
+    });
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+
+    const result = await getUpcomingDueDates(
+      { debts, clock: makeClock(now) },
+      { userId: "user-1", profileId: "profile-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    expect(result.value).toHaveLength(0);
+  });
+
+  it("gera vencimento normal para personal_loan idêntico sem payrollDeducted", async () => {
+    const debts = makeDebtRepo();
+    const now = new Date(2026, 4, 1); // 2026-05-01 local
+    const loan = makePersonalLoan({
+      startDate: new Date(2026, 0, 10),
+      dueDay: 20,
+      payrollDeducted: false,
+    });
+    (debts.listForProfile as ReturnType<typeof vi.fn>).mockResolvedValue([loan]);
+
+    const result = await getUpcomingDueDates(
+      { debts, clock: makeClock(now) },
+      { userId: "user-1", profileId: "profile-1" },
+    );
+
+    expect(isOk(result)).toBe(true);
+    if (!isOk(result)) return;
+    expect(result.value).toHaveLength(1);
   });
 
   it("falls back to the startDate day when the personal loan has no dueDay", async () => {

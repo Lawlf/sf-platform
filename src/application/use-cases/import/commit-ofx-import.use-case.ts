@@ -222,6 +222,8 @@ export async function commitOfxImport(
       termMonths,
       monthlyInstallment: installmentMoney,
       dueDay: null,
+      payrollDeducted: false,
+      linkedIncomeId: null,
       startDate: now,
       expectedEndDate: null,
       notes: null,

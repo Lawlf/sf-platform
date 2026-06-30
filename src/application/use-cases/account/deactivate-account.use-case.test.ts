@@ -14,6 +14,7 @@ function makeDeps(): Deps {
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn().mockResolvedValue(undefined),
+    delete: vi.fn(),
     update: vi.fn().mockResolvedValue(undefined),
     findAllPro: vi.fn().mockResolvedValue([]),
     findAllActive: vi.fn().mockResolvedValue([]),

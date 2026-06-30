@@ -15,6 +15,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { parseFinancingSeed } from "../../../../simular/_lib/financing-seed";
 import { createDebtAction } from "../../../_actions/create-debt.action";
+import { createTransactionAction } from "@/app/(app)/app/_actions/planning-actions";
 import { todayIso } from "@/shared/format/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
@@ -86,13 +87,14 @@ export function FinancingForm({
   const termId = useId();
   const rateId = useId();
   const principalId = useId();
-  const balanceId = useId();
   const paidId = useId();
   const remainingId = useId();
   const startDateId = useId();
   const insuranceId = useId();
   const adminFeeId = useId();
   const installmentId = useId();
+  const downPaymentId = useId();
+  const downPaymentDateId = useId();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(financingFormSchema),
@@ -102,19 +104,19 @@ export function FinancingForm({
             scenario: "ongoing",
             currency: defaultCurrency,
             label: "Financiamento",
-            originalPrincipalCents: 0n as unknown as bigint,
-            amountPaidCents: 0n as unknown as bigint,
-            currentBalanceCents: 0n as unknown as bigint,
+            monthlyInstallmentCents: 0n as unknown as bigint,
             annualRatePct: 0,
             paidInstallments: 0,
             remainingTerms: undefined as unknown as number,
-            monthlyInstallmentCents: null,
             amortizationMethod: "PRICE",
             monthlyInsuranceCents: null,
             monthlyAdminFeeCents: null,
             startDate: todayIso(),
             expectedEndDate: null,
             notes: null,
+            flat: true,
+            downPaymentCents: null,
+            downPaymentDate: null,
             ...linkAssetDefaultsFor(initialLinkAssetId),
           } as FormValues)
         : ({
@@ -140,16 +142,6 @@ export function FinancingForm({
   const scenario = values.scenario;
   const currency: Currency = values.currency ?? defaultCurrency;
 
-  useEffect(() => {
-    if (values.scenario !== "ongoing") return;
-    const original = values.originalPrincipalCents ?? 0n;
-    const paid = values.amountPaidCents ?? 0n;
-    const balance = original > paid ? original - paid : 0n;
-    if ((values.currentBalanceCents ?? 0n) !== balance) {
-      form.setValue("currentBalanceCents" as never, balance as never, { shouldValidate: false });
-    }
-  }, [values, form]);
-
   function selectScenario(next: "new" | "ongoing") {
     if (next === scenario) return;
     setOngoingStep(1);
@@ -159,7 +151,6 @@ export function FinancingForm({
       currency: values.currency ?? defaultCurrency,
       label: values.label ?? "",
       annualRatePct: values.annualRatePct ?? 0,
-      monthlyInstallmentCents: values.monthlyInstallmentCents ?? null,
       amortizationMethod: values.amortizationMethod ?? "PRICE",
       monthlyInsuranceCents: values.monthlyInsuranceCents ?? null,
       monthlyAdminFeeCents: values.monthlyAdminFeeCents ?? null,
@@ -173,6 +164,7 @@ export function FinancingForm({
           scenario: "new",
           ...shared,
           principalCents: 0n as unknown as bigint,
+          monthlyInstallmentCents: values.monthlyInstallmentCents ?? null,
           termMonths: 60,
           ...linkAssetDefaultsFor(initialLinkAssetId),
         } as FormValues,
@@ -183,10 +175,12 @@ export function FinancingForm({
         {
           scenario: "ongoing",
           ...shared,
-          originalPrincipalCents: 0n as unknown as bigint,
-          currentBalanceCents: 0n as unknown as bigint,
+          monthlyInstallmentCents: (values.monthlyInstallmentCents ?? 0n) as unknown as bigint,
           paidInstallments: 0,
           remainingTerms: 60,
+          flat: true,
+          downPaymentCents: null,
+          downPaymentDate: null,
           ...linkAssetDefaultsFor(initialLinkAssetId),
         } as FormValues,
         { keepErrors: false },
@@ -194,22 +188,48 @@ export function FinancingForm({
     }
   }
 
+  const downPaymentCents =
+    scenario === "ongoing"
+      ? ((values as Extract<FormValues, { scenario: "ongoing" }>).downPaymentCents ?? null)
+      : null;
+
+  // Ongoing ("antiga"): nada de principal/pago no form, tudo deriva da
+  // parcela x contagens (stream flat). currentBalance = restantes x parcela,
+  // originalPrincipal = total x parcela, termMonths = pagas + restantes.
+  const ongoingDerived =
+    scenario === "ongoing"
+      ? (() => {
+          const v = values as Extract<FormValues, { scenario: "ongoing" }>;
+          const parcela = v.monthlyInstallmentCents ?? 0n;
+          const paid = Number.isFinite(v.paidInstallments) ? v.paidInstallments : 0;
+          const remaining = Number.isFinite(v.remainingTerms) ? v.remainingTerms : 0;
+          const termMonths = paid + remaining;
+          return {
+            parcela,
+            termMonths,
+            currentBalanceCents: BigInt(remaining) * parcela,
+            originalPrincipalCents: BigInt(termMonths) * parcela,
+          };
+        })()
+      : null;
+
   // Para o preview de parcela na step 5 trabalhar com ambos cenários:
   const previewPrincipal: bigint =
     scenario === "new"
       ? ((values as Extract<FormValues, { scenario: "new" }>).principalCents ?? 0n)
-      : ((values as Extract<FormValues, { scenario: "ongoing" }>).originalPrincipalCents ?? 0n);
+      : (ongoingDerived?.originalPrincipalCents ?? 0n);
   const previewTerm: number =
     scenario === "new"
       ? ((values as Extract<FormValues, { scenario: "new" }>).termMonths ?? 0)
-      : ((values as Extract<FormValues, { scenario: "ongoing" }>).paidInstallments ?? 0) +
-        ((values as Extract<FormValues, { scenario: "ongoing" }>).remainingTerms ?? 0);
+      : (ongoingDerived?.termMonths ?? 0);
 
   // Step 5 (confirm) preview state
   const [preview, setPreview] = useState<PreviewResult | "pending" | null>(null);
 
   useEffect(() => {
-    if (step !== 5) return;
+    // Ongoing (flat) não simula amortização: parcela já é a fonte de
+    // verdade, sem PRICE/SAC pra rodar.
+    if (step !== 5 || scenario !== "new") return;
     const annualRatePct = values.annualRatePct;
     if (
       typeof previewPrincipal !== "bigint" ||
@@ -244,6 +264,7 @@ export function FinancingForm({
     };
   }, [
     step,
+    scenario,
     previewPrincipal,
     previewTerm,
     values.annualRatePct,
@@ -255,31 +276,10 @@ export function FinancingForm({
   async function goToOngoingStep2() {
     const valid = await form.trigger([
       "label",
-      "originalPrincipalCents",
-      "amountPaidCents",
+      "monthlyInstallmentCents",
     ] as Parameters<typeof form.trigger>[0]);
     if (!valid) return;
-    prefillInstallmentCounts();
     setOngoingStep(2);
-  }
-
-  function prefillInstallmentCounts() {
-    const v = form.getValues();
-    if (v.scenario !== "ongoing") return;
-    const parcela = v.monthlyInstallmentCents ?? null;
-    if (!parcela || parcela <= 0n) return;
-    const original = v.originalPrincipalCents ?? 0n;
-    const paid = v.amountPaidCents ?? 0n;
-    const saldo = original > paid ? original - paid : 0n;
-    const parcelaNum = Number(parcela);
-    if (!v.paidInstallments) {
-      const paidCount = Math.round(Number(paid) / parcelaNum);
-      if (paidCount > 0) form.setValue("paidInstallments" as never, paidCount as never);
-    }
-    if (!v.remainingTerms || Number.isNaN(v.remainingTerms)) {
-      const remainingCount = saldo > 0n ? Math.max(1, Math.ceil(Number(saldo) / parcelaNum)) : 0;
-      if (remainingCount > 0) form.setValue("remainingTerms" as never, remainingCount as never);
-    }
   }
 
   async function goToStep3() {
@@ -324,10 +324,12 @@ export function FinancingForm({
       principalForServer = v.principalCents;
       termMonthsForServer = v.termMonths;
     } else {
-      principalForServer = v.originalPrincipalCents;
-      termMonthsForServer = v.paidInstallments + v.remainingTerms;
-      currentBalanceForServer = v.currentBalanceCents;
+      const total = v.paidInstallments + v.remainingTerms;
+      principalForServer = v.monthlyInstallmentCents * BigInt(total);
+      termMonthsForServer = total;
+      currentBalanceForServer = v.monthlyInstallmentCents * BigInt(v.remainingTerms);
       paidInstallmentsForServer = v.paidInstallments;
+      fd.set("flat", "true");
     }
 
     fd.set("principalCents", principalForServer.toString());
@@ -397,6 +399,25 @@ export function FinancingForm({
           router.push(`/app/dividas/${debtRes.data.debtId}` as Route);
           return;
         }
+      }
+
+      if (
+        v.scenario === "ongoing" &&
+        v.downPaymentCents &&
+        v.downPaymentCents > 0n &&
+        v.downPaymentDate
+      ) {
+        // Registro da entrada é só informativo; falha aqui não pode bloquear a dívida.
+        await createTransactionAction({
+          amountCents: v.downPaymentCents.toString(),
+          description: `Entrada - ${v.label}`,
+          direction: "out",
+          status: "paid",
+          skipBalanceEffect: true,
+          assetId: assetIdToLink,
+          occurredAtIso: v.downPaymentDate,
+          category: null,
+        }).catch(() => undefined);
       }
 
       await invalidateDebtCaches(queryClient);
@@ -605,49 +626,13 @@ export function FinancingForm({
         ) : (
           <>
             <WizardField
-              label="Valor original financiado"
-              htmlFor={principalId}
-              error={
-                (errors as { originalPrincipalCents?: { message?: string } })
-                  .originalPrincipalCents?.message
-              }
-              helper="No contrato. Total financiado, não o que sobrou."
-            >
-              <WizardMoneyField
-                control={form.control}
-                name={"originalPrincipalCents" as never}
-                id={principalId}
-                placeholder="R$ 0,00"
-                currency={currency}
-                onCurrencyChange={(c) => form.setValue("currency" as never, c as never)}
-              />
-            </WizardField>
-
-            <WizardField
-              label="Quanto você já pagou"
-              htmlFor={balanceId}
-              error={
-                (errors as { amountPaidCents?: { message?: string } }).amountPaidCents?.message
-              }
-              helper="Some o que já saiu até aqui. A gente calcula quanto falta."
-            >
-              <WizardMoneyField
-                control={form.control}
-                name={"amountPaidCents" as never}
-                id={balanceId}
-                placeholder="R$ 0,00"
-                currency={currency}
-              />
-            </WizardField>
-
-            <WizardField
-              label="Parcela mensal (opcional)"
+              label="Valor da parcela"
               htmlFor={installmentId}
               error={
                 (errors as { monthlyInstallmentCents?: { message?: string } })
                   .monthlyInstallmentCents?.message
               }
-              helper="Se não souber a taxa, informe a parcela que você paga."
+              helper="O valor fixo que sai todo mês. Confere no boleto ou no extrato."
             >
               <WizardMoneyField
                 control={form.control}
@@ -655,6 +640,7 @@ export function FinancingForm({
                 id={installmentId}
                 placeholder="R$ 0,00"
                 currency={currency}
+                onCurrencyChange={(c) => form.setValue("currency" as never, c as never)}
               />
             </WizardField>
           </>
@@ -744,6 +730,44 @@ export function FinancingForm({
             currency={currency}
           />
         </WizardField>
+
+        {scenario === "ongoing" ? (
+          <>
+            <WizardField
+              label="Você deu entrada? (opcional)"
+              htmlFor={downPaymentId}
+              error={
+                (errors as { downPaymentCents?: { message?: string } }).downPaymentCents?.message
+              }
+            >
+              <WizardMoneyField
+                control={form.control}
+                name={"downPaymentCents" as never}
+                id={downPaymentId}
+                placeholder="R$ 0,00"
+                currency={currency}
+              />
+            </WizardField>
+
+            {downPaymentCents !== null && downPaymentCents > 0n ? (
+              <WizardField
+                label="Quando você pagou a entrada? (opcional)"
+                htmlFor={downPaymentDateId}
+                error={
+                  (errors as { downPaymentDate?: { message?: string } }).downPaymentDate?.message
+                }
+                helper="Não muda seu saldo de hoje; o dinheiro já saiu. Sem a data, não criamos o lançamento."
+              >
+                <input
+                  id={downPaymentDateId}
+                  type="date"
+                  {...form.register("downPaymentDate" as never)}
+                  className={wizardInputClass}
+                />
+              </WizardField>
+            ) : null}
+          </>
+        ) : null}
       </WizardShell>
     );
   }
@@ -783,17 +807,9 @@ export function FinancingForm({
     scenario === "ongoing"
       ? ((values as Extract<FormValues, { scenario: "ongoing" }>).remainingTerms ?? 0)
       : 0;
-  const ongoingBalance =
-    scenario === "ongoing"
-      ? ((values as Extract<FormValues, { scenario: "ongoing" }>).currentBalanceCents ?? 0n)
-      : 0n;
-  const typedInstallment = values.monthlyInstallmentCents ?? null;
+  const ongoingBalance = ongoingDerived?.currentBalanceCents ?? 0n;
   const ongoingInstallmentCents: bigint | null =
-    typedInstallment && typedInstallment > 0n
-      ? typedInstallment
-      : ongoingRemaining > 0 && ongoingBalance > 0n
-        ? ongoingBalance / BigInt(ongoingRemaining)
-        : null;
+    ongoingDerived && ongoingDerived.parcela > 0n ? ongoingDerived.parcela : null;
 
   const installmentText: ReactNode =
     scenario === "ongoing" ? (
@@ -840,7 +856,13 @@ export function FinancingForm({
     );
 
   const linkSummary = buildLinkSummary(values);
-  const summaryItems = buildFinancingSummary({ values, totalPaidValue, cetValue, linkSummary });
+  const summaryItems = buildFinancingSummary({
+    values,
+    totalPaidValue,
+    cetValue,
+    linkSummary,
+    ongoingDerived,
+  });
 
   return (
     <WizardShell

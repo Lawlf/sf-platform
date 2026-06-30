@@ -56,6 +56,8 @@ function makeDebt(userId = "user-1"): PersonalLoanDebt {
     updatedAt: new Date("2026-01-01"),
     kind: "personal_loan",
     dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     annualInterestRate: makeRate(0.24),
     termMonths: 12,
     monthlyInstallment: makeMoney(450),
@@ -93,6 +95,30 @@ describe("updateDebt", () => {
       expect(result.value.notes).toBe("Anotacao");
       expect(result.value.expectedEndDate).toBe(newEnd);
       expect(result.value.updatedAt).toEqual(new Date("2026-03-15T10:00:00Z"));
+    }
+  });
+
+  it("persists a new startDate", async () => {
+    const debts = makeDebtRepo();
+    const clock = makeClock(new Date("2026-03-15T10:00:00Z"));
+    const existing = makeDebt();
+    (debts.findById as ReturnType<typeof vi.fn>).mockResolvedValue(existing);
+    (debts.update as ReturnType<typeof vi.fn>).mockImplementation(async (e: DebtEntity) => e);
+
+    const newStart = new Date("2025-11-01");
+    const result = await updateDebt(
+      { debts, clock },
+      {
+        userId: "user-1",
+        profileId: "profile-1",
+        debtId: "debt-1",
+        startDate: newStart,
+      },
+    );
+
+    expect(result._tag).toBe("ok");
+    if (isOk(result)) {
+      expect(result.value.startDate).toBe(newStart);
     }
   });
 

@@ -11,9 +11,9 @@ import {
   type ActiveAssetPayload,
 } from "../_actions/list-active-assets.action";
 
+import { WizardChoiceGroup } from "@/ui/wizard-choice-group";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "@/ui/wizard-money-field";
-import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 export type LinkAssetChoice = "unset" | "no" | "existing" | "new";
 
@@ -134,26 +134,20 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
         name="linkAssetChoice"
         render={() => (
           <WizardField label="Vincular a um bem">
-            <div className="grid grid-cols-3 gap-2">
-              <WizardRadioCard
-                title="Não"
-                description="Não é por um bem."
-                active={choice === "no"}
-                onSelect={handlePickNo}
-              />
-              <WizardRadioCard
-                title="Já cadastrei"
-                description="Está na minha lista."
-                active={choice === "existing"}
-                onSelect={handlePickExisting}
-              />
-              <WizardRadioCard
-                title="Cadastrar novo"
-                description="Vou registrar agora."
-                active={choice === "new"}
-                onSelect={handlePickNew}
-              />
-            </div>
+            <WizardChoiceGroup<LinkAssetChoice>
+              ariaLabel="Vincular a um bem"
+              value={choice}
+              options={[
+                { value: "no", title: "Não", description: "Não é por um bem." },
+                { value: "existing", title: "Já cadastrei", description: "Está na minha lista." },
+                { value: "new", title: "Cadastrar novo", description: "Vou registrar agora." },
+              ]}
+              onChange={(v) => {
+                if (v === "no") handlePickNo();
+                else if (v === "existing") handlePickExisting();
+                else handlePickNew();
+              }}
+            />
           </WizardField>
         )}
       />
@@ -240,17 +234,12 @@ export function LinkAssetStepContent<TForm extends FieldValues = LinkAssetFormSl
             name="newAssetCategory"
             render={({ field }) => (
               <WizardField label="Tipo do bem">
-                <div className="grid grid-cols-3 gap-2">
-                  {ASSET_CATEGORY_OPTIONS.map((opt) => (
-                    <WizardRadioCard
-                      key={opt.value}
-                      title={opt.title}
-                      description={opt.description}
-                      active={field.value === opt.value}
-                      onSelect={() => field.onChange(opt.value)}
-                    />
-                  ))}
-                </div>
+                <WizardChoiceGroup<NewAssetCategory>
+                  ariaLabel="Tipo do bem"
+                  value={field.value as NewAssetCategory | undefined}
+                  options={ASSET_CATEGORY_OPTIONS}
+                  onChange={(v) => field.onChange(v)}
+                />
               </WizardField>
             )}
           />

@@ -56,6 +56,7 @@ beforeAll(async () => {
     termMonths: 24,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     deletedAt: null,
     recurringFrequency: null,
     recurringAmountCents: null,

@@ -8,8 +8,8 @@ import type { ReactNode } from "react";
 import { debtCopy } from "../../../_lib/copy/catalogs";
 import { useCopy } from "../../../_lib/copy/use-copy";
 
-import { KindCard } from "@/ui/kind-card";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 // Preserva `linkAssetId` (wizard aberto a partir do detalhe de um bem) ao
 // navegar entre os passos do seletor de tipo.
@@ -92,12 +92,13 @@ export function KindPicker() {
     >
       <div role="radiogroup" aria-label="O que aconteceu" className="flex flex-col gap-2 md:gap-3.5">
         {ACTIONS.map((action) => (
-          <KindCard
+          <WizardRadioCard
             key={action.id}
             icon={action.icon}
             title={action.title}
             description={action.id === "comprei" ? t("kind.bought.desc") : action.description}
-            selected={false}
+            active={false}
+            variant="primary"
             onSelect={() => router.push(withLinkAsset(action.href, linkAssetId))}
           />
         ))}

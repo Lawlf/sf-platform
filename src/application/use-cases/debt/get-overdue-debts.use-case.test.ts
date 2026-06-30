@@ -1,11 +1,17 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { DebtPaymentEntity } from "@/domain/entities/debt-payment.entity";
-import type { CreditCardDebt, DebtEntity, RecurringDebt } from "@/domain/entities/debt.entity";
+import type {
+  CreditCardDebt,
+  DebtEntity,
+  PersonalLoanDebt,
+  RecurringDebt,
+} from "@/domain/entities/debt.entity";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { DebtDueAcknowledgementRepositoryPort } from "@/domain/ports/repositories/debt-due-acknowledgement.repository";
 import type { DebtPaymentRepositoryPort } from "@/domain/ports/repositories/debt-payment.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import { InterestRate } from "@/domain/value-objects/interest-rate.vo";
 import { Money } from "@/domain/value-objects/money.vo";
 import { isOk } from "@/shared/errors/result";
 
@@ -15,6 +21,12 @@ const fixedClock = (d: Date): Clock => ({ now: () => d });
 
 function makeMoney(cents: bigint): Money {
   return Money.fromCents(cents);
+}
+
+function makeRate(annual: number): InterestRate {
+  const r = InterestRate.fromAnnual(annual);
+  if (!isOk(r)) throw new Error("test setup");
+  return r.value;
 }
 
 function makePaymentsRepo(byDebt: Record<string, Date[]> = {}): DebtPaymentRepositoryPort {
@@ -124,7 +136,87 @@ function makeRecurringDebt(overrides: {
   };
 }
 
+function makePersonalLoanDebt(overrides: {
+  id: string;
+  dueDay: number | null;
+  payrollDeducted: boolean;
+  startDate?: Date;
+}): PersonalLoanDebt {
+  const principal = makeMoney(100000n);
+  return {
+    id: overrides.id,
+    userId: "u1",
+    profileId: "p1",
+    label: `Emprestimo ${overrides.id}`,
+    status: "active",
+    originalPrincipal: principal,
+    currentBalance: principal,
+    startDate: overrides.startDate ?? new Date("2026-01-10"),
+    expectedEndDate: null,
+    notes: null,
+    createdAt: new Date("2026-01-01"),
+    updatedAt: new Date("2026-01-01"),
+    deletedAt: null,
+    kind: "personal_loan",
+    annualInterestRate: makeRate(0.24),
+    termMonths: 12,
+    monthlyInstallment: makeMoney(9500n),
+    dueDay: overrides.dueDay,
+    payrollDeducted: overrides.payrollDeducted,
+    linkedIncomeId: null,
+    recurringFrequency: null,
+    recurringAmountCents: null,
+    expenseCategory: null,
+  };
+}
+
 describe("getOverdueDebts", () => {
+  it("consignado (personal_loan payrollDeducted) nunca aparece como vencido", async () => {
+    const repo = makeDebtRepo([
+      makePersonalLoanDebt({ id: "loan-consignado", dueDay: 10, payrollDeducted: true }),
+    ]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(0);
+  });
+
+  it("personal_loan idêntico sem payrollDeducted ainda fica vencido", async () => {
+    const repo = makeDebtRepo([
+      makePersonalLoanDebt({ id: "loan-normal", dueDay: 10, payrollDeducted: false }),
+    ]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(1);
+    expect(res.value[0]!.debtId).toBe("loan-normal");
+  });
+
+
+  it("emprestimo criado hoje com dueDay no dia do inicio nao fica vencido (1a parcela e no proximo ciclo)", async () => {
+    const repo = makeDebtRepo([
+      makePersonalLoanDebt({
+        id: "loan-hoje",
+        dueDay: 30,
+        payrollDeducted: false,
+        startDate: new Date(2026, 5, 30),
+      }),
+    ]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 30)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(0);
+  });
+
   it("marca cartao vencido quando dueDay passou e nao ha ack paid", async () => {
     const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n })]);
     const acks = makeAckRepo();

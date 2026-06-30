@@ -28,6 +28,7 @@ import { updateDebtAction } from "../../_actions/update-debt.action";
 const formSchema = z.object({
   label: z.string().min(1, "Informe um rótulo.").max(120),
   notes: z.string().max(1000).nullable(),
+  startDate: z.string().min(1, "Informe a data de início."),
   expectedEndDate: z.string().nullable(),
   // Kind-specific (optional; only sent when present per kind)
   currentBalanceCents: z.bigint().nonnegative().nullable(),
@@ -65,6 +66,7 @@ interface Props {
   defaults: {
     label: string;
     notes: string | null;
+    startDate: string;
     expectedEndDate: string | null;
     currentBalanceCents: string | null;
     annualRatePct: number | null;
@@ -93,6 +95,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
 
   const labelId = useId();
   const notesId = useId();
+  const startDateId = useId();
   const endDateId = useId();
   const rateId = useId();
   const bankId = useId();
@@ -108,6 +111,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
     defaultValues: {
       label: defaults.label,
       notes: defaults.notes,
+      startDate: defaults.startDate,
       expectedEndDate: defaults.expectedEndDate,
       currentBalanceCents: defaults.currentBalanceCents
         ? BigInt(defaults.currentBalanceCents)
@@ -190,6 +194,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
     fd.set("debtId", debtId);
     fd.set("label", v.label);
     fd.set("notes", v.notes ?? "");
+    fd.set("startDate", v.startDate);
     fd.set("expectedEndDate", v.expectedEndDate ?? "");
 
     if (kind === "financing" || kind === "personal_loan") {
@@ -271,6 +276,19 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
             id={notesId}
             rows={3}
             {...form.register("notes")}
+            className={wizardInputClass}
+          />
+        </WizardField>
+
+        <WizardField
+          label="Data de início"
+          htmlFor={startDateId}
+          error={form.formState.errors.startDate?.message}
+        >
+          <input
+            id={startDateId}
+            type="date"
+            {...form.register("startDate")}
             className={wizardInputClass}
           />
         </WizardField>

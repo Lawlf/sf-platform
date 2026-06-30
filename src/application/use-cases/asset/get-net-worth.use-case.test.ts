@@ -91,6 +91,7 @@ function makeFinancing({
     termMonths: 360,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     deletedAt: null,
     recurringFrequency: null,
     recurringAmountCents: null,

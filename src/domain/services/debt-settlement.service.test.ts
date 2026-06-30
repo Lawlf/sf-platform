@@ -70,6 +70,8 @@ function personalLoan(overrides: {
     termMonths: 12,
     monthlyInstallment: money(overrides.installment),
     dueDay: 10,
+    payrollDeducted: false,
+    linkedIncomeId: null,
   };
 }
 

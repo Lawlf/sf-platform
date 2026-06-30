@@ -71,6 +71,15 @@ export function ConfirmStep({ values, cashAssets, creditCards, serverError }: Co
       lines.push(
         `Entrada de ${formatBRL(downPayment)} e financiamento de ${formatBRL(principal)} em ${term}× a ${ratePct}% ao ano.`,
       );
+      if (values.downPaymentFromAccountId) {
+        const account = (cashAssets ?? []).find(
+          (a) => a.id === values.downPaymentFromAccountId,
+        );
+        const label = account?.label ?? "sua conta";
+        lines.push(`A entrada vai sair da conta ${label}.`);
+      } else {
+        lines.push("A entrada não vai mexer no saldo de nenhuma conta.");
+      }
     } else {
       lines.push(
         `Financiamento de ${formatBRL(principal)} em ${term}× a ${ratePct}% ao ano.`,

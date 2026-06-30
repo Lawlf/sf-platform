@@ -58,6 +58,10 @@ function rowToEntity(row: DebtRow): DebtEntity {
         monthlyAdminFee: row.monthlyAdminFeeCents
           ? Money.fromCents(row.monthlyAdminFeeCents, row.currency as Currency)
           : null,
+        monthlyInstallment:
+          row.monthlyInstallmentCents !== null && row.monthlyInstallmentCents !== undefined
+            ? Money.fromCents(row.monthlyInstallmentCents, row.currency as Currency)
+            : null,
       } as DebtEntity;
     }
     case "personal_loan": {
@@ -72,6 +76,8 @@ function rowToEntity(row: DebtRow): DebtEntity {
           ? Money.fromCents(row.monthlyInstallmentCents, row.currency as Currency)
           : Money.zero(row.currency as Currency),
         dueDay: row.dueDay ?? null,
+        payrollDeducted: row.payrollDeducted ?? false,
+        linkedIncomeId: row.linkedIncomeId ?? null,
       } as DebtEntity;
     }
     case "credit_card": {
@@ -177,6 +183,7 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
         termMonths: entity.termMonths,
         monthlyInsuranceCents: entity.monthlyInsurance?.toCents() ?? null,
         monthlyAdminFeeCents: entity.monthlyAdminFee?.toCents() ?? null,
+        monthlyInstallmentCents: entity.monthlyInstallment ? entity.monthlyInstallment.toCents() : null,
       };
     case "personal_loan":
       return {
@@ -185,6 +192,8 @@ function entityToRow(entity: DebtEntity): NewDebtRow {
         termMonths: entity.termMonths,
         monthlyInstallmentCents: entity.monthlyInstallment.toCents(),
         dueDay: entity.dueDay,
+        payrollDeducted: entity.payrollDeducted,
+        linkedIncomeId: entity.linkedIncomeId,
       };
     case "credit_card":
       return {

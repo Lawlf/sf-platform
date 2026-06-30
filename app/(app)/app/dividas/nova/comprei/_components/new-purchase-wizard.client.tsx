@@ -60,6 +60,7 @@ export interface NewPurchaseFormValues {
   downPaymentCents: bigint;
   financingAnnualRatePct: number | null;
   financingTermMonths: number;
+  downPaymentFromAccountId: string | null;
 }
 
 // O Step 3 (comportamento de valor) foi removido do fluxo; o número 3 nunca é
@@ -153,6 +154,7 @@ export function NewPurchaseWizard() {
       downPaymentCents: 0n as unknown as bigint,
       financingAnnualRatePct: null,
       financingTermMonths: 240,
+      downPaymentFromAccountId: null,
     },
   });
 
@@ -166,7 +168,8 @@ export function NewPurchaseWizard() {
   const { data: cashAssets } = useQuery<CashAssetPayload[]>({
     queryKey: ["comprei", "cash-assets"],
     queryFn: () => listCashAssetsForPurchase(),
-    enabled: watchedPaymentMethod === "cash" && step >= 5,
+    enabled:
+      (watchedPaymentMethod === "cash" || watchedPaymentMethod === "financing") && step >= 5,
     staleTime: 30_000,
   });
   const { data: creditCards } = useQuery<CreditCardDebtPayload[]>({
@@ -200,6 +203,9 @@ export function NewPurchaseWizard() {
     if (method !== "credit_card") {
       setValue("creditCardChoice", null, { shouldDirty: true });
     }
+    if (method !== "financing") {
+      setValue("downPaymentFromAccountId", null, { shouldDirty: true });
+    }
     setStep(5);
   }
 
@@ -210,6 +216,10 @@ export function NewPurchaseWizard() {
     } else if (method === "credit_card") {
       setValue("creditCardChoice", id as CreditCardChoice, { shouldDirty: true });
     }
+  }
+
+  function selectDownPaymentAccount(id: string | null) {
+    setValue("downPaymentFromAccountId", id, { shouldDirty: true });
   }
 
   function selectCashOnboarding(choice: "create" | "skip") {
@@ -383,6 +393,7 @@ export function NewPurchaseWizard() {
               downPaymentCents: v.downPaymentCents.toString(),
               financingAnnualRatePct: v.financingAnnualRatePct ?? 0,
               financingTermMonths: v.financingTermMonths,
+              downPaymentFromAccountId: v.downPaymentFromAccountId ?? null,
             }
           : {}),
       });
@@ -495,6 +506,7 @@ export function NewPurchaseWizard() {
           watch={watch}
           onSelectCreditCardOption={selectCreditCardOrCashOption}
           onSelectCashOnboarding={selectCashOnboarding}
+          onSelectDownPaymentAccount={selectDownPaymentAccount}
         />
         {serverError ? (
           <div

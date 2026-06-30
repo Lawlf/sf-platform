@@ -42,6 +42,9 @@ export type RegisterDebtInput =
           monthlyAdminFee: Money | null;
           // Ongoing: saldo atual difere do principal contratado.
           currentBalance?: Money | null;
+          // Parcela fixa armazenada (financiamento "em andamento" sem PRICE/SAC).
+          // Quando presente, é a fonte de verdade do serviço mensal.
+          monthlyInstallment?: Money | null;
         }
       | {
           kind: "personal_loan";
@@ -53,6 +56,8 @@ export type RegisterDebtInput =
           // Se omitido, assume contrato novo (currentBalance = originalPrincipal).
           currentBalance?: Money | null;
           dueDay?: number | null;
+          payrollDeducted?: boolean;
+          linkedIncomeId?: string | null;
         }
       | {
           kind: "credit_card";
@@ -106,6 +111,7 @@ export async function registerDebt(
         termMonths: input.termMonths,
         monthlyInsurance: input.monthlyInsurance,
         monthlyAdminFee: input.monthlyAdminFee,
+        monthlyInstallment: input.monthlyInstallment ?? null,
       };
       break;
     }
@@ -120,6 +126,8 @@ export async function registerDebt(
         termMonths: input.termMonths,
         monthlyInstallment: input.monthlyInstallment,
         dueDay: input.dueDay ?? null,
+        payrollDeducted: input.payrollDeducted ?? false,
+        linkedIncomeId: input.linkedIncomeId ?? null,
       };
       break;
     }

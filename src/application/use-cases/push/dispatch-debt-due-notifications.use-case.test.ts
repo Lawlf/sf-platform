@@ -115,6 +115,7 @@ function makeDeps(opts: {
     markOnboardingWizardSeen: vi.fn(),
     markHomeTourDismissed: vi.fn(),
     deactivate: vi.fn(),
+    delete: vi.fn(),
     update: vi.fn(),
   } as unknown as UserRepositoryPort;
   const debts = {

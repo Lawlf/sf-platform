@@ -5,8 +5,8 @@ import type { Route } from "next";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { ReactNode } from "react";
 
-import { KindCard } from "@/ui/kind-card";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 function withLinkAsset(href: string, linkAssetId: string | null): Route {
   if (!linkAssetId) return href as Route;
@@ -66,12 +66,13 @@ export function TypePicker() {
         className="flex flex-col gap-2 md:gap-3.5"
       >
         {TYPES.map((type) => (
-          <KindCard
+          <WizardRadioCard
             key={type.id}
             icon={type.icon}
             title={type.title}
             description={type.description}
-            selected={false}
+            active={false}
+            variant="primary"
             onSelect={() => router.push(withLinkAsset(type.href, linkAssetId))}
           />
         ))}

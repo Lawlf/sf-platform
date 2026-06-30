@@ -40,6 +40,8 @@ export const newScenarioSchema = z
     startDate: z.string().min(1, "Informe a data de início."),
     expectedEndDate: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
+    payrollDeducted: z.boolean(),
+    linkedIncomeId: z.string().uuid().nullable(),
     ...linkAssetSlice,
     ...cashInflowSlice,
   })
@@ -50,6 +52,15 @@ export const newScenarioSchema = z
   .refine((d) => endsAfterStart(d), {
     message: "A data de término não pode ser antes do início.",
     path: ["expectedEndDate"],
+  })
+  .superRefine((d, ctx) => {
+    if (d.payrollDeducted && !d.linkedIncomeId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["linkedIncomeId"],
+        message: "Escolha a renda de onde sai o desconto.",
+      });
+    }
   });
 
 export const ongoingScenarioSchema = z
@@ -67,6 +78,8 @@ export const ongoingScenarioSchema = z
     startDate: z.string().min(1, "Informe a data de início."),
     expectedEndDate: z.string().nullable().optional(),
     notes: z.string().nullable().optional(),
+    payrollDeducted: z.boolean(),
+    linkedIncomeId: z.string().uuid().nullable(),
     ...linkAssetSlice,
     ...cashInflowSlice,
   })
@@ -77,6 +90,15 @@ export const ongoingScenarioSchema = z
   .refine((d) => endsAfterStart(d), {
     message: "A data de término não pode ser antes do início.",
     path: ["expectedEndDate"],
+  })
+  .superRefine((d, ctx) => {
+    if (d.payrollDeducted && !d.linkedIncomeId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["linkedIncomeId"],
+        message: "Escolha a renda de onde sai o desconto.",
+      });
+    }
   });
 
 export const personalLoanFormSchema = z.discriminatedUnion("scenario", [
@@ -101,4 +123,9 @@ export const ONGOING_STEP2_FIELDS = [
   "paidInstallments",
 ] as const;
 
-export const STEP3_FIELDS = ["startDate", "monthlyInstallmentCents"] as const;
+export const STEP3_FIELDS = [
+  "startDate",
+  "monthlyInstallmentCents",
+  "payrollDeducted",
+  "linkedIncomeId",
+] as const;

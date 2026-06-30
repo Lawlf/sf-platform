@@ -2,7 +2,7 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { ArrowRight, ChevronRight } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -22,6 +22,7 @@ import { formatCents } from "@/shared/format/money-format";
 import { todayIso } from "@/shared/format/dates";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "@/ui/summary-list";
+import { WizardChoiceGroup } from "@/ui/wizard-choice-group";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "@/ui/wizard-money-field";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
@@ -162,59 +163,17 @@ export function RecurringDebtForm({
         description="Quantas vezes esse compromisso aparece no seu fluxo."
         onBack={() => router.push("/app/dividas/nova" as Route)}
       >
-        <div role="radiogroup" aria-label="Frequência" className="flex flex-col gap-2.5">
-          <button
-            type="button"
-            onClick={() => selectFrequency("monthly")}
-            aria-pressed={values.recurringFrequency === "monthly"}
-            disabled={pendingFrequency !== null}
-            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
-              values.recurringFrequency === "monthly" || pendingFrequency === "monthly"
-                ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
-                : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
-            }`}
-          >
-            <span>
-              <span className="block text-[0.9375rem] font-bold">Mensal</span>
-              <span className="mt-0.5 block text-[0.75rem] opacity-80">Todo mês</span>
-            </span>
-            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
-          </button>
-          <button
-            type="button"
-            onClick={() => selectFrequency("weekly")}
-            aria-pressed={values.recurringFrequency === "weekly"}
-            disabled={pendingFrequency !== null}
-            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
-              values.recurringFrequency === "weekly" || pendingFrequency === "weekly"
-                ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
-                : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
-            }`}
-          >
-            <span>
-              <span className="block text-[0.9375rem] font-bold">Semanal</span>
-              <span className="mt-0.5 block text-[0.75rem] opacity-80">Toda semana</span>
-            </span>
-            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
-          </button>
-          <button
-            type="button"
-            onClick={() => selectFrequency("annual")}
-            aria-pressed={values.recurringFrequency === "annual"}
-            disabled={pendingFrequency !== null}
-            className={`flex items-center justify-between gap-3 rounded-xl border-[1.5px] px-4 py-4 text-left transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] ${
-              values.recurringFrequency === "annual" || pendingFrequency === "annual"
-                ? "border-[color:var(--color-brand-500)] bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[0_6px_20px_rgba(239,122,26,0.35)]"
-                : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)] hover:bg-[color:var(--surface-1)]"
-            }`}
-          >
-            <span>
-              <span className="block text-[0.9375rem] font-bold">Anual</span>
-              <span className="mt-0.5 block text-[0.75rem] opacity-80">Uma vez por ano</span>
-            </span>
-            <ChevronRight size={18} strokeWidth={2} aria-hidden className="shrink-0 opacity-70" />
-          </button>
-        </div>
+        <WizardChoiceGroup<Frequency>
+          ariaLabel="Frequência"
+          variant="primary"
+          value={values.recurringFrequency}
+          options={[
+            { value: "monthly", title: "Mensal", description: "Todo mês" },
+            { value: "weekly", title: "Semanal", description: "Toda semana" },
+            { value: "annual", title: "Anual", description: "Uma vez por ano" },
+          ]}
+          onChange={selectFrequency}
+        />
         <p className="mt-3 text-[0.75rem] leading-[1.5] text-[color:var(--text-primary)] opacity-65">
           Você pode editar depois.
         </p>

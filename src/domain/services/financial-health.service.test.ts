@@ -70,6 +70,7 @@ function financingDebt(over: Partial<FinancingDebt> = {}): FinancingDebt {
     termMonths: 360,
     monthlyInsurance: null,
     monthlyAdminFee: null,
+    monthlyInstallment: null,
     deletedAt: null,
     recurringFrequency: null,
     recurringAmountCents: null,
@@ -258,6 +259,36 @@ describe("FinancialHealthService", () => {
     }
   });
 
+  it("payroll-deducted personal loan uses derived balance, not stale currentBalance", () => {
+    const asOf = new Date("2024-07-15");
+    const r = FinancialHealthService.snapshot({
+      userId: "u1",
+      incomes: [income()],
+      debts: [
+        personalLoanDebt({
+          id: "consignado",
+          payrollDeducted: true,
+          startDate: new Date("2024-01-15"),
+          termMonths: 24,
+          monthlyInstallment: moneyOf(2_430),
+          currentBalance: moneyOf(58_320), // stale: nunca foi atualizado manualmente
+        }),
+        personalLoanDebt({
+          id: "manual",
+          payrollDeducted: false,
+          currentBalance: moneyOf(8_000),
+        }),
+      ],
+      asOfDate: asOf,
+    });
+    expect(isOk(r)).toBe(true);
+    if (isOk(r)) {
+      // consignado: 6 meses decorridos -> 18 parcelas restantes * 2430 = 43740 (não 58320)
+      // manual: usa currentBalance armazenado, sem alteração (8000)
+      expect(r.value.totalDebtBalance.toCents()).toBe(5_174_000n);
+    }
+  });
+
   it("cetWeightedAverage is the balance-weighted rate", () => {
     const r = FinancialHealthService.snapshot({
       userId: "u1",
@@ -306,6 +337,9 @@ function personalLoanDebt(over: Partial<PersonalLoanDebt> = {}): PersonalLoanDeb
     annualInterestRate: rateAnnual(0.12),
     termMonths: 24,
     monthlyInstallment: moneyOf(500),
+    dueDay: null,
+    payrollDeducted: false,
+    linkedIncomeId: null,
     ...over,
   } as PersonalLoanDebt;
 }
@@ -320,6 +354,22 @@ describe("debt mappers (exported for prescription engine)", () => {
   it("monthlyDebtService returns the monthly installment in reais for a personal loan", () => {
     const r = monthlyDebtService(personalLoanDebt());
     expect(isOk(r) && r.value).toBe(500);
+  });
+
+  it("financing with stored monthlyInstallment returns it directly (flat stream)", () => {
+    // Parcela armazenada (3000) difere de propósito do valor amortizado
+    // (principal/termo = 58320/24 = 2430): se a branch flat sumir, o serviço
+    // volta a amortizar e retorna 2430, falhando este teste.
+    const debt = financingDebt({
+      monthlyInstallment: moneyOf(3000),
+      annualInterestRate: rateAnnual(0),
+      originalPrincipal: moneyOf(58_320),
+      currentBalance: moneyOf(46_170),
+      termMonths: 24,
+      status: "active",
+    });
+    const svc = monthlyDebtService(debt);
+    expect(isOk(svc) && svc.value).toBe(3000);
   });
 
   it("credit card with no statement counts open installments", () => {

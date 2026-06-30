@@ -60,6 +60,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
   );
   if (isErr(r)) notFound();
   const { debt, amortization, payments } = r.value;
+  const isPayrollLoan = debt.kind === "personal_loan" && debt.payrollDeducted;
   const dueDates = computeInstallmentDueDates(debt, amortization);
   const hasCalendarSchedule = dueDates.length > 0;
   const googleCalendarUrl = hasCalendarSchedule
@@ -100,7 +101,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
       {debt.status === "written_off" ? <OutOfMonthBanner /> : null}
-      {overdueState ? (
+      {overdueState && !isPayrollLoan ? (
         <OverdueBanner
           debtId={id}
           dueDay={overdueState.dueDay}
@@ -114,7 +115,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
 
       <MinimumPaymentNotice debt={debt} />
 
-      {debt.status === "active" && hasCalendarSchedule ? (
+      {debt.status === "active" && hasCalendarSchedule && !isPayrollLoan ? (
         <DueReminder
           debtId={id}
           googleCalendarUrl={googleCalendarUrl}

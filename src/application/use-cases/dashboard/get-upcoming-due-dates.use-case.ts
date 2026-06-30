@@ -48,6 +48,9 @@ export function nextDueFor(debt: DebtEntity, now: Date): UpcomingDue | null {
       };
     }
     case "personal_loan": {
+      // Consignado é descontado direto na folha: nunca gera lembrete de
+      // vencimento manual.
+      if (debt.payrollDeducted) return null;
       // Vencimento no dia escolhido (`dueDay`); sem dia definido, cai pro dia
       // de `startDate`. Mesma regra do cartão pra o lembrete bater no dia certo.
       const day = debt.dueDay ?? debt.startDate.getDate();

@@ -3,9 +3,11 @@ import { describe, expect, it, vi } from "vitest";
 import type { AssetDebtAllocation } from "@/domain/entities/asset-debt-allocation.entity";
 import type { AssetEntity } from "@/domain/entities/asset.entity";
 import type { DebtEntity } from "@/domain/entities/debt.entity";
+import type { TransactionEntity } from "@/domain/entities/transaction.entity";
 import type { AssetDebtAllocationRepositoryPort } from "@/domain/ports/repositories/asset-debt-allocation.repository";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { DebtRepositoryPort } from "@/domain/ports/repositories/debt.repository";
+import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 // AssetRepositoryPort import kept for potential future inline test repos.
 import { Money } from "@/domain/value-objects/money.vo";
 
@@ -85,11 +87,21 @@ function makeClock(now = new Date("2026-05-21T10:00:00Z")) {
   return { now: vi.fn(() => now) };
 }
 
+function makeTransactionsRepo(): Pick<TransactionRepositoryPort, "create"> {
+  return {
+    create: vi.fn(async (t: Omit<TransactionEntity, "createdAt">) => ({
+      ...t,
+      createdAt: new Date("2026-01-01"),
+    })),
+  };
+}
+
 function makeDeps(): ExecutePurchaseDeps {
   return {
     assets: makeAssetRepoWithStore(),
     allocations: makeAllocationsRepo(),
     debts: makeDebtRepo(),
+    transactions: makeTransactionsRepo(),
     clock: makeClock(),
   };
 }
@@ -176,6 +188,7 @@ describe("executePurchase", () => {
       assets: makeAssetRepoWithStore([cash]),
       allocations: makeAllocationsRepo(),
       debts: makeDebtRepo(),
+      transactions: makeTransactionsRepo(),
       clock: makeClock(),
     };
     const result = await executePurchase(deps, {
@@ -199,6 +212,7 @@ describe("executePurchase", () => {
       assets: makeAssetRepoWithStore([cash]),
       allocations: makeAllocationsRepo(),
       debts: makeDebtRepo(),
+      transactions: makeTransactionsRepo(),
       clock: makeClock(),
     };
     const result = await executePurchase(deps, {
@@ -305,6 +319,7 @@ describe("executePurchase", () => {
       assets: makeAssetRepoWithStore(),
       allocations: makeAllocationsRepo(),
       debts,
+      transactions: makeTransactionsRepo(),
       clock: makeClock(),
     };
 
@@ -363,6 +378,7 @@ describe("executePurchase", () => {
       assets: makeAssetRepoWithStore(),
       allocations: makeAllocationsRepo(),
       debts,
+      transactions: makeTransactionsRepo(),
       clock: makeClock(),
     };
 
@@ -788,5 +804,83 @@ describe("executePurchase", () => {
     if (!result.ok) {
       expect(result.message).toMatch(/parcelas/i);
     }
+  });
+
+  // ---- Entrada do financiamento vira saída real (macro-honestidade) ----
+
+  it("financing with downPayment>0 + downPaymentFromAccountId creates an out transaction attributed to the asset and reduces the account", async () => {
+    const cash = makeCashAsset({ id: "cash-1", currentValue: Money.fromCents(50_000_00n) });
+    const deps: ExecutePurchaseDeps = {
+      assets: makeAssetRepoWithStore([cash]),
+      allocations: makeAllocationsRepo(),
+      debts: makeDebtRepo(),
+      transactions: makeTransactionsRepo(),
+      clock: makeClock(),
+    };
+    const result = await executePurchase(deps, {
+      userId: "user-1",
+      profileId: "profile-1",
+      name: "Carro",
+      valueCents: 80_000_00n,
+      category: "vehicle",
+      paymentMethod: "financing",
+      downPaymentCents: 20_000_00n,
+      financingTermMonths: 60,
+      financingAnnualRatePct: 12,
+      downPaymentFromAccountId: "cash-1",
+    });
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.assetId).not.toBeNull();
+
+    expect(deps.transactions.create).toHaveBeenCalledTimes(1);
+    const created = (deps.transactions.create as ReturnType<typeof vi.fn>).mock.calls[0]?.[0] as
+      | Omit<TransactionEntity, "createdAt">
+      | undefined;
+    expect(created?.direction).toBe("out");
+    expect(created?.status).toBe("paid");
+    expect(created?.amount.toCents()).toBe(20_000_00n);
+    expect(created?.assetId).toBe(result.assetId);
+
+    const updatedCash = (deps.assets.update as ReturnType<typeof vi.fn>).mock.calls.find(
+      (call) => (call[0] as AssetEntity).id === "cash-1",
+    )?.[0] as AssetEntity | undefined;
+    expect(updatedCash?.currentValue.toCents()).toBe(30_000_00n);
+  });
+
+  it("financing with downPayment>0 and no downPaymentFromAccountId creates no transaction", async () => {
+    const deps = makeDeps();
+    const result = await executePurchase(deps, {
+      userId: "user-1",
+      profileId: "profile-1",
+      name: "Carro",
+      valueCents: 80_000_00n,
+      category: "vehicle",
+      paymentMethod: "financing",
+      downPaymentCents: 20_000_00n,
+      financingTermMonths: 60,
+      financingAnnualRatePct: 12,
+      downPaymentFromAccountId: null,
+    });
+    expect(result.ok).toBe(true);
+    expect(deps.transactions.create).not.toHaveBeenCalled();
+  });
+
+  it("financing with downPayment=0 creates no transaction even if downPaymentFromAccountId is set", async () => {
+    const deps = makeDeps();
+    const result = await executePurchase(deps, {
+      userId: "user-1",
+      profileId: "profile-1",
+      name: "Carro",
+      valueCents: 80_000_00n,
+      category: "vehicle",
+      paymentMethod: "financing",
+      downPaymentCents: 0n,
+      financingTermMonths: 60,
+      financingAnnualRatePct: 12,
+      downPaymentFromAccountId: "cash-1",
+    });
+    expect(result.ok).toBe(true);
+    expect(deps.transactions.create).not.toHaveBeenCalled();
   });
 });
