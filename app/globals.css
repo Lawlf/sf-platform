@@ -64,6 +64,12 @@
     --semantic-warning: var(--color-warning);
     --skeleton-base: rgba(31, 29, 28, 0.08);
     --skeleton-shine: rgba(255, 255, 255, 0.55);
+    --gradient-brand: linear-gradient(135deg, #f28e25, #ef7a1a);
+    --gradient-brand-reversed: linear-gradient(135deg, #ef7a1a, #f28e25);
+    --gradient-brand-deep: linear-gradient(135deg, #f28e25, #d96813);
+    --gradient-brand-soft: linear-gradient(135deg, #ef7a1a 0%, #f28e25 60%, #f4a13a 100%);
+    --gradient-positive: linear-gradient(135deg, #16a34a, #22c55e);
+    --gradient-negative: linear-gradient(135deg, #dc2626, #ef4444);
   }
 
   [data-sidebar="collapsed"] {

@@ -14,7 +14,7 @@ const buttonVariants = cva(
         default:
           "bg-[color:var(--color-brand-500)] text-white shadow hover:bg-[color:var(--color-brand-600)] focus-visible:ring-[color:var(--color-brand-500)]",
         brand:
-          "bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-white shadow-[var(--shadow-brand)] hover:brightness-105 focus-visible:ring-[color:var(--color-brand-500)]",
+          "bg-[image:var(--gradient-brand)] text-white shadow-[var(--shadow-brand)] hover:brightness-105 focus-visible:ring-[color:var(--color-brand-500)]",
         glass:
           "glass-tier-3 text-[color:var(--text-primary)] hover:bg-[color:var(--surface-1)] focus-visible:ring-[color:var(--color-brand-500)]",
         outline:
