@@ -155,7 +155,8 @@ export function AssetWizardClient({
   const form = useForm<AssetWizardFormValues>({
     resolver: zodResolver(wizardFormSchema),
     defaultValues: {
-      category: initialCategory ?? "vehicle",
+      // Sem deep-link, começa sem nada marcado pra a pessoa escolher o tipo.
+      category: initialCategory as Category,
       label: "",
       currentValueCents: 0n as unknown as bigint,
       currency: defaultCurrency,

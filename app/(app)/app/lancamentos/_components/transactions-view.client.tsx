@@ -24,7 +24,7 @@ import {
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -173,6 +173,7 @@ export function TransactionsView({
   categoryHistory,
 }: Props) {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const queryClient = useQueryClient();
   const [items, setItems] = useState<SerializedTxn[]>(transactions);
   const [search, setSearch] = useState("");
@@ -200,6 +201,16 @@ export function TransactionsView({
     setSelectionBarActive(selectMode);
     return () => setSelectionBarActive(false);
   }, [selectMode]);
+
+  // Deep-link de "movimentações recentes": abre direto o lançamento clicado, se
+  // ele estiver no período carregado.
+  useEffect(() => {
+    const txnId = searchParams.get("txn");
+    if (!txnId) return;
+    const found = transactions.find((t) => t.id === txnId);
+    if (found) setEditing(found);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
     let on = true;

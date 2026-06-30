@@ -34,7 +34,13 @@ export async function getDebtDetail(
   if (!debt) return err(new DebtNotFound("Dívida não encontrada."));
   if (debt.profileId !== input.profileId) return err(new Forbidden("Acesso negado."));
 
+  // Dívida "Fora do mês" (parada) não tem plano de pagamento rodando: não faz
+  // sentido mostrar cronograma de amortização.
   let amortization: AmortizationSchedule | null = null;
+  if (debt.status === "written_off") {
+    const payments = await deps.payments.listForDebt(debt.id);
+    return ok({ debt, amortization, payments });
+  }
   if (debt.kind === "financing") {
     const svc =
       debt.amortizationMethod === "PRICE" ? PriceAmortizationService : SacAmortizationService;

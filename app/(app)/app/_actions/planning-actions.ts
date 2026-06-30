@@ -221,7 +221,7 @@ export const createTransactionAction = action({
     );
 
     const event =
-      direction === "in" && status === "paid"
+      direction === "in" && created.status === "paid"
         ? await computeFreeBalanceEvent(userId, profileId, Money.fromCents(amountCents))
         : null;
     return { event, accountId: created.accountId ?? "", transactionId: created.id };

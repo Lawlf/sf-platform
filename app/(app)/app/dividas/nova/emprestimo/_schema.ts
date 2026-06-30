@@ -8,6 +8,17 @@ import { linkAssetSlice } from "../_lib/link-asset";
 // quando vazio (em vez de NaN), então aqui basta nullable.
 const dueDayField = z.number().int().min(1).max(31).nullable();
 
+function endsAfterStart(d: {
+  startDate: string;
+  expectedEndDate?: string | null | undefined;
+}): boolean {
+  if (!d.expectedEndDate) return true;
+  const start = new Date(d.startDate);
+  const end = new Date(d.expectedEndDate);
+  if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) return true;
+  return end.getTime() >= start.getTime();
+}
+
 export const cashInflowSlice = {
   cashTarget: z.enum(["existing", "new", "spent"]).nullable().optional(),
   existingCashAssetId: z.string().nullable().optional(),
@@ -35,6 +46,10 @@ export const newScenarioSchema = z
   .refine((d) => d.netReceivedCents <= d.principalCents, {
     message: "Valor recebido não pode ser maior que o contratado.",
     path: ["netReceivedCents"],
+  })
+  .refine((d) => endsAfterStart(d), {
+    message: "A data de término não pode ser antes do início.",
+    path: ["expectedEndDate"],
   });
 
 export const ongoingScenarioSchema = z
@@ -58,6 +73,10 @@ export const ongoingScenarioSchema = z
   .refine((d) => d.paidInstallments < d.totalInstallments, {
     message: "As parcelas pagas não podem ser iguais ou mais que o total.",
     path: ["paidInstallments"],
+  })
+  .refine((d) => endsAfterStart(d), {
+    message: "A data de término não pode ser antes do início.",
+    path: ["expectedEndDate"],
   });
 
 export const personalLoanFormSchema = z.discriminatedUnion("scenario", [

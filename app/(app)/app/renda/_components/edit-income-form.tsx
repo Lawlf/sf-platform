@@ -331,19 +331,21 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
         </span>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        aria-busy={pending || undefined}
-        className="focus-ring relative mt-1 flex items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-      >
-        <span className={pending ? "opacity-0" : "opacity-100"}>Salvar alterações</span>
-        {pending ? (
-          <span className="absolute inset-0 flex items-center justify-center">
-            <Spinner size={18} />
-          </span>
-        ) : null}
-      </button>
+      <div className="sticky bottom-3 z-20 rounded-2xl bg-[color:var(--surface-1)]/95 p-3 backdrop-blur-xl md:static md:bg-transparent md:p-0 md:backdrop-blur-none">
+        <button
+          type="submit"
+          disabled={pending}
+          aria-busy={pending || undefined}
+          className="focus-ring relative flex w-full items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+        >
+          <span className={pending ? "opacity-0" : "opacity-100"}>Salvar alterações</span>
+          {pending ? (
+            <span className="absolute inset-0 flex items-center justify-center">
+              <Spinner size={18} />
+            </span>
+          ) : null}
+        </button>
+      </div>
     </form>
   );
 }

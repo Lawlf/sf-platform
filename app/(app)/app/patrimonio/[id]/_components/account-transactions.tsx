@@ -51,7 +51,7 @@ export function AccountTransactionsSection({
 
       {items.length > 0 ? (
         <>
-          <ul className="mt-3 flex flex-col gap-2">
+          <ul className="mt-2 flex flex-col divide-y divide-[color:var(--border-soft)]">
             {items.map((t) => (
               <AccountTxnRow key={t.id} txn={t} />
             ))}

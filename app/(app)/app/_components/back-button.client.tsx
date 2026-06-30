@@ -7,12 +7,22 @@ import { useRouter } from "next/navigation";
 interface BackButtonProps {
   fallbackHref?: Route;
   label?: string;
+  /**
+   * Ignora o histórico e vai direto pro fallbackHref. Use quando a tela tem um
+   * pai canônico (ex.: detalhe → listagem) e router.back() cairia num passo de
+   * wizard de criação em vez da lista.
+   */
+  preferFallback?: boolean;
 }
 
-export function BackButton({ fallbackHref, label = "Voltar" }: BackButtonProps) {
+export function BackButton({ fallbackHref, label = "Voltar", preferFallback = false }: BackButtonProps) {
   const router = useRouter();
 
   function handleBack() {
+    if (preferFallback && fallbackHref) {
+      router.push(fallbackHref);
+      return;
+    }
     if (typeof window !== "undefined" && window.history.length > 1) {
       router.back();
       return;

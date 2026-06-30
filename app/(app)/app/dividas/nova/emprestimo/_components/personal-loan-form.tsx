@@ -9,11 +9,11 @@ import { useId, useMemo, useState, useTransition } from "react";
 import { useForm, type UseFormReturn } from "react-hook-form";
 
 import type { Currency } from "@/domain/value-objects/money.vo";
+import { todayIso } from "@/shared/format/dates";
 
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { createDebtAction } from "../../../_actions/create-debt.action";
 import { computeCetAnnualText, computePriceInstallmentCents } from "../../../_lib/amortization";
-import { todayIso } from "@/shared/format/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";
@@ -38,6 +38,7 @@ import { SummaryList } from "../../_components/summary-list";
 import { WizardField, wizardInputClass } from "../../_components/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
+import { WizardRadioCard } from "../../_components/wizard-radio-card";
 import { WizardShell } from "../../_components/wizard-shell";
 import { buildLinkSummary, debtCreatedHref, linkAssetDefaultsFor } from "../../_lib/link-asset";
 import {
@@ -54,6 +55,7 @@ import {
   validateCashInflowStep,
 } from "./cash-inflow-step";
 import { buildLoanSummary } from "./loan-summary";
+import { StalledLoanForm } from "./stalled-loan-form";
 
 type FormValues = PersonalLoanFormValues;
 
@@ -83,6 +85,13 @@ export function PersonalLoanForm({
 }: PersonalLoanFormProps = {}) {
   const router = useRouter();
   const queryClient = useQueryClient();
+  // Pergunta inicial só pro empréstimo aberto direto. Quando já vem de um seed
+  // (modo simples) ou vinculado a um bem, a pessoa está cadastrando algo que vai
+  // pagar; pula a bifurcação.
+  const skipChoose = Boolean(seed || initialLinkAssetId || initialScenario === "ongoing");
+  const [mode, setMode] = useState<"choose" | "paying" | "stalled">(
+    skipChoose ? "paying" : "choose",
+  );
   const [step, setStep] = useState<Step>(2);
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
@@ -502,6 +511,41 @@ export function PersonalLoanForm({
   const arrowRight = <ArrowRight size={14} strokeWidth={2} aria-hidden />;
   const ongoingTotalSteps = scenario === "ongoing" ? 4 : 5;
 
+  if (mode === "choose") {
+    return (
+      <WizardShell
+        currentStep={1}
+        hideSteps
+        title="Você já paga essa dívida?"
+        description="Isso muda como ela entra na sua conta do mês."
+        onBack={() => router.push("/app/dividas/nova" as Route)}
+      >
+        <div className="flex flex-col gap-2.5">
+          <WizardRadioCard
+            chevron
+            title="Já pago"
+            description="Tem parcela ou um valor que sai todo mês."
+            active={false}
+            onSelect={() => setMode("paying")}
+          />
+          <WizardRadioCard
+            chevron
+            title="Tá parada"
+            description="Não pago agora, tô esperando negociar ou ainda vou ver como pagar."
+            active={false}
+            onSelect={() => setMode("stalled")}
+          />
+        </div>
+      </WizardShell>
+    );
+  }
+
+  if (mode === "stalled") {
+    return (
+      <StalledLoanForm defaultCurrency={defaultCurrency} onBack={() => setMode("choose")} />
+    );
+  }
+
   if (step === 2) {
     return (
       <WizardShell
@@ -511,7 +555,7 @@ export function PersonalLoanForm({
         description={
           scenario === "ongoing" ? "A parcela e quantas faltam." : "Use os dados do contrato."
         }
-        onBack={() => router.push("/app/dividas/nova" as Route)}
+        onBack={() => (skipChoose ? router.push("/app/dividas/nova" as Route) : setMode("choose"))}
         primary={{
           label: "Continuar",
           onClick: () => {

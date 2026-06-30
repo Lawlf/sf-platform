@@ -10,8 +10,9 @@ import {
 } from "@/domain/services/asset-cost.service";
 import { monthlyDebtService } from "@/domain/services/financial-health.service";
 import { projectFixedIncomeOneYear } from "@/domain/services/fixed-income-projection.service";
+import { isFutureDay } from "@/domain/services/transaction-forecast";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
-import { repos } from "@/infrastructure/container";
+import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
@@ -349,8 +350,15 @@ export default async function AssetDetailPage({ params }: PageProps) {
   const linkedGoals = await fetchGoalsLinkedToAsset(id);
 
   const isCash = asset.category === "cash";
+  // "Recentes" = o que já aconteceu. Lançamentos com data futura são previstos
+  // e ficam fora daqui (aparecem na lista completa). Busca uma janela maior e
+  // corta os futuros antes de pegar os 3 mais recentes.
   const txnPreview = isCash
-    ? await fetchAccountTransactionsPage({ accountId: asset.id, limit: 3 })
+    ? {
+        items: (await fetchAccountTransactionsPage({ accountId: asset.id, limit: 12 }))?.items
+          .filter((t) => !isFutureDay(new Date(t.occurredAtIso), clock.now()))
+          .slice(0, 3) ?? [],
+      }
     : null;
   const txnTotal = isCash ? await fetchAccountTransactionCount(asset.id) : 0;
   const txnFraming: "extrato" | "lancamentos" = asset.externalAccountKey

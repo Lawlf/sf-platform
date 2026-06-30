@@ -80,8 +80,10 @@ function monthlyDueDay(debt: DebtEntity): number | null {
   switch (debt.kind) {
     case "credit_card":
       return debt.dueDay;
+    // Sem dia informado o sistema não inventa vencimento: o usuário não definiu
+    // quando paga, então não há ciclo a cobrar (nem "venceu").
     case "personal_loan":
-      return debt.dueDay ?? debt.startDate.getDate();
+      return debt.dueDay;
     case "recurring":
       return debt.recurringFrequency === "monthly"
         ? (debt.dueDay ?? debt.startDate.getDate())
