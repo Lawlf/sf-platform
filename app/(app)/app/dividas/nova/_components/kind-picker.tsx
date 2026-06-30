@@ -8,7 +8,7 @@ import type { ReactNode } from "react";
 import { debtCopy } from "../../../_lib/copy/catalogs";
 import { useCopy } from "../../../_lib/copy/use-copy";
 
-import { KindCard } from "./kind-card";
+import { KindCard } from "@/ui/kind-card";
 import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 
 // Preserva `linkAssetId` (wizard aberto a partir do detalhe de um bem) ao

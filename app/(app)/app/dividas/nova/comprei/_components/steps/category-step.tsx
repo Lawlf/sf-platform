@@ -3,7 +3,7 @@
 import { Car, GraduationCap, Package, Plane, Smartphone, Sofa } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { KindCard } from "../../../_components/kind-card";
+import { KindCard } from "@/ui/kind-card";
 import type { PurchaseCategory } from "../../_actions/create-purchase.action";
 
 interface CategoryOption {

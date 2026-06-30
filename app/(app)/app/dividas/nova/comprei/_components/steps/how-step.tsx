@@ -3,7 +3,7 @@
 import { Banknote, CreditCard, Home, Wallet } from "lucide-react";
 import type { ReactNode } from "react";
 
-import { KindCard } from "../../../_components/kind-card";
+import { KindCard } from "@/ui/kind-card";
 import type { PaymentMethod } from "../../_actions/create-purchase.action";
 
 interface PaymentOption {
