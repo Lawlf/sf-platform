@@ -4,6 +4,7 @@ import { TransactionNotFound } from "@/domain/errors/financial-errors";
 import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
+import { resolveStatusForDate } from "@/domain/services/transaction-forecast";
 import { Money } from "@/domain/value-objects/money.vo";
 import { err, ok, type Result } from "@/shared/errors/result";
 
@@ -47,26 +48,31 @@ export async function updateTransaction(
       ? Money.fromCents(input.amountCents, existing.amount.currency)
       : existing.amount;
 
+  const occurredAt = input.occurredAt ?? existing.occurredAt;
+  const newStatus = resolveStatusForDate(existing.status, occurredAt, deps.clock.now());
+
   const updated: TransactionEntity = {
     ...existing,
     category: input.category,
     description: description && description.length > 0 ? description : existing.description,
     amount: newAmount,
-    occurredAt: input.occurredAt ?? existing.occurredAt,
+    occurredAt,
+    status: newStatus,
     assetId: input.assetId !== undefined ? input.assetId : existing.assetId,
   };
 
-  const amountChanged = newAmount.toCents() !== existing.amount.toCents();
-  const needsBalanceReconcile =
-    amountChanged && existing.status === "paid" && existing.accountId !== null;
+  const prevApplied =
+    existing.status === "paid" ? signedEffect(existing.direction, existing.amount.toCents()) : 0n;
+  const nextApplied =
+    newStatus === "paid" ? signedEffect(existing.direction, newAmount.toCents()) : 0n;
+  const deltaCents = nextApplied - prevApplied;
+  const needsBalanceReconcile = deltaCents !== 0n && existing.accountId !== null;
 
   const run = deps.transaction ?? ((fn) => fn());
   const persisted = await run(async () => {
     if (needsBalanceReconcile && existing.accountId) {
       const account = await deps.assets.findById(existing.accountId, input.profileId);
       if (account && account.category === "cash") {
-        const deltaCents = signedEffect(existing.direction, newAmount.toCents()) -
-          signedEffect(existing.direction, existing.amount.toCents());
         const nextValue = account.currentValue.add(
           Money.fromCents(deltaCents, account.currentValue.currency),
         );

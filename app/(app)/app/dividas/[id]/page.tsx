@@ -91,7 +91,7 @@ export default async function DebtDetailPage({ params }: PageProps) {
   }
 
   return (
-    <PageShell backHref={"/app/dividas" as Route}>
+    <PageShell backHref={"/app/dividas" as Route} backPreferFallback>
       <DebtHeader
         debt={debt}
         categoryLabelText={labelCategory(debt.expenseCategory) ?? "Outros"}

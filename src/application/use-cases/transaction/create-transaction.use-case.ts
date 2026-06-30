@@ -11,6 +11,7 @@ import type { Clock } from "@/domain/ports/clock.port";
 import type { AssetRepositoryPort } from "@/domain/ports/repositories/asset.repository";
 import type { TransactionRepositoryPort } from "@/domain/ports/repositories/transaction.repository";
 import { buildDefaultWallet } from "@/domain/services/default-wallet.factory";
+import { resolveStatusForDate } from "@/domain/services/transaction-forecast";
 import type { Money } from "@/domain/value-objects/money.vo";
 import { ok, type Result } from "@/shared/errors/result";
 
@@ -61,7 +62,8 @@ export async function createTransaction(
   deps: CreateTransactionDeps,
   input: CreateTransactionInput,
 ): Promise<Result<TransactionEntity, never>> {
-  const status = input.status ?? "paid";
+  const occurredAt = input.occurredAt ?? deps.clock.now();
+  const status = resolveStatusForDate(input.status ?? "paid", occurredAt, deps.clock.now());
   const account = await resolveAccount(deps, input.userId, input.profileId, input.accountId);
 
   const amount =
@@ -87,7 +89,7 @@ export async function createTransaction(
     category: input.category,
     accountId: account.id,
     assetId: input.assetId ?? null,
-    occurredAt: input.occurredAt ?? deps.clock.now(),
+    occurredAt,
     status,
     excludedFromTotals: false,
     source: input.source ?? "manual",

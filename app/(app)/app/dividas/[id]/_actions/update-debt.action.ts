@@ -106,6 +106,13 @@ export const updateDebtAction = action({
     }
     const currency = existing.currentBalance.currency;
 
+    if (
+      d.expectedEndDate instanceof Date &&
+      d.expectedEndDate.getTime() < existing.startDate.getTime()
+    ) {
+      throw new ActionError("A data de término não pode ser antes do início.");
+    }
+
     let annualInterestRate: InterestRate | undefined;
     if (d.annualRatePct != null) {
       const r = InterestRate.fromAnnual(d.annualRatePct / 100);

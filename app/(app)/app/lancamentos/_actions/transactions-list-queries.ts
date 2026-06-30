@@ -1,7 +1,8 @@
 "use server";
 
 import type { TransactionEntity } from "@/domain/entities/transaction.entity";
-import { repos } from "@/infrastructure/container";
+import { resolveStatusForDate } from "@/domain/services/transaction-forecast";
+import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 
@@ -33,7 +34,9 @@ function serialize(t: TransactionEntity, labelCategory: CategoryLabeler): Serial
     amountCents: t.amount.toCents().toString(),
     currency: t.amount.currency,
     occurredAtIso: t.occurredAt.toISOString(),
-    status: t.status,
+    // Data futura é sempre previsto, mesmo que uma linha antiga tenha ficado
+    // marcada como paga: ninguém paga algo que ainda não chegou.
+    status: resolveStatusForDate(t.status, t.occurredAt, clock.now()),
     excludedFromTotals: t.excludedFromTotals,
     accountId: t.accountId,
   };

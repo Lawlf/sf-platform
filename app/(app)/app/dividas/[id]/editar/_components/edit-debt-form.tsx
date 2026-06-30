@@ -4,7 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -21,6 +21,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
+import { computePriceInstallmentCents } from "../../../_lib/amortization";
 import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
 import { updateDebtAction } from "../../_actions/update-debt.action";
 
@@ -48,6 +49,13 @@ const formSchema = z.object({
 });
 
 type FormValues = z.infer<typeof formSchema>;
+
+function monthsUntil(endIso: string): number {
+  const end = new Date(endIso);
+  if (Number.isNaN(end.getTime())) return 0;
+  const now = new Date();
+  return (end.getFullYear() - now.getFullYear()) * 12 + (end.getMonth() - now.getMonth());
+}
 
 interface Props {
   debtId: string;
@@ -105,9 +113,12 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
         ? BigInt(defaults.currentBalanceCents)
         : null,
       annualRatePct: defaults.annualRatePct,
-      monthlyInstallmentCents: defaults.monthlyInstallmentCents
-        ? BigInt(defaults.monthlyInstallmentCents)
-        : null,
+      // Parcela 0 = sistema não soube calcular (sem prazo/negociação). Mostra
+      // vazio pra a pessoa informar, em vez de um R$0 falso.
+      monthlyInstallmentCents:
+        defaults.monthlyInstallmentCents && defaults.monthlyInstallmentCents !== "0"
+          ? BigInt(defaults.monthlyInstallmentCents)
+          : null,
       monthlyInsuranceCents: defaults.monthlyInsuranceCents
         ? BigInt(defaults.monthlyInsuranceCents)
         : null,
@@ -152,6 +163,26 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
     const balance = (form.getValues("currentBalanceCents") as bigint | null) ?? 0n;
     statementCustomizedRef.current = nextStatement !== balance;
   }
+
+  // Empréstimo com saldo + data de término: calcula a parcela que quita até a
+  // data (mesma conta da criação) e preenche quando o campo está vazio. Só
+  // sugere; assim que houver um valor, não mexe mais.
+  const watchBalance = form.watch("currentBalanceCents");
+  const watchRate = form.watch("annualRatePct");
+  const watchEndDate = form.watch("expectedEndDate");
+  useEffect(() => {
+    if (kind !== "personal_loan") return;
+    const current = form.getValues("monthlyInstallmentCents") as bigint | null;
+    if (current && current > 0n) return;
+    const balance = (watchBalance as bigint | null) ?? null;
+    if (!balance || balance <= 0n || !watchEndDate) return;
+    const months = monthsUntil(watchEndDate);
+    if (months < 1) return;
+    const computed = computePriceInstallmentCents(balance, watchRate ?? 0, months);
+    if (computed && computed > 0n) {
+      form.setValue("monthlyInstallmentCents", computed, { shouldValidate: false });
+    }
+  }, [kind, watchBalance, watchRate, watchEndDate, form]);
 
   async function onSubmit(v: FormValues) {
     setServerError(null);
@@ -286,6 +317,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
                 control={form.control}
                 name="monthlyInstallmentCents"
                 label="Parcela mensal"
+                helper="Com saldo e data de término, calculamos pra quitar até a data. Pode ajustar."
                 currency={currency}
               />
               <WizardField label="Dia do vencimento (opcional)" htmlFor={dueDayId}>
@@ -478,7 +510,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
         </span>
       ) : null}
 
-      <div className="flex items-center gap-3">
+      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)]/95 p-3 backdrop-blur-xl md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
         <Button type="submit" loading={pending}>
           Salvar alterações
         </Button>

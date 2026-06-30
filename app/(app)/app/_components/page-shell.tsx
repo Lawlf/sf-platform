@@ -11,6 +11,7 @@ export interface PageShellProps {
   layout?: "stack" | "grid";
   backHref?: Route;
   backLabel?: string;
+  backPreferFallback?: boolean;
 }
 
 export function PageShell({
@@ -21,11 +22,14 @@ export function PageShell({
   layout = "stack",
   backHref,
   backLabel = "Voltar",
+  backPreferFallback = false,
 }: PageShellProps) {
   return (
     <main className="relative mx-auto flex w-full max-w-md flex-col gap-4 px-4 pb-8 pt-6 md:max-w-2xl md:pb-12 lg:max-w-4xl">
       {blob === "warm" ? <div className="bg-blob-top-right" aria-hidden /> : null}
-      {backHref ? <BackButton fallbackHref={backHref} label={backLabel} /> : null}
+      {backHref ? (
+        <BackButton fallbackHref={backHref} label={backLabel} preferFallback={backPreferFallback} />
+      ) : null}
       {title ? (
         <header className="relative flex flex-col gap-1">
           <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
