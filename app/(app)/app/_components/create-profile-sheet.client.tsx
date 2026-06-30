@@ -17,7 +17,7 @@ import {
 } from "@/app/components/ui/sheet";
 
 import { createProfileAction } from "../_actions/create-profile.action";
-import { wizardInputClass } from "../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 
 type ProfileType = "PF" | "Empresa";

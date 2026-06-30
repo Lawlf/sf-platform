@@ -31,6 +31,7 @@
       "@/infrastructure/*": ["./src/infrastructure/*"],
       "@/presentation/*": ["./src/presentation/*"],
       "@/shared/*": ["./src/shared/*"],
+      "@/ui/*": ["./src/ui/*"],
       "@/app/*": ["./app/*"]
     }
   },

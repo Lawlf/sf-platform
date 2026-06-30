@@ -6,7 +6,7 @@ import { createPortal } from "react-dom";
 
 import { BRAZILIAN_BANKS, filterBankOptions } from "../_lib/brazilian-banks";
 
-import { wizardInputClass } from "./wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 export interface BankComboboxProps {
   id?: string;

@@ -10,7 +10,7 @@ import {
   searchStockCatalogAction,
   type StockCatalogSearchResult,
 } from "../../../../_actions/search-stock-catalog.action";
-import { wizardInputClass } from "../../../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 export interface TickerComboboxProps {
   id?: string;

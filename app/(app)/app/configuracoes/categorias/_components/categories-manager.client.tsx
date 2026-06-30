@@ -22,7 +22,7 @@ import type { ResolvedCategory } from "@/domain/categories/resolve-categories";
 
 import { categoryIcon } from "../../../_components/category-icons";
 import { CreateCategorySheet } from "../../../_components/create-category-sheet.client";
-import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 import {
   renameCategoryAction,
   unarchiveCategoryAction,

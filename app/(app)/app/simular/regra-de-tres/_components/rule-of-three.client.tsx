@@ -4,8 +4,8 @@ import { useId, useMemo, useState } from "react";
 
 import { RuleOfThreeService, type RuleOfThreeKind } from "@/domain/services/rule-of-three.service";
 
-import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
-import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { wizardInputClass } from "@/ui/wizard-field";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 
 const NUM_FMT = new Intl.NumberFormat("pt-BR", { maximumFractionDigits: 6 });
 

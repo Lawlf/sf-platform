@@ -53,7 +53,7 @@ import { CreateCategorySheet } from "../../_components/create-category-sheet.cli
 import { MoneyInput } from "../../_components/money-input";
 import { lancarCopy } from "../../_lib/copy/catalogs";
 import { useCopy } from "../../_lib/copy/use-copy";
-import { wizardInputClass } from "../../dividas/nova/_components/wizard-field";
+import { wizardInputClass } from "@/ui/wizard-field";
 import { IncomeFreeBalanceResult } from "../../renda/_components/income-free-balance-result";
 import { createCashAccount } from "../_actions/create-cash-account.action";
 import {

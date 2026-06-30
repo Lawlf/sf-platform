@@ -19,8 +19,8 @@ import { linkDebtToAssetAction } from "../../_actions/link-debt-to-asset.action"
 import { BankCombobox } from "../../_components/bank-combobox";
 import { ComputedCard } from "../../_components/computed-card";
 import { validateLinkAssetStep } from "../../_components/link-asset-step";
-import { SummaryList } from "../../_components/summary-list";
-import { WizardField, wizardInputClass } from "../../_components/wizard-field";
+import { SummaryList } from "@/ui/summary-list";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardShell } from "../../_components/wizard-shell";
 import {

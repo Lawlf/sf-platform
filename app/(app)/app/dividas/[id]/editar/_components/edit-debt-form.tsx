@@ -22,7 +22,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
 import { computePriceInstallmentCents } from "../../../_lib/amortization";
-import { WizardField, wizardInputClass } from "../../../nova/_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { updateDebtAction } from "../../_actions/update-debt.action";
 
 const formSchema = z.object({

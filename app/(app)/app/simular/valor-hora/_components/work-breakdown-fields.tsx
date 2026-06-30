@@ -8,7 +8,7 @@ import type { IncomeSourceBreakdown } from "@/domain/entities/income.entity";
 import { HourlyRateService } from "@/domain/services/hourly-rate.service";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { SimSlider } from "../../_components/sim-slider";
 
 export interface WorkBreakdownValue {

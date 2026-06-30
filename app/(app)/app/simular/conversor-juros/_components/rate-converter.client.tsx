@@ -7,8 +7,8 @@ import {
   type RateInputPeriod,
 } from "@/domain/services/interest-rate-converter.service";
 
-import { wizardInputClass } from "../../../dividas/nova/_components/wizard-field";
-import { WizardRadioCard } from "../../../dividas/nova/_components/wizard-radio-card";
+import { wizardInputClass } from "@/ui/wizard-field";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { ResultCard } from "../../_components/sim-result";
 
 const PCT_FMT = new Intl.NumberFormat("pt-BR", {

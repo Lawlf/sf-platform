@@ -34,11 +34,11 @@ import {
   validateLinkAssetStep,
 } from "../../_components/link-asset-step";
 import { ScenarioPicker } from "../../_components/scenario-picker";
-import { SummaryList } from "../../_components/summary-list";
-import { WizardField, wizardInputClass } from "../../_components/wizard-field";
+import { SummaryList } from "@/ui/summary-list";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
-import { WizardRadioCard } from "../../_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { WizardShell } from "../../_components/wizard-shell";
 import { buildLinkSummary, debtCreatedHref, linkAssetDefaultsFor } from "../../_lib/link-asset";
 import {

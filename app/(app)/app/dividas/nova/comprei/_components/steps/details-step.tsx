@@ -11,9 +11,9 @@ import {
 
 import { Spinner } from "@/app/components/ui/spinner";
 
-import { WizardField, wizardInputClass } from "../../../_components/wizard-field";
+import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../../_components/wizard-money-field";
-import { WizardRadioCard } from "../../../_components/wizard-radio-card";
+import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import {
   listCashAssetsForPurchase,
   type CashAssetPayload,

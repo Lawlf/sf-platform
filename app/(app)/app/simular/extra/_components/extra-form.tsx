@@ -15,7 +15,7 @@ import {
 } from "@/app/components/ui/select";
 
 import { MoneyInput } from "../../../_components/money-input";
-import { WizardField } from "../../../dividas/nova/_components/wizard-field";
+import { WizardField } from "@/ui/wizard-field";
 import {
   ResultCard,
   ResultError,
