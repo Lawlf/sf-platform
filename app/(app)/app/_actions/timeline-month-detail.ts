@@ -29,6 +29,7 @@ import { getActiveProfileId } from "@/presentation/http/middleware/active-profil
 import { getCurrentUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr, isOk } from "@/shared/errors/result";
 import { dateOnlyFormat } from "@/shared/format/date-only";
+import { todayIsoUtc } from "@/shared/format/dates";
 
 import { serializeMoney, type SerializedMoney } from "./_serialize";
 
@@ -594,7 +595,7 @@ function computeMonthTotals(args: {
     realizedOutflow: bigint;
   };
 }): SerializedMonthTotals {
-  const today = new Date().toISOString().slice(0, 10);
+  const today = todayIsoUtc();
 
   const recurringIncomeCents = sumCents(args.incomes);
   const incomeCents = recurringIncomeCents + args.transactions.income;

@@ -7,6 +7,7 @@ import { repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isOk } from "@/shared/errors/result";
+import { toIsoDate } from "@/shared/format/dates";
 
 import { EntityNotesAndFiles } from "../../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../../_components/page-shell";
@@ -38,8 +39,8 @@ export default async function EditIncomePage({ params }: { params: Promise<{ id:
             amountCents: income.amount.toCents().toString(),
             currency: income.amount.currency,
             frequency: income.frequency,
-            startDateIso: income.startDate.toISOString().slice(0, 10),
-            endDateIso: income.endDate ? income.endDate.toISOString().slice(0, 10) : null,
+            startDateIso: toIsoDate(income.startDate),
+            endDateIso: income.endDate ? toIsoDate(income.endDate) : null,
             paymentDay: income.paymentDay,
             isEstimated: income.isEstimated,
             sourceBreakdown: income.sourceBreakdown,

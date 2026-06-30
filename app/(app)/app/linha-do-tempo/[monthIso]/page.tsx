@@ -24,6 +24,7 @@ import type { ReactNode } from "react";
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { dateOnlyFormat } from "@/shared/format/date-only";
+import { toIsoDate } from "@/shared/format/dates";
 
 import { fetchSafeToSpend, type SerializedSafeToSpend } from "../../_actions/safe-to-spend-queries";
 import { fetchMonthDetail } from "../../_actions/timeline-month-detail";
@@ -113,7 +114,7 @@ export default async function MonthDetailPage({ params }: PageProps) {
   if (!data) return notFound();
 
   const now = new Date();
-  const todayKey = now.toISOString().slice(0, 10);
+  const todayKey = toIsoDate(now);
 
   const target = MonthYear.fromIso(monthIso);
   const prevIso = target.previous().toIso();
