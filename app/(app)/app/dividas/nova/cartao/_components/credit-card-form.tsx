@@ -22,7 +22,7 @@ import { validateLinkAssetStep } from "../../_components/link-asset-step";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
-import { WizardShell } from "../../_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import {
   buildLinkSummary,
   debtCreatedHref,

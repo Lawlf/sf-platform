@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { fetchNetWorth } from "@/app/(app)/app/_actions/asset-queries";
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import { createAssetAction } from "@/app/(app)/app/patrimonio/novo/_actions/create-asset.action";
 
 import {

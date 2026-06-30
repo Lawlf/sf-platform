@@ -5,7 +5,7 @@ import { useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { setAcquisitionChannelAction } from "@/app/(app)/app/_actions/onboarding";
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import type { AcquisitionChannel } from "@/domain/entities/user.entity";
 
 const GROUPS: {

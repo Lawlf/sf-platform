@@ -3,7 +3,7 @@
 import { formatCents } from "@/shared/format/money-format";
 
 import { SummaryList } from "@/ui/summary-list";
-import { WizardShell, type WizardStep } from "../../../../dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import type { AssetWizardForm, Category, InvestmentType, YieldType } from "../asset-wizard.client";
 
 function formatBRDate(iso: string | null | undefined): string | null {

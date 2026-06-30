@@ -6,7 +6,7 @@ import { useEffect, useRef, type ReactNode } from "react";
 
 import { Spinner } from "@/app/components/ui/spinner";
 
-import { setFocusMode } from "../../../_lib/focus-mode";
+import { setFocusMode } from "../_lib/focus-mode";
 
 export type WizardStep = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -151,10 +151,7 @@ export function WizardShell({
               onClick={primary.onClick}
               disabled={primary.disabled || primary.loading}
               aria-busy={primary.loading || undefined}
-              className="relative flex flex-1 items-center justify-center gap-1.5 rounded-xl px-4 py-[14px] text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
-              style={{
-                background: "linear-gradient(135deg, #f28e25, #ef7a1a)",
-              }}
+              className="relative flex flex-1 items-center justify-center gap-1.5 rounded-xl bg-[image:var(--gradient-brand)] px-4 py-[14px] text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--color-brand-500)] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-70"
             >
               <span
                 className={`flex items-center gap-1.5 transition-opacity ${primary.loading ? "opacity-0" : "opacity-100"}`}

@@ -8,7 +8,7 @@ import { z } from "zod";
 
 import { fetchDebts } from "@/app/(app)/app/_actions/debt-queries";
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import { todayIso } from "@/shared/format/dates";
 
 import { upsertOnboardingDebtAction } from "../../_actions/onboarding-entities";

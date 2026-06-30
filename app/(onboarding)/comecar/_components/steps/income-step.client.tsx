@@ -7,7 +7,7 @@ import { toast } from "sonner";
 import { z } from "zod";
 
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
-import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { WizardShell, type WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import { todayIso } from "@/shared/format/dates";
 
 import { upsertOnboardingIncomeAction } from "../../_actions/onboarding-entities";

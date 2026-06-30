@@ -24,7 +24,7 @@ import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { SummaryList } from "@/ui/summary-list";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
-import { WizardShell } from "../../_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { createRecurringDebtAction } from "../_actions/create-recurring-debt.action";
 
 type Frequency = "monthly" | "weekly" | "annual";

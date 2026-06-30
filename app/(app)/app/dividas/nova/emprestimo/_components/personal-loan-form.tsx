@@ -39,7 +39,7 @@ import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "../../_components/wizard-money-field";
 import { WizardPercentField } from "../../_components/wizard-percent-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
-import { WizardShell } from "../../_components/wizard-shell";
+import { WizardShell } from "@/app/(app)/app/_components/wizard-shell";
 import { buildLinkSummary, debtCreatedHref, linkAssetDefaultsFor } from "../../_lib/link-asset";
 import {
   NEW_STEP2_FIELDS,

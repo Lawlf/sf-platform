@@ -5,7 +5,7 @@ import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { markWizardSeenAction } from "@/app/(app)/app/_actions/onboarding";
-import type { WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import type { WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import type { ContentDiagnosticAnswer } from "@/domain/entities/user.entity";
 
 import {

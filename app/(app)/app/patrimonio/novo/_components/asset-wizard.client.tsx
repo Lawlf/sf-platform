@@ -13,7 +13,7 @@ import { valueCryptoCents } from "@/domain/services/crypto-valuation.service";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
 import { todayIso } from "@/shared/format/dates";
 
-import type { WizardStep } from "../../../dividas/nova/_components/wizard-shell";
+import type { WizardStep } from "@/app/(app)/app/_components/wizard-shell";
 import { invalidateAssetCaches } from "../../_lib/invalidate";
 import { createAssetAction } from "../_actions/create-asset.action";
 import { createDebtForAssetAction } from "../_actions/create-debt-for-asset.action";
