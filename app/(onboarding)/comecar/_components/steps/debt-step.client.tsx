@@ -9,6 +9,7 @@ import { z } from "zod";
 import { fetchDebts } from "@/app/(app)/app/_actions/debt-queries";
 import { MoneyInput } from "@/app/(app)/app/_components/money-input";
 import { WizardShell, type WizardStep } from "@/app/(app)/app/dividas/nova/_components/wizard-shell";
+import { todayIso } from "@/shared/format/dates";
 
 import { upsertOnboardingDebtAction } from "../../_actions/onboarding-entities";
 
@@ -32,11 +33,6 @@ const schema = z.object({
   currentStatementCents: z.bigint().positive("Informe a fatura atual."),
 });
 type FormValues = z.infer<typeof schema>;
-
-function todayIso(): string {
-  const d = new Date();
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-}
 
 function burdenText(totalDebtCents: bigint, incomeCents: bigint): string | null {
   if (incomeCents <= 0n) return null;

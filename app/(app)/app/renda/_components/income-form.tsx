@@ -18,6 +18,7 @@ import {
 } from "@/app/components/ui/select";
 import { Spinner } from "@/app/components/ui/spinner";
 import { CURRENCIES, type Currency } from "@/domain/value-objects/money.vo";
+import { todayIso } from "@/shared/format/dates";
 
 import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 import { MoneyInput } from "../../_components/money-input";
@@ -42,7 +43,7 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const TODAY = new Date().toISOString().slice(0, 10);
+const TODAY = todayIso();
 
 const fieldClass =
   "w-full rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem] text-[color:var(--text-primary)] outline-none transition-colors focus:border-[color:var(--color-brand-500)] focus:ring-2 focus:ring-[color:var(--color-brand-500)]/30";

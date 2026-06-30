@@ -15,7 +15,7 @@ import type { Currency } from "@/domain/value-objects/money.vo";
 import { HowItWorksSheet } from "../../../../_components/how-it-works-sheet";
 import { parseFinancingSeed } from "../../../../simular/_lib/financing-seed";
 import { createDebtAction } from "../../../_actions/create-debt.action";
-import { todayIso } from "../../../_lib/dates";
+import { todayIso } from "@/shared/format/dates";
 import { formatCentsBRL } from "../../../_lib/format";
 import { invalidateDebtCaches } from "../../../_lib/invalidate";
 import { createAssetForDebtAction } from "../../_actions/create-asset-for-debt.action";

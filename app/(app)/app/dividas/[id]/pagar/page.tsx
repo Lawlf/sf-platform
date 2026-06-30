@@ -6,6 +6,7 @@ import { repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
+import { todayIsoUtc } from "@/shared/format/dates";
 
 import { PageShell } from "../../../_components/page-shell";
 
@@ -33,7 +34,7 @@ export default async function PagarPage({ params }: PageProps) {
   // Compute next installment number: count of payments + 1 (capped at schedule length).
   const nextMonth = Math.min((payments.length ?? 0) + 1, amortization?.installments.length ?? 0);
   const next = amortization?.installmentAt(nextMonth) ?? null;
-  const defaultPaidAt = new Date().toISOString().slice(0, 10);
+  const defaultPaidAt = todayIsoUtc();
 
   return (
     <PageShell

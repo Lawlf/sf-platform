@@ -7,6 +7,7 @@ import { MonthYear } from "@/domain/value-objects/month-year.vo";
 import { clock, repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
+import { todayIsoUtc } from "@/shared/format/dates";
 
 
 import { fetchOutOfMonthSummary } from "./_actions/debt-queries";
@@ -105,7 +106,7 @@ export default async function DashboardPage() {
     { userId: user.id, profileId, state: prescription?.state ?? "incomplete" },
   );
 
-  const todayDate = new Date().toISOString().slice(0, 10);
+  const todayDate = todayIsoUtc();
   const incomesToConfirm = (initialMonthDetail?.incomes ?? []).filter(
     (i) => i.isEstimated && i.settledStatus === null && i.dateIso.slice(0, 10) <= todayDate,
   );

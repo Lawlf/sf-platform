@@ -9,6 +9,7 @@ import { repos } from "@/infrastructure/container";
 import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 import { isErr } from "@/shared/errors/result";
+import { toIsoDate } from "@/shared/format/dates";
 
 import { PageShell } from "../../../_components/page-shell";
 
@@ -60,7 +61,7 @@ export default async function EditarDividaPage({ params }: PageProps) {
           label: debt.label,
           notes: debt.notes,
           expectedEndDate: debt.expectedEndDate
-            ? debt.expectedEndDate.toISOString().slice(0, 10)
+            ? toIsoDate(debt.expectedEndDate)
             : null,
           currentBalanceCents:
             debt.kind === "recurring" ? null : debt.currentBalance.toCents().toString(),

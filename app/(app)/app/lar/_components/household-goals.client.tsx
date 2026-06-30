@@ -7,6 +7,7 @@ import Link from "next/link";
 
 import { Spinner } from "@/app/components/ui/spinner";
 import { formatCents } from "@/shared/format/money-format";
+import { applyCentsKey, parseCentsFromString } from "@/shared/format/money-input";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import {
   contributeHouseholdGoalAction,
@@ -18,8 +19,6 @@ interface Props {
   householdId: string;
   goals: SerializedHouseholdGoal[];
 }
-
-const MAX_CENTS = 999_999_999_99n;
 
 const PT_BR_MONTHS = [
   "jan", "fev", "mar", "abr", "mai", "jun",
@@ -40,39 +39,15 @@ function useBrlInput() {
 
   function handleKeyDown(e: KeyboardEvent<HTMLInputElement>) {
     if (e.metaKey || e.ctrlKey) return;
-    if (e.key === "Backspace") {
-      e.preventDefault();
-      setCents((c) => c / 10n);
-      return;
-    }
-    if (e.key === "Delete") {
-      e.preventDefault();
-      setCents(0n);
-      return;
-    }
-    if (/^[0-9]$/.test(e.key)) {
-      e.preventDefault();
-      const digit = BigInt(e.key);
-      setCents((c) => {
-        const next = c * 10n + digit;
-        return next > MAX_CENTS ? c : next;
-      });
-      return;
-    }
-    if (["Tab", "Enter", "Escape", "ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)) {
-      return;
-    }
+    const result = applyCentsKey(cents, e.key);
+    if (result.kind === "ignore") return;
     e.preventDefault();
+    if (result.kind === "commit") setCents(result.cents);
   }
 
   function handleChange(e: ChangeEvent<HTMLInputElement>) {
-    const raw = e.target.value.replace(/[^\d]/g, "");
-    if (raw === "") {
-      setCents(0n);
-      return;
-    }
-    const next = BigInt(raw);
-    if (next <= MAX_CENTS) setCents(next);
+    const next = parseCentsFromString(e.target.value);
+    if (next !== null) setCents(next);
   }
 
   function reset() {

@@ -7,6 +7,7 @@ import Link from "next/link";
 import { useMemo } from "react";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { todayIso } from "@/shared/format/dates";
 
 import type { SerializedSafeToSpend } from "../_actions/safe-to-spend-queries";
 import { fetchMonthDetail, type SerializedMonthDetail } from "../_actions/timeline-month-detail";
@@ -130,7 +131,6 @@ export function DashboardHeroClient({
   const todayCents = useWallet ? BigInt(walletBal.reactiveBalance.cents) : realizedTodayCents;
   const projectionIsFlat = projCents === todayCents;
 
-  const todayIso = new Date().toISOString().slice(0, 10);
   const monthClose = resolveMonthClose({
     flat: projectionIsFlat,
     positive,
@@ -138,7 +138,7 @@ export function DashboardHeroClient({
     expenses: monthDetail.expenses,
     payments: monthDetail.payments,
     monthIso,
-    todayIso,
+    todayIso: todayIso(),
     hasPendingEstimatedIncome: estimatedIncomeCents > 0n,
   });
   const showCelebration = monthClose.showCelebration && !noIncome;
