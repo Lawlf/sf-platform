@@ -1,6 +1,6 @@
 "use client";
 
-import { MoreVertical, Pencil } from "lucide-react";
+import { Pencil, Settings } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 
@@ -21,21 +21,17 @@ interface Props {
   incomeId: string;
   label: string;
   isActive?: boolean;
-  variant?: "row" | "header";
 }
 
-const TRIGGER_CLASS: Record<"row" | "header", string> = {
-  row: "focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]",
-  header:
-    "focus-ring flex h-10 w-10 items-center justify-center rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-1)]",
-};
+const TRIGGER_CLASS =
+  "focus-ring flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]";
 
-export function IncomeOverflowMenu({ incomeId, label, isActive = true, variant = "row" }: Props) {
+export function IncomeOverflowMenu({ incomeId, label, isActive = true }: Props) {
   return (
     <Sheet>
       <SimpleTooltip label="Mais opções" side="bottom">
-        <SheetTrigger aria-label={`Mais opções: ${label}`} className={TRIGGER_CLASS[variant]}>
-          <MoreVertical size={variant === "header" ? 18 : 16} strokeWidth={2} aria-hidden />
+        <SheetTrigger aria-label={`Mais opções: ${label}`} className={TRIGGER_CLASS}>
+          <Settings size={20} strokeWidth={2} aria-hidden />
         </SheetTrigger>
       </SimpleTooltip>
       <SheetContent side="bottom" className="p-0">

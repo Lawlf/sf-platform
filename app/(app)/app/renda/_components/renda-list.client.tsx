@@ -1,7 +1,7 @@
 "use client";
 
 import { useSuspenseQuery } from "@tanstack/react-query";
-import { Calendar, Repeat, Search, TrendingUp } from "lucide-react";
+import { Calendar, ChevronRight, Repeat, Search, TrendingUp } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useMemo, useState } from "react";
@@ -12,10 +12,6 @@ import { formatCents } from "@/shared/format/money-format";
 import { fetchIncomes, type IncomeListItemPayload } from "../../_actions/income-queries";
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
 import { queryKeys } from "../../_lib/query-keys";
-
-import { DeleteIncomeButton } from "./delete-income-button";
-import { IncomeOverflowMenu } from "./income-overflow-menu.client";
-import { ReactivateIncomeButton } from "./reactivate-income-button";
 
 const FREQUENCY_LABELS: Record<string, string> = {
   monthly: "Mensal",
@@ -114,55 +110,55 @@ export function RendaListClient() {
                 {active.map((income) => {
                   const Icon = FREQUENCY_ICON[income.frequency] ?? Repeat;
                   return (
-                    <div
+                    <Link
                       key={income.id}
-                      className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl"
+                      href={`/app/renda/${income.id}` as Route}
+                      className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl transition-colors hover:bg-[color:var(--surface-1)]"
                     >
-                      <Link
-                        href={`/app/renda/${income.id}` as Route}
-                        className="focus-ring flex min-w-0 flex-1 items-center gap-3"
-                      >
-                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-positive)]/[0.14] text-[color:var(--semantic-positive)]">
-                          <Icon size={18} strokeWidth={1.75} aria-hidden />
-                        </span>
-                        <div className="min-w-0 flex-1">
-                          <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
-                            {income.label}
-                          </div>
-                          <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
-                            <span className="font-semibold text-[color:var(--semantic-positive)]">
-                              <HideableValue>{income.amount.formatted}</HideableValue>
-                            </span>
-                            <span className="text-[color:var(--text-muted)]">·</span>
-                            <span className="text-[color:var(--text-muted)]">
-                              {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
-                            </span>
-                            {income.isEstimated ? (
-                              <>
-                                <span className="text-[color:var(--text-muted)]">·</span>
-                                <SimpleTooltip label="Valor varia mês a mês. Tratamos como média, não receita garantida.">
-                                  <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-                                    estimada
-                                  </span>
-                                </SimpleTooltip>
-                              </>
-                            ) : null}
-                          </div>
-                          {(() => {
-                            const holerite = consignadoHolerite(income);
-                            if (!holerite) return null;
-                            return (
-                              <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-                                Consignado:{" "}
-                                <HideableValue>-{holerite.deductionFormatted}</HideableValue> ·
-                                sobram <HideableValue>{holerite.sobraFormatted}</HideableValue>
-                              </div>
-                            );
-                          })()}
+                      <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--semantic-positive)]/[0.14] text-[color:var(--semantic-positive)]">
+                        <Icon size={18} strokeWidth={1.75} aria-hidden />
+                      </span>
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate text-[0.875rem] font-bold text-[color:var(--text-primary)]">
+                          {income.label}
                         </div>
-                      </Link>
-                      <IncomeOverflowMenu incomeId={income.id} label={income.label} />
-                    </div>
+                        <div className="mt-0.5 flex items-baseline gap-2 text-[0.75rem]">
+                          <span className="font-semibold text-[color:var(--semantic-positive)]">
+                            <HideableValue>{income.amount.formatted}</HideableValue>
+                          </span>
+                          <span className="text-[color:var(--text-muted)]">·</span>
+                          <span className="text-[color:var(--text-muted)]">
+                            {FREQUENCY_LABELS[income.frequency] ?? income.frequency}
+                          </span>
+                          {income.isEstimated ? (
+                            <>
+                              <span className="text-[color:var(--text-muted)]">·</span>
+                              <SimpleTooltip label="Valor varia mês a mês. Tratamos como média, não receita garantida.">
+                                <span className="rounded-full bg-[color:var(--surface-3)] px-1.5 py-0.5 text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+                                  estimada
+                                </span>
+                              </SimpleTooltip>
+                            </>
+                          ) : null}
+                        </div>
+                        {(() => {
+                          const holerite = consignadoHolerite(income);
+                          if (!holerite) return null;
+                          return (
+                            <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
+                              Consignado: <HideableValue>-{holerite.deductionFormatted}</HideableValue>{" "}
+                              · sobram <HideableValue>{holerite.sobraFormatted}</HideableValue>
+                            </div>
+                          );
+                        })()}
+                      </div>
+                      <ChevronRight
+                        size={16}
+                        strokeWidth={2}
+                        className="shrink-0 text-[color:var(--semantic-positive)]"
+                        aria-hidden
+                      />
+                    </Link>
                   );
                 })}
               </div>
@@ -178,9 +174,10 @@ export function RendaListClient() {
                 {archived.map((income) => {
                   const Icon = FREQUENCY_ICON[income.frequency] ?? Repeat;
                   return (
-                    <article
+                    <Link
                       key={income.id}
-                      className="flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-4 opacity-70 backdrop-blur-xl"
+                      href={`/app/renda/${income.id}` as Route}
+                      className="focus-ring flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-3)] p-4 opacity-70 backdrop-blur-xl transition-colors hover:opacity-100"
                     >
                       <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[color:var(--surface-3)] text-[color:var(--text-muted)]">
                         <Icon size={18} strokeWidth={1.75} aria-hidden />
@@ -207,11 +204,13 @@ export function RendaListClient() {
                           ) : null}
                         </div>
                       </div>
-                      <div className="flex shrink-0 items-center gap-1">
-                        <ReactivateIncomeButton incomeId={income.id} label={income.label} />
-                        <DeleteIncomeButton incomeId={income.id} label={income.label} />
-                      </div>
-                    </article>
+                      <ChevronRight
+                        size={16}
+                        strokeWidth={2}
+                        className="shrink-0 text-[color:var(--text-muted)]"
+                        aria-hidden
+                      />
+                    </Link>
                   );
                 })}
               </div>

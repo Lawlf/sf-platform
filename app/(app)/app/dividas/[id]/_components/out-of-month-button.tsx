@@ -62,7 +62,7 @@ export function OutOfMonthButton({
             className="px-2 text-[color:var(--text-secondary)] hover:text-[color:var(--color-brand-700)]"
           >
             <CalendarOff size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
-            Tirar do meu mês
+            Pausar essa dívida
           </Button>
         ) : (
           <Button
@@ -71,16 +71,16 @@ export function OutOfMonthButton({
             className="w-full justify-center border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)] sm:w-auto"
           >
             <CalendarOff size={16} strokeWidth={2} className="mr-1.5" aria-hidden />
-            Tirar do meu mês
+            Pausar essa dívida
           </Button>
         )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Tirar essa dívida do seu mês?</AlertDialogTitle>
+          <AlertDialogTitle>Pausar essa dívida?</AlertDialogTitle>
           <AlertDialogDescription>
-            Ela para de pesar no seu comprometido mensal. Continua no total que você deve, porque a
-            dívida ainda existe.
+            Ela para de pesar no seu comprometido mensal e continua no total que você deve. Fica
+            pausada até você reativar; não volta sozinha.
           </AlertDialogDescription>
         </AlertDialogHeader>
 
@@ -116,7 +116,7 @@ export function OutOfMonthButton({
             onClick={onConfirm}
             className="relative"
           >
-            <span className={pending ? "opacity-0" : "opacity-100"}>Tirar do meu mês</span>
+            <span className={pending ? "opacity-0" : "opacity-100"}>Pausar essa dívida</span>
             {pending ? (
               <span className="absolute inset-0 flex items-center justify-center">
                 <Spinner size={16} />

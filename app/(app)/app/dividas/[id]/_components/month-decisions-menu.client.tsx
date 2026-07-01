@@ -43,7 +43,7 @@ export function MonthDecisionsMenu({ debtId, debtLabel, isRecurring }: Props) {
         <p className="mt-3 text-[0.75rem] leading-relaxed text-[color:var(--text-muted)]">
           {isRecurring
             ? "Encerrar para de contar no seu mês e libera esse valor. A dívida some da lista, mas dá pra reativar."
-            : "Terminei de pagar fecha a conta. Tirar do meu mês mantém ela na sua dívida total, só não conta no mês."}
+            : "Terminei de pagar fecha a conta. Pausar mantém ela na sua dívida total, só não conta no seu comprometido até você reativar."}
         </p>
       </SheetContent>
     </Sheet>

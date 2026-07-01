@@ -65,12 +65,7 @@ export default async function RendaDetailPage({ params }: PageProps) {
         baseAmountCents={income.amount.toCents().toString()}
         initialTimeline={timeline}
         action={
-          <IncomeOverflowMenu
-            incomeId={id}
-            label={income.label}
-            isActive={income.isActive}
-            variant="header"
-          />
+          <IncomeOverflowMenu incomeId={id} label={income.label} isActive={income.isActive} />
         }
       >
         <ActionRowGroup>
