@@ -1,3 +1,6 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
+
 import { ImageResponse } from "next/og";
 
 import { COPA_MATCHES, getCopaMatch } from "../_lib/copa-2026.config";
@@ -37,6 +40,9 @@ export default async function OgImage({ params }: { params: Promise<{ match: str
   const line2 = match ? `× ${match.awayTeam}` : "ir à Copa?";
   const venue = match ? `${match.venueName} · ${match.venueCity}` : "Sabor Financeiro";
 
+  const logo = await readFile(join(process.cwd(), "public/icons/icon-512.png"));
+  const logoSrc = `data:image/png;base64,${logo.toString("base64")}`;
+
   return new ImageResponse(
     (
       <div
@@ -63,15 +69,7 @@ export default async function OgImage({ params }: { params: Promise<{ match: str
           }}
         >
           <div style={{ display: "flex", alignItems: "center" }}>
-            <div
-              style={{
-                width: 40,
-                height: 40,
-                borderRadius: 40,
-                marginRight: 14,
-                background: "linear-gradient(135deg, #f28e25, #d96813)",
-              }}
-            />
+            <img src={logoSrc} width={44} height={44} style={{ borderRadius: 999, marginRight: 14 }} alt="" />
             <div style={{ fontSize: 30, fontWeight: 800, color: "#1c1917" }}>Sabor Financeiro</div>
             <div style={{ fontSize: 30, color: "#57534e", marginLeft: 10 }}>· calculadora grátis</div>
           </div>
@@ -119,9 +117,6 @@ export default async function OgImage({ params }: { params: Promise<{ match: str
             }}
           >
             <div style={{ fontSize: 32, fontWeight: 800 }}>Quanto custa ir?</div>
-            <div style={{ fontSize: 26, fontWeight: 600, marginLeft: 12, opacity: 0.95 }}>
-              a partir de R$ 20 mil
-            </div>
           </div>
         </div>
       </div>
