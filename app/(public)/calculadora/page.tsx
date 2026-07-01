@@ -1,4 +1,6 @@
+import { Ticket } from "lucide-react";
 import type { Metadata } from "next";
+import Link from "next/link";
 
 import { BreadcrumbJsonLd } from "../_components/json-ld";
 import { RevealOnScroll } from "../_components/reveal-on-scroll";
@@ -44,6 +46,27 @@ export default function CalculadorasHubPage() {
           decisões do dia a dia, com a mesma lente macro do Sabor Financeiro.
         </p>
       </RevealOnScroll>
+
+      <Link
+        href="/copa/brasil-vs-noruega"
+        className="sf-lift focus-ring mb-8 flex items-center gap-4 overflow-hidden rounded-[1.5rem] border border-[color:var(--color-brand-500)]/40 bg-[color:var(--color-brand-500)]/[0.08] p-5 backdrop-blur-xl"
+        style={{ boxShadow: "var(--shadow-glass-strong)" }}
+      >
+        <span
+          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[color:var(--color-brand-500)]/[0.16] text-[color:var(--color-brand-700)]"
+          aria-hidden
+        >
+          <Ticket size={24} strokeWidth={1.75} />
+        </span>
+        <span className="flex flex-col">
+          <span className="text-[0.95rem] font-extrabold text-[color:var(--text-primary)]">
+            Quanto custa ver o Brasil na Copa 2026?
+          </span>
+          <span className="mt-0.5 text-[0.8125rem] text-[color:var(--text-secondary)]">
+            Brasil x Noruega, domingo. Voo, hotel, ingresso e extras saindo da sua cidade.
+          </span>
+        </span>
+      </Link>
 
       <CalcBrowser />
     </CalcShell>

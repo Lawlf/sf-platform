@@ -2,7 +2,7 @@
 
 import { ArrowLeft, ArrowRight, BedDouble, Check, Info, MapPin, Ticket } from "lucide-react";
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
 import { haversineKm } from "@/domain/services/geo-distance";
 import { WorldCupTripCostService } from "@/domain/services/world-cup-trip-cost.service";
@@ -135,6 +135,19 @@ export function TripCalculator({ match }: { match: CopaMatch }) {
 
   const canContinue = step !== 1 || origin !== null;
 
+  const topRef = useRef<HTMLDivElement>(null);
+  const firstRender = useRef(true);
+  useEffect(() => {
+    if (firstRender.current) {
+      firstRender.current = false;
+      return;
+    }
+    const el = topRef.current;
+    if (!el) return;
+    const y = el.getBoundingClientRect().top + window.scrollY - 80;
+    window.scrollTo({ top: y, behavior: "smooth" });
+  }, [step]);
+
   function goNext() {
     setStep((s) => (s < 5 ? ((s + 1) as Step) : s));
   }
@@ -143,7 +156,7 @@ export function TripCalculator({ match }: { match: CopaMatch }) {
   }
 
   return (
-    <div className="flex flex-col gap-5">
+    <div ref={topRef} className="flex flex-col gap-5 scroll-mt-24">
       <Stepper current={step} />
 
       {step < 5 && origin ? (
