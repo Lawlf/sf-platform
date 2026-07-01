@@ -11,13 +11,14 @@ import { activeCopaMatches } from "./_lib/copa-2026.config";
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
 
 export const metadata: Metadata = {
-  title: "Quanto custa ir à Copa do Mundo 2026",
+  title: "Quanto custa ir à Copa do Mundo 2026?",
   description:
-    "Calcule o custo estimado de sair da sua cidade e assistir ao Brasil na Copa do Mundo 2026: voo, hotel, ingresso e extras. Grátis, sem cadastro.",
+    "Calcule quanto custa ver os jogos do Brasil na Copa do Mundo 2026 saindo da sua cidade: voo, hotel, ingresso e extras. Calculadora grátis, sem cadastro.",
   alternates: { canonical: "/copa" },
   openGraph: {
-    title: "Quanto custa ir à Copa do Mundo 2026",
-    description: "Voo, hotel, ingresso e extras para ver o Brasil na Copa 2026, a partir da sua cidade.",
+    title: "Quanto custa ir à Copa do Mundo 2026?",
+    description:
+      "Veja quanto custa assistir aos jogos do Brasil na Copa do Mundo 2026: voo, hotel e ingresso, a partir da sua cidade.",
     url: `${siteUrl}/copa`,
     type: "website",
   },

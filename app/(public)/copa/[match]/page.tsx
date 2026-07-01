@@ -25,8 +25,8 @@ export async function generateMetadata({
   const { match: slug } = await params;
   const match = getCopaMatch(slug);
   if (!match) return {};
-  const title = `Quanto custa ver ${match.homeTeam} x ${match.awayTeam} na Copa 2026`;
-  const description = `Estimativa de custo para assistir ${match.homeTeam} x ${match.awayTeam} (${match.stageLabel}) no ${match.venueName}: voo da sua cidade, hotel, ingresso e extras.`;
+  const title = `Quanto custa ver ${match.homeTeam} x ${match.awayTeam} na Copa do Mundo 2026?`;
+  const description = `Descubra quanto custa assistir ${match.homeTeam} x ${match.awayTeam} ao vivo na Copa do Mundo 2026 (${match.stageLabel}, ${match.venueName}): voo da sua cidade, hotel, ingresso e todos os custos, numa calculadora grátis.`;
   const path = `/copa/${match.slug}`;
   return {
     title,
@@ -94,7 +94,7 @@ export default async function CopaMatchPage({
       <RevealOnScroll as="div" stagger className="flex flex-col gap-5">
         <header>
           <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)]">
-            {match.stageLabel} · {match.kickoffLabel}
+            Copa do Mundo 2026 · {match.stageLabel}
           </p>
           <h1
             className="mt-1 text-2xl font-extrabold text-[color:var(--text-primary)] sm:text-[2rem] sm:leading-[1.1]"
@@ -103,7 +103,7 @@ export default async function CopaMatchPage({
             {h1}
           </h1>
           <p className="mt-3 text-[0.9375rem] leading-relaxed text-[color:var(--text-secondary)]">
-            {match.venueName}, {match.venueCity}. Diz de onde você sai e escolhe o setor: a gente estima voo, hotel, ingresso, visto e extras.
+            {match.stageLabel} da Copa do Mundo 2026, {match.kickoffLabel}, no {match.venueName} ({match.venueCity}). Diz de onde você sai e escolhe o setor: a gente estima voo, hotel, ingresso, visto e extras.
           </p>
         </header>
 
