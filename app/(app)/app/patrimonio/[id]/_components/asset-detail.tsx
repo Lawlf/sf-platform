@@ -1332,8 +1332,8 @@ function AssetOptionsMenu({
             <DeleteAssetButton assetId={assetId} label={label} trigger="row" />
           </div>
           <p className="px-4 pb-4 text-[0.6875rem] text-[color:var(--text-muted)]">
-            "Vendi ou saiu" mantém o bem no histórico, só tira do patrimônio atual. "Apagar" remove
-            definitivamente.
+            &ldquo;Vendi ou saiu&rdquo; mantém o bem no histórico, só tira do patrimônio atual.
+            &ldquo;Apagar&rdquo; remove definitivamente.
           </p>
         </SheetContent>
       </Sheet>
