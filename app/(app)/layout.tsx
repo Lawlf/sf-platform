@@ -108,6 +108,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
             <MobileTopBar
               displayName={displayName}
               avatarUrl={avatarUrl}
+              isPro={user.isPro}
               notificationCount={notificationCount}
               profiles={profilesPayload?.profiles ?? []}
               activeProfileId={profilesPayload?.activeProfileId ?? profileId}
@@ -124,6 +125,7 @@ export default async function AppLayout({ children }: { children: ReactNode }) {
                 inGrace={profilesPayload.inGrace}
                 hasLocked={profilesPayload.hasLocked}
                 graceUntilIso={profilesPayload.graceUntilIso}
+                choiceMade={profilesPayload.choiceMade}
               />
             ) : null}
             <main id="main-content">{children}</main>

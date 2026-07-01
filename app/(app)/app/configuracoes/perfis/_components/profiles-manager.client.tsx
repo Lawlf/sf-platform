@@ -1,6 +1,6 @@
 "use client";
 
-import { ArrowRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
+import { ChevronRight, Lock, Pencil, Plus, Trash2 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -50,6 +50,7 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
   const [deleteTarget, setDeleteTarget] = useState<SerializedProfile | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState("");
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [keepTarget, setKeepTarget] = useState<SerializedProfile | null>(null);
   const [pending, startTransition] = useTransition();
 
   function openRename(profile: SerializedProfile) {
@@ -64,9 +65,12 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
     setDeleteError(null);
   }
 
-  function handleKeep(profileId: string) {
+  function handleKeep() {
+    if (!keepTarget) return;
+    const profileId = keepTarget.id;
     startTransition(async () => {
       await setKeptProfileAction({ profileId });
+      setKeepTarget(null);
       router.refresh();
     });
   }
@@ -106,6 +110,9 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
     deleteTarget?.displayName ?? (deleteTarget?.type === "PJ_MEI" ? "Negócio" : "Pessoal");
   const deleteConfirmMatch = deleteConfirm.trim() === deleteTargetName;
 
+  const keepTargetName =
+    keepTarget?.displayName ?? (keepTarget?.type === "PJ_MEI" ? "Negócio" : "Pessoal");
+
   const days = graceDaysLeft(payload.graceUntilIso);
 
   return (
@@ -115,7 +122,7 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
           <HowItWorksSheet topic="perfis" variant="plain" />
         </div>
 
-        {inGrace ? (
+        {inGrace && !payload.choiceMade ? (
           <div className="rounded-2xl border border-[color:var(--color-brand-500)]/35 bg-[color:var(--surface-2)] p-4">
             <p className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
               Escolha qual perfil fica ativo no Free
@@ -133,15 +140,17 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
           const name = profile.displayName ?? typeLabel;
           const active = profile.id === activeProfileId;
           const locked = profile.locked;
-          const isKept = !isPro && profiles.length > 1 && profile.id === keptProfileId;
-          const showKeep = canChooseKept && profile.id !== keptProfileId;
-          return (
-            <div
-              key={profile.id}
-              className={`flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl ${
-                locked ? "opacity-70" : ""
-              }`}
-            >
+          const isKept =
+            !isPro &&
+            profiles.length > 1 &&
+            profile.id === keptProfileId &&
+            (payload.choiceMade || !inGrace);
+          const showKeep = canChooseKept;
+          const cardClass = `flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl ${
+            locked ? "opacity-70 transition-opacity hover:opacity-100" : ""
+          }`;
+          const cardBody = (
+            <>
               <div className="flex min-w-0 flex-1 flex-col gap-0.5">
                 <div className="flex items-center gap-2">
                   <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
@@ -174,21 +183,18 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
                 {showKeep ? (
                   <button
                     type="button"
-                    onClick={() => handleKeep(profile.id)}
+                    onClick={(e) => { e.preventDefault(); setKeepTarget(profile); }}
                     disabled={pending}
                     className="focus-ring mt-2 inline-flex w-fit items-center gap-1 rounded-lg border border-[color:var(--color-brand-500)]/40 px-2.5 py-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.08]"
                   >
                     Manter este no Free
                   </button>
                 ) : null}
-                {locked && !showKeep ? (
-                  <Link
-                    href={"/app/configuracoes/planos" as Route}
-                    className="focus-ring mt-2 inline-flex w-fit items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)] hover:underline"
-                  >
+                {locked ? (
+                  <span className="mt-2 inline-flex w-fit items-center gap-1 text-[0.75rem] font-semibold text-[color:var(--color-brand-800)]">
                     Voltar pro Pro pra usar
-                    <ArrowRight size={12} strokeWidth={2.5} aria-hidden />
-                  </Link>
+                    <ChevronRight size={14} strokeWidth={2.25} aria-hidden />
+                  </span>
                 ) : null}
               </div>
               {!locked ? (
@@ -213,8 +219,21 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
                   ) : null}
                 </div>
               ) : (
-                <Lock size={16} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+                <ChevronRight size={16} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
               )}
+            </>
+          );
+          return locked ? (
+            <Link
+              key={profile.id}
+              href={"/app/configuracoes/planos" as Route}
+              className={cardClass}
+            >
+              {cardBody}
+            </Link>
+          ) : (
+            <div key={profile.id} className={cardClass}>
+              {cardBody}
             </div>
           );
         })}
@@ -244,6 +263,26 @@ export function ProfilesManager({ payload }: { payload: ProfilesPayload }) {
       </div>
 
       <CreateProfileSheet open={createOpen} onOpenChange={setCreateOpen} canCreate={canCreate} />
+
+      <Sheet open={!!keepTarget} onOpenChange={(open) => { if (!open) setKeepTarget(null); }}>
+        <SheetContent side="bottom" className="flex flex-col gap-5">
+          <SheetHeader>
+            <SheetTitle>Manter {keepTargetName} no Free</SheetTitle>
+            <SheetDescription>
+              Os outros perfis ficam guardados na hora, com tudo dentro. Nada é apagado, mas você não acessa nem edita eles no Free. Voltam quando você assinar o Pro.
+            </SheetDescription>
+          </SheetHeader>
+
+          <SheetFooter>
+            <Button type="button" variant="glass" onClick={() => setKeepTarget(null)} disabled={pending}>
+              Cancelar
+            </Button>
+            <Button type="button" variant="brand" loading={pending} onClick={handleKeep}>
+              Manter este
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
 
       <Sheet open={!!renameTarget} onOpenChange={(open) => { if (!open) setRenameTarget(null); }}>
         <SheetContent side="bottom" className="flex flex-col gap-5">

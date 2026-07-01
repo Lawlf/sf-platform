@@ -37,6 +37,15 @@ describe("profile-access", () => {
     expect(hasLockedProfiles(list, s)).toBe(false);
   });
 
+  it("Free na graça mas já escolheu: tranca o resto na hora, mesmo com dias sobrando", () => {
+    const grace = new Date(NOW.getTime() + 5 * 86_400_000);
+    const s = { ...base, isPro: false, proGraceUntil: grace, freeKeptProfileId: "pj" };
+    expect(isInGrace(s)).toBe(true);
+    expect(isProfileAccessible("pj", list, s)).toBe(true);
+    expect(isProfileAccessible("pf", list, s)).toBe(false);
+    expect(hasLockedProfiles(list, s)).toBe(true);
+  });
+
   it("Free com escolha: o escolhido é o acessível, não o primary", () => {
     const s = { ...base, isPro: false, freeKeptProfileId: "pj" };
     expect(keptProfileId(list, "pj")).toBe("pj");

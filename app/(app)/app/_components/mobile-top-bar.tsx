@@ -1,6 +1,6 @@
 "use client";
 
-import { Bell, ChevronDown, Search, Settings } from "lucide-react";
+import { Bell, ChevronDown, Crown, Search, Settings } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useRef, useState } from "react";
@@ -18,13 +18,14 @@ const LONG_PRESS_MS = 450;
 export interface MobileTopBarProps {
   displayName: string;
   avatarUrl?: string | null | undefined;
+  isPro?: boolean;
   notificationCount?: number;
   profiles?: SerializedProfile[];
   activeProfileId?: string;
   canCreate?: boolean;
 }
 
-export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, profiles = [], activeProfileId, canCreate = true }: MobileTopBarProps) {
+export function MobileTopBar({ displayName, avatarUrl, isPro = false, notificationCount = 0, profiles = [], activeProfileId, canCreate = true }: MobileTopBarProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const longPressFired = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -98,6 +99,17 @@ export function MobileTopBar({ displayName, avatarUrl, notificationCount = 0, pr
       </div>
 
       <div className="flex flex-none items-center gap-2">
+        {!isPro ? (
+          <SimpleTooltip label="Seja Pro" side="bottom">
+            <Link
+              href={"/app/configuracoes/planos" as Route}
+              aria-label="Seja Pro"
+              className="focus-ring flex h-12 w-12 items-center justify-center rounded-full border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.12] text-[color:var(--color-brand-800)] transition-colors hover:bg-[color:var(--color-brand-500)]/[0.20]"
+            >
+              <Crown size={22} strokeWidth={2} aria-hidden />
+            </Link>
+          </SimpleTooltip>
+        ) : null}
         <SimpleTooltip label="Buscar" side="bottom">
           <button
             type="button"

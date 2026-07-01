@@ -33,6 +33,8 @@ export interface ProfilesPayload {
   keptProfileId: string | null;
   // Free ainda pode escolher qual perfil fica (na graça, ou se nunca escolheu).
   canChooseKept: boolean;
+  // Já confirmou qual perfil fica: encerra o aviso de graça sem esperar os 7 dias.
+  choiceMade: boolean;
 }
 
 export async function fetchUserProfiles(): Promise<ProfilesPayload | null> {
@@ -70,6 +72,7 @@ export async function fetchUserProfiles(): Promise<ProfilesPayload | null> {
     hasLocked: hasLockedProfiles(profiles, state),
     keptProfileId: keptProfileId(profiles, user.freeKeptProfileId),
     canChooseKept:
-      !user.isPro && profiles.length > 1 && (inGrace || user.freeKeptProfileId === null),
+      !user.isPro && profiles.length > 1 && inGrace && user.freeKeptProfileId === null,
+    choiceMade: user.freeKeptProfileId !== null,
   };
 }
