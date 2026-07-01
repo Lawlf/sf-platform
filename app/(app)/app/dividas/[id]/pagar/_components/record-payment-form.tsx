@@ -2,14 +2,17 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
-import { Paperclip, X } from "lucide-react";
+import { PiggyBank, Paperclip, X } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
-import { useId, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
 import { useForm, useWatch } from "react-hook-form";
 import { z } from "zod";
 
+import { ActionRow, ActionRowGroup } from "../../../../_components/action-row";
 import { Button } from "@/app/components/ui/button";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
 import { ALLOWED_CONTENT_TYPES, MAX_FILE_BYTES } from "@/application/use-cases/attachments/attachment-limits";
 
 import {
@@ -21,6 +24,10 @@ import { MoneyInput } from "../../../../_components/money-input";
 import { queryKeys } from "../../../../_lib/query-keys";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
+import {
+  runExtraAction,
+  type ExtraActionResult,
+} from "../../../../simular/extra/_actions/run-extra.action";
 import { recordPaymentAction } from "../_actions/record-payment.action";
 
 const formSchema = z
@@ -59,6 +66,7 @@ export function RecordPaymentForm({
   const [note, setNote] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState<string | null>(null);
+  const [noteSheetOpen, setNoteSheetOpen] = useState(false);
   const createdPaymentId = useRef<string | null>(null);
   const paidAtId = useId();
   const noteId = useId();
@@ -78,6 +86,40 @@ export function RecordPaymentForm({
   const interest = useWatch({ control: form.control, name: "interestCents" }) ?? 0n;
   const isExtra = useWatch({ control: form.control, name: "isExtra" }) ?? false;
   const totalCents = (principal as bigint) + (interest as bigint);
+
+  const baselineCents = defaults ? BigInt(defaults.amountCents) : null;
+  const extraOverBaselineCents =
+    baselineCents !== null && totalCents > baselineCents ? totalCents - baselineCents : 0n;
+
+  const [extraPreview, setExtraPreview] = useState<ExtraActionResult | null>(null);
+  const [extraPreviewPending, setExtraPreviewPending] = useState(false);
+
+  useEffect(() => {
+    if (!isExtra || baselineCents === null || extraOverBaselineCents <= 0n) {
+      setExtraPreview(null);
+      return;
+    }
+    setExtraPreviewPending(true);
+    const timer = setTimeout(() => {
+      const fd = new FormData();
+      fd.set("debtId", debtId);
+      fd.set("monthlyPaymentCents", baselineCents.toString());
+      fd.set("extraPaymentCents", extraOverBaselineCents.toString());
+      runExtraAction(fd)
+        .then(setExtraPreview)
+        .finally(() => setExtraPreviewPending(false));
+    }, 400);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- baselineCents/extraOverBaselineCents são bigint, dep já cobre pelo totalCents/isExtra
+  }, [isExtra, totalCents, debtId]);
+
+  const attachmentSubtitle = note.trim()
+    ? file
+      ? "Nota + comprovante anexado"
+      : "Nota adicionada"
+    : file
+      ? "Comprovante anexado"
+      : "Opcional";
 
   function pickFile(picked: File | null) {
     setFileError(null);
@@ -164,7 +206,7 @@ export function RecordPaymentForm({
       if (file && isPro) {
         const uploaded = await uploadComprovante(paymentId, file);
         if (!uploaded) {
-          setFileError("Não consegui anexar o arquivo. Toque em registrar de novo pra tentar.");
+          setFileError("Não consegui anexar o arquivo. Toque em confirmar de novo pra tentar.");
           return;
         }
       }
@@ -175,18 +217,16 @@ export function RecordPaymentForm({
 
   return (
     <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <div className="flex items-baseline justify-between gap-3">
+      <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+        <div className="flex items-baseline justify-between gap-3 border-b border-[color:var(--border-soft)] pb-3">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
             Quanto falta pagar
           </span>
-          <span className="text-[1.125rem] font-extrabold text-[color:var(--text-primary)]">
+          <span className="text-[0.9375rem] font-bold text-[color:var(--text-secondary)]">
             {currentBalanceFormatted}
           </span>
         </div>
-      </section>
 
-      <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
         <WizardField label="Data do pagamento" htmlFor={paidAtId}>
           <input
             id={paidAtId}
@@ -224,12 +264,51 @@ export function RecordPaymentForm({
             />
             <WizardRadioCard
               title="Pagamento extra"
-              description="Amortização acima da parcela."
+              description="Valor acima da parcela normal, abate mais rápido."
               active={isExtra}
               onSelect={() => form.setValue("isExtra", true, { shouldDirty: true })}
             />
           </div>
         </div>
+
+        {isExtra ? (
+          <div className="flex items-start gap-3 rounded-xl border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.08] px-3 py-3">
+            <PiggyBank
+              size={18}
+              strokeWidth={2}
+              className="mt-0.5 shrink-0 text-[color:var(--color-brand-700)]"
+              aria-hidden
+            />
+            <div className="min-w-0 flex-1 text-[0.8125rem]">
+              {baselineCents === null ? (
+                <p className="text-[color:var(--text-secondary)]">
+                  Sem parcela de referência pra calcular o quanto isso adianta.
+                </p>
+              ) : extraOverBaselineCents <= 0n ? (
+                <p className="text-[color:var(--text-secondary)]">
+                  Coloque um valor acima de {formatCentsForDisplay(baselineCents)} (a parcela normal)
+                  pra ver quanto isso adianta.
+                </p>
+              ) : extraPreviewPending ? (
+                <Spinner size={16} label="Calculando o efeito do pagamento extra" />
+              ) : extraPreview?.ok ? (
+                <p className="text-[color:var(--text-primary)]">
+                  No ritmo atual, isso{" "}
+                  <strong>
+                    {extraPreview.monthsSaved > 0
+                      ? `adianta a quitação em ${extraPreview.monthsSaved} ${extraPreview.monthsSaved === 1 ? "mês" : "meses"}`
+                      : "não muda o prazo, mas reduz o saldo"}
+                  </strong>{" "}
+                  e economiza <strong>{extraPreview.interestSavedFormatted}</strong> em juros.
+                </p>
+              ) : (
+                <p className="text-[color:var(--text-secondary)]">
+                  Não consegui calcular o efeito agora, mas o valor extra é registrado normalmente.
+                </p>
+              )}
+            </div>
+          </div>
+        ) : null}
 
         <div className="flex items-baseline justify-between border-t border-[color:var(--border-soft)] pt-3">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
@@ -241,67 +320,93 @@ export function RecordPaymentForm({
         </div>
       </section>
 
-      <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <WizardField label="Comprovante e nota (opcional)" htmlFor={noteId}>
-          <textarea
-            id={noteId}
-            value={note}
-            onChange={(e) => setNote(e.target.value)}
-            placeholder="Ex: paguei via PIX, comprovante no app do banco."
-            rows={2}
-            maxLength={5000}
-            className={`${wizardInputClass} resize-none`}
-          />
-        </WizardField>
-
-        {isPro ? (
-          file ? (
-            <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
-              <Paperclip size={14} strokeWidth={2} aria-hidden className="text-[color:var(--text-muted)]" />
-              <span className="flex-1 truncate text-[0.8125rem] text-[color:var(--text-primary)]">
-                {file.name}
-              </span>
-              <button
-                type="button"
-                onClick={() => {
-                  setFile(null);
-                  if (fileInputRef.current) fileInputRef.current.value = "";
-                }}
-                aria-label="Remover arquivo"
-                className="text-[color:var(--text-muted)]"
-              >
-                <X size={16} strokeWidth={2} aria-hidden />
-              </button>
-            </div>
-          ) : (
-            <Button
-              type="button"
-              variant="ghost"
-              size="sm"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Paperclip size={14} strokeWidth={2} aria-hidden />
-              Anexar comprovante
-            </Button>
-          )
-        ) : (
-          <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
-            Anexar o comprovante é do Pro. A nota fica salva pra qualquer plano.
-          </p>
-        )}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="application/pdf,image/jpeg,image/png,image/webp"
-          className="hidden"
-          onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+      <ActionRowGroup>
+        <ActionRow
+          icon={Paperclip}
+          title="Comprovante e nota"
+          subtitle={attachmentSubtitle}
+          onClick={() => setNoteSheetOpen(true)}
         />
-        {fileError ? (
-          <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
-            {fileError}
-          </span>
-        ) : null}
-      </section>
+      </ActionRowGroup>
+
+      <Sheet open={noteSheetOpen} onOpenChange={setNoteSheetOpen}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>Comprovante e nota</SheetTitle>
+          </SheetHeader>
+
+          <div className="mt-4 flex flex-col gap-3">
+            <WizardField label="Nota (opcional)" htmlFor={noteId}>
+              <textarea
+                id={noteId}
+                value={note}
+                onChange={(e) => setNote(e.target.value)}
+                placeholder="Ex: paguei via PIX, comprovante no app do banco."
+                rows={2}
+                maxLength={5000}
+                className={`${wizardInputClass} resize-none`}
+              />
+            </WizardField>
+
+            {isPro ? (
+              file ? (
+                <div className="flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2">
+                  <Paperclip
+                    size={14}
+                    strokeWidth={2}
+                    aria-hidden
+                    className="text-[color:var(--text-muted)]"
+                  />
+                  <span className="flex-1 truncate text-[0.8125rem] text-[color:var(--text-primary)]">
+                    {file.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFile(null);
+                      if (fileInputRef.current) fileInputRef.current.value = "";
+                    }}
+                    aria-label="Remover arquivo"
+                    className="text-[color:var(--text-muted)]"
+                  >
+                    <X size={16} strokeWidth={2} aria-hidden />
+                  </button>
+                </div>
+              ) : (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <Paperclip size={14} strokeWidth={2} aria-hidden />
+                  Anexar comprovante
+                </Button>
+              )
+            ) : (
+              <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                Anexar o comprovante é do Pro. A nota fica salva pra qualquer plano.
+              </p>
+            )}
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="application/pdf,image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => pickFile(e.target.files?.[0] ?? null)}
+            />
+            {fileError ? (
+              <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
+                {fileError}
+              </span>
+            ) : null}
+
+            <Button type="button" onClick={() => setNoteSheetOpen(false)}>
+              Continuar
+            </Button>
+          </div>
+        </SheetContent>
+      </Sheet>
 
       {form.formState.errors.root ? (
         <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
@@ -315,7 +420,7 @@ export function RecordPaymentForm({
       ) : null}
 
       <Button type="submit" loading={pending}>
-        Registrar pagamento
+        Confirmar pagamento
       </Button>
     </form>
   );

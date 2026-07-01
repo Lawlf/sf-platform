@@ -103,8 +103,19 @@ export async function loadHistorico(debtId: string): Promise<HistoricoPayload> {
   const adjustments = await adjustmentsRepo.listForDebt(debtId, user.id);
 
   const now = clock.now();
-  const to = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + DEFAULT_FUTURE_MONTHS, 1));
-  const from = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - DEFAULT_PAST_MONTHS, 1));
+  const defaultTo = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() + DEFAULT_FUTURE_MONTHS, 1),
+  );
+  const defaultFrom = new Date(
+    Date.UTC(now.getUTCFullYear(), now.getUTCMonth() - DEFAULT_PAST_MONTHS, 1),
+  );
+  const startMonth = new Date(
+    Date.UTC(debt.startDate.getUTCFullYear(), debt.startDate.getUTCMonth(), 1),
+  );
+  // Nunca mostra meses antes do início real da dívida (histórico "fantasma").
+  const from = startMonth > defaultFrom ? startMonth : defaultFrom;
+  // Se a dívida tem fim previsto, a janela futura não passa disso.
+  const to = debt.expectedEndDate && debt.expectedEndDate < defaultTo ? debt.expectedEndDate : defaultTo;
   const timeline = resolveMonthlyTimeline(debt, { from, to }, adjustments);
 
   return {
@@ -172,10 +183,7 @@ export const addPeriodAction = action({
     const saved = await repos.debtAmountAdjustments.upsert(entity);
     return { adjustmentId: saved.id };
   },
-  revalidatePaths: (_data, v) => [
-    `/app/dividas/${v.debtId}/historico`,
-    `/app/dividas/${v.debtId}`,
-  ],
+  revalidatePaths: (_data, v) => [`/app/dividas/${v.debtId}`],
 });
 
 export const addOverrideAction = action({
@@ -206,10 +214,7 @@ export const addOverrideAction = action({
     const saved = await repos.debtAmountAdjustments.upsert(entity);
     return { adjustmentId: saved.id };
   },
-  revalidatePaths: (_data, v) => [
-    `/app/dividas/${v.debtId}/historico`,
-    `/app/dividas/${v.debtId}`,
-  ],
+  revalidatePaths: (_data, v) => [`/app/dividas/${v.debtId}`],
 });
 
 export const deleteAdjustmentAction = action({
@@ -220,8 +225,5 @@ export const deleteAdjustmentAction = action({
   handler: async ({ adjustmentId }, { userId }) => {
     await repos.debtAmountAdjustments.delete(adjustmentId, userId);
   },
-  revalidatePaths: (_data, v) => [
-    `/app/dividas/${v.debtId}/historico`,
-    `/app/dividas/${v.debtId}`,
-  ],
+  revalidatePaths: (_data, v) => [`/app/dividas/${v.debtId}`],
 });

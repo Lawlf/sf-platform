@@ -1,7 +1,6 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { PlusCircle } from "lucide-react";
-import type { Metadata } from "next";
-import type { Route } from "next";
+import { Plus } from "lucide-react";
+import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
 
@@ -10,16 +9,17 @@ import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-pre
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { fetchDebts, type DebtStatusFilter } from "../_actions/debt-queries";
+import { fetchDebts, fetchOutOfMonthSummary, type DebtStatusFilter } from "../_actions/debt-queries";
 import { PageShell } from "../_components/page-shell";
 import { getServerQueryClient } from "../_lib/query-client.server";
 import { queryKeys } from "../_lib/query-keys";
 
 import { fetchOverdueDues } from "./_actions/overdue-list";
 import { fetchHasDueDatedDebt, fetchUpcomingDues } from "./_actions/upcoming-dues";
-import { DividasFilterPills } from "./_components/dividas-filter-pills";
+import { DividasHero } from "./_components/dividas-hero";
 import { DividasListClient } from "./_components/dividas-list.client";
 import { DueAgenda } from "./_components/due-agenda.client";
+import { DueAlertSettingsButton } from "./_components/due-alert-settings-button.client";
 import { OverdueDebtsBanner } from "./_components/overdue-debts-banner.client";
 
 export const metadata: Metadata = { title: "Dívidas" };
@@ -37,11 +37,20 @@ export default async function DividasPage({ searchParams }: PageProps) {
 
   const user = await requireUser();
   const prefs = await repos.notificationPreferences.findForUser(user.id);
-  const [upcomingDues, hasDueDatedDebt, overdueDues] = await Promise.all([
+  const [upcomingDues, hasDueDatedDebt, overdueDues, activeDebts, outOfMonth] = await Promise.all([
     fetchUpcomingDues(),
     fetchHasDueDatedDebt(),
     fetchOverdueDues(),
+    fetchDebts({ status: "active" }),
+    fetchOutOfMonthSummary(),
   ]);
+
+  const owedDebts = activeDebts.filter((d) => d.kind !== "recurring");
+  const totalOwedCents = owedDebts.reduce((acc, d) => acc + BigInt(d.currentBalance.cents), 0n);
+  const totalOwedFormatted = (Number(totalOwedCents) / 100).toLocaleString("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  });
 
   const queryClient = getServerQueryClient();
   await queryClient.prefetchQuery({
@@ -50,26 +59,38 @@ export default async function DividasPage({ searchParams }: PageProps) {
   });
 
   return (
-    <PageShell title="Dívidas" description="Acompanhe e simule a quitação das suas dívidas.">
-      <Link
-        href={"/app/dividas/nova" as Route}
-        className="focus-ring flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
-      >
-        <PlusCircle size={16} strokeWidth={2} aria-hidden />
-        Adicionar compra, conta ou dívida
-      </Link>
+    <PageShell
+      title="Dívidas"
+      description="Acompanhe e simule a quitação das suas dívidas."
+      headerAction={
+        <div className="flex items-center gap-2">
+          {hasDueDatedDebt ? (
+            <DueAlertSettingsButton
+              isPro={user.isPro}
+              initialEnabled={prefs?.debtDueEnabled ?? true}
+              initialDaysBefore={prefs?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT}
+            />
+          ) : null}
+          <Link
+            href={"/app/dividas/nova" as Route}
+            className="focus-ring flex items-center gap-1.5 rounded-xl bg-[color:var(--color-brand-500)] px-3.5 py-2 text-[0.8125rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.3)] transition-colors hover:bg-[color:var(--color-brand-600)]"
+          >
+            <Plus size={16} strokeWidth={2.5} aria-hidden />
+            Nova
+          </Link>
+        </div>
+      }
+    >
+      <DividasHero
+        totalOwedFormatted={totalOwedFormatted}
+        activeCount={owedDebts.length}
+        outOfMonthCount={outOfMonth.count}
+        outOfMonthFormatted={outOfMonth.total.formatted}
+      />
 
       <OverdueDebtsBanner overdue={overdueDues} />
 
-      <DueAgenda
-        dues={upcomingDues}
-        hasDueDatedDebt={hasDueDatedDebt}
-        isPro={user.isPro}
-        initialEnabled={prefs?.debtDueEnabled ?? true}
-        initialDaysBefore={prefs?.debtDueDaysBefore ?? DEBT_DUE_DAYS_BEFORE_DEFAULT}
-      />
-
-      <DividasFilterPills />
+      <DueAgenda dues={upcomingDues} hasDueDatedDebt={hasDueDatedDebt} />
 
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense key={statusFilter} fallback={<DividasListSkeleton />}>

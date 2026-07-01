@@ -1,7 +1,9 @@
+import { Calculator, CalendarClock, FileText, HandCoins, Target } from "lucide-react";
 import type { Route } from "next";
 import { notFound } from "next/navigation";
 
 import { fetchGoalsLinkedToDebt } from "@/app/(app)/app/metas/_actions/goal-queries";
+import { buildGoalSeedQuery } from "@/app/(app)/app/simular/_lib/goal-seed";
 import { getDebtDetail } from "@/application/use-cases/debt/get-debt-detail.use-case";
 import { computeInstallmentDueDates } from "@/domain/services/debt-calendar.service";
 import { buildGoogleCalendarUrl } from "@/infrastructure/calendar/google-calendar-link";
@@ -28,22 +30,21 @@ function alarmFromDaysBefore(days: number | undefined): AlarmOffset {
 }
 
 import { buildCategoryLabeler } from "../../_actions/_category-labels";
-import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
+import { ActionRow, ActionRowGroup } from "../../_components/action-row";
 import { PageShell } from "../../_components/page-shell";
 
 import { fetchOverdueStateForDebt } from "./_actions/overdue-state";
-import { ActionsSection } from "./_components/actions-section";
-import { AmortizationSection } from "./_components/amortization-section";
 import { DebtHeader } from "./_components/debt-header";
-import { DueReminder } from "./_components/due-reminder.client";
-import { InstallmentPurchasesSection } from "./_components/installment-purchases-section";
+import { DebtOverflowMenu } from "./_components/debt-overflow-menu.client";
 import { LinkedAssetCard } from "./_components/linked-asset-card";
 import { MinimumPaymentNotice } from "./_components/minimum-payment-notice";
-import { NoScheduleSection } from "./_components/no-schedule-section";
+import { MonthDecisionsMenu } from "./_components/month-decisions-menu.client";
 import { OutOfMonthBanner } from "./_components/out-of-month-banner";
 import { OverdueBanner } from "./_components/overdue-banner.client";
 import { PaidOffBanner } from "./_components/paid-off-banner";
-import { PaymentsSection } from "./_components/payments-section";
+import { ReactivateDebtButton } from "./_components/reactivate-debt-button";
+import { loadHistorico } from "./historico/_actions/historico.action";
+import { HistoricoClient } from "./historico/_components/historico-client";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -59,8 +60,11 @@ export default async function DebtDetailPage({ params }: PageProps) {
     { userId: user.id, profileId, debtId: id },
   );
   if (isErr(r)) notFound();
-  const { debt, amortization, payments } = r.value;
+  const { debt, amortization } = r.value;
+  const isActive = debt.status === "active";
+  const isRecurring = debt.kind === "recurring";
   const isPayrollLoan = debt.kind === "personal_loan" && debt.payrollDeducted;
+  const payLabel = debt.kind === "credit_card" ? "Paguei a fatura" : "Paguei a parcela";
   const dueDates = computeInstallmentDueDates(debt, amortization);
   const hasCalendarSchedule = dueDates.length > 0;
   const googleCalendarUrl = hasCalendarSchedule
@@ -77,12 +81,14 @@ export default async function DebtDetailPage({ params }: PageProps) {
   const defaultAlarm = alarmFromDaysBefore(prefs?.debtDueDaysBefore);
 
   const linkedGoals = await fetchGoalsLinkedToDebt(id);
+  const payoffGoal = linkedGoals.find(
+    (g) => g.goal.type === "debt_payoff" && g.goal.status === "active",
+  );
   const labelCategory = await buildCategoryLabeler(user.id);
 
-  const overdueState =
-    debt.status === "active"
-      ? await fetchOverdueStateForDebt(id, user.id, profileId)
-      : null;
+  const overdueState = isActive ? await fetchOverdueStateForDebt(id, user.id, profileId) : null;
+
+  const historico = await loadHistorico(id);
 
   const allocations = await repos.assetDebtAllocations.findByDebt(id);
   const linkedAssets: { id: string; label: string }[] = [];
@@ -97,6 +103,23 @@ export default async function DebtDetailPage({ params }: PageProps) {
         debt={debt}
         categoryLabelText={labelCategory(debt.expenseCategory) ?? "Outros"}
         scheduleEndDate={dueDates.at(-1)?.dueDate ?? null}
+        action={
+          <div className="flex shrink-0 items-center">
+            {isActive ? (
+              <MonthDecisionsMenu debtId={id} debtLabel={debt.label} isRecurring={isRecurring} />
+            ) : null}
+            <DebtOverflowMenu
+              debtId={id}
+              debtLabel={debt.label}
+              hasCalendarSchedule={isActive && hasCalendarSchedule && !isPayrollLoan}
+              googleCalendarUrl={googleCalendarUrl}
+              defaultAlarm={defaultAlarm}
+              isPro={user.isPro}
+              dueEnabled={prefs?.debtDueEnabled ?? true}
+              dueDaysBefore={prefs?.debtDueDaysBefore ?? 3}
+            />
+          </div>
+        }
       />
 
       {debt.status === "paid_off" ? <PaidOffBanner debt={debt} /> : null}
@@ -111,46 +134,71 @@ export default async function DebtDetailPage({ params }: PageProps) {
         />
       ) : null}
 
+      {!isActive ? (
+        <ReactivateDebtButton
+          debtId={id}
+          label={debt.label}
+          actionLabel={debt.status === "written_off" ? "Voltar pro meu mês" : "Reativar dívida"}
+        />
+      ) : null}
+
+      <ActionRowGroup>
+        {isActive && !isRecurring && !isPayrollLoan ? (
+          <ActionRow
+            icon={HandCoins}
+            title={payLabel}
+            tone="primary"
+            href={`/app/dividas/${id}/pagar` as Route}
+          />
+        ) : null}
+        {isActive && !isRecurring ? (
+          <ActionRow
+            icon={Calculator}
+            title="Ver se vale adiantar"
+            href={`/app/simular/quitacao?debtId=${id}` as Route}
+          />
+        ) : null}
+        {isActive && isRecurring ? (
+          <ActionRow icon={Target} title="Guardar esse valor" href={"/app/metas/nova" as Route} />
+        ) : null}
+        {isActive && !isRecurring && payoffGoal ? (
+          <ActionRow
+            icon={Target}
+            title="Ver meta de quitação"
+            href={`/app/metas/${payoffGoal.goal.id}` as Route}
+          />
+        ) : null}
+        {isActive && !isRecurring && !payoffGoal ? (
+          <ActionRow
+            icon={Target}
+            title="Criar meta de quitação"
+            href={
+              `/app/metas/nova?${buildGoalSeedQuery({ type: "debt_payoff", debtId: id })}` as Route
+            }
+          />
+        ) : null}
+        <ActionRow
+          icon={CalendarClock}
+          title="Cronograma de parcelas"
+          href={`/app/dividas/${id}/cronograma` as Route}
+        />
+        <ActionRow
+          icon={FileText}
+          title="Contrato e anotações"
+          href={`/app/dividas/${id}/anotacoes` as Route}
+        />
+      </ActionRowGroup>
+
+      <HistoricoClient
+        debtId={id}
+        debtLabel={debt.label}
+        initialAdjustments={historico.adjustments}
+        initialTimeline={historico.timeline}
+      />
+
       <LinkedAssetCard assets={linkedAssets} />
 
       <MinimumPaymentNotice debt={debt} />
-
-      {debt.status === "active" && hasCalendarSchedule && !isPayrollLoan ? (
-        <DueReminder
-          debtId={id}
-          googleCalendarUrl={googleCalendarUrl}
-          defaultAlarm={defaultAlarm}
-          isPro={user.isPro}
-          dueEnabled={prefs?.debtDueEnabled ?? true}
-          dueDaysBefore={prefs?.debtDueDaysBefore ?? 3}
-        />
-      ) : null}
-
-      <ActionsSection debt={debt} linkedGoals={linkedGoals} />
-
-      {debt.kind === "credit_card" ? <InstallmentPurchasesSection debt={debt} /> : null}
-
-      {amortization ? (
-        <AmortizationSection
-          debt={debt}
-          amortization={amortization}
-          payments={payments}
-          isPro={user.isPro}
-        />
-      ) : debt.kind === "recurring" ? null : (
-        <NoScheduleSection kind={debt.kind} />
-      )}
-
-      {!amortization && debt.kind !== "recurring" ? (
-        <PaymentsSection debt={debt} payments={payments} userId={user.id} isPro={user.isPro} />
-      ) : null}
-
-      <EntityNotesAndFiles
-        entityType="debt"
-        entityId={debt.id}
-        userId={user.id}
-        isPro={user.isPro}
-      />
     </PageShell>
   );
 }

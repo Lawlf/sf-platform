@@ -23,12 +23,16 @@ import { Spinner } from "@/app/components/ui/spinner";
 import { queryKeys } from "../../../_lib/query-keys";
 import { deleteDebtAction } from "../_actions/delete-debt.action";
 
+const rowTriggerClass =
+  "focus-ring flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)]";
+
 interface DeleteDebtButtonProps {
   debtId: string;
   label?: string;
+  trigger?: "button" | "row";
 }
 
-export function DeleteDebtButton({ debtId, label }: DeleteDebtButtonProps) {
+export function DeleteDebtButton({ debtId, label, trigger = "button" }: DeleteDebtButtonProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
@@ -64,15 +68,26 @@ export function DeleteDebtButton({ debtId, label }: DeleteDebtButtonProps) {
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
       <AlertDialogTrigger asChild>
-        <Button
-          variant="ghost"
-          size="sm"
-          aria-label={aria}
-          className="text-[color:var(--semantic-negative)] hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
-        >
-          <Trash2 size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
-          Apagar dívida
-        </Button>
+        {trigger === "row" ? (
+          <button type="button" aria-label={aria} className={rowTriggerClass}>
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--semantic-negative)]/12 text-[color:var(--semantic-negative)]">
+              <Trash2 size={18} strokeWidth={2} aria-hidden />
+            </span>
+            <span className="min-w-0 flex-1 text-[0.875rem] font-semibold text-[color:var(--semantic-negative)]">
+              Apagar dívida
+            </span>
+          </button>
+        ) : (
+          <Button
+            variant="ghost"
+            size="sm"
+            aria-label={aria}
+            className="text-[color:var(--semantic-negative)] hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
+          >
+            <Trash2 size={15} strokeWidth={2} className="mr-1.5" aria-hidden />
+            Apagar dívida
+          </Button>
+        )}
       </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>

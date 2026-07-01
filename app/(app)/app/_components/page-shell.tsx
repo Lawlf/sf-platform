@@ -7,6 +7,7 @@ export interface PageShellProps {
   children: ReactNode;
   title?: ReactNode;
   description?: ReactNode;
+  headerAction?: ReactNode;
   blob?: "warm" | "none";
   layout?: "stack" | "grid";
   backHref?: Route;
@@ -18,6 +19,7 @@ export function PageShell({
   children,
   title,
   description,
+  headerAction,
   blob = "warm",
   layout = "stack",
   backHref,
@@ -31,17 +33,20 @@ export function PageShell({
         <BackButton fallbackHref={backHref} label={backLabel} preferFallback={backPreferFallback} />
       ) : null}
       {title ? (
-        <header className="relative flex flex-col gap-1">
-          <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
-            {title}
-          </h1>
-          {description ? (
-            typeof description === "string" ? (
-              <p className="text-sm text-[color:var(--text-secondary)]">{description}</p>
-            ) : (
-              <div className="text-sm text-[color:var(--text-secondary)]">{description}</div>
-            )
-          ) : null}
+        <header className="relative flex items-start justify-between gap-3">
+          <div className="flex flex-col gap-1">
+            <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
+              {title}
+            </h1>
+            {description ? (
+              typeof description === "string" ? (
+                <p className="text-sm text-[color:var(--text-secondary)]">{description}</p>
+              ) : (
+                <div className="text-sm text-[color:var(--text-secondary)]">{description}</div>
+              )
+            ) : null}
+          </div>
+          {headerAction ? <div className="shrink-0">{headerAction}</div> : null}
         </header>
       ) : null}
       <div

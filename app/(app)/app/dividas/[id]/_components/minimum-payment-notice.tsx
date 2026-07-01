@@ -31,16 +31,18 @@ export function MinimumPaymentNotice({ debt }: Props) {
   return (
     <section
       aria-label="Sobre o pagamento mínimo"
-      className="flex gap-3 rounded-2xl border border-[color:var(--color-brand-500)]/30 bg-[color:var(--color-brand-500)]/[0.08] p-4"
+      className="flex gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] p-5"
     >
       <TriangleAlert
-        size={18}
+        size={22}
         strokeWidth={2}
-        className="mt-0.5 shrink-0 text-[color:var(--color-brand-500)]"
+        className="mt-0.5 shrink-0 text-[color:var(--text-muted)]"
         aria-hidden
       />
-      <div>
-        <p className="text-sm font-semibold">Pagar o mínimo não fecha a fatura</p>
+      <div className="min-w-0 flex-1">
+        <p className="text-sm font-semibold text-[color:var(--text-primary)]">
+          Pagar o mínimo não fecha a fatura
+        </p>
         <p className="mt-1 text-sm leading-snug text-[color:var(--text-secondary)]">
           O mínimo é <strong className="text-[color:var(--text-primary)]">{minimum}</strong>. Os{" "}
           <strong className="text-[color:var(--text-primary)]">{rolled}</strong> que sobram entram no
@@ -49,7 +51,7 @@ export function MinimumPaymentNotice({ debt }: Props) {
         </p>
         <Link
           href={`/app/simular/rotativo?debtId=${debt.id}` as Route}
-          className="mt-2 inline-flex text-sm font-semibold text-[color:var(--color-brand-800)] underline-offset-2 hover:underline"
+          className="focus-ring mt-2 inline-block text-[0.8125rem] font-semibold text-[color:var(--text-muted)] underline-offset-2 hover:underline"
         >
           Ver quanto custa rolar essa fatura
         </Link>
