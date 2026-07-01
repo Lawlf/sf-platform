@@ -49,7 +49,7 @@
     --surface-1: rgba(255, 255, 255, 0.75);
     --surface-2: rgba(255, 255, 255, 0.7);
     --surface-3: rgba(255, 255, 255, 0.6);
-    --surface-floating: rgba(253, 248, 243, 0.96);
+    --surface-floating: rgba(253, 248, 243, 0.98);
     /* Superfície opaca para popovers/menus flutuantes que não podem deixar
        o conteúdo de baixo vazar (ex: dropdown da conta na sidebar). */
     --surface-solid: #ffffff;
@@ -84,7 +84,7 @@
     --surface-1: rgba(31, 29, 28, 0.65);
     --surface-2: rgba(31, 29, 28, 0.55);
     --surface-3: rgba(31, 29, 28, 0.45);
-    --surface-floating: rgba(31, 29, 28, 0.96);
+    --surface-floating: rgba(31, 29, 28, 0.98);
     --surface-solid: #2a2624;
     --border-soft: rgba(253, 248, 243, 0.1);
     --border-strong: rgba(253, 248, 243, 0.18);
@@ -267,8 +267,8 @@
 
   .glass-floating {
     background-color: var(--surface-floating);
-    backdrop-filter: blur(12px) saturate(180%);
-    -webkit-backdrop-filter: blur(12px) saturate(180%);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     border: 1px solid var(--border-soft);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-glass-strong);
