@@ -316,6 +316,13 @@ const TOPICS = {
     technical:
       "Comprometido = soma das parcelas mensais (financiamento Price/SAC, empréstimo, mínimo do cartão a 15%, cheque especial) dividido pela renda mensal equivalente. Fora do seu mês soma no total que você deve, mas sai do cálculo de comprometido.",
   },
+  metas: {
+    title: "Metas",
+    tag: "Conceito",
+    body: "Uma meta é um objetivo com valor e prazo que você acompanha até o fim: quitar uma dívida, montar uma reserva, juntar um valor específico ou virar independente financeiramente. A gente calcula o progresso e a previsão de quando você chega lá direto dos seus números.",
+    technical:
+      "Progresso e previsão usam a fórmula específica de cada tipo de meta (quitação, reserva, poupança ou independência financeira); veja o 'Como funciona' dentro de cada meta pro cálculo exato.",
+  },
 } as const;
 
 export type HowItWorksTopic = keyof typeof TOPICS;
