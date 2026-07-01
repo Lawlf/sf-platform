@@ -6,6 +6,8 @@ import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
 import { toast } from "sonner";
 
+import { SimpleTooltip } from "@/app/components/ui/tooltip";
+import { Spinner } from "@/app/components/ui/spinner";
 import { todayIso } from "@/shared/format/dates";
 
 import { settleIncomeAction } from "../_actions/planning-actions";
@@ -30,6 +32,7 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
   const [pendingId, setPendingId] = useState<string | null>(null);
+  const [pendingStatus, setPendingStatus] = useState<"received" | "not_received" | null>(null);
   const [settledIds, setSettledIds] = useState<Set<string>>(new Set());
 
   const today = todayIso();
@@ -47,17 +50,36 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
 
   if (toConfirm.length === 0) return null;
 
-  function run(incomeId: string, status: "received" | "not_received", message: string) {
+  const OPPOSITE: Record<"received" | "not_received", "received" | "not_received"> = {
+    received: "not_received",
+    not_received: "received",
+  };
+
+  function messageFor(income: SerializedIncomeRow, status: "received" | "not_received"): string {
+    return status === "received"
+      ? `${income.amount.formatted} entrou no seu garantido.`
+      : "Tudo bem. Seu garantido segue de pé.";
+  }
+
+  function run(incomeId: string, status: "received" | "not_received") {
+    const income = incomes.find((i) => i.id === incomeId);
     setPendingId(incomeId);
+    setPendingStatus(status);
     startTransition(async () => {
       const result = await settleIncomeAction({ incomeId, monthIso, status });
       setPendingId(null);
+      setPendingStatus(null);
       if (!result.ok) {
         toast.error(result.message ?? "Não foi possível registrar.");
         return;
       }
       setSettledIds((prev) => new Set(prev).add(incomeId));
-      toast.success(message);
+      toast.success(income ? messageFor(income, status) : "Registrado.", {
+        action: {
+          label: "Desfazer",
+          onClick: () => run(incomeId, OPPOSITE[status]),
+        },
+      });
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ["timeline", "monthDetail", monthIso] }),
         queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance }),
@@ -77,6 +99,8 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
       <ul className="mt-3 flex flex-col gap-2">
         {toConfirm.map((income) => {
           const busy = pending && pendingId === income.id;
+          const receivingNow = busy && pendingStatus === "received";
+          const rejectingNow = busy && pendingStatus === "not_received";
           return (
             <li
               key={income.id}
@@ -90,27 +114,37 @@ export function IncomeConfirmCard({ incomes, monthIso }: Props) {
                   <HideableValue>{income.amount.formatted}</HideableValue>
                 </p>
               </div>
-              <div className="flex shrink-0 gap-2">
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() =>
-                    run(income.id, "received", `${income.amount.formatted} entrou no seu garantido.`)
-                  }
-                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--semantic-positive)]/[0.14] px-2.5 py-1.5 text-[0.75rem] font-bold text-[color:var(--semantic-positive)] transition-colors hover:bg-[color:var(--semantic-positive)]/[0.22] disabled:opacity-50"
-                >
-                  <Check size={13} strokeWidth={2.5} aria-hidden />
-                  Recebi
-                </button>
-                <button
-                  type="button"
-                  disabled={busy}
-                  onClick={() => run(income.id, "not_received", "Tudo bem. Seu garantido segue de pé.")}
-                  className="focus-ring inline-flex items-center gap-1 rounded-lg bg-[color:var(--surface-1)] px-2.5 py-1.5 text-[0.75rem] font-bold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)] disabled:opacity-50"
-                >
-                  <X size={13} strokeWidth={2.5} aria-hidden />
-                  Não veio
-                </button>
+              <div className="flex shrink-0 items-center gap-2">
+                <SimpleTooltip label="Recebi">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-label="Recebi"
+                    onClick={() => run(income.id, "received")}
+                    className="focus-ring flex h-9 w-9 items-center justify-center rounded-full bg-[color:var(--semantic-positive)]/12 text-[color:var(--semantic-positive)] transition-colors hover:bg-[color:var(--semantic-positive)]/20 disabled:opacity-50"
+                  >
+                    {receivingNow ? (
+                      <Spinner size={15} decorative />
+                    ) : (
+                      <Check size={16} strokeWidth={2.5} aria-hidden />
+                    )}
+                  </button>
+                </SimpleTooltip>
+                <SimpleTooltip label="Não veio">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    aria-label="Não veio"
+                    onClick={() => run(income.id, "not_received")}
+                    className="focus-ring flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/12 hover:text-[color:var(--semantic-negative)] disabled:opacity-50"
+                  >
+                    {rejectingNow ? (
+                      <Spinner size={15} decorative />
+                    ) : (
+                      <X size={16} strokeWidth={2.5} aria-hidden />
+                    )}
+                  </button>
+                </SimpleTooltip>
               </div>
             </li>
           );

@@ -7,12 +7,18 @@ import { action } from "@/presentation/actions/action";
 import { incomeFormSchema } from "@/presentation/http/validators/income.validators";
 
 import { awardEventAchievement } from "../../_actions/_achievements";
-import { computeFreeBalanceEvent, type IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
+import {
+  computeFreeBalanceEvent,
+  type IncomeFreeBalanceEvent,
+} from "../../_actions/_free-balance-event";
 
 export const createIncomeAction = action({
   schema: incomeFormSchema,
   revalidates: ["incomes", "home", "timeline"],
-  handler: async (data, { userId, profileId }): Promise<{ event: IncomeFreeBalanceEvent | null }> => {
+  handler: async (
+    data,
+    { userId, profileId },
+  ): Promise<{ event: IncomeFreeBalanceEvent | null }> => {
     const amount = Money.fromCents(BigInt(data.amountCents), data.currency);
 
     await registerIncome(

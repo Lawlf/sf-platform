@@ -7,7 +7,6 @@ import { dateOnlyFormat } from "@/shared/format/date-only";
 import { HideableValue } from "../../../_components/money-visibility/hideable-value.client";
 import { terms } from "../../../_lib/copy/terms";
 
-
 const KIND_LABEL: Record<DebtKind, string> = {
   financing: "Financiamento",
   personal_loan: "Empréstimo ou crediário",
@@ -97,6 +96,13 @@ interface Props {
 
 export function DebtHeader({ debt, categoryLabelText, scheduleEndDate = null, action }: Props) {
   const headerStats = buildHeaderStats(debt, categoryLabelText ?? "Outros", scheduleEndDate);
+
+  const originalCents = debt.kind === "recurring" ? 0n : debt.originalPrincipal.toCents();
+  const paidCents = debt.kind === "recurring" ? 0n : originalCents - debt.currentBalance.toCents();
+  const paidPct = originalCents > 0n ? Number((paidCents * 10000n) / originalCents) / 100 : 0;
+  const paidPctClamped = Math.max(0, Math.min(100, paidPct));
+  const showProgress = debt.kind !== "recurring" && originalCents > 0n;
+
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[22px] backdrop-blur-xl">
       <div className="flex items-start justify-between gap-3">
@@ -130,6 +136,20 @@ export function DebtHeader({ debt, categoryLabelText, scheduleEndDate = null, ac
           </div>
         ))}
       </div>
+      {showProgress ? (
+        <div className="mt-3 border-t border-[color:var(--border-soft)] pt-3">
+          <div className="h-1.5 overflow-hidden rounded-full bg-[color:var(--surface-3)]">
+            <div
+              className="h-full rounded-full bg-[color:var(--color-brand-500)]"
+              style={{ width: `${paidPctClamped}%` }}
+            />
+          </div>
+          <div className="mt-1.5 text-[0.75rem] font-semibold tabular-nums text-[color:var(--text-secondary)]">
+            <HideableValue>{debt.currentBalance.format()}</HideableValue> restante ·{" "}
+            {paidPctClamped.toLocaleString("pt-BR", { maximumFractionDigits: 0 })}% pago
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

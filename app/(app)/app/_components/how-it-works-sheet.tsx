@@ -1,6 +1,9 @@
 "use client";
 
-import { HelpCircle, Sparkles } from "lucide-react";
+import { ChevronRight, HelpCircle, Sparkles } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
+import type { ReactNode } from "react";
 
 import {
   Sheet,
@@ -299,15 +302,36 @@ const TOPICS = {
     technical:
       "Na Tabela Price a parcela é fixa do começo ao fim. No início, a maior fatia é juro (incide sobre um saldo grande); conforme o saldo cai, mais da parcela passa a abater a dívida. Por isso as barras mantêm a mesma altura, mas a fatia de juro encolhe com o tempo.",
   },
+  renda: {
+    title: "Renda",
+    tag: "Conceito",
+    body: "Tudo que entra pra você: salário, freela, aluguel, comissão. É a base pra saber se o mês fecha no azul.",
+    technical:
+      "Renda mensal equivalente: fixa (mensal) entra pelo valor cheio; semanal é convertida multiplicando por 4,33 (semanas por mês); pontual só conta no mês em que foi lançada. Serve de base pro comprometido, pro saldo livre e pras projeções.",
+  },
+  dividas: {
+    title: "Dívidas",
+    tag: "Conceito",
+    body: "Tudo que você deve: financiamento, empréstimo, cartão, cheque especial, contas fixas. Ativa é o que ainda pesa no seu mês; fora do seu mês continua no total mas não entra no comprometido; quitada já foi resolvida.",
+    technical:
+      "Comprometido = soma das parcelas mensais (financiamento Price/SAC, empréstimo, mínimo do cartão a 15%, cheque especial) dividido pela renda mensal equivalente. Fora do seu mês soma no total que você deve, mas sai do cálculo de comprometido.",
+  },
 } as const;
 
 export type HowItWorksTopic = keyof typeof TOPICS;
 export type HowItWorksVariant = "chip" | "brand" | "plain";
 
+export interface HowItWorksAction {
+  icon: ReactNode;
+  label: string;
+  href: Route;
+}
+
 export interface HowItWorksSheetProps {
   topic: HowItWorksTopic;
   triggerClassName?: string;
   variant?: HowItWorksVariant;
+  actions?: HowItWorksAction[];
 }
 
 const TRIGGER_CLASSES: Record<HowItWorksVariant, string> = {
@@ -322,6 +346,7 @@ export function HowItWorksSheet({
   topic,
   triggerClassName,
   variant = "chip",
+  actions,
 }: HowItWorksSheetProps) {
   const data = TOPICS[topic];
   const triggerClass = `${TRIGGER_CLASSES[variant]} ${triggerClassName ?? ""}`.trim();
@@ -367,6 +392,31 @@ export function HowItWorksSheet({
             <p className="text-[0.8125rem] leading-relaxed text-[color:var(--text-secondary)]">
               {data.technical}
             </p>
+          </div>
+        ) : null}
+
+        {actions && actions.length > 0 ? (
+          <div className="-mx-6 mt-5 divide-y divide-[color:var(--border-soft)] border-t border-[color:var(--border-soft)]">
+            {actions.map((action) => (
+              <Link
+                key={action.href}
+                href={action.href}
+                className="flex w-full items-center gap-3 px-6 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)]"
+              >
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-3)] text-[color:var(--text-secondary)]">
+                  {action.icon}
+                </span>
+                <span className="flex-1 text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                  {action.label}
+                </span>
+                <ChevronRight
+                  size={18}
+                  strokeWidth={2}
+                  className="shrink-0 text-[color:var(--text-muted)]"
+                  aria-hidden
+                />
+              </Link>
+            ))}
           </div>
         ) : null}
       </SheetContent>

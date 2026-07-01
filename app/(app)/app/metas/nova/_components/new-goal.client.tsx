@@ -1,7 +1,7 @@
 "use client";
 
 import { useQueryClient } from "@tanstack/react-query";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, ArrowLeft } from "lucide-react";
 import type { Route } from "next";
 import { useRouter } from "next/navigation";
 import { useId, useState, useTransition } from "react";
@@ -18,6 +18,7 @@ import {
 
 import { MoneyInput } from "../../../_components/money-input";
 import { WizardField, wizardInputClass } from "@/ui/wizard-field";
+import { WizardChoiceGroup } from "@/ui/wizard-choice-group";
 import { WizardRadioCard } from "@/ui/wizard-radio-card";
 import { simSelectClass } from "../../../simular/_components/sim-result";
 import { SimSlider } from "../../../simular/_components/sim-slider";
@@ -30,6 +31,7 @@ import {
 } from "../../_actions/goal-actions";
 import type { SerializedGoal } from "../../_actions/goal-queries";
 import { invalidateGoalCaches } from "../../_lib/invalidate";
+import { HouseholdGoalNudge } from "./household-goal-nudge";
 
 export interface DebtOption {
   id: string;
@@ -51,6 +53,7 @@ interface NewGoalProps {
   seed?: GoalSeed | null;
   mode?: "create" | "edit";
   existingGoal?: SerializedGoal | null;
+  showHouseholdNudge?: boolean;
 }
 
 type GoalTypeChoice = "debt_payoff" | "emergency_fund" | "savings" | "financial_independence";
@@ -95,6 +98,76 @@ function SectionHeading({ children }: { children: React.ReactNode }) {
   );
 }
 
+const SAVINGS_TITLE_SUGGESTIONS = [
+  "Viagem",
+  "Entrada do carro",
+  "Entrada do apartamento",
+  "Casamento",
+  "Reforma",
+  "Notebook novo",
+  "Presente",
+  "Curso",
+];
+
+function TitleSuggestInput({
+  id,
+  value,
+  onChange,
+  onPick,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (value: string) => void;
+  onPick: (value: string) => void;
+  placeholder?: string;
+}) {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <div className="relative">
+      <input
+        id={id}
+        type="text"
+        className={wizardInputClass}
+        {...(placeholder ? { placeholder } : {})}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        onFocus={() => setOpen(true)}
+      />
+      {open ? (
+        <>
+          <button
+            type="button"
+            aria-hidden
+            tabIndex={-1}
+            className="fixed inset-0 z-10 cursor-default"
+            onClick={() => setOpen(false)}
+          />
+          <div className="absolute left-0 right-0 top-[calc(100%+4px)] z-20 flex max-h-60 flex-col gap-0.5 overflow-y-auto rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1 shadow-lg backdrop-blur-xl">
+            <span className="px-3 pb-1 pt-1.5 text-[0.625rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+              Sugestões, digite a sua se preferir
+            </span>
+            {SAVINGS_TITLE_SUGGESTIONS.map((s) => (
+              <button
+                key={s}
+                type="button"
+                onClick={() => {
+                  onPick(s);
+                  setOpen(false);
+                }}
+                className="rounded-lg px-3 py-2 text-left text-[0.8125rem] text-[color:var(--text-primary)] hover:bg-[color:var(--surface-2)]"
+              >
+                {s}
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
+    </div>
+  );
+}
+
 // ---- DebtPayoff step -------------------------------------------------------
 
 function DebtPayoffStep({
@@ -120,10 +193,14 @@ function DebtPayoffStep({
     defaultValues: {
       linkedDebtId: existingGoal
         ? (existingGoal.linkedDebtId ?? debts[0]?.id ?? "")
-        : (seededDebt ? seededDebt.id : (debts[0]?.id ?? "")),
+        : seededDebt
+          ? seededDebt.id
+          : (debts[0]?.id ?? ""),
       title: existingGoal
         ? existingGoal.title
-        : (seededDebt ? (seededDebt.label ?? "") : (debts[0]?.label ?? "")),
+        : seededDebt
+          ? (seededDebt.label ?? "")
+          : (debts[0]?.label ?? ""),
       monthlyContributionCents: existingGoal?.monthlyCostCents
         ? BigInt(existingGoal.monthlyCostCents)
         : seed?.type === "debt_payoff" && seed.monthlyContributionCents
@@ -143,10 +220,7 @@ function DebtPayoffStep({
   const titleId = useId();
 
   return (
-    <form
-      onSubmit={form.handleSubmit(onSubmit)}
-      className="flex flex-col gap-4"
-    >
+    <form onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
       <section className="glass-light p-4">
         <SectionHeading>Quitar dívida</SectionHeading>
         <div className="flex flex-col gap-3">
@@ -170,7 +244,11 @@ function DebtPayoffStep({
               </Select>
             </WizardField>
           )}
-          <WizardField label="Título da meta" htmlFor={titleId} helper="Como você quer chamar essa meta.">
+          <WizardField
+            label="Título da meta"
+            htmlFor={titleId}
+            helper="Como você quer chamar essa meta."
+          >
             <input
               id={titleId}
               type="text"
@@ -221,7 +299,9 @@ function EmergencyFundStep({
       title: existingGoal ? existingGoal.title : "Reserva de emergência",
       targetMonths: existingGoal
         ? (existingGoal.targetMonths ?? 6)
-        : (seed?.type === "emergency_fund" ? seed.targetMonths : 6),
+        : seed?.type === "emergency_fund"
+          ? seed.targetMonths
+          : 6,
       monthlyCostCents: null,
     },
   });
@@ -231,7 +311,9 @@ function EmergencyFundStep({
   // no submit em vez de depender do tracking do react-hook-form para um campo sem input.
   const seededCost = existingGoal?.monthlyCostCents
     ? BigInt(existingGoal.monthlyCostCents)
-    : (seed?.type === "emergency_fund" ? BigInt(seed.monthlyCostCents) : null);
+    : seed?.type === "emergency_fund"
+      ? BigInt(seed.monthlyCostCents)
+      : null;
 
   return (
     <form
@@ -288,6 +370,8 @@ function SavingsStep({
   onSubmit,
   loading,
   error,
+  showHouseholdNudge,
+  lockedAsset,
 }: {
   prefill: SimPrefill;
   assets: AssetOption[];
@@ -296,19 +380,27 @@ function SavingsStep({
   onSubmit: (data: SavingsForm) => void;
   loading: boolean;
   error: string | null;
+  showHouseholdNudge?: boolean;
+  lockedAsset?: AssetOption;
 }) {
   const form = useForm<SavingsForm>({
     defaultValues: {
-      title: existingGoal ? existingGoal.title : "",
+      title: existingGoal ? existingGoal.title : (lockedAsset?.label ?? ""),
       targetCents: existingGoal
         ? BigInt(existingGoal.targetCents ?? "0")
-        : (seed?.type === "savings" ? BigInt(seed.targetCents) : (0n as unknown as bigint)),
+        : seed?.type === "savings"
+          ? BigInt(seed.targetCents)
+          : (0n as unknown as bigint),
       deadlineIso: existingGoal
         ? isoToInputDate(existingGoal.deadlineIso)
-        : (seed?.type === "savings" ? (seed.deadlineIso ?? "") : ""),
+        : seed?.type === "savings"
+          ? (seed.deadlineIso ?? "")
+          : "",
       fundingMode: existingGoal
         ? ((existingGoal.fundingMode as "linked" | "manual" | null) ?? "manual")
-        : (seed?.type === "savings" && seed.fundingMode ? seed.fundingMode : "manual"),
+        : seed?.type === "savings" && seed.fundingMode
+          ? seed.fundingMode
+          : "manual",
       linkedAssetId: existingGoal
         ? (existingGoal.linkedAssetId ?? assets[0]?.id ?? "")
         : (() => {
@@ -320,7 +412,9 @@ function SavingsStep({
           })(),
       manualSavedCents: existingGoal
         ? BigInt(existingGoal.manualSavedCents ?? "0")
-        : (seed?.type === "savings" ? BigInt(seed.savedCents) : BigInt(prefill.cashReserveCents)),
+        : seed?.type === "savings"
+          ? BigInt(seed.savedCents)
+          : BigInt(prefill.cashReserveCents),
     },
   });
   const fundingMode = useWatch({ control: form.control, name: "fundingMode" });
@@ -334,12 +428,19 @@ function SavingsStep({
         <SectionHeading>Juntar um valor</SectionHeading>
         <div className="flex flex-col gap-3">
           <WizardField label="Título da meta" htmlFor={titleId}>
-            <input
-              id={titleId}
-              type="text"
-              className={wizardInputClass}
-              placeholder="Ex: Viagem, entrada do carro..."
-              {...form.register("title", { required: true })}
+            <Controller
+              control={form.control}
+              name="title"
+              rules={{ required: true }}
+              render={({ field }) => (
+                <TitleSuggestInput
+                  id={titleId}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onPick={field.onChange}
+                  placeholder="Ex: Viagem, entrada do carro..."
+                />
+              )}
             />
           </WizardField>
           <MoneyInput
@@ -349,7 +450,11 @@ function SavingsStep({
             required
             helper="Quanto você quer ter guardado."
           />
-          <WizardField label="Prazo (opcional)" htmlFor={deadlineId} helper="Deixe em branco para sem prazo definido.">
+          <WizardField
+            label="Prazo (opcional)"
+            htmlFor={deadlineId}
+            helper="Deixe em branco para sem prazo definido."
+          >
             <input
               id={deadlineId}
               type="date"
@@ -416,6 +521,7 @@ function SavingsStep({
           )}
         </div>
       </section>
+      {showHouseholdNudge ? <HouseholdGoalNudge /> : null}
       {error ? <ErrorAlert message={error} /> : null}
       <Button type="submit" variant="brand" size="lg" className="w-full" loading={loading}>
         {existingGoal ? "Salvar alterações" : "Criar meta"}
@@ -446,12 +552,14 @@ function FinancialIndependenceStep({
       title: existingGoal ? existingGoal.title : "Independência financeira",
       monthlyCostCents: existingGoal
         ? BigInt(existingGoal.monthlyCostCents ?? "0")
-        : (seed?.type === "financial_independence"
+        : seed?.type === "financial_independence"
           ? BigInt(seed.monthlyCostCents)
-          : BigInt(prefill.incomeCents)),
+          : BigInt(prefill.incomeCents),
       realReturnPct: existingGoal
         ? (existingGoal.realReturnPct ?? 4)
-        : (seed?.type === "financial_independence" ? seed.realReturnPct : 4),
+        : seed?.type === "financial_independence"
+          ? seed.realReturnPct
+          : 4,
     },
   });
   const realReturnPct = useWatch({ control: form.control, name: "realReturnPct" }) ?? 4;
@@ -487,7 +595,8 @@ function FinancialIndependenceStep({
             onChange={(v) => form.setValue("realReturnPct", v)}
           />
           <p className="text-[0.6875rem] leading-relaxed text-[color:var(--text-secondary)]">
-            Quanto seu dinheiro rende por ano, já descontando a inflação. Se não souber, deixa em 4%.
+            Quanto seu dinheiro rende por ano, já descontando a inflação. Se não souber, deixa em
+            4%.
           </p>
         </div>
       </section>
@@ -516,10 +625,26 @@ function ErrorAlert({ message }: { message: string }) {
 // ---- Main component --------------------------------------------------------
 
 const GOAL_TYPES: { type: GoalTypeChoice; title: string; description: string }[] = [
-  { type: "debt_payoff", title: "Quitar uma dívida", description: "Tirar uma conta que tá correndo juros." },
-  { type: "emergency_fund", title: "Reserva de emergência", description: "Meses de custo de vida guardados." },
-  { type: "savings", title: "Juntar um valor", description: "Viagem, entrada, projeto, qualquer meta." },
-  { type: "financial_independence", title: "Independência", description: "Viver de renda passiva." },
+  {
+    type: "debt_payoff",
+    title: "Quitar uma dívida",
+    description: "Tirar uma conta que tá correndo juros.",
+  },
+  {
+    type: "emergency_fund",
+    title: "Reserva de emergência",
+    description: "Meses de custo de vida guardados.",
+  },
+  {
+    type: "savings",
+    title: "Juntar um valor",
+    description: "Viagem, entrada, projeto, qualquer meta.",
+  },
+  {
+    type: "financial_independence",
+    title: "Independência",
+    description: "Viver de renda passiva.",
+  },
 ];
 
 function toPatch(input: CreateGoalActionInput) {
@@ -527,13 +652,22 @@ function toPatch(input: CreateGoalActionInput) {
   return patch;
 }
 
-export function NewGoal({ prefill, debts, assets, seed, mode = "create", existingGoal }: NewGoalProps) {
+export function NewGoal({
+  prefill,
+  debts,
+  assets,
+  seed,
+  mode = "create",
+  existingGoal,
+  showHouseholdNudge = false,
+}: NewGoalProps) {
   const router = useRouter();
   const queryClient = useQueryClient();
   const isEdit = mode === "edit" && existingGoal != null;
   const [goalType, setGoalType] = useState<GoalTypeChoice | null>(
-    isEdit ? (existingGoal.type as GoalTypeChoice) : (seed?.type ?? null),
+    isEdit ? (existingGoal.type as GoalTypeChoice) : null,
   );
+  const [step, setStep] = useState<"type" | "form">(isEdit ? "form" : "type");
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [, startTransition] = useTransition();
   const [loading, setLoading] = useState(false);
@@ -541,6 +675,7 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
   function handleTypeSelect(t: GoalTypeChoice) {
     setGoalType(t);
     setSubmitError(null);
+    setStep("form");
   }
 
   async function handleCreate(input: CreateGoalActionInput) {
@@ -585,8 +720,7 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
       type: "emergency_fund",
       title: data.title,
       targetMonths: data.targetMonths,
-      monthlyCostCents:
-        data.monthlyCostCents !== null ? data.monthlyCostCents.toString() : null,
+      monthlyCostCents: data.monthlyCostCents !== null ? data.monthlyCostCents.toString() : null,
     });
   }
 
@@ -599,7 +733,7 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
       targetCents: targetCentsRaw.toString(),
       deadlineIso: data.deadlineIso ? new Date(data.deadlineIso).toISOString() : null,
       fundingMode: data.fundingMode,
-      linkedAssetId: data.fundingMode === "linked" ? (data.linkedAssetId || null) : null,
+      linkedAssetId: data.fundingMode === "linked" ? data.linkedAssetId || null : null,
       manualSavedCents: data.fundingMode === "manual" ? manualSavedRaw.toString() : null,
     });
   }
@@ -616,6 +750,10 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
 
   const resolvedSeed = isEdit ? null : (seed ?? null);
   const resolvedExisting = isEdit ? existingGoal : null;
+  const lockedAsset =
+    !isEdit && seed?.type === "savings" && seed.fundingMode === "linked" && seed.linkedAssetId
+      ? assets.find((a) => a.id === seed.linkedAssetId)
+      : undefined;
   const stepContent =
     goalType === "debt_payoff" ? (
       <DebtPayoffStep
@@ -643,6 +781,8 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
         onSubmit={handleSavings}
         loading={loading}
         error={submitError}
+        showHouseholdNudge={showHouseholdNudge}
+        {...(lockedAsset ? { lockedAsset } : {})}
       />
     ) : goalType === "financial_independence" ? (
       <FinancialIndependenceStep
@@ -655,24 +795,54 @@ export function NewGoal({ prefill, debts, assets, seed, mode = "create", existin
       />
     ) : null;
 
+  if (!isEdit && step === "type") {
+    return (
+      <div className="flex flex-col gap-4">
+        <button
+          type="button"
+          onClick={() => router.push("/app/metas" as Route)}
+          className="flex w-fit items-center gap-1.5 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+        >
+          <ArrowLeft size={14} strokeWidth={2.25} aria-hidden />
+          Voltar
+        </button>
+        <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
+          Qual é o seu objetivo?
+        </h1>
+        <section className="glass-light p-4">
+          <WizardChoiceGroup
+            ariaLabel="Qual é o seu objetivo"
+            variant="primary"
+            value={goalType}
+            options={GOAL_TYPES.map((g) => ({
+              value: g.type,
+              title: g.title,
+              description: g.description,
+            }))}
+            onChange={handleTypeSelect}
+          />
+        </section>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-4">
-      {!isEdit && (
-        <section className="glass-light p-4">
-          <SectionHeading>Qual é o seu objetivo?</SectionHeading>
-          <div className="grid grid-cols-2 gap-2">
-            {GOAL_TYPES.map((g) => (
-              <WizardRadioCard
-                key={g.type}
-                title={g.title}
-                description={g.description}
-                active={goalType === g.type}
-                onSelect={() => handleTypeSelect(g.type)}
-              />
-            ))}
-          </div>
-        </section>
-      )}
+      {!isEdit ? (
+        <>
+          <button
+            type="button"
+            onClick={() => setStep("type")}
+            className="flex w-fit items-center gap-1.5 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:text-[color:var(--text-primary)]"
+          >
+            <ArrowLeft size={14} strokeWidth={2.25} aria-hidden />
+            Voltar
+          </button>
+          <h1 className="text-2xl font-bold tracking-tight text-[color:var(--text-primary)] md:text-3xl">
+            Nova meta
+          </h1>
+        </>
+      ) : null}
       {stepContent}
     </div>
   );

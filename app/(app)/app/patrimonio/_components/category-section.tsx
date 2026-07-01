@@ -5,10 +5,9 @@ import type { ReactNode } from "react";
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import type { AssetCategory } from "@/domain/entities/asset.entity";
 
-
 import { AssetCard } from "./asset-card";
 
-const CATEGORY_LABEL: Record<AssetCategory, string> = {
+export const CATEGORY_LABEL: Record<AssetCategory, string> = {
   vehicle: "Veículos",
   real_estate: "Imóveis",
   investment: "Investimentos",

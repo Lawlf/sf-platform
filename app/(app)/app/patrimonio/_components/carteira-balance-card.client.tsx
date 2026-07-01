@@ -1,9 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ChevronRight, Pencil, TrendingDown, TrendingUp, Wallet } from "lucide-react";
-import type { Route } from "next";
-import Link from "next/link";
+import { Pencil, TrendingDown, TrendingUp, Wallet } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/app/components/ui/button";
@@ -20,19 +18,7 @@ type SheetState = { open: boolean; mode: "capture" | "adjust" };
 
 function CardShell({ children }: { children: React.ReactNode }) {
   return (
-    <section
-      className="relative overflow-hidden bg-[color:var(--surface-1)] p-[22px]"
-      style={{
-        borderRadius: "var(--radius-card)",
-        boxShadow: "var(--shadow-glass-strong)",
-        border: "1px solid color-mix(in srgb, var(--color-brand-500) 16%, transparent)",
-      }}
-    >
-      <span
-        aria-hidden
-        className="pointer-events-none absolute -right-10 -top-12 h-36 w-36 rounded-full"
-        style={{ background: "color-mix(in srgb, var(--color-brand-500) 10%, transparent)" }}
-      />
+    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[22px] backdrop-blur-xl">
       {children}
     </section>
   );
@@ -47,8 +33,7 @@ function CardHeading() {
   );
 }
 
-// asDetail = já está na tela de detalhe da Carteira (não vira link pra si mesma).
-export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean } = {}) {
+export function CarteiraBalanceCard() {
   const [sheet, setSheet] = useState<SheetState>({ open: false, mode: "capture" });
 
   const { data, isPending } = useQuery({
@@ -59,7 +44,7 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
   if (isPending) {
     return (
       <CardShell>
-        <div className="relative flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <Skeleton className="h-3 w-24 rounded-md" />
           <Skeleton className="h-9 w-44 rounded-lg" />
           <Skeleton className="h-4 w-56 rounded-md" />
@@ -78,29 +63,11 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
     }
   })();
 
-  // Link pra tela da Carteira (some quando já estamos nela). Stretched link:
-  // cobre o card; os botões ficam acima (z-10) pra abrir o sheet sem navegar.
-  const detailHref: Route | null = asDetail ? null : (`/app/patrimonio/${data.walletId}` as Route);
-  const cardLink = detailHref ? (
-    <Link href={detailHref} aria-label="Ver Carteira" className="absolute inset-0 z-[1]" />
-  ) : null;
-  // Seta de affordância: sinaliza que o card é clicável (só quando vira link).
-  const cardChevron = detailHref ? (
-    <ChevronRight
-      size={26}
-      strokeWidth={2.25}
-      aria-hidden
-      className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[color:var(--text-muted)]"
-    />
-  ) : null;
-
   if (data.needsAnchor) {
     return (
       <>
         <CardShell>
-          {cardLink}
-          {cardChevron}
-          <div className="relative flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <CardHeading />
             <p className="text-[0.9375rem] font-semibold leading-snug text-[color:var(--text-primary)]">
               Pra acompanhar seu saldo da Carteira de verdade, diz quanto você tem na conta hoje.
@@ -108,7 +75,7 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
             <Button
               variant="brand"
               size="sm"
-              className="relative z-10 self-start"
+              className="self-start"
               onClick={() => setSheet({ open: true, mode: "capture" })}
             >
               <Wallet size={16} strokeWidth={2} aria-hidden />
@@ -136,15 +103,13 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
   return (
     <>
       <CardShell>
-        {cardLink}
-        {cardChevron}
-        <div className="relative flex flex-col gap-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-start justify-between gap-3">
             <CardHeading />
             <Button
               variant="ghost"
               size="sm"
-              className="relative z-10 -mr-1.5 -mt-1.5 h-8 gap-1.5 px-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
+              className="-mr-1.5 -mt-1.5 h-8 gap-1.5 px-2.5 text-[0.8125rem] text-[color:var(--text-secondary)]"
               onClick={() => setSheet({ open: true, mode: "adjust" })}
             >
               <Pencil size={14} strokeWidth={2} aria-hidden />
@@ -152,10 +117,7 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
             </Button>
           </div>
 
-          <div
-            className="flex flex-col gap-1"
-            style={{ animation: "sf-reveal-up 600ms cubic-bezier(0.22,1,0.36,1) both" }}
-          >
+          <div className="flex flex-col gap-1">
             <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
               Saldo da Carteira
             </span>
@@ -165,17 +127,14 @@ export function CarteiraBalanceCard({ asDetail = false }: { asDetail?: boolean }
               </span>
               <HideValuesToggle
                 size={16}
-                className="focus-ring relative z-10 flex h-8 w-8 flex-none items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+                className="focus-ring flex h-8 w-8 flex-none items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
               />
             </div>
           </div>
 
           <div
             className="flex items-center gap-1.5 text-[0.8125rem] font-medium leading-snug"
-            style={{
-              color: projectionColor,
-              animation: "sf-reveal-up 600ms cubic-bezier(0.22,1,0.36,1) 140ms both",
-            }}
+            style={{ color: projectionColor }}
           >
             <ProjectionIcon size={16} strokeWidth={2} aria-hidden className="shrink-0" />
             <span>

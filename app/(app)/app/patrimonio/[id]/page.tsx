@@ -19,7 +19,6 @@ import { isOk } from "@/shared/errors/result";
 import { formatDateSafe } from "@/shared/format/date-format";
 import { formatCents } from "@/shared/format/money-format";
 
-import { EntityNotesAndFiles } from "../../_components/notes-files/entity-notes-and-files";
 import { PageShell } from "../../_components/page-shell";
 import { CarteiraBalanceCard } from "../_components/carteira-balance-card.client";
 
@@ -355,9 +354,10 @@ export default async function AssetDetailPage({ params }: PageProps) {
   // corta os futuros antes de pegar os 3 mais recentes.
   const txnPreview = isCash
     ? {
-        items: (await fetchAccountTransactionsPage({ accountId: asset.id, limit: 12 }))?.items
-          .filter((t) => !isFutureDay(new Date(t.occurredAtIso), clock.now()))
-          .slice(0, 3) ?? [],
+        items:
+          (await fetchAccountTransactionsPage({ accountId: asset.id, limit: 12 }))?.items
+            .filter((t) => !isFutureDay(new Date(t.occurredAtIso), clock.now()))
+            .slice(0, 3) ?? [],
       }
     : null;
   const txnTotal = isCash ? await fetchAccountTransactionCount(asset.id) : 0;
@@ -370,7 +370,7 @@ export default async function AssetDetailPage({ params }: PageProps) {
   if (isWallet) {
     return (
       <PageShell title="Carteira" backHref={"/app/patrimonio" as Route}>
-        <CarteiraBalanceCard asDetail />
+        <CarteiraBalanceCard />
         <AccountTransactionsSection
           accountId={asset.id}
           items={txnPreview?.items ?? []}
@@ -402,15 +402,19 @@ export default async function AssetDetailPage({ params }: PageProps) {
     consumable: "Consumível",
   };
   let depreciation: {
+    kind: "appreciating" | "stable" | "depreciating" | "consumable";
     kindLabel: string;
     ratePctYear: number;
     acquiredAtFormatted: string | null;
+    acquiredAtIso: string | null;
   } | null = null;
   if (asset.category !== "cash" && asset.category !== "investment") {
     depreciation = {
+      kind: asset.depreciationKind,
       kindLabel: DEPRECIATION_LABEL[asset.depreciationKind] ?? asset.depreciationKind,
       ratePctYear: asset.depreciationRatePctYear,
       acquiredAtFormatted: formatDateSafe(DATE_FMT, asset.acquiredAt),
+      acquiredAtIso: asset.acquiredAt ? asset.acquiredAt.toISOString().slice(0, 10) : null,
     };
   }
 
@@ -449,13 +453,6 @@ export default async function AssetDetailPage({ params }: PageProps) {
           framing={txnFraming}
         />
       ) : null}
-
-      <EntityNotesAndFiles
-        entityType="account"
-        entityId={asset.id}
-        userId={user.id}
-        isPro={user.isPro}
-      />
     </PageShell>
   );
 }

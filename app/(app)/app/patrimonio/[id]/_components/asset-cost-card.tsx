@@ -44,17 +44,27 @@ const PROJECTION_QUALIFIER: Record<AssetCostProjectionBasis, string> = {
   none: "",
 };
 
-export function AssetCostCard({ view }: { view: AssetCostView }) {
+export function AssetCostCard({ view, bare = false }: { view: AssetCostView; bare?: boolean }) {
   const owedPct = Math.min(100, Math.max(0, view.owedPct));
   const ownPct = 100 - owedPct;
   const showBreakdown =
     view.monthlyInstallmentFormatted !== null && view.monthlyExpensesFormatted !== null;
 
+  const Wrapper = bare ? "div" : "section";
+
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
-        O que esse {view.noun} representa
-      </h2>
+    <Wrapper
+      className={
+        bare
+          ? ""
+          : "rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4"
+      }
+    >
+      {!bare ? (
+        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
+          O que esse {view.noun} representa
+        </h2>
+      ) : null}
 
       {view.hasDebt ? (
         <>
@@ -164,7 +174,7 @@ export function AssetCostCard({ view }: { view: AssetCostView }) {
         estimateFormatted={view.estimateFormatted}
         actualThisMonthFormatted={view.actualThisMonthFormatted}
       />
-    </section>
+    </Wrapper>
   );
 }
 

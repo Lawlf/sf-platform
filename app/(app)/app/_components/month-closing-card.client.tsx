@@ -1,13 +1,31 @@
 "use client";
 
 import { useQueryClient, useSuspenseQuery } from "@tanstack/react-query";
-import { CalendarCheck, ChevronRight, Receipt } from "lucide-react";
+import {
+  ArrowRightLeft,
+  CalendarCheck,
+  Check,
+  ChevronRight,
+  Pencil,
+  Receipt,
+  X,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
 
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/app/components/ui/alert-dialog";
 import { Button } from "@/app/components/ui/button";
 import {
   Sheet,
@@ -103,15 +121,65 @@ const SETTLED_STATUS_LABEL: Record<"converted_to_debt" | "cancelled", string> = 
   cancelled: "Cancelado",
 };
 
+const COMMITMENT_CHOICES: {
+  action: SettleAction;
+  label: string;
+  icon: typeof Check;
+  cls: string;
+}[] = [
+  {
+    action: "paid",
+    label: "Paguei",
+    icon: Check,
+    cls: "bg-[color:var(--semantic-positive)]/12 text-[color:var(--semantic-positive)] hover:bg-[color:var(--semantic-positive)]/20",
+  },
+  {
+    action: "convert_to_debt",
+    label: "Não paguei",
+    icon: ArrowRightLeft,
+    cls: "bg-[color:var(--color-brand-500)]/20 text-[color:var(--color-brand-800)] hover:bg-[color:var(--color-brand-500)]/28",
+  },
+  {
+    action: "cancel",
+    label: "Cancelar",
+    icon: X,
+    cls: "bg-[color:var(--semantic-negative)]/12 text-[color:var(--semantic-negative)] hover:bg-[color:var(--semantic-negative)]/20",
+  },
+];
+
 interface CommitmentRowProps {
   commitment: MonthClosingCommitment;
   monthIso: string;
   onSettled: () => void;
 }
 
+const COMMITMENT_MESSAGES: Record<SettleAction, (label: string) => string> = {
+  paid: (label) => `${label}: marcado como pago.`,
+  convert_to_debt: (label) => `${label}: virou dívida.`,
+  cancel: (label) => `${label}: cancelado.`,
+};
+
+const COMMITMENT_CONFIRM_COPY: Record<
+  "convert_to_debt" | "cancel",
+  { title: string; description: (label: string) => string; confirmLabel: string }
+> = {
+  convert_to_debt: {
+    title: "Não pagou esse compromisso?",
+    description: (label) =>
+      `Isso cria uma dívida nova pra "${label}" no valor desse mês, pra você não perder esse valor de vista.`,
+    confirmLabel: "Virar dívida",
+  },
+  cancel: {
+    title: "Cancelar esse compromisso?",
+    description: (label) => `"${label}" para de contar nos seus próximos meses a partir de agora.`,
+    confirmLabel: "Cancelar",
+  },
+};
+
 function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) {
   const [error, setError] = useState<string | null>(null);
   const [pendingAction, setPendingAction] = useState<SettleAction | null>(null);
+  const [confirmAction, setConfirmAction] = useState<"convert_to_debt" | "cancel" | null>(null);
   const [pending, startTransition] = useTransition();
 
   function run(action: SettleAction, successMessage: string) {
@@ -155,44 +223,32 @@ function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) 
 
       {settled ? null : (
         <div className="mt-3 flex flex-wrap gap-2">
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={pending}
-            onClick={() => run("paid", `${commitment.label}: marcado como pago.`)}
-          >
-            {pending && pendingAction === "paid" ? (
-              <Spinner size={16} decorative />
-            ) : (
-              "Paguei"
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={pending}
-            onClick={() =>
-              run("convert_to_debt", `${commitment.label}: virou dívida.`)
-            }
-          >
-            {pending && pendingAction === "convert_to_debt" ? (
-              <Spinner size={16} decorative />
-            ) : (
-              "Não paguei"
-            )}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            disabled={pending}
-            onClick={() => run("cancel", `${commitment.label}: cancelado.`)}
-          >
-            {pending && pendingAction === "cancel" ? (
-              <Spinner size={16} decorative />
-            ) : (
-              "Cancelar"
-            )}
-          </Button>
+          {COMMITMENT_CHOICES.map((choice) => {
+            const isPending = pending && pendingAction === choice.action;
+            const Icon = choice.icon;
+            return (
+              <button
+                key={choice.action}
+                type="button"
+                disabled={pending}
+                onClick={() => {
+                  if (choice.action === "paid") {
+                    run(choice.action, COMMITMENT_MESSAGES.paid(commitment.label));
+                    return;
+                  }
+                  setConfirmAction(choice.action);
+                }}
+                className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors disabled:opacity-50 ${choice.cls}`}
+              >
+                {isPending ? (
+                  <Spinner size={14} decorative />
+                ) : (
+                  <Icon size={14} strokeWidth={2.5} aria-hidden />
+                )}
+                {choice.label}
+              </button>
+            );
+          })}
         </div>
       )}
 
@@ -204,6 +260,38 @@ function CommitmentRow({ commitment, monthIso, onSettled }: CommitmentRowProps) 
           {error}
         </p>
       ) : null}
+
+      <AlertDialog
+        open={confirmAction !== null}
+        onOpenChange={(open) => !open && setConfirmAction(null)}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>
+              {confirmAction ? COMMITMENT_CONFIRM_COPY[confirmAction].title : ""}
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {confirmAction
+                ? COMMITMENT_CONFIRM_COPY[confirmAction].description(commitment.label)
+                : ""}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={pending}>Voltar</AlertDialogCancel>
+            <AlertDialogAction
+              disabled={pending}
+              onClick={() => {
+                if (!confirmAction) return;
+                const action = confirmAction;
+                setConfirmAction(null);
+                run(action, COMMITMENT_MESSAGES[action](commitment.label));
+              }}
+            >
+              {confirmAction ? COMMITMENT_CONFIRM_COPY[confirmAction].confirmLabel : ""}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </li>
   );
 }
@@ -229,12 +317,7 @@ function CommitmentsList({
       </p>
       <ul className="flex flex-col gap-2">
         {commitments.map((c) => (
-          <CommitmentRow
-            key={c.debtId}
-            commitment={c}
-            monthIso={monthIso}
-            onSettled={onSettled}
-          />
+          <CommitmentRow key={c.debtId} commitment={c} monthIso={monthIso} onSettled={onSettled} />
         ))}
       </ul>
     </div>
@@ -262,23 +345,12 @@ function IncomeAdjustForm({ initialCents, pending, onConfirm, onCancel }: Income
       className="mt-3 flex flex-col gap-2"
       onSubmit={handleSubmit((values) => onConfirm(values.amountCents))}
     >
-      <MoneyInput
-        control={control}
-        name="amountCents"
-        label="Quanto você recebeu"
-        required
-      />
+      <MoneyInput control={control} name="amountCents" label="Quanto você recebeu" required />
       <div className="flex flex-wrap gap-2">
         <Button type="submit" variant="brand" size="sm" loading={pending}>
           Confirmar valor
         </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          size="sm"
-          disabled={pending}
-          onClick={onCancel}
-        >
+        <Button type="button" variant="ghost" size="sm" disabled={pending} onClick={onCancel}>
           Voltar
         </Button>
       </div>
@@ -286,10 +358,37 @@ function IncomeAdjustForm({ initialCents, pending, onConfirm, onCancel }: Income
   );
 }
 
-const INCOME_CHOICES: { status: MonthIncomeStatus; label: string }[] = [
-  { status: "received", label: "Recebi" },
-  { status: "not_received", label: "Não recebi" },
-  { status: "adjusted", label: "Valor diferente" },
+const INCOME_CHOICES: {
+  status: MonthIncomeStatus;
+  label: string;
+  icon: typeof Check;
+  activeCls: string;
+  idleCls: string;
+}[] = [
+  {
+    status: "received",
+    label: "Recebi",
+    icon: Check,
+    activeCls: "bg-[color:var(--semantic-positive)] text-white",
+    idleCls:
+      "border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]",
+  },
+  {
+    status: "not_received",
+    label: "Não recebi",
+    icon: X,
+    activeCls: "bg-[color:var(--semantic-negative)] text-white",
+    idleCls:
+      "border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]",
+  },
+  {
+    status: "adjusted",
+    label: "Valor diferente",
+    icon: Pencil,
+    activeCls: "bg-[color:var(--color-brand-600)] text-white",
+    idleCls:
+      "border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]",
+  },
 ];
 
 interface IncomeRowProps {
@@ -298,13 +397,22 @@ interface IncomeRowProps {
   onSettled: () => void;
 }
 
+const INCOME_STATUS_OPPOSITE: Record<"received" | "not_received", "received" | "not_received"> = {
+  received: "not_received",
+  not_received: "received",
+};
+
 function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
   const [error, setError] = useState<string | null>(null);
   const [adjusting, setAdjusting] = useState(false);
   const [pendingStatus, setPendingStatus] = useState<MonthIncomeStatus | null>(null);
   const [pending, startTransition] = useTransition();
 
-  function run(status: MonthIncomeStatus, adjustedValueCents: bigint | null, successMessage: string) {
+  function run(
+    status: MonthIncomeStatus,
+    adjustedValueCents: bigint | null,
+    successMessage: string,
+  ) {
     setError(null);
     setPendingStatus(status);
     startTransition(async () => {
@@ -322,7 +430,16 @@ function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
         return;
       }
       setAdjusting(false);
-      toast.success(successMessage);
+      const canUndo = status === "received" || status === "not_received";
+      toast.success(successMessage, {
+        action: canUndo
+          ? {
+              label: "Desfazer",
+              onClick: () =>
+                run(INCOME_STATUS_OPPOSITE[status], null, `${income.label}: desfeito.`),
+            }
+          : undefined,
+      });
       onSettled();
     });
   }
@@ -344,11 +461,11 @@ function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
         {INCOME_CHOICES.map((choice) => {
           const active = income.status === choice.status;
           const isPending = pending && pendingStatus === choice.status;
+          const Icon = choice.icon;
           return (
-            <Button
+            <button
               key={choice.status}
-              variant={active ? "brand" : "outline"}
-              size="sm"
+              type="button"
               disabled={pending}
               onClick={() => {
                 if (choice.status === "adjusted") {
@@ -359,9 +476,17 @@ function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
                 setAdjusting(false);
                 run(choice.status, null, `${income.label}: ${choice.label.toLowerCase()}.`);
               }}
+              className={`focus-ring inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-[0.75rem] font-semibold transition-colors disabled:opacity-50 ${
+                active ? choice.activeCls : choice.idleCls
+              }`}
             >
-              {isPending ? <Spinner size={16} decorative /> : choice.label}
-            </Button>
+              {isPending ? (
+                <Spinner size={14} decorative />
+              ) : (
+                <Icon size={14} strokeWidth={2.5} aria-hidden />
+              )}
+              {choice.label}
+            </button>
           );
         })}
       </div>
@@ -370,9 +495,7 @@ function IncomeRow({ income, monthIso, onSettled }: IncomeRowProps) {
         <IncomeAdjustForm
           initialCents={BigInt(income.amountCents)}
           pending={pending && pendingStatus === "adjusted"}
-          onConfirm={(cents) =>
-            run("adjusted", cents, `${income.label}: valor ajustado.`)
-          }
+          onConfirm={(cents) => run("adjusted", cents, `${income.label}: valor ajustado.`)}
           onCancel={() => {
             setError(null);
             setAdjusting(false);
@@ -407,12 +530,7 @@ function IncomesList({ incomes, monthIso, onSettled }: IncomesListProps) {
       </p>
       <ul className="flex flex-col gap-2">
         {incomes.map((inc) => (
-          <IncomeRow
-            key={inc.incomeId}
-            income={inc}
-            monthIso={monthIso}
-            onSettled={onSettled}
-          />
+          <IncomeRow key={inc.incomeId} income={inc} monthIso={monthIso} onSettled={onSettled} />
         ))}
       </ul>
     </div>
@@ -517,9 +635,7 @@ export function MonthClosingCard({ initialData }: Props) {
                 className="text-[0.9375rem] font-semibold"
                 style={{
                   color:
-                    data.status === "leaked"
-                      ? "var(--text-primary)"
-                      : "var(--color-brand-700)",
+                    data.status === "leaked" ? "var(--text-primary)" : "var(--color-brand-700)",
                 }}
               >
                 <HideableValue>{data.deltaFormatted}</HideableValue>

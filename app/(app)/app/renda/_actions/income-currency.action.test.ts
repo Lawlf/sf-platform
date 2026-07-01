@@ -30,12 +30,9 @@ vi.mock("@/infrastructure/clock/system-clock", () => ({
   },
 }));
 
-vi.mock(
-  "@/infrastructure/persistence/drizzle/repositories/income.repository",
-  () => ({
-    IncomeRepository: class {},
-  }),
-);
+vi.mock("@/infrastructure/persistence/drizzle/repositories/income.repository", () => ({
+  IncomeRepository: class {},
+}));
 
 vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),

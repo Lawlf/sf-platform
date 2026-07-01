@@ -1,6 +1,15 @@
 "use client";
 
-import { CalendarRange, Check, ChevronRight, HandCoins, Pencil, Plus, Trash2, X } from "lucide-react";
+import {
+  CalendarRange,
+  Check,
+  ChevronRight,
+  HandCoins,
+  Pencil,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
@@ -84,6 +93,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
   const [editingMonth, setEditingMonth] = useState<string | null>(null);
   const [monthSheetFor, setMonthSheetFor] = useState<SerializedMonthlyAmount | null>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectionMode, setSelectionMode] = useState(false);
   const [bulkModalOpen, setBulkModalOpen] = useState(false);
 
   // Mostra a timeline com o mês mais recente no topo.
@@ -98,12 +108,18 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
   }
 
   function toggleSelect(monthKey: string) {
+    setSelectionMode(true);
     setSelected((prev) => {
       const next = new Set(prev);
       if (next.has(monthKey)) next.delete(monthKey);
       else next.add(monthKey);
       return next;
     });
+  }
+
+  function exitSelectionMode() {
+    setSelectionMode(false);
+    setSelected(new Set());
   }
 
   async function refresh() {
@@ -251,7 +267,7 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
       for (const { month, r } of results) {
         if (r.ok) applyOverrideToState(month, r.data.adjustmentId, cents.toString());
       }
-      setSelected(new Set());
+      exitSelectionMode();
       setBulkModalOpen(false);
     });
   }
@@ -299,13 +315,33 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
             </p>
           </div>
           <div className="flex shrink-0 items-center gap-2">
-            <button
-              type="button"
-              onClick={toggleSelectAll}
-              className="focus-ring rounded-full border border-[color:var(--border-soft)] px-3 py-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]"
-            >
-              {allSelected ? "Limpar seleção" : "Selecionar"}
-            </button>
+            {selectionMode ? (
+              <>
+                <button
+                  type="button"
+                  onClick={toggleSelectAll}
+                  className="focus-ring rounded-full border border-[color:var(--border-soft)] px-3 py-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]"
+                >
+                  {allSelected ? "Limpar seleção" : "Selecionar todos"}
+                </button>
+                <button
+                  type="button"
+                  onClick={exitSelectionMode}
+                  aria-label="Cancelar seleção"
+                  className="focus-ring flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]"
+                >
+                  <X size={14} strokeWidth={2.25} aria-hidden />
+                </button>
+              </>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setSelectionMode(true)}
+                className="focus-ring rounded-full border border-[color:var(--border-soft)] px-3 py-1.5 text-[0.75rem] font-semibold text-[color:var(--text-secondary)] hover:bg-[color:var(--surface-2)]"
+              >
+                Selecionar
+              </button>
+            )}
             <button
               type="button"
               onClick={() => setPeriodModalOpen(true)}
@@ -393,7 +429,25 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
               ].join(" ");
               return (
                 <li key={row.monthKey}>
-                  <button type="button" onClick={() => setMonthSheetFor(row)} className={rowCls}>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      selectionMode ? toggleSelect(row.monthKey) : setMonthSheetFor(row)
+                    }
+                    className={rowCls}
+                  >
+                    {selectionMode ? (
+                      <span
+                        aria-hidden
+                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 ${
+                          isSelected
+                            ? "border-[color:var(--color-brand-600)] bg-[color:var(--color-brand-600)] text-white"
+                            : "border-[color:var(--border-soft)] bg-transparent"
+                        }`}
+                      >
+                        {isSelected ? <Check size={12} strokeWidth={3} aria-hidden /> : null}
+                      </span>
+                    ) : null}
                     <div className="flex min-w-0 flex-1 flex-col">
                       <span className="font-semibold text-[0.875rem]">
                         {formatMonth(row.monthKey)}
@@ -412,23 +466,19 @@ export function HistoricoClient({ debtId, initialAdjustments, initialTimeline }:
                             Atual
                           </span>
                         ) : null}
-                        {isSelected ? (
-                          <span className="inline-flex items-center gap-0.5 rounded-full bg-[color:var(--color-brand-500)]/15 px-2 py-0.5 text-[0.625rem] font-bold uppercase tracking-wider text-[color:var(--color-brand-800)]">
-                            <Check size={10} strokeWidth={3} aria-hidden />
-                            Selecionado
-                          </span>
-                        ) : null}
                       </span>
                     </div>
                     <span className="text-[0.875rem] font-semibold">
                       <HideableValue>{formatBRL(BigInt(row.amountCents))}</HideableValue>
                     </span>
-                    <ChevronRight
-                      size={18}
-                      strokeWidth={2}
-                      className="shrink-0 text-[color:var(--text-muted)]"
-                      aria-hidden
-                    />
+                    {selectionMode ? null : (
+                      <ChevronRight
+                        size={18}
+                        strokeWidth={2}
+                        className="shrink-0 text-[color:var(--text-muted)]"
+                        aria-hidden
+                      />
+                    )}
                   </button>
                 </li>
               );

@@ -3,7 +3,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { type ReactNode, useId, useState, useTransition } from "react";
 import { Controller, useForm } from "react-hook-form";
 import { z } from "zod";
 
@@ -69,9 +69,12 @@ export interface EditIncomeFormProps {
     isEstimated: boolean;
     sourceBreakdown: IncomeSourceBreakdown | null;
   };
+  /** Renderizado entre os campos e o botão de salvar (fora da tag <form>). */
+  children?: ReactNode;
 }
 
-export function EditIncomeForm({ income }: EditIncomeFormProps) {
+export function EditIncomeForm({ income, children }: EditIncomeFormProps) {
+  const formId = useId();
   const router = useRouter();
   const queryClient = useQueryClient();
   const [pending, startTransition] = useTransition();
@@ -136,216 +139,227 @@ export function EditIncomeForm({ income }: EditIncomeFormProps) {
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-3">
-      <div>
-        <label className={labelClass} htmlFor="renda-edit-label">
-          Nome
-        </label>
-        <input
-          id="renda-edit-label"
-          {...form.register("label")}
-          placeholder="Ex: Salário, freela, aluguel, comissão"
-          className={fieldClass}
-        />
-        {form.formState.errors.label ? (
-          <span role="alert" className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]">
-            {form.formState.errors.label.message}
-          </span>
-        ) : null}
-      </div>
-
-      {hasBreakdown && income.sourceBreakdown ? (
-        <div className="flex flex-col gap-2">
-          <WorkBreakdownFields initial={income.sourceBreakdown} onChange={setWork} />
-          {work && work.monthCents > 0n ? (
-            <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)]">
-              Estimativa do mês: {brl(work.monthCents)}
-            </p>
-          ) : null}
-          <p className="rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.8125rem] leading-snug text-[color:var(--text-muted)]">
-            Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a
-            conta muda. Você recalcula quando quiser.
-          </p>
-        </div>
-      ) : (
-        <MoneyInput
-          control={form.control}
-          name="amountCents"
-          label="Valor"
-          required
-          currency={currency}
-        />
-      )}
-
-      {hasBreakdown ? null : (
+    <>
+      <form
+        id={formId}
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-3"
+      >
         <div>
-          <span className={labelClass}>Esse valor é fixo ou varia?</span>
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => form.setValue("isEstimated", false)}
-              aria-pressed={!isEstimated}
-              className={segButtonClass(!isEstimated)}
-            >
-              É sempre esse
-            </button>
-            <button
-              type="button"
-              onClick={() => form.setValue("isEstimated", true)}
-              aria-pressed={isEstimated}
-              className={segButtonClass(isEstimated)}
-            >
-              Varia mês a mês
-            </button>
-          </div>
-          {isEstimated ? (
-            <p className="mt-2 text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
-              Pra comissão, freela ou renda de PJ. A gente trata como média, não
-              como receita garantida.
-            </p>
-          ) : null}
-        </div>
-      )}
-
-      <div className="grid gap-3 sm:grid-cols-2">
-        <div>
-          <label className={labelClass} htmlFor="renda-edit-frequency">
-            Com que frequência cai?
+          <label className={labelClass} htmlFor="renda-edit-label">
+            Nome
           </label>
-          <Controller
-            control={form.control}
-            name="frequency"
-            render={({ field }) => (
-              <Select value={field.value} onValueChange={field.onChange}>
-                <SelectTrigger
-                  id="renda-edit-frequency"
-                  className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
-                >
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="monthly">Todo mês</SelectItem>
-                  <SelectItem value="weekly">Toda semana</SelectItem>
-                  <SelectItem value="one_off">Uma vez só</SelectItem>
-                </SelectContent>
-              </Select>
-            )}
+          <input
+            id="renda-edit-label"
+            {...form.register("label")}
+            placeholder="Ex: Salário, freela, aluguel, comissão"
+            className={fieldClass}
           />
+          {form.formState.errors.label ? (
+            <span
+              role="alert"
+              className="mt-1 text-[0.6875rem] text-[color:var(--semantic-negative)]"
+            >
+              {form.formState.errors.label.message}
+            </span>
+          ) : null}
         </div>
 
-        {frequency === "monthly" ? (
+        {hasBreakdown && income.sourceBreakdown ? (
+          <div className="flex flex-col gap-2">
+            <WorkBreakdownFields initial={income.sourceBreakdown} onChange={setWork} />
+            {work && work.monthCents > 0n ? (
+              <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-800)]">
+                Estimativa do mês: {brl(work.monthCents)}
+              </p>
+            ) : null}
+            <p className="rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.8125rem] leading-snug text-[color:var(--text-muted)]">
+              Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a conta
+              muda. Você recalcula quando quiser.
+            </p>
+          </div>
+        ) : (
+          <MoneyInput
+            control={form.control}
+            name="amountCents"
+            label="Valor"
+            required
+            currency={currency}
+          />
+        )}
+
+        {hasBreakdown ? null : (
           <div>
-            <label className={labelClass} htmlFor="renda-edit-payment-day">
-              Que dia do mês?
+            <span className={labelClass}>Esse valor é fixo ou varia?</span>
+            <div className="grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => form.setValue("isEstimated", false)}
+                aria-pressed={!isEstimated}
+                className={segButtonClass(!isEstimated)}
+              >
+                É sempre esse
+              </button>
+              <button
+                type="button"
+                onClick={() => form.setValue("isEstimated", true)}
+                aria-pressed={isEstimated}
+                className={segButtonClass(isEstimated)}
+              >
+                Varia mês a mês
+              </button>
+            </div>
+            {isEstimated ? (
+              <p className="mt-2 text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
+                Pra comissão, freela ou renda de PJ. A gente trata como média, não como receita
+                garantida.
+              </p>
+            ) : null}
+          </div>
+        )}
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div>
+            <label className={labelClass} htmlFor="renda-edit-frequency">
+              Com que frequência cai?
             </label>
             <Controller
               control={form.control}
-              name="paymentDay"
+              name="frequency"
               render={({ field }) => (
-                <Select
-                  value={field.value != null ? String(field.value) : "none"}
-                  onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))}
-                >
+                <Select value={field.value} onValueChange={field.onChange}>
                   <SelectTrigger
-                    id="renda-edit-payment-day"
+                    id="renda-edit-frequency"
                     className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
                   >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Não tem dia certo</SelectItem>
-                    {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
-                      <SelectItem key={d} value={String(d)}>
-                        Dia {d}
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="monthly">Todo mês</SelectItem>
+                    <SelectItem value="weekly">Toda semana</SelectItem>
+                    <SelectItem value="one_off">Uma vez só</SelectItem>
                   </SelectContent>
                 </Select>
               )}
             />
           </div>
-        ) : (
-          <div>
-            <label className={labelClass} htmlFor="renda-edit-start">
-              {frequency === "one_off" ? "Quando caiu ou vai cair?" : "A partir de quando?"}
-            </label>
-            <input
-              id="renda-edit-start"
-              type="date"
-              {...form.register("startDate")}
-              className={fieldClass}
-            />
-          </div>
-        )}
-      </div>
 
-      {frequency === "monthly" ? (
-        showStart ? (
+          {frequency === "monthly" ? (
+            <div>
+              <label className={labelClass} htmlFor="renda-edit-payment-day">
+                Que dia do mês?
+              </label>
+              <Controller
+                control={form.control}
+                name="paymentDay"
+                render={({ field }) => (
+                  <Select
+                    value={field.value != null ? String(field.value) : "none"}
+                    onValueChange={(v) => field.onChange(v === "none" ? null : Number(v))}
+                  >
+                    <SelectTrigger
+                      id="renda-edit-payment-day"
+                      className="h-auto w-full rounded-xl border-[1.5px] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.9375rem]"
+                    >
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Não tem dia certo</SelectItem>
+                      {Array.from({ length: 31 }, (_, i) => i + 1).map((d) => (
+                        <SelectItem key={d} value={String(d)}>
+                          Dia {d}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </div>
+          ) : (
+            <div>
+              <label className={labelClass} htmlFor="renda-edit-start">
+                {frequency === "one_off" ? "Quando caiu ou vai cair?" : "A partir de quando?"}
+              </label>
+              <input
+                id="renda-edit-start"
+                type="date"
+                {...form.register("startDate")}
+                className={fieldClass}
+              />
+            </div>
+          )}
+        </div>
+
+        {frequency === "monthly" ? (
+          showStart ? (
+            <div>
+              <label className={labelClass} htmlFor="renda-edit-start-monthly">
+                A partir de quando?
+              </label>
+              <input
+                id="renda-edit-start-monthly"
+                type="date"
+                {...form.register("startDate")}
+                className={fieldClass}
+              />
+            </div>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setShowStart(true)}
+              className="focus-ring -mt-1 w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            >
+              Ainda não recebo essa renda
+            </button>
+          )
+        ) : null}
+
+        {showEnd ? (
           <div>
-            <label className={labelClass} htmlFor="renda-edit-start-monthly">
-              A partir de quando?
+            <label className={labelClass} htmlFor="renda-edit-end">
+              Quando essa renda acaba?
             </label>
             <input
-              id="renda-edit-start-monthly"
+              id="renda-edit-end"
               type="date"
-              {...form.register("startDate")}
+              {...form.register("endDate")}
               className={fieldClass}
             />
           </div>
         ) : (
           <button
             type="button"
-            onClick={() => setShowStart(true)}
-            className="focus-ring -mt-1 w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
+            onClick={() => setShowEnd(true)}
+            className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
           >
-            Ainda não recebo essa renda
+            Essa renda vai acabar um dia? (ex: contrato, freela)
           </button>
-        )
-      ) : null}
+        )}
 
-      {showEnd ? (
-        <div>
-          <label className={labelClass} htmlFor="renda-edit-end">
-            Quando essa renda acaba?
-          </label>
-          <input
-            id="renda-edit-end"
-            type="date"
-            {...form.register("endDate")}
-            className={fieldClass}
-          />
-        </div>
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowEnd(true)}
-          className="focus-ring w-fit text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-        >
-          Essa renda vai acabar um dia? (ex: contrato, freela)
-        </button>
-      )}
+        {serverError ? (
+          <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
+            {serverError}
+          </span>
+        ) : null}
+      </form>
 
-      {serverError ? (
-        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
-          {serverError}
-        </span>
-      ) : null}
+      {children}
 
-      <div className="sticky bottom-3 z-20 rounded-2xl bg-[color:var(--surface-1)]/95 p-3 backdrop-blur-xl md:static md:bg-transparent md:p-0 md:backdrop-blur-none">
-        <button
-          type="submit"
-          disabled={pending}
-          aria-busy={pending || undefined}
-          className="focus-ring relative flex w-full items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
-        >
-          <span className={pending ? "opacity-0" : "opacity-100"}>Salvar alterações</span>
-          {pending ? (
-            <span className="absolute inset-0 flex items-center justify-center">
-              <Spinner size={18} />
-            </span>
-          ) : null}
-        </button>
-      </div>
-    </form>
+      <button
+        type="submit"
+        form={formId}
+        disabled={pending}
+        aria-busy={pending || undefined}
+        className="focus-ring relative flex w-full items-center justify-center rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
+      >
+        <span className={pending ? "opacity-0" : "opacity-100"}>Salvar alterações</span>
+        {pending ? (
+          <span className="absolute inset-0 flex items-center justify-center">
+            <Spinner size={18} />
+          </span>
+        ) : null}
+      </button>
+    </>
   );
 }
