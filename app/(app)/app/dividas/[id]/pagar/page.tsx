@@ -14,10 +14,14 @@ import { RecordPaymentForm } from "./_components/record-payment-form";
 
 interface PageProps {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ paidAt?: string }>;
 }
 
-export default async function PagarPage({ params }: PageProps) {
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+
+export default async function PagarPage({ params, searchParams }: PageProps) {
   const { id } = await params;
+  const { paidAt } = await searchParams;
   const user = await requireUser();
   const profileId = await getActiveProfileId();
   const r = await getDebtDetail(
@@ -39,12 +43,12 @@ export default async function PagarPage({ params }: PageProps) {
   // Compute next installment number: count of payments + 1 (capped at schedule length).
   const nextMonth = Math.min((payments.length ?? 0) + 1, amortization?.installments.length ?? 0);
   const next = amortization?.installmentAt(nextMonth) ?? null;
-  const defaultPaidAt = todayIsoUtc();
+  const defaultPaidAt = paidAt && ISO_DATE_RE.test(paidAt) ? paidAt : todayIsoUtc();
 
   return (
     <PageShell
       title={`Pagar ${debt.label}`}
-      description="Registre um pagamento dessa dívida."
+      description="Confirme os detalhes desse pagamento."
       backHref={`/app/dividas/${debt.id}` as Route}
     >
       <RecordPaymentForm
