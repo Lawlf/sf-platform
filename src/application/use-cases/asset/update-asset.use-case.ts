@@ -1,4 +1,4 @@
-import type { AssetEntity, AssetMetadata } from "@/domain/entities/asset.entity";
+import type { AssetEntity, AssetMetadata, DepreciationKind } from "@/domain/entities/asset.entity";
 import { isAssetActive } from "@/domain/entities/asset.entity";
 import {
   AssetDeactivated,
@@ -25,6 +25,9 @@ export interface UpdateAssetInput {
   metadata?: AssetMetadata | null;
   fipeCode?: string | null;
   acquiredAt?: Date | null;
+  depreciationKind?: DepreciationKind;
+  /** Taxa anual, -50 a 100. Negativa = valoriza. */
+  depreciationRatePctYear?: number;
   /** Estimativa mensal de custo. Omitido = não muda; null = limpa; valor >= 0. */
   monthlyCostEstimateCents?: bigint | null;
 }
@@ -79,6 +82,13 @@ export async function updateAsset(
     return err(new InvalidAssetValue("A estimativa mensal não pode ser negativa."));
   }
 
+  if (
+    input.depreciationRatePctYear !== undefined &&
+    (input.depreciationRatePctYear < -50 || input.depreciationRatePctYear > 100)
+  ) {
+    return err(new InvalidAssetValue("A taxa anual deve estar entre -50% e 100%."));
+  }
+
   const updated: AssetEntity = {
     ...existing,
     label: nextLabel,
@@ -86,6 +96,10 @@ export async function updateAsset(
     metadata: nextMetadata,
     ...(input.fipeCode !== undefined && { fipeCode: input.fipeCode }),
     ...(input.acquiredAt !== undefined && { acquiredAt: input.acquiredAt }),
+    ...(input.depreciationKind !== undefined && { depreciationKind: input.depreciationKind }),
+    ...(input.depreciationRatePctYear !== undefined && {
+      depreciationRatePctYear: input.depreciationRatePctYear,
+    }),
     ...(input.monthlyCostEstimateCents !== undefined && {
       monthlyCostEstimateCents: input.monthlyCostEstimateCents,
     }),

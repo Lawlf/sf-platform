@@ -1,6 +1,8 @@
 "use client";
 
 import { Search } from "lucide-react";
+import type { Route } from "next";
+import Link from "next/link";
 import { useMemo, useState } from "react";
 
 import { MaisCard } from "../../_components/mais-card";
@@ -8,6 +10,7 @@ import {
   featuredSimulators,
   searchSimulators,
   simulatorsByCategory,
+  type SimCategoryId,
   type SimulatorMeta,
 } from "../_lib/simulators";
 
@@ -15,15 +18,32 @@ function Card({ s }: { s: SimulatorMeta }) {
   return <MaisCard href={s.href} icon={s.icon} title={s.title} description={s.desc} />;
 }
 
-export function SimulatorBrowser() {
+interface Props {
+  initialCategory?: SimCategoryId | undefined;
+}
+
+export function SimulatorBrowser({ initialCategory }: Props) {
   const [query, setQuery] = useState("");
-  const groups = useMemo(() => simulatorsByCategory(), []);
+  const allGroups = useMemo(() => simulatorsByCategory(), []);
+  const groups = useMemo(
+    () => (initialCategory ? allGroups.filter((g) => g.id === initialCategory) : allGroups),
+    [allGroups, initialCategory],
+  );
   const featured = useMemo(() => featuredSimulators(), []);
   const results = useMemo(() => searchSimulators(query), [query]);
   const searching = query.trim() !== "";
 
   return (
     <div className="flex flex-col gap-5">
+      {initialCategory ? (
+        <Link
+          href={"/app/simular" as Route}
+          className="focus-ring self-start text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)] hover:underline"
+        >
+          Ver todos os simuladores
+        </Link>
+      ) : null}
+
       <div className="relative">
         <Search
           size={18}
@@ -56,21 +76,23 @@ export function SimulatorBrowser() {
         )
       ) : (
         <>
-          <section className="flex flex-col gap-3">
-            <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
-              Pra você agora
-            </h2>
-            <div className="grid gap-3 md:grid-cols-2">
-              {featured.map((s) => (
-                <Card key={s.id} s={s} />
-              ))}
-            </div>
-          </section>
+          {!initialCategory ? (
+            <section className="flex flex-col gap-3">
+              <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--color-brand-800)]">
+                Pra você agora
+              </h2>
+              <div className="grid gap-3 md:grid-cols-2">
+                {featured.map((s) => (
+                  <Card key={s.id} s={s} />
+                ))}
+              </div>
+            </section>
+          ) : null}
           {groups.map((group) => (
             <section key={group.id} className="flex flex-col gap-3">
-            <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
-              {group.label}
-            </h2>
+              <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.6px] text-[color:var(--text-muted)]">
+                {group.label}
+              </h2>
               <div className="grid gap-3 md:grid-cols-2">
                 {group.items.map((s) => (
                   <Card key={s.id} s={s} />

@@ -1,5 +1,5 @@
 import { dehydrate, HydrationBoundary } from "@tanstack/react-query";
-import { Plus } from "lucide-react";
+import { Calculator, Plus, TrendingUp } from "lucide-react";
 import type { Metadata, Route } from "next";
 import Link from "next/link";
 import { Suspense } from "react";
@@ -9,7 +9,12 @@ import { DEBT_DUE_DAYS_BEFORE_DEFAULT } from "@/domain/entities/notification-pre
 import { repos } from "@/infrastructure/container";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
-import { fetchDebts, fetchOutOfMonthSummary, type DebtStatusFilter } from "../_actions/debt-queries";
+import {
+  fetchDebts,
+  fetchOutOfMonthSummary,
+  type DebtStatusFilter,
+} from "../_actions/debt-queries";
+import { HowItWorksSheet } from "../_components/how-it-works-sheet";
 import { PageShell } from "../_components/page-shell";
 import { getServerQueryClient } from "../_lib/query-client.server";
 import { queryKeys } from "../_lib/query-keys";
@@ -58,12 +63,31 @@ export default async function DividasPage({ searchParams }: PageProps) {
     queryFn: () => fetchDebts({ status: statusFilter }),
   });
 
+  const now = new Date();
+  const currentMonthIso = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
+
   return (
     <PageShell
       title="Dívidas"
       description="Acompanhe e simule a quitação das suas dívidas."
       headerAction={
         <div className="flex items-center gap-2">
+          <HowItWorksSheet
+            topic="dividas"
+            variant="brand"
+            actions={[
+              {
+                icon: <TrendingUp size={18} strokeWidth={2} aria-hidden />,
+                label: "Ver como seu mês fecha com suas dívidas",
+                href: `/app/linha-do-tempo?jumpTo=${currentMonthIso}` as Route,
+              },
+              {
+                icon: <Calculator size={18} strokeWidth={2} aria-hidden />,
+                label: "Simuladores de dívida",
+                href: "/app/simular?category=dividas" as Route,
+              },
+            ]}
+          />
           {hasDueDatedDebt ? (
             <DueAlertSettingsButton
               isPro={user.isPro}

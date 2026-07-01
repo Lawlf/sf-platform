@@ -10,6 +10,8 @@ export const reactivateIncomeAction = action({
   schema: z.string(),
   revalidates: ["incomes", "home"],
   handler: async (incomeId, { userId, profileId }) => {
-    unwrap(await reactivateIncome({ incomes: repos.incomes, clock }, { userId, profileId, incomeId }));
+    unwrap(
+      await reactivateIncome({ incomes: repos.incomes, clock }, { userId, profileId, incomeId }),
+    );
   },
 });

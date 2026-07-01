@@ -15,7 +15,6 @@ import { loadSimPrefill } from "../../simular/_lib/sim-prefill";
 import { fetchGoalsWithProgress } from "../_actions/goal-queries";
 
 import { fetchMyHouseholds } from "../../_actions/household-queries";
-import { HouseholdGoalNudge } from "./_components/household-goal-nudge";
 import { NewGoal } from "./_components/new-goal.client";
 
 export const metadata: Metadata = { title: "Nova meta" };
@@ -84,10 +83,7 @@ export default async function NovaMetaPage({
   const [prefill, debtList, assetList, households] = await Promise.all([
     loadSimPrefill(user.id),
     (async () => {
-      const r = await listDebts(
-        { debts: repos.debts },
-        { profileId, status: "active" },
-      );
+      const r = await listDebts({ debts: repos.debts }, { profileId, status: "active" });
       if (!isOk(r)) return [];
       return r.value.map((d) => ({
         id: d.id,
@@ -98,8 +94,12 @@ export default async function NovaMetaPage({
     (async () => {
       const repo = repos.assets;
       const assets = await repo.findActiveByProfile(profileId);
+      const seedLinkedAssetId =
+        seed?.type === "savings" && seed.fundingMode === "linked" ? seed.linkedAssetId : undefined;
       return assets
-        .filter((a) => a.category === "cash" || a.category === "investment")
+        .filter(
+          (a) => a.category === "cash" || a.category === "investment" || a.id === seedLinkedAssetId,
+        )
         .map((a) => ({
           id: a.id,
           label: a.label,
@@ -111,9 +111,14 @@ export default async function NovaMetaPage({
   ]);
 
   return (
-    <PageShell title="Nova meta" backHref={"/app/metas" as Route}>
-      <NewGoal prefill={prefill} debts={debtList} assets={assetList} seed={seed} />
-      {households.length > 0 ? <HouseholdGoalNudge /> : null}
+    <PageShell>
+      <NewGoal
+        prefill={prefill}
+        debts={debtList}
+        assets={assetList}
+        seed={seed}
+        showHouseholdNudge={households.length > 0}
+      />
     </PageShell>
   );
 }

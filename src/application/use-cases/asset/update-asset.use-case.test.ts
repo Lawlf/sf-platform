@@ -140,6 +140,54 @@ describe("updateAsset", () => {
     expect(isErr(result)).toBe(true);
   });
 
+  it("atualiza tipo, taxa e data de aquisição do comportamento do valor", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ depreciationKind: "stable", depreciationRatePctYear: 0 }),
+    );
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      {
+        profileId: "profile-1",
+        assetId: "asset-1",
+        depreciationKind: "appreciating",
+        depreciationRatePctYear: -3,
+        acquiredAt: new Date("2024-03-01"),
+      },
+    );
+    expect(isOk(result)).toBe(true);
+    if (isOk(result)) {
+      expect(result.value.depreciationKind).toBe("appreciating");
+      expect(result.value.depreciationRatePctYear).toBe(-3);
+      expect(result.value.acquiredAt).toEqual(new Date("2024-03-01"));
+    }
+  });
+
+  it("comportamento do valor omitido preserva o existente", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(
+      makeAsset({ depreciationKind: "depreciating", depreciationRatePctYear: 15 }),
+    );
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", label: "Novo nome" },
+    );
+    if (isOk(result)) {
+      expect(result.value.depreciationKind).toBe("depreciating");
+      expect(result.value.depreciationRatePctYear).toBe(15);
+    }
+  });
+
+  it("rejeita taxa anual fora do intervalo -50 a 100", async () => {
+    const assets = makeAssetRepo();
+    (assets.findById as ReturnType<typeof vi.fn>).mockResolvedValue(makeAsset());
+    const result = await updateAsset(
+      { assets, clock: makeClock() },
+      { profileId: "profile-1", assetId: "asset-1", depreciationRatePctYear: 150 },
+    );
+    expect(isErr(result)).toBe(true);
+  });
+
   it("returns AssetNotFound when repository returns null (scoped by userId)", async () => {
     const assets = makeAssetRepo();
     const clock = makeClock();

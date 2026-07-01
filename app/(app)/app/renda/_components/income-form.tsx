@@ -200,8 +200,8 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
           </div>
           {isEstimated ? (
             <p className="mt-2 text-[0.75rem] leading-snug text-[color:var(--text-muted)]">
-              Pra comissão, freela ou renda de PJ. A gente trata como média, não
-              como receita garantida.
+              Pra comissão, freela ou renda de PJ. A gente trata como média, não como receita
+              garantida.
             </p>
           ) : null}
         </div>
@@ -341,8 +341,8 @@ export function IncomeForm({ defaultCurrency = "BRL" }: { defaultCurrency?: Curr
 
       {seedBreakdown != null ? (
         <p className="rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-[14px] py-[12px] text-[0.8125rem] leading-snug text-[color:var(--text-muted)]">
-          Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a
-          conta muda. Você recalcula quando quiser.
+          Isso é uma média, não receita garantida. Plantão cancelado, mês mais fraco: a conta muda.
+          Você recalcula quando quiser.
         </p>
       ) : null}
 

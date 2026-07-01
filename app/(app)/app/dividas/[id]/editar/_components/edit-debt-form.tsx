@@ -93,6 +93,7 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
   const [pending, startTransition] = useTransition();
   const [serverError, setServerError] = useState<string | null>(null);
 
+  const formId = useId();
   const labelId = useId();
   const notesId = useId();
   const startDateId = useId();
@@ -154,7 +155,9 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
   // sincronia, editar o saldo espelha na fatura, evitando digitar 2x. Se a pessoa
   // deixar os dois diferentes (tem rotativo), o link quebra e cada um fica solto.
   const initBalance = defaults.currentBalanceCents ? BigInt(defaults.currentBalanceCents) : 0n;
-  const initStatement = defaults.currentStatementCents ? BigInt(defaults.currentStatementCents) : 0n;
+  const initStatement = defaults.currentStatementCents
+    ? BigInt(defaults.currentStatementCents)
+    : 0n;
   const statementCustomizedRef = useRef(initStatement > 0n && initStatement !== initBalance);
 
   function handleBalanceChange(nextBalance: bigint) {
@@ -265,281 +268,279 @@ export function EditDebtForm({ debtId, kind, currency, categories, defaults }: P
   }
 
   return (
-    <form noValidate onSubmit={form.handleSubmit(onSubmit)} className="flex flex-col gap-4">
-      <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-        <WizardField label="Nome" htmlFor={labelId} error={form.formState.errors.label?.message}>
-          <input id={labelId} {...form.register("label")} className={wizardInputClass} />
-        </WizardField>
+    <>
+      <form
+        id={formId}
+        noValidate
+        onSubmit={form.handleSubmit(onSubmit)}
+        className="flex flex-col gap-4"
+      >
+        <div className="flex flex-col gap-4">
+          <WizardField label="Nome" htmlFor={labelId} error={form.formState.errors.label?.message}>
+            <input id={labelId} {...form.register("label")} className={wizardInputClass} />
+          </WizardField>
 
-        <WizardField label="Anotações" htmlFor={notesId}>
-          <textarea
-            id={notesId}
-            rows={3}
-            {...form.register("notes")}
-            className={wizardInputClass}
-          />
-        </WizardField>
-
-        <WizardField
-          label="Data de início"
-          htmlFor={startDateId}
-          error={form.formState.errors.startDate?.message}
-        >
-          <input
-            id={startDateId}
-            type="date"
-            {...form.register("startDate")}
-            className={wizardInputClass}
-          />
-        </WizardField>
-
-        <WizardField label="Data prevista de quitação" htmlFor={endDateId}>
-          <input
-            id={endDateId}
-            type="date"
-            {...form.register("expectedEndDate")}
-            className={wizardInputClass}
-          />
-        </WizardField>
-      </section>
-
-      {kind !== "recurring" ? (
-        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <MoneyInput
-            control={form.control}
-            name="currentBalanceCents"
-            label="Quanto falta pagar"
-            helper="Valor que ainda falta pagar."
-            currency={currency}
-            onValueChange={handleBalanceChange}
-          />
-        </section>
-      ) : null}
-
-      {(kind === "financing" || kind === "personal_loan") && (
-        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <WizardField label="Taxa por ano" htmlFor={rateId}>
-            <input
-              id={rateId}
-              type="number"
-              step="0.01"
-              min={0}
-              max={1000}
-              {...form.register("annualRatePct", { valueAsNumber: true })}
+          <WizardField label="Anotações" htmlFor={notesId}>
+            <textarea
+              id={notesId}
+              rows={3}
+              {...form.register("notes")}
               className={wizardInputClass}
             />
           </WizardField>
-          {kind === "personal_loan" ? (
-            <>
-              <MoneyInput
-                control={form.control}
-                name="monthlyInstallmentCents"
-                label="Parcela mensal"
-                helper="Com saldo e data de término, calculamos pra quitar até a data. Pode ajustar."
-                currency={currency}
+
+          <WizardField
+            label="Data de início"
+            htmlFor={startDateId}
+            error={form.formState.errors.startDate?.message}
+          >
+            <input
+              id={startDateId}
+              type="date"
+              {...form.register("startDate")}
+              className={wizardInputClass}
+            />
+          </WizardField>
+
+          <WizardField label="Data prevista de quitação" htmlFor={endDateId}>
+            <input
+              id={endDateId}
+              type="date"
+              {...form.register("expectedEndDate")}
+              className={wizardInputClass}
+            />
+          </WizardField>
+        </div>
+
+        {kind !== "recurring" ? (
+          <div className="flex flex-col gap-4">
+            <MoneyInput
+              control={form.control}
+              name="currentBalanceCents"
+              label="Quanto falta pagar"
+              helper="Valor que ainda falta pagar."
+              currency={currency}
+              onValueChange={handleBalanceChange}
+            />
+          </div>
+        ) : null}
+
+        {(kind === "financing" || kind === "personal_loan") && (
+          <div className="flex flex-col gap-4">
+            <WizardField label="Taxa por ano" htmlFor={rateId}>
+              <input
+                id={rateId}
+                type="number"
+                step="0.01"
+                min={0}
+                max={1000}
+                {...form.register("annualRatePct", { valueAsNumber: true })}
+                className={wizardInputClass}
               />
-              <WizardField label="Dia do vencimento (opcional)" htmlFor={dueDayId}>
+            </WizardField>
+            {kind === "personal_loan" ? (
+              <>
+                <MoneyInput
+                  control={form.control}
+                  name="monthlyInstallmentCents"
+                  label="Parcela mensal"
+                  helper="Com saldo e data de término, calculamos pra quitar até a data. Pode ajustar."
+                  currency={currency}
+                />
+                <WizardField label="Dia do vencimento (opcional)" htmlFor={dueDayId}>
+                  <input
+                    id={dueDayId}
+                    type="number"
+                    inputMode="numeric"
+                    min={1}
+                    max={31}
+                    placeholder="Ex: 10"
+                    {...form.register("dueDay", {
+                      setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
+                    })}
+                    className={wizardInputClass}
+                  />
+                </WizardField>
+              </>
+            ) : null}
+            {kind === "financing" ? (
+              <>
+                <MoneyInput
+                  control={form.control}
+                  name="monthlyInsuranceCents"
+                  label="Seguro mensal"
+                  currency={currency}
+                />
+                <MoneyInput
+                  control={form.control}
+                  name="monthlyAdminFeeCents"
+                  label="Taxa administrativa mensal"
+                  currency={currency}
+                />
+              </>
+            ) : null}
+          </div>
+        )}
+
+        {kind === "credit_card" ? (
+          <div className="flex flex-col gap-4">
+            <MoneyInput
+              control={form.control}
+              name="creditLimitCents"
+              label="Limite do cartão"
+              currency={currency}
+            />
+            <MoneyInput
+              control={form.control}
+              name="currentStatementCents"
+              label="Fatura atual"
+              helper="Para quem paga a fatura toda, é tudo o que falta. Tem rotativo? Ponha só o deste mês."
+              currency={currency}
+              onValueChange={handleStatementChange}
+            />
+            <div className="grid grid-cols-2 gap-2">
+              <WizardField label="Dia de fechamento" htmlFor={statementDayId}>
+                <input
+                  id={statementDayId}
+                  type="number"
+                  inputMode="numeric"
+                  min={1}
+                  max={31}
+                  {...form.register("statementDay", { valueAsNumber: true })}
+                  className={wizardInputClass}
+                />
+              </WizardField>
+              <WizardField label="Dia de vencimento" htmlFor={dueDayId}>
                 <input
                   id={dueDayId}
                   type="number"
                   inputMode="numeric"
                   min={1}
                   max={31}
-                  placeholder="Ex: 10"
-                  {...form.register("dueDay", {
-                    setValueAs: (v) => (v === "" || v == null ? null : Number(v)),
-                  })}
+                  {...form.register("dueDay", { valueAsNumber: true })}
                   className={wizardInputClass}
                 />
               </WizardField>
-            </>
-          ) : null}
-          {kind === "financing" ? (
-            <>
-              <MoneyInput
-                control={form.control}
-                name="monthlyInsuranceCents"
-                label="Seguro mensal"
-                currency={currency}
-              />
-              <MoneyInput
-                control={form.control}
-                name="monthlyAdminFeeCents"
-                label="Taxa administrativa mensal"
-                currency={currency}
-              />
-            </>
-          ) : null}
-        </section>
-      )}
-
-      {kind === "credit_card" ? (
-        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <MoneyInput
-            control={form.control}
-            name="creditLimitCents"
-            label="Limite do cartão"
-            currency={currency}
-          />
-          <MoneyInput
-            control={form.control}
-            name="currentStatementCents"
-            label="Fatura atual"
-            helper="Para quem paga a fatura toda, é tudo o que falta. Tem rotativo? Ponha só o deste mês."
-            currency={currency}
-            onValueChange={handleStatementChange}
-          />
-          <div className="grid grid-cols-2 gap-2">
-            <WizardField label="Dia de fechamento" htmlFor={statementDayId}>
+            </div>
+            <MoneyInput
+              control={form.control}
+              name="revolvingBalanceCents"
+              label="Quanto rolou de fatura"
+              helper="Faturas anteriores que ficaram pra trás."
+              currency={currency}
+            />
+            <WizardField label="Juros do rotativo por mês" htmlFor={revolvingRateId}>
               <input
-                id={statementDayId}
+                id={revolvingRateId}
                 type="number"
-                inputMode="numeric"
-                min={1}
-                max={31}
-                {...form.register("statementDay", { valueAsNumber: true })}
+                step="0.01"
+                min={0}
+                max={1000}
+                {...form.register("revolvingMonthlyRatePct", { valueAsNumber: true })}
                 className={wizardInputClass}
               />
             </WizardField>
-            <WizardField label="Dia de vencimento" htmlFor={dueDayId}>
+          </div>
+        ) : null}
+
+        {kind === "overdraft" ? (
+          <div className="flex flex-col gap-4">
+            <WizardField label="Banco" htmlFor={bankId}>
+              <input id={bankId} {...form.register("bankName")} className={wizardInputClass} />
+            </WizardField>
+            <WizardField label="Taxa por mês" htmlFor={overdraftRateId}>
+              <input
+                id={overdraftRateId}
+                type="number"
+                step="0.01"
+                min={0}
+                max={1000}
+                {...form.register("monthlyRatePct", { valueAsNumber: true })}
+                className={wizardInputClass}
+              />
+            </WizardField>
+          </div>
+        ) : null}
+
+        {kind === "recurring" ? (
+          <div className="flex flex-col gap-4">
+            <WizardField label="Categoria" htmlFor={categoryId}>
+              <Controller
+                control={form.control}
+                name="expenseCategory"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger id={categoryId} className={`${wizardInputClass} h-auto w-full`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {categories.map((c) => (
+                        <SelectItem key={c.key} value={c.key}>
+                          {c.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </WizardField>
+            <MoneyInput
+              control={form.control}
+              name="recurringAmountCents"
+              label="Valor por período"
+              currency={currency}
+            />
+            <WizardField label="Frequência" htmlFor={frequencyId}>
+              <Controller
+                control={form.control}
+                name="recurringFrequency"
+                render={({ field }) => (
+                  <Select value={field.value ?? ""} onValueChange={field.onChange}>
+                    <SelectTrigger id={frequencyId} className={`${wizardInputClass} h-auto w-full`}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="monthly">Mensal</SelectItem>
+                      <SelectItem value="weekly">Semanal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+            </WizardField>
+            <WizardField
+              label="Dia do pagamento (opcional)"
+              htmlFor={dueDayId}
+              helper="Dia do mês em que o pagamento cai. Usado pra avisar no calendário."
+            >
               <input
                 id={dueDayId}
                 type="number"
                 inputMode="numeric"
                 min={1}
                 max={31}
-                {...form.register("dueDay", { valueAsNumber: true })}
+                {...form.register("dueDay", {
+                  setValueAs: (v) => {
+                    if (v === "" || v === null || v === undefined) return null;
+                    const n = Number(v);
+                    return Number.isFinite(n) ? n : null;
+                  },
+                })}
                 className={wizardInputClass}
               />
             </WizardField>
           </div>
-          <MoneyInput
-            control={form.control}
-            name="revolvingBalanceCents"
-            label="Quanto rolou de fatura"
-            helper="Faturas anteriores que ficaram pra trás."
-            currency={currency}
-          />
-          <WizardField label="Juros do rotativo por mês" htmlFor={revolvingRateId}>
-            <input
-              id={revolvingRateId}
-              type="number"
-              step="0.01"
-              min={0}
-              max={1000}
-              {...form.register("revolvingMonthlyRatePct", { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-        </section>
-      ) : null}
+        ) : null}
 
-      {kind === "overdraft" ? (
-        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <WizardField label="Banco" htmlFor={bankId}>
-            <input id={bankId} {...form.register("bankName")} className={wizardInputClass} />
-          </WizardField>
-          <WizardField label="Taxa por mês" htmlFor={overdraftRateId}>
-            <input
-              id={overdraftRateId}
-              type="number"
-              step="0.01"
-              min={0}
-              max={1000}
-              {...form.register("monthlyRatePct", { valueAsNumber: true })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-        </section>
-      ) : null}
+        {serverError ? (
+          <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
+            {serverError}
+          </span>
+        ) : null}
+      </form>
 
-      {kind === "recurring" ? (
-        <section className="flex flex-col gap-4 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-          <WizardField label="Categoria" htmlFor={categoryId}>
-            <Controller
-              control={form.control}
-              name="expenseCategory"
-              render={({ field }) => (
-                <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                  <SelectTrigger id={categoryId} className={`${wizardInputClass} h-auto w-full`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((c) => (
-                      <SelectItem key={c.key} value={c.key}>
-                        {c.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </WizardField>
-          <MoneyInput
-            control={form.control}
-            name="recurringAmountCents"
-            label="Valor por período"
-            currency={currency}
-          />
-          <WizardField label="Frequência" htmlFor={frequencyId}>
-            <Controller
-              control={form.control}
-              name="recurringFrequency"
-              render={({ field }) => (
-                <Select value={field.value ?? ""} onValueChange={field.onChange}>
-                  <SelectTrigger id={frequencyId} className={`${wizardInputClass} h-auto w-full`}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Mensal</SelectItem>
-                    <SelectItem value="weekly">Semanal</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
-          </WizardField>
-          <WizardField
-            label="Dia do pagamento (opcional)"
-            htmlFor={dueDayId}
-            helper="Dia do mês em que o pagamento cai. Usado pra avisar no calendário."
-          >
-            <input
-              id={dueDayId}
-              type="number"
-              inputMode="numeric"
-              min={1}
-              max={31}
-              {...form.register("dueDay", {
-                setValueAs: (v) => {
-                  if (v === "" || v === null || v === undefined) return null;
-                  const n = Number(v);
-                  return Number.isFinite(n) ? n : null;
-                },
-              })}
-              className={wizardInputClass}
-            />
-          </WizardField>
-        </section>
-      ) : null}
-
-      {serverError ? (
-        <span role="alert" className="text-sm text-[color:var(--semantic-negative)]">
-          {serverError}
-        </span>
-      ) : null}
-
-      <div className="sticky bottom-3 z-20 flex items-center gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)]/95 p-3 backdrop-blur-xl md:static md:border-0 md:bg-transparent md:p-0 md:backdrop-blur-none">
-        <Button type="submit" loading={pending}>
-          Salvar alterações
-        </Button>
-        <Button
-          type="button"
-          variant="ghost"
-          onClick={() => router.push(`/app/dividas/${debtId}` as Route)}
-        >
-          Cancelar
-        </Button>
-      </div>
-    </form>
+      <Button type="submit" form={formId} loading={pending}>
+        Salvar alterações
+      </Button>
+    </>
   );
 }

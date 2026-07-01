@@ -4,6 +4,8 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { MonthYear } from "@/domain/value-objects/month-year.vo";
+import { repos } from "@/infrastructure/container";
+import { getActiveProfileId } from "@/presentation/http/middleware/active-profile";
 import { requireUser } from "@/presentation/http/middleware/cached-current-user";
 
 import { buildCategoryLabeler } from "../_actions/_category-labels";
@@ -25,6 +27,7 @@ interface PageProps {
     category?: string;
     from?: string;
     to?: string;
+    txn?: string;
   }>;
 }
 
@@ -74,7 +77,9 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
     const transactions = all.filter((t) => t.categoryKey === categoryParam);
     const netCents = transactions.reduce(
       (acc, t) =>
-        t.excludedFromTotals ? acc : acc + (t.direction === "in" ? 1n : -1n) * BigInt(t.amountCents),
+        t.excludedFromTotals
+          ? acc
+          : acc + (t.direction === "in" ? 1n : -1n) * BigInt(t.amountCents),
       0n,
     );
 
@@ -104,9 +109,17 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
     );
   }
 
-  const dayParam = sp.date && isValidDay(sp.date) ? sp.date : null;
-  const monthIso =
-    sp.month && isValidMonth(sp.month) ? sp.month : MonthYear.fromDate(new Date()).toIso();
+  let dayParam = sp.date && isValidDay(sp.date) ? sp.date : null;
+  if (!dayParam && sp.txn) {
+    const profileId = await getActiveProfileId();
+    const txn = await repos.transactions.findByIdForProfile(sp.txn, profileId);
+    if (txn) dayParam = txn.occurredAt.toISOString().slice(0, 10);
+  }
+  const monthIso = dayParam
+    ? dayParam.slice(0, 7)
+    : sp.month && isValidMonth(sp.month)
+      ? sp.month
+      : MonthYear.fromDate(new Date()).toIso();
 
   const range = dayParam
     ? { fromIso: `${dayParam}T00:00:00.000Z`, toIso: `${dayParam}T23:59:59.999Z` }

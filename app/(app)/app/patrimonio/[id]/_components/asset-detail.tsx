@@ -3,10 +3,18 @@
 import { useQueryClient } from "@tanstack/react-query";
 import {
   Box,
+  Calculator,
   Car,
   Coins,
+  FileText,
   Home,
+  Link2,
+  PackageX,
+  Pencil,
+  Receipt,
   RefreshCw,
+  Settings,
+  Target,
   TrendingDown,
   TrendingUp,
   Wallet,
@@ -17,7 +25,6 @@ import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
 import { useForm } from "react-hook-form";
 
-
 import { HideableValue } from "@/app/(app)/app/_components/money-visibility/hideable-value.client";
 import type { SerializedGoalWithProgress } from "@/app/(app)/app/metas/_actions/goal-queries";
 import { Button } from "@/app/components/ui/button";
@@ -27,9 +34,13 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
+  SheetTrigger,
 } from "@/app/components/ui/sheet";
+import { Spinner } from "@/app/components/ui/spinner";
+import { SimpleTooltip } from "@/app/components/ui/tooltip";
 import type { Currency } from "@/domain/value-objects/money.vo";
 
+import { ActionRow, ActionRowGroup } from "../../../_components/action-row";
 import { HowItWorksSheet } from "../../../_components/how-it-works-sheet";
 import { wizardInputClass } from "@/ui/wizard-field";
 import { WizardMoneyField } from "@/ui/wizard-money-field";
@@ -43,7 +54,6 @@ import { refreshFipeAction } from "../_actions/refresh-fipe.action";
 import { refreshStockQuoteAction } from "../_actions/refresh-stock-quote.action";
 import { unlinkDebtAction } from "../_actions/unlink-debt.action";
 import { updateAssetAction } from "../_actions/update-asset.action";
-
 
 import { AssetCostCard, type AssetCostView } from "./asset-cost-card";
 import { DeleteAssetButton } from "./delete-asset-button";
@@ -129,9 +139,11 @@ export interface AssetDetailViewProps {
   description: string | null;
   /** Comportamento de depreciação/apreciação do ativo. null quando não aplica (cash/investment). */
   depreciation: {
+    kind: "appreciating" | "stable" | "depreciating" | "consumable";
     kindLabel: string;
     ratePctYear: number;
     acquiredAtFormatted: string | null;
+    acquiredAtIso: string | null;
   } | null;
   /** Metas vinculadas a este ativo. */
   linkedGoals: SerializedGoalWithProgress[];
@@ -164,56 +176,77 @@ function categoryLabel(category: AssetDetailViewProps["category"]): string {
   return "Outro";
 }
 
-function categoryIcon(category: AssetDetailViewProps["category"]) {
-  if (category === "vehicle") return <Car size={20} strokeWidth={1.5} aria-hidden />;
-  if (category === "real_estate") return <Home size={20} strokeWidth={1.5} aria-hidden />;
-  if (category === "investment") return <TrendingUp size={20} strokeWidth={1.5} aria-hidden />;
-  if (category === "cash") return <Wallet size={20} strokeWidth={1.5} aria-hidden />;
-  return <Box size={20} strokeWidth={1.5} aria-hidden />;
+function categoryIcon(category: AssetDetailViewProps["category"], size = 20) {
+  if (category === "vehicle") return <Car size={size} strokeWidth={1.75} aria-hidden />;
+  if (category === "real_estate") return <Home size={size} strokeWidth={1.75} aria-hidden />;
+  if (category === "investment") return <TrendingUp size={size} strokeWidth={1.75} aria-hidden />;
+  if (category === "cash") return <Wallet size={size} strokeWidth={1.75} aria-hidden />;
+  return <Box size={size} strokeWidth={1.75} aria-hidden />;
 }
 
 export function AssetDetailView(props: AssetDetailViewProps) {
+  const [editOpen, setEditOpen] = useState(false);
   const nwColor = props.netWorthIsNegative
     ? "text-[color:var(--semantic-negative)]"
     : "text-[color:var(--semantic-positive)]";
 
+  const goalSeedHref = `/app/metas/nova?${buildGoalSeedQuery({
+    type: "savings",
+    targetCents: "0",
+    savedCents: "0",
+    deadlineIso: null,
+    fundingMode: "linked",
+    linkedAssetId: props.assetId,
+  })}` as Route;
+
   return (
     <div className="flex flex-col gap-4">
-      <section className="glass-tier-1 relative overflow-hidden p-[22px]">
-        <div
-          className="absolute -bottom-12 -right-10 h-40 w-40 rounded-full bg-white/[0.12]"
-          aria-hidden
-        />
-        <div className="relative flex items-start justify-between gap-3">
+      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[22px] backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="text-[0.6875rem] font-semibold uppercase tracking-wide opacity-95">
-              {categoryLabel(props.category)}
+            <div className="flex items-center gap-1.5 text-[color:var(--text-muted)]">
+              <span className="text-[color:var(--color-brand-700)]" aria-hidden>
+                {categoryIcon(props.category, 13)}
+              </span>
+              <span className="text-[0.6875rem] font-semibold uppercase tracking-wide">
+                {categoryLabel(props.category)}
+              </span>
             </div>
             <h1
-              className="mt-1 text-[1.5rem] font-extrabold leading-tight"
+              className="mt-1 text-[1.5rem] font-extrabold leading-tight text-[color:var(--text-primary)]"
               style={{ letterSpacing: "-0.4px" }}
             >
               {props.label}
             </h1>
+            {props.description ? (
+              <p className="mt-1 whitespace-pre-line text-[0.8125rem] text-[color:var(--text-secondary)]">
+                {props.description}
+              </p>
+            ) : null}
           </div>
-          <span className="opacity-80">{categoryIcon(props.category)}</span>
+          <AssetOptionsMenu
+            assetId={props.assetId}
+            label={props.label}
+            category={props.category}
+            onEdit={() => setEditOpen(true)}
+          />
         </div>
         <div
-          className={`relative mt-4 grid gap-3 border-t border-white/20 pt-3 text-sm ${
+          className={`mt-4 grid gap-3 border-t border-[color:var(--border-soft)] pt-3 text-sm ${
             props.netWorthDiffersFromValue ? "grid-cols-2" : "grid-cols-1"
           }`}
         >
           <div>
-            <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
+            <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
               {props.netWorthDiffersFromValue ? "Vale" : "Valor atual"}
             </div>
-            <div className="mt-0.5 font-bold">
+            <div className="mt-0.5 font-bold text-[color:var(--text-primary)]">
               <HideableValue>{props.currentValueFormatted}</HideableValue>
             </div>
           </div>
           {props.netWorthDiffersFromValue ? (
             <div>
-              <div className="text-[0.625rem] font-semibold uppercase tracking-wide opacity-80">
+              <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
                 Seu, livre da dívida
               </div>
               <div className={`mt-0.5 font-bold ${nwColor}`}>
@@ -222,23 +255,91 @@ export function AssetDetailView(props: AssetDetailViewProps) {
             </div>
           ) : null}
         </div>
+
+        {props.purchasePrice &&
+        props.purchasePrice.paidFormatted !== props.purchasePrice.currentFormatted ? (
+          <div className="mt-3 grid grid-cols-2 gap-3 border-t border-[color:var(--border-soft)] pt-3 text-sm">
+            <div>
+              <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+                Pagou
+              </div>
+              <div className="mt-0.5 font-bold text-[color:var(--text-primary)]">
+                <HideableValue>{props.purchasePrice.paidFormatted}</HideableValue>
+              </div>
+            </div>
+            <div>
+              <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+                {props.purchasePrice.isNegative ? "Quanto caiu" : "Quanto rendeu"}
+              </div>
+              <div
+                className={`mt-0.5 flex items-center gap-1 font-bold ${
+                  props.purchasePrice.isNegative
+                    ? "text-[color:var(--semantic-negative)]"
+                    : "text-[color:var(--semantic-positive)]"
+                }`}
+              >
+                {props.purchasePrice.isNegative ? (
+                  <TrendingDown size={12} strokeWidth={2.25} aria-hidden className="shrink-0" />
+                ) : (
+                  <TrendingUp size={12} strokeWidth={2.25} aria-hidden className="shrink-0" />
+                )}
+                <HideableValue>{props.purchasePrice.deltaFormatted}</HideableValue>
+                {props.purchasePrice.deltaPctFormatted ? (
+                  <span className="text-[0.6875rem] opacity-80">
+                    ({props.purchasePrice.deltaPctFormatted})
+                  </span>
+                ) : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
       </section>
 
-      {props.costSummary ? <AssetCostCard view={props.costSummary} /> : null}
-
-      <RenameSection assetId={props.assetId} label={props.label} />
-
-      <EditValueSection
+      <EditAssetHeaderSheet
         assetId={props.assetId}
+        label={props.label}
         currentValueCents={props.currentValueCents}
         currency={props.currency}
+        open={editOpen}
+        onOpenChange={setEditOpen}
       />
 
-      {props.purchasePrice ? <PurchasePriceSection view={props.purchasePrice} /> : null}
+      {props.category === "investment" && props.stock ? (
+        <StockSummarySection assetId={props.assetId} stock={props.stock} isPro={props.isPro} />
+      ) : null}
 
-      {props.description ? <DescriptionSection text={props.description} /> : null}
+      {props.crypto ? (
+        <CryptoSummarySection assetId={props.assetId} crypto={props.crypto} isPro={props.isPro} />
+      ) : null}
 
-      {props.depreciation ? <DepreciationSection view={props.depreciation} /> : null}
+      <ActionRowGroup>
+        <ActionRow icon={Pencil} title="Editar" onClick={() => setEditOpen(true)} />
+        <ActionRow
+          icon={FileText}
+          title="Documentos e anotações"
+          href={`/app/patrimonio/${props.assetId}/anotacoes` as Route}
+        />
+        {props.costSummary ? <AssetCostRow view={props.costSummary} /> : null}
+        <ActionRow
+          icon={Calculator}
+          title="Simuladores"
+          href={"/app/simular?category=patrimonio" as Route}
+        />
+        {props.linkedDebts.length === 0 ? (
+          <LinkDebtEntryRow
+            assetId={props.assetId}
+            assetLabel={props.label}
+            availableDebts={props.availableDebts}
+          />
+        ) : null}
+        {props.linkedGoals.length === 0 ? (
+          <ActionRow icon={Target} title="Criar meta com este bem" href={goalSeedHref} />
+        ) : null}
+      </ActionRowGroup>
+
+      {props.depreciation ? (
+        <DepreciationSection assetId={props.assetId} view={props.depreciation} />
+      ) : null}
 
       {props.category === "cash" && props.cashYield ? (
         <CashYieldSection cashYield={props.cashYield} />
@@ -252,47 +353,34 @@ export function AssetDetailView(props: AssetDetailViewProps) {
         />
       ) : null}
 
-      {props.category === "investment" && props.stock ? (
-        <StockSection assetId={props.assetId} stock={props.stock} isPro={props.isPro} />
-      ) : null}
-
-      {props.crypto ? (
-        <CryptoSection assetId={props.assetId} crypto={props.crypto} isPro={props.isPro} />
-      ) : null}
-
       {props.fixedIncomeProjection ? (
         <FixedIncomeProjectionSection projection={props.fixedIncomeProjection} />
       ) : null}
 
-      <LinkedDebtsSection assetId={props.assetId} linkedDebts={props.linkedDebts} />
+      {props.linkedDebts.length > 0 ? (
+        <>
+          <LinkedDebtsSection assetId={props.assetId} linkedDebts={props.linkedDebts} />
+          <LinkMoreDebtRow
+            assetId={props.assetId}
+            assetLabel={props.label}
+            availableDebts={props.availableDebts}
+          />
+        </>
+      ) : null}
 
-      <LinkNewDebtSection
-        assetId={props.assetId}
-        assetLabel={props.label}
-        availableDebts={props.availableDebts}
-        hasLinkedDebts={props.linkedDebts.length > 0}
-      />
-
-      <section className="flex flex-col">
-        <div className="flex items-center justify-between px-1">
-          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Metas vinculadas</h2>
-          <Link
-            href={
-              `/app/metas/nova?${buildGoalSeedQuery({
-                type: "savings",
-                targetCents: "0",
-                savedCents: "0",
-                deadlineIso: null,
-                fundingMode: "linked",
-                linkedAssetId: props.assetId,
-              })}` as Route
-            }
-            className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
-          >
-            Criar meta com este bem
-          </Link>
-        </div>
-        {props.linkedGoals.length > 0 ? (
+      {props.linkedGoals.length > 0 ? (
+        <section className="flex flex-col">
+          <div className="flex items-center justify-between px-1">
+            <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">
+              Metas vinculadas
+            </h2>
+            <Link
+              href={goalSeedHref}
+              className="focus-ring inline-flex h-8 items-center gap-1.5 rounded-md px-3 text-[0.8125rem] font-semibold text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+            >
+              Criar outra meta
+            </Link>
+          </div>
           <ul className="mt-3 flex flex-col gap-2">
             {props.linkedGoals.map((g) => (
               <li key={g.goal.id}>
@@ -300,136 +388,61 @@ export function AssetDetailView(props: AssetDetailViewProps) {
                   href={`/app/metas/${g.goal.id}` as Route}
                   className="flex items-center justify-between rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2 text-[0.8125rem] hover:bg-[color:var(--surface-1)]"
                 >
-                  <span className="font-medium text-[color:var(--text-primary)]">{g.goal.title}</span>
+                  <span className="font-medium text-[color:var(--text-primary)]">
+                    {g.goal.title}
+                  </span>
                   <span className="text-[color:var(--text-muted)]">{g.progress.pct}%</span>
                 </Link>
               </li>
             ))}
           </ul>
-        ) : (
-          <p className="mt-2 px-1 text-[0.6875rem] text-[color:var(--text-muted)]">
-            Crie uma meta de poupança usando o saldo deste bem como referência de progresso.
-          </p>
-        )}
-      </section>
-
-      <DeactivateSection assetId={props.assetId} label={props.label} />
+        </section>
+      ) : null}
     </div>
   );
 }
 
-function RenameSection({ assetId, label }: { assetId: string; label: string }) {
+interface EditAssetHeaderFormValues {
+  currentValueCents: bigint;
+}
+
+function EditAssetHeaderSheet({
+  assetId,
+  label,
+  currentValueCents,
+  currency,
+  open,
+  onOpenChange,
+}: {
+  assetId: string;
+  label: string;
+  currentValueCents: string;
+  currency: Currency;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+}) {
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [value, setValue] = useState(label);
+  const [name, setName] = useState(label);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
 
+  const form = useForm<EditAssetHeaderFormValues>({
+    defaultValues: { currentValueCents: BigInt(currentValueCents) },
+  });
+
+  function reset() {
+    setName(label);
+    setError(null);
+    form.reset({ currentValueCents: BigInt(currentValueCents) });
+  }
+
   function onSave() {
     setError(null);
-    const trimmed = value.trim();
+    const trimmed = name.trim();
     if (trimmed.length === 0 || trimmed.length > 120) {
       setError("O nome deve ter entre 1 e 120 caracteres.");
       return;
     }
-    startTransition(async () => {
-      const r = await updateAssetAction({ assetId, label: trimmed });
-      if (!r.ok) {
-        setError(r.message);
-        return;
-      }
-      await invalidateAssetCaches(queryClient);
-      setOpen(false);
-    });
-  }
-
-  return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <div className="min-w-0">
-          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Nome</h2>
-          {!open ? (
-            <p className="mt-0.5 truncate text-[0.8125rem] text-[color:var(--text-secondary)]">
-              {label}
-            </p>
-          ) : null}
-        </div>
-        {!open ? (
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              setValue(label);
-              setError(null);
-              setOpen(true);
-            }}
-          >
-            Editar
-          </Button>
-        ) : null}
-      </div>
-      {open ? (
-        <div className="mt-3 flex flex-col gap-2">
-          <input
-            type="text"
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            maxLength={120}
-            placeholder="Nome do bem"
-            className={wizardInputClass}
-          />
-          {error ? (
-            <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
-              {error}
-            </span>
-          ) : null}
-          <div className="flex gap-2">
-            <Button type="button" size="sm" onClick={onSave} loading={pending}>
-              Salvar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-              disabled={pending}
-            >
-              Cancelar
-            </Button>
-          </div>
-        </div>
-      ) : null}
-    </section>
-  );
-}
-
-interface EditValueFormValues {
-  currentValueCents: bigint;
-}
-
-function EditValueSection({
-  assetId,
-  currentValueCents,
-  currency,
-}: {
-  assetId: string;
-  currentValueCents: string;
-  currency: Currency;
-}) {
-  const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
-  const [pending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
-
-  const form = useForm<EditValueFormValues>({
-    defaultValues: {
-      currentValueCents: BigInt(currentValueCents),
-    },
-  });
-
-  function onSave() {
-    setError(null);
     const cents = form.getValues("currentValueCents");
     if (typeof cents !== "bigint" || cents < 0n) {
       setError("Valor inválido.");
@@ -438,6 +451,7 @@ function EditValueSection({
     startTransition(async () => {
       const r = await updateAssetAction({
         assetId,
+        label: trimmed,
         currentValueCents: cents.toString(),
       });
       if (!r.ok) {
@@ -445,50 +459,86 @@ function EditValueSection({
         return;
       }
       await invalidateAssetCaches(queryClient);
-      setOpen(false);
+      onOpenChange(false);
     });
   }
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Valor atual</h2>
-        {!open ? (
-          <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(true)}>
-            Editar
-          </Button>
-        ) : null}
-      </div>
-      {open ? (
-        <div className="mt-3 flex flex-col gap-2">
+    <Sheet
+      open={open}
+      onOpenChange={(o) => {
+        onOpenChange(o);
+        if (!o) reset();
+      }}
+    >
+      <SheetContent side="bottom" className="flex flex-col gap-4">
+        <SheetHeader>
+          <SheetTitle>Editar bem</SheetTitle>
+        </SheetHeader>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+            Nome
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            maxLength={120}
+            placeholder="Nome do bem"
+            className={wizardInputClass}
+          />
+        </div>
+
+        <div className="flex flex-col gap-1.5">
+          <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+            Valor atual
+          </label>
           <WizardMoneyField
             control={form.control}
             name="currentValueCents"
             placeholder="R$ 0,00"
             currency={currency}
           />
-          {error ? (
-            <span role="alert" className="text-[0.6875rem] text-[color:var(--semantic-negative)]">
-              {error}
-            </span>
-          ) : null}
-          <div className="flex gap-2">
-            <Button type="button" size="sm" onClick={onSave} loading={pending}>
-              Salvar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant="ghost"
-              onClick={() => setOpen(false)}
-              disabled={pending}
-            >
-              Cancelar
-            </Button>
-          </div>
         </div>
-      ) : null}
-    </section>
+
+        {error ? (
+          <span role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
+            {error}
+          </span>
+        ) : null}
+
+        <Button type="button" onClick={onSave} loading={pending}>
+          Salvar
+        </Button>
+      </SheetContent>
+    </Sheet>
+  );
+}
+
+function AssetCostRow({ view }: { view: AssetCostView }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <ActionRow
+        icon={Receipt}
+        title={`O que esse ${view.noun} representa`}
+        onClick={() => setOpen(true)}
+        {...(view.monthlyTotalFormatted
+          ? { subtitle: `Sai ${view.monthlyTotalFormatted}/mês` }
+          : {})}
+      />
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="bottom" className="max-h-[85vh] overflow-y-auto">
+          <SheetHeader>
+            <SheetTitle>{`O que esse ${view.noun} representa`}</SheetTitle>
+          </SheetHeader>
+          <div className="mt-4">
+            <AssetCostCard view={view} bare />
+          </div>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }
 
@@ -503,7 +553,7 @@ function CashYieldSection({ cashYield }: { cashYield: CashYieldView }) {
   );
 }
 
-function StockSection({
+function StockSummarySection({
   assetId,
   stock,
   isPro,
@@ -539,78 +589,69 @@ function StockSection({
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
       <div className="flex items-start justify-between gap-3">
-        <div className="flex flex-col gap-1">
-          <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Ação</h2>
+        <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-2">
             <span className="inline-flex items-center rounded-full bg-[color:var(--color-brand-500)]/[0.14] px-2.5 py-1 text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--color-brand-800)]">
               {stock.ticker}
             </span>
             <span className="text-[0.6875rem] text-[color:var(--text-muted)]">
-              {stock.shares} {stock.shares === 1 ? "ação" : "ações"}
+              {stock.shares} {stock.shares === 1 ? "ação" : "ações"} · médio{" "}
+              <HideableValue>{stock.avgPriceFormatted}</HideableValue>
             </span>
           </div>
-        </div>
-        <HowItWorksSheet topic="acoes" variant="brand" />
-      </div>
 
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.75rem]">
-        <div>
-          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Preço médio
-          </dt>
-          <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            <HideableValue>{stock.avgPriceFormatted}</HideableValue>
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Última cotação
-          </dt>
-          <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            {stock.lastQuoteFormatted ? (
-              <HideableValue>{stock.lastQuoteFormatted}</HideableValue>
-            ) : (
-              "Sem cotação ainda"
-            )}
-            {stock.lastQuoteAt ? (
-              <span className="ml-1 text-[0.625rem] font-normal text-[color:var(--text-muted)]">
-                · {stock.lastQuoteAt}
+          <div className="mt-1.5 flex flex-wrap items-baseline gap-2">
+            <span className="text-[1.25rem] font-extrabold text-[color:var(--text-primary)]">
+              {stock.lastQuoteFormatted ? (
+                <HideableValue>{stock.lastQuoteFormatted}</HideableValue>
+              ) : (
+                "Sem cotação ainda"
+              )}
+            </span>
+            {stock.gainLossFormatted ? (
+              <span
+                className={`flex items-center gap-1 text-[0.8125rem] font-semibold ${gainLossColor}`}
+              >
+                <TrendIcon size={13} strokeWidth={2.25} aria-hidden />
+                <HideableValue>{stock.gainLossFormatted}</HideableValue>
+                {stock.gainLossPctFormatted ? (
+                  <span className="text-[0.75rem] opacity-80">({stock.gainLossPctFormatted})</span>
+                ) : null}
               </span>
             ) : null}
-          </dd>
-        </div>
-        {stock.gainLossFormatted ? (
-          <div className="col-span-2">
-            <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-              {stock.gainLossIsNegative ? "Quanto caiu" : "Quanto rendeu"}
-            </dt>
-            <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${gainLossColor}`}>
-              <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
-              <span>
-                <HideableValue>{stock.gainLossFormatted}</HideableValue>
-              </span>
-              {stock.gainLossPctFormatted ? (
-                <span className="text-[0.6875rem] opacity-80">({stock.gainLossPctFormatted})</span>
-              ) : null}
-            </dd>
           </div>
-        ) : null}
-      </dl>
+          {stock.lastQuoteAt ? (
+            <p className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">
+              Atualizado {stock.lastQuoteAt}
+            </p>
+          ) : null}
+        </div>
 
-      <div className="mt-3">
-        <Button type="button" size="sm" variant="ghost" onClick={onRefresh} loading={pending}>
-          <RefreshCw size={14} strokeWidth={2} aria-hidden />
-          Atualizar cotação
-        </Button>
+        <div className="flex shrink-0 items-center gap-1">
+          <HowItWorksSheet topic="acoes" variant="brand" />
+          <SimpleTooltip label="Atualizar cotação">
+            <button
+              type="button"
+              aria-label="Atualizar cotação"
+              onClick={onRefresh}
+              disabled={pending}
+              className="focus-ring flex h-9 w-9 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] disabled:opacity-50"
+            >
+              {pending ? (
+                <Spinner size={16} decorative />
+              ) : (
+                <RefreshCw size={16} strokeWidth={2} aria-hidden />
+              )}
+            </button>
+          </SimpleTooltip>
+        </div>
       </div>
-      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-secondary)]">
-        {isPro
-          ? "A gente atualiza essa cotação todo dia."
-          : "No Pro, a gente atualiza essa cotação todo dia pra você."}
-      </p>
 
       {error ? (
-        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
+        <span
+          role="alert"
+          className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]"
+        >
           {error}
         </span>
       ) : null}
@@ -619,11 +660,16 @@ function StockSection({
           {success}
         </span>
       ) : null}
+      {!isPro ? (
+        <p className="mt-2 text-[0.625rem] text-[color:var(--text-muted)]">
+          No Pro, a gente atualiza essa cotação todo dia pra você.
+        </p>
+      ) : null}
     </section>
   );
 }
 
-function CryptoSection({
+function CryptoSummarySection({
   assetId,
   crypto,
   isPro,
@@ -664,43 +710,51 @@ function CryptoSection({
 
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Cripto</h2>
-
-      <div className="mt-2 flex items-center gap-2 text-[0.8125rem] text-[color:var(--text-primary)]">
-        <Coins size={15} strokeWidth={2} aria-hidden className="text-[color:var(--text-secondary)]" />
-        <span>
-          <span className="font-semibold">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5 text-[0.6875rem] text-[color:var(--text-muted)]">
+            <Coins size={13} strokeWidth={2} aria-hidden />
             {crypto.quantityFormatted} {crypto.symbol}
-          </span>
-          {crypto.lastQuoteFormatted ? (
-            <>
-              {" · cada uma custa "}
-              <HideableValue>{crypto.lastQuoteFormatted}</HideableValue>
-              {" hoje"}
-            </>
-          ) : (
-            " · sem preço ainda"
-          )}
-        </span>
-      </div>
-      {updatedLabel ? (
-        <p className="mt-1 text-[0.625rem] text-[color:var(--text-muted)]">{updatedLabel}</p>
-      ) : null}
+          </div>
+          <div className="mt-1 text-[1.25rem] font-extrabold text-[color:var(--text-primary)]">
+            {crypto.lastQuoteFormatted ? (
+              <>
+                <HideableValue>{crypto.lastQuoteFormatted}</HideableValue>{" "}
+                <span className="text-[0.75rem] font-normal text-[color:var(--text-muted)]">
+                  cada hoje
+                </span>
+              </>
+            ) : (
+              "Sem preço ainda"
+            )}
+          </div>
+          {updatedLabel ? (
+            <p className="mt-0.5 text-[0.625rem] text-[color:var(--text-muted)]">{updatedLabel}</p>
+          ) : null}
+        </div>
 
-      <div className="mt-3">
-        <Button type="button" size="sm" variant="ghost" onClick={onRefresh} loading={pending}>
-          <RefreshCw size={14} strokeWidth={2} aria-hidden />
-          Atualizar preço
-        </Button>
+        <SimpleTooltip label="Atualizar preço">
+          <button
+            type="button"
+            aria-label="Atualizar preço"
+            onClick={onRefresh}
+            disabled={pending}
+            className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)] disabled:opacity-50"
+          >
+            {pending ? (
+              <Spinner size={16} decorative />
+            ) : (
+              <RefreshCw size={16} strokeWidth={2} aria-hidden />
+            )}
+          </button>
+        </SimpleTooltip>
       </div>
-      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-secondary)]">
-        {isPro
-          ? "A gente atualiza esse preço todo dia."
-          : "No Pro, a gente atualiza esse preço todo dia pra você."}
-      </p>
 
       {error ? (
-        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
+        <span
+          role="alert"
+          className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]"
+        >
           {error}
         </span>
       ) : null}
@@ -709,14 +763,19 @@ function CryptoSection({
           {success}
         </span>
       ) : null}
+      {!isPro ? (
+        <p className="mt-2 text-[0.625rem] text-[color:var(--text-muted)]">
+          No Pro, a gente atualiza esse preço todo dia pra você.
+        </p>
+      ) : null}
 
       <Sheet open={nudgeOpen} onOpenChange={setNudgeOpen}>
         <SheetContent side="bottom">
           <SheetHeader>
             <SheetTitle>Deixa o preço se atualizar sozinho</SheetTitle>
             <SheetDescription>
-              O preço da cripto muda toda hora. No Pro, a gente atualiza pra você todo dia, sem
-              você precisar lembrar.
+              O preço da cripto muda toda hora. No Pro, a gente atualiza pra você todo dia, sem você
+              precisar lembrar.
             </SheetDescription>
           </SheetHeader>
           <div className="mt-4">
@@ -799,7 +858,10 @@ function RefreshFipeSection({
         </Button>
       </div>
       {error ? (
-        <span role="alert" className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]">
+        <span
+          role="alert"
+          className="mt-2 block text-[0.6875rem] text-[color:var(--semantic-negative)]"
+        >
           {error}
         </span>
       ) : null}
@@ -824,7 +886,9 @@ function LinkedDebtsSection({
   }
   return (
     <section className="flex flex-col">
-      <h2 className="px-1 text-sm font-semibold text-[color:var(--text-primary)]">Dívidas vinculadas</h2>
+      <h2 className="px-1 text-sm font-semibold text-[color:var(--text-primary)]">
+        Dívidas vinculadas
+      </h2>
       <ul className="mt-3 flex flex-col gap-2">
         {linkedDebts.map((d) => (
           <LinkedDebtRow key={d.debtId} assetId={assetId} debt={d} />
@@ -881,20 +945,21 @@ interface LinkDebtFormValues {
   allocationCents: bigint;
 }
 
-function LinkNewDebtSection({
+function LinkDebtSheet({
   assetId,
   assetLabel,
   availableDebts,
-  hasLinkedDebts,
+  open,
+  onOpenChange,
 }: {
   assetId: string;
   assetLabel: string;
   availableDebts: AvailableDebtView[];
-  hasLinkedDebts: boolean;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
   const queryClient = useQueryClient();
-  const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -904,7 +969,6 @@ function LinkNewDebtSection({
   });
 
   const hasAvailable = availableDebts.length > 0;
-  const title = hasLinkedDebts ? "Vincular nova dívida" : "Dívidas vinculadas";
   const selected = availableDebts.find((d) => d.debtId === selectedId) ?? null;
 
   function selectDebt(d: AvailableDebtView) {
@@ -914,7 +978,7 @@ function LinkNewDebtSection({
   }
 
   function changeOpen(next: boolean) {
-    setOpen(next);
+    onOpenChange(next);
     if (!next) {
       setSelectedId(null);
       setError(null);
@@ -955,176 +1019,189 @@ function LinkNewDebtSection({
   }
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">{title}</h2>
+    <Sheet open={open} onOpenChange={changeOpen}>
+      <SheetContent side="bottom" className="flex flex-col gap-4">
+        <SheetHeader>
+          <SheetTitle>Vincular dívida a {assetLabel}</SheetTitle>
+          <SheetDescription>
+            Escolha uma dívida que você já cadastrou ou crie uma nova.
+          </SheetDescription>
+        </SheetHeader>
+
         {hasAvailable ? (
-          <Button type="button" size="sm" variant="ghost" onClick={() => setOpen(true)}>
-            Vincular
-          </Button>
-        ) : (
-          <Button type="button" size="sm" variant="ghost" onClick={goCreate}>
-            Nova dívida
-          </Button>
-        )}
-      </div>
-      {!hasLinkedDebts ? (
-        <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
-          {hasAvailable
-            ? "Vincule uma dívida pra acompanhar quanto ainda deve neste bem."
-            : "Cadastre uma dívida primeiro pra poder vincular a este bem."}
-        </p>
-      ) : null}
-
-      <Sheet open={open} onOpenChange={changeOpen}>
-        <SheetContent side="bottom" className="flex flex-col gap-4">
-          <SheetHeader>
-            <SheetTitle>Vincular dívida a {assetLabel}</SheetTitle>
-            <SheetDescription>
-              Escolha uma dívida que você já cadastrou ou crie uma nova.
-            </SheetDescription>
-          </SheetHeader>
-
-          {hasAvailable ? (
-            <div className="flex flex-col gap-2">
-              {availableDebts.map((d) => {
-                const isSel = selectedId === d.debtId;
-                return (
-                  <div
-                    key={d.debtId}
-                    className={`rounded-xl border-[1.5px] p-3 transition-colors ${
-                      isSel
-                        ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.12]"
-                        : "border-[color:var(--border-soft)] bg-[color:var(--surface-2)]"
-                    }`}
+          <div className="flex flex-col gap-2">
+            {availableDebts.map((d) => {
+              const isSel = selectedId === d.debtId;
+              return (
+                <div
+                  key={d.debtId}
+                  className={`rounded-xl border-[1.5px] p-3 transition-colors ${
+                    isSel
+                      ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.12]"
+                      : "border-[color:var(--border-soft)] bg-[color:var(--surface-2)]"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => selectDebt(d)}
+                    aria-pressed={isSel}
+                    className="flex w-full items-start justify-between gap-2 text-left focus-visible:outline-none"
                   >
-                    <button
-                      type="button"
-                      onClick={() => selectDebt(d)}
-                      aria-pressed={isSel}
-                      className="flex w-full items-start justify-between gap-2 text-left focus-visible:outline-none"
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-semibold text-[color:var(--text-primary)]">
+                        {d.label}
+                      </div>
+                      <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
+                        <HideableValue>{d.originalPrincipalFormatted}</HideableValue>
+                      </div>
+                    </div>
+                    <span
+                      className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-[0.6875rem] font-bold ${
+                        isSel
+                          ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
+                          : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
+                      }`}
+                      aria-hidden
                     >
-                      <div className="min-w-0 flex-1">
-                        <div className="text-sm font-semibold text-[color:var(--text-primary)]">
-                          {d.label}
-                        </div>
-                        <div className="mt-0.5 text-[0.6875rem] text-[color:var(--text-muted)]">
-                          <HideableValue>{d.originalPrincipalFormatted}</HideableValue>
-                        </div>
-                      </div>
-                      <span
-                        className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-[1.5px] text-[0.6875rem] font-bold ${
-                          isSel
-                            ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)] text-white"
-                            : "border-[color:var(--border-soft)] bg-[color:var(--surface-1)]"
-                        }`}
-                        aria-hidden
-                      >
-                        {isSel ? "✓" : ""}
-                      </span>
-                    </button>
+                      {isSel ? "✓" : ""}
+                    </span>
+                  </button>
 
-                    {isSel ? (
-                      <div className="mt-3 flex flex-col gap-1.5">
-                        <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
-                          Quanto deste valor foi pra este bem?
-                        </label>
-                        <WizardMoneyField
-                          control={form.control}
-                          name="allocationCents"
-                          placeholder="R$ 0,00"
-                        />
-                        <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
-                          A gente já preencheu com o total. Mexe só se uma parte foi pra outra coisa.
-                        </p>
-                        {error ? (
-                          <span
-                            role="alert"
-                            className="text-[0.6875rem] text-[color:var(--semantic-negative)]"
-                          >
-                            {error}
-                          </span>
-                        ) : null}
-                        <Button type="button" size="sm" onClick={onLink} loading={pending}>
-                          Vincular
-                        </Button>
-                      </div>
-                    ) : null}
-                  </div>
-                );
-              })}
-            </div>
-          ) : (
-            <p className="text-[0.8125rem] text-[color:var(--text-muted)]">
-              Você ainda não tem dívida pra vincular. Crie uma e ela já fica vinculada a este bem.
-            </p>
-          )}
+                  {isSel ? (
+                    <div className="mt-3 flex flex-col gap-1.5">
+                      <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+                        Quanto deste valor foi pra este bem?
+                      </label>
+                      <WizardMoneyField
+                        control={form.control}
+                        name="allocationCents"
+                        placeholder="R$ 0,00"
+                      />
+                      <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+                        A gente já preencheu com o total. Mexe só se uma parte foi pra outra coisa.
+                      </p>
+                      {error ? (
+                        <span
+                          role="alert"
+                          className="text-[0.6875rem] text-[color:var(--semantic-negative)]"
+                        >
+                          {error}
+                        </span>
+                      ) : null}
+                      <Button type="button" size="sm" onClick={onLink} loading={pending}>
+                        Vincular
+                      </Button>
+                    </div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        ) : (
+          <p className="text-[0.8125rem] text-[color:var(--text-muted)]">
+            Você ainda não tem dívida pra vincular. Crie uma e ela já fica vinculada a este bem.
+          </p>
+        )}
 
-          <Button type="button" variant="ghost" onClick={goCreate}>
-            Criar nova dívida
-          </Button>
-        </SheetContent>
-      </Sheet>
-    </section>
+        <Button type="button" variant="ghost" onClick={goCreate}>
+          Criar nova dívida
+        </Button>
+      </SheetContent>
+    </Sheet>
   );
 }
 
-function PurchasePriceSection({ view }: { view: PurchasePriceView }) {
-  const deltaColor = view.isNegative
-    ? "text-[color:var(--semantic-negative)]"
-    : "text-[color:var(--semantic-positive)]";
-  const TrendIcon = view.isNegative ? TrendingDown : TrendingUp;
+function LinkDebtEntryRow({
+  assetId,
+  assetLabel,
+  availableDebts,
+}: {
+  assetId: string;
+  assetLabel: string;
+  availableDebts: AvailableDebtView[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const hasAvailable = availableDebts.length > 0;
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Quanto mudou de valor</h2>
-      <dl className="mt-3 grid grid-cols-2 gap-3 text-[0.75rem]">
-        <div>
-          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Pagou
-          </dt>
-          <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            <HideableValue>{view.paidFormatted}</HideableValue>
-          </dd>
-        </div>
-        <div>
-          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            Vale agora
-          </dt>
-          <dd className="mt-0.5 font-semibold text-[color:var(--text-primary)]">
-            <HideableValue>{view.currentFormatted}</HideableValue>
-          </dd>
-        </div>
-        <div className="col-span-2">
-          <dt className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
-            {view.isNegative ? "Quanto caiu" : "Quanto rendeu"}
-          </dt>
-          <dd className={`mt-0.5 flex items-center gap-1 font-semibold ${deltaColor}`}>
-            <TrendIcon size={14} strokeWidth={2.25} aria-hidden />
-            <span>
-              <HideableValue>{view.deltaFormatted}</HideableValue>
-            </span>
-            {view.deltaPctFormatted ? (
-              <span className="text-[0.6875rem] opacity-80">({view.deltaPctFormatted})</span>
-            ) : null}
-          </dd>
-          <p className="mt-1 text-[0.625rem] text-[color:var(--text-muted)]">
-            desde que você comprou
-          </p>
-        </div>
-      </dl>
-    </section>
+    <>
+      <ActionRow
+        icon={Link2}
+        title="Vincular dívida"
+        onClick={() => {
+          if (hasAvailable) setOpen(true);
+          else router.push(`/app/dividas/nova?linkAssetId=${assetId}` as Route);
+        }}
+        {...(!hasAvailable ? { subtitle: "Cadastre uma dívida primeiro" } : {})}
+      />
+      <LinkDebtSheet
+        assetId={assetId}
+        assetLabel={assetLabel}
+        availableDebts={availableDebts}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </>
+  );
+}
+
+function LinkMoreDebtRow({
+  assetId,
+  assetLabel,
+  availableDebts,
+}: {
+  assetId: string;
+  assetLabel: string;
+  availableDebts: AvailableDebtView[];
+}) {
+  const router = useRouter();
+  const [open, setOpen] = useState(false);
+  const hasAvailable = availableDebts.length > 0;
+
+  return (
+    <div className="flex items-center justify-between gap-3 px-1">
+      <span className="text-[0.8125rem] text-[color:var(--text-secondary)]">
+        Vincular outra dívida a este bem
+      </span>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        onClick={() => {
+          if (hasAvailable) setOpen(true);
+          else router.push(`/app/dividas/nova?linkAssetId=${assetId}` as Route);
+        }}
+      >
+        {hasAvailable ? "Vincular" : "Nova dívida"}
+      </Button>
+      <LinkDebtSheet
+        assetId={assetId}
+        assetLabel={assetLabel}
+        availableDebts={availableDebts}
+        open={open}
+        onOpenChange={setOpen}
+      />
+    </div>
   );
 }
 
 type DeactivationKind = "sold" | "lost" | "donated" | "not_specified";
 
-const DEACTIVATION_KIND_META: Record<DeactivationKind, { title: string; description: string }> = {
-  sold: { title: "Vendi", description: "Saiu do meu patrimônio por um valor." },
-  lost: { title: "Perdi", description: "Perda, dano ou roubo." },
-  donated: { title: "Doei", description: "Cedido sem contrapartida." },
-  not_specified: { title: "Não informar", description: "Só quero arquivar." },
-};
+function deactivationKindMeta(
+  category: AssetDetailViewProps["category"],
+): Record<DeactivationKind, { title: string; description: string }> {
+  return {
+    sold: { title: "Vendi", description: "Saiu do meu patrimônio por um valor." },
+    lost: {
+      title: "Perdi",
+      description:
+        category === "real_estate" ? "Desapropriação, disputa ou perda." : "Perda, dano ou roubo.",
+    },
+    donated: { title: "Doei", description: "Cedido sem contrapartida." },
+    not_specified: { title: "Não informar", description: "Só quero arquivar." },
+  };
+}
 
 const DEACTIVATION_KINDS: readonly DeactivationKind[] = [
   "sold",
@@ -1137,9 +1214,21 @@ interface DeactivateFormValues {
   salePriceCents: bigint;
 }
 
-function DeactivateSection({ assetId, label }: { assetId: string; label: string }) {
+function AssetOptionsMenu({
+  assetId,
+  label,
+  category,
+  onEdit,
+}: {
+  assetId: string;
+  label: string;
+  category: AssetDetailViewProps["category"];
+  onEdit: () => void;
+}) {
+  const deactivationKindMetaForCategory = deactivationKindMeta(category);
   const queryClient = useQueryClient();
   const router = useRouter();
+  const [menuOpen, setMenuOpen] = useState(false);
   const [open, setOpen] = useState(false);
   const [kind, setKind] = useState<DeactivationKind>("sold");
   const [notes, setNotes] = useState("");
@@ -1194,28 +1283,60 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
   }
 
   return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4">
-      <div className="flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-[color:var(--text-primary)]">Tirar do patrimônio</h2>
-        <div className="flex items-center gap-2">
-          <Button
-            type="button"
-            size="sm"
-            variant="ghost"
-            onClick={() => {
-              reset();
-              setOpen(true);
-            }}
+    <>
+      <Sheet open={menuOpen} onOpenChange={setMenuOpen}>
+        <SimpleTooltip label="Mais opções" side="bottom">
+          <SheetTrigger
+            aria-label="Mais opções"
+            className="focus-ring flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--surface-2)]"
           >
-            Vendi ou saiu
-          </Button>
-          <DeleteAssetButton assetId={assetId} label={label} />
-        </div>
-      </div>
-      <p className="mt-2 text-[0.6875rem] text-[color:var(--text-muted)]">
-        O bem permanecerá no histórico, mas deixa de compor seu patrimônio atual. Para remover
-        definitivamente, use o ícone de lixeira.
-      </p>
+            <Settings size={16} strokeWidth={2} aria-hidden />
+          </SheetTrigger>
+        </SimpleTooltip>
+        <SheetContent side="bottom" className="p-0">
+          <SheetHeader className="p-4">
+            <SheetTitle>{label}</SheetTitle>
+          </SheetHeader>
+          <div className="divide-y divide-[color:var(--border-soft)] border-t border-[color:var(--border-soft)]">
+            <button
+              type="button"
+              onClick={() => {
+                setMenuOpen(false);
+                onEdit();
+              }}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-3)] text-[color:var(--text-secondary)]">
+                <Pencil size={18} strokeWidth={2} aria-hidden />
+              </span>
+              <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                Editar
+              </span>
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                reset();
+                setMenuOpen(false);
+                setOpen(true);
+              }}
+              className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)]"
+            >
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-3)] text-[color:var(--text-secondary)]">
+                <PackageX size={18} strokeWidth={2} aria-hidden />
+              </span>
+              <span className="text-[0.875rem] font-semibold text-[color:var(--text-primary)]">
+                Vendi ou saiu
+              </span>
+            </button>
+            <DeleteAssetButton assetId={assetId} label={label} trigger="row" />
+          </div>
+          <p className="px-4 pb-4 text-[0.6875rem] text-[color:var(--text-muted)]">
+            "Vendi ou saiu" mantém o bem no histórico, só tira do patrimônio atual. "Apagar" remove
+            definitivamente.
+          </p>
+        </SheetContent>
+      </Sheet>
 
       <Sheet
         open={open}
@@ -1236,8 +1357,8 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
             {DEACTIVATION_KINDS.map((k) => (
               <WizardRadioCard
                 key={k}
-                title={DEACTIVATION_KIND_META[k].title}
-                description={DEACTIVATION_KIND_META[k].description}
+                title={deactivationKindMetaForCategory[k].title}
+                description={deactivationKindMetaForCategory[k].description}
                 active={kind === k}
                 onSelect={() => setKind(k)}
               />
@@ -1341,34 +1462,83 @@ function DeactivateSection({ assetId, label }: { assetId: string; label: string 
           </Link>
         </SheetContent>
       </Sheet>
-    </section>
+    </>
   );
 }
 
-function DescriptionSection({ text }: { text: string }) {
-  return (
-    <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-        Descrição
-      </h2>
-      <p className="mt-2 whitespace-pre-line text-[0.8125rem] text-[color:var(--text-primary)]">
-        {text}
-      </p>
-    </section>
-  );
-}
+type DepreciationKind = "appreciating" | "stable" | "depreciating" | "consumable";
+
+const DEPRECIATION_KIND_META: Record<DepreciationKind, { title: string; description: string }> = {
+  appreciating: { title: "Valoriza", description: "Imóveis bem localizados, terrenos." },
+  stable: { title: "Fica igual", description: "Investimentos, ouro, conta poupança." },
+  depreciating: { title: "Perde valor", description: "Carros, eletrônicos, móveis." },
+  consumable: { title: "Acaba", description: "Viagens, eventos, refeições caras." },
+};
+
+const DEPRECIATION_KINDS: readonly DepreciationKind[] = [
+  "appreciating",
+  "stable",
+  "depreciating",
+  "consumable",
+];
 
 function DepreciationSection({
+  assetId,
   view,
 }: {
-  view: { kindLabel: string; ratePctYear: number; acquiredAtFormatted: string | null };
+  assetId: string;
+  view: {
+    kind: DepreciationKind;
+    kindLabel: string;
+    ratePctYear: number;
+    acquiredAtFormatted: string | null;
+    acquiredAtIso: string | null;
+  };
 }) {
-  const formatted = view.ratePctYear.toLocaleString("pt-BR", {
+  const queryClient = useQueryClient();
+  const [open, setOpen] = useState(false);
+  const [kind, setKind] = useState<DepreciationKind>(view.kind);
+  const [rate, setRate] = useState(String(view.ratePctYear));
+  const [acquiredAt, setAcquiredAt] = useState(view.acquiredAtIso ?? "");
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
+
+  function reset() {
+    setKind(view.kind);
+    setRate(String(view.ratePctYear));
+    setAcquiredAt(view.acquiredAtIso ?? "");
+    setError(null);
+  }
+
+  function onSave() {
+    setError(null);
+    const rateNum = Number(rate.replace(",", "."));
+    if (!Number.isFinite(rateNum) || rateNum < -50 || rateNum > 100) {
+      setError("A taxa deve estar entre -50% e 100%.");
+      return;
+    }
+    startTransition(async () => {
+      const r = await updateAssetAction({
+        assetId,
+        depreciationKind: kind,
+        depreciationRatePctYear: rateNum,
+        acquiredAt,
+      });
+      if (!r.ok) {
+        setError(r.message);
+        return;
+      }
+      await invalidateAssetCaches(queryClient);
+      setOpen(false);
+    });
+  }
+
+  const formatted = Math.abs(view.ratePctYear).toLocaleString("pt-BR", {
     maximumFractionDigits: 2,
     minimumFractionDigits: 0,
   });
-  const sign = view.ratePctYear < 0 ? "" : "";
   const isAppreciating = view.ratePctYear < 0;
+  const RateIcon = isAppreciating ? TrendingUp : TrendingDown;
   const rateColor = isAppreciating
     ? "text-[color:var(--semantic-positive)]"
     : view.ratePctYear === 0
@@ -1376,9 +1546,22 @@ function DepreciationSection({
       : "text-[color:var(--semantic-negative)]";
   return (
     <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
-        Comportamento do valor
-      </h2>
+      <div className="flex items-center justify-between gap-3">
+        <h2 className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-secondary)]">
+          Comportamento do valor
+        </h2>
+        <Button
+          type="button"
+          size="sm"
+          variant="ghost"
+          onClick={() => {
+            reset();
+            setOpen(true);
+          }}
+        >
+          Editar
+        </Button>
+      </div>
       <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-3">
         <div>
           <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
@@ -1392,9 +1575,11 @@ function DepreciationSection({
           <div className="text-[0.625rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
             Taxa anual
           </div>
-          <div className={`mt-0.5 text-[0.875rem] font-bold ${rateColor}`}>
-            {sign}
-            {formatted}%
+          <div className={`mt-0.5 flex items-center gap-1 text-[0.875rem] font-bold ${rateColor}`}>
+            {view.ratePctYear !== 0 ? (
+              <RateIcon size={13} strokeWidth={2.25} aria-hidden className="shrink-0" />
+            ) : null}
+            {formatted}% ao ano
           </div>
         </div>
         {view.acquiredAtFormatted ? (
@@ -1408,6 +1593,77 @@ function DepreciationSection({
           </div>
         ) : null}
       </div>
+
+      <Sheet
+        open={open}
+        onOpenChange={(o) => {
+          setOpen(o);
+          if (!o) reset();
+        }}
+      >
+        <SheetContent side="bottom" className="flex flex-col gap-4">
+          <SheetHeader>
+            <SheetTitle>Comportamento do valor</SheetTitle>
+          </SheetHeader>
+
+          <div className="grid grid-cols-2 gap-2">
+            {DEPRECIATION_KINDS.map((k) => (
+              <WizardRadioCard
+                key={k}
+                title={DEPRECIATION_KIND_META[k].title}
+                description={DEPRECIATION_KIND_META[k].description}
+                active={kind === k}
+                onSelect={() => setKind(k)}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+              Quanto muda por ano (%)
+            </label>
+            <input
+              type="number"
+              step={0.5}
+              min={-50}
+              max={100}
+              inputMode="decimal"
+              value={rate}
+              onChange={(e) => setRate(e.target.value)}
+              className={wizardInputClass}
+            />
+            <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+              Negativo = valoriza. Ex.: carro cai uns 15% (positivo), imóvel bom pode valorizar a
+              -3% (negativo).
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            <label className="text-[0.75rem] font-semibold text-[color:var(--text-primary)]">
+              Data de aquisição (opcional)
+            </label>
+            <input
+              type="date"
+              value={acquiredAt}
+              onChange={(e) => setAcquiredAt(e.target.value)}
+              className={wizardInputClass}
+            />
+            <p className="text-[0.6875rem] text-[color:var(--text-muted)]">
+              Sem data, o valor não muda com o tempo.
+            </p>
+          </div>
+
+          {error ? (
+            <span role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
+              {error}
+            </span>
+          ) : null}
+
+          <Button type="button" size="sm" onClick={onSave} loading={pending}>
+            Salvar
+          </Button>
+        </SheetContent>
+      </Sheet>
     </section>
   );
 }

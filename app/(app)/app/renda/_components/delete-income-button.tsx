@@ -18,16 +18,16 @@ import {
 import { Spinner } from "@/app/components/ui/spinner";
 import { SimpleTooltip } from "@/app/components/ui/tooltip";
 
-
 import { queryKeys } from "../../_lib/query-keys";
 import { deleteIncomeAction } from "../_actions/delete-income.action";
 
 interface DeleteIncomeButtonProps {
   incomeId: string;
   label?: string;
+  trigger?: "icon" | "row";
 }
 
-export function DeleteIncomeButton({ incomeId, label }: DeleteIncomeButtonProps) {
+export function DeleteIncomeButton({ incomeId, label, trigger = "icon" }: DeleteIncomeButtonProps) {
   const queryClient = useQueryClient();
   const [open, setOpen] = useState(false);
   const [pending, startTransition] = useTransition();
@@ -59,17 +59,32 @@ export function DeleteIncomeButton({ incomeId, label }: DeleteIncomeButtonProps)
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <SimpleTooltip label="Apagar renda">
-        <AlertDialogTrigger asChild>
+      <AlertDialogTrigger asChild>
+        {trigger === "row" ? (
           <button
             type="button"
             aria-label={aria}
-            className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
+            className="flex w-full items-center gap-3 px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)]"
           >
-            <Trash2 size={15} strokeWidth={2} aria-hidden />
+            <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-[color:var(--semantic-negative)]/12 text-[color:var(--semantic-negative)]">
+              <Trash2 size={18} strokeWidth={2} aria-hidden />
+            </span>
+            <span className="text-[0.875rem] font-semibold text-[color:var(--semantic-negative)]">
+              Apagar renda
+            </span>
           </button>
-        </AlertDialogTrigger>
-      </SimpleTooltip>
+        ) : (
+          <SimpleTooltip label="Apagar renda">
+            <button
+              type="button"
+              aria-label={aria}
+              className="focus-ring inline-flex h-9 w-9 items-center justify-center rounded-lg text-[color:var(--text-secondary)] transition-colors hover:bg-[color:var(--semantic-negative)]/[0.12] hover:text-[color:var(--semantic-negative)]"
+            >
+              <Trash2 size={15} strokeWidth={2} aria-hidden />
+            </button>
+          </SimpleTooltip>
+        )}
+      </AlertDialogTrigger>
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>Apagar essa renda?</AlertDialogTitle>
