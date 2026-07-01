@@ -14,9 +14,9 @@ import {
   SheetDescription,
   SheetHeader,
   SheetTitle,
-  SheetTrigger,
 } from "@/app/components/ui/sheet";
 
+import { ActionRow } from "../../../_components/action-row";
 import { MoneyInput } from "../../../_components/money-input";
 import { recordContributionAction } from "../../_actions/goal-actions";
 import { invalidateContributionCaches } from "../../_lib/invalidate";
@@ -80,36 +80,38 @@ export function ContributionSheet({ goalId, variant, hasReserve }: ContributionS
   }
 
   return (
-    <Sheet open={open} onOpenChange={handleOpenChange}>
-      <SheetTrigger asChild>
-        <Button type="button" variant="brand" size="sm" className="w-full justify-center gap-1.5">
-          <PiggyBank size={14} strokeWidth={2} aria-hidden />
-          Guardar dinheiro
-        </Button>
-      </SheetTrigger>
-      <SheetContent side="bottom">
-        <SheetHeader>
-          <SheetTitle>{title}</SheetTitle>
-          <SheetDescription>{description}</SheetDescription>
-        </SheetHeader>
-        <form className="mt-4 flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
-          <MoneyInput
-            control={form.control}
-            name="amountCents"
-            label="Quanto guardar"
-            placeholder="R$ 0,00"
-            required
-          />
-          {error ? (
-            <p role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
-              {error}
-            </p>
-          ) : null}
-          <Button type="submit" variant="brand" size="default" loading={submitting}>
-            Guardar
-          </Button>
-        </form>
-      </SheetContent>
-    </Sheet>
+    <>
+      <ActionRow
+        icon={PiggyBank}
+        title="Guardar dinheiro"
+        tone="primary"
+        onClick={() => setOpen(true)}
+      />
+      <Sheet open={open} onOpenChange={handleOpenChange}>
+        <SheetContent side="bottom">
+          <SheetHeader>
+            <SheetTitle>{title}</SheetTitle>
+            <SheetDescription>{description}</SheetDescription>
+          </SheetHeader>
+          <form className="mt-4 flex flex-col gap-4" onSubmit={form.handleSubmit(onSubmit)}>
+            <MoneyInput
+              control={form.control}
+              name="amountCents"
+              label="Quanto guardar"
+              placeholder="R$ 0,00"
+              required
+            />
+            {error ? (
+              <p role="alert" className="text-[0.75rem] text-[color:var(--semantic-negative)]">
+                {error}
+              </p>
+            ) : null}
+            <Button type="submit" variant="brand" size="default" loading={submitting}>
+              Guardar
+            </Button>
+          </form>
+        </SheetContent>
+      </Sheet>
+    </>
   );
 }

@@ -1,5 +1,6 @@
 import type { BuildGoalMacroDeps } from "@/application/use-cases/goal/build-goal-macro";
 import { buildGoalMacro } from "@/application/use-cases/goal/build-goal-macro";
+import { resolveGoalProgressInputs } from "@/application/use-cases/goal/resolve-goal-progress-inputs";
 import type { GoalContributionEntity } from "@/domain/entities/goal-contribution.entity";
 import type { GoalSnapshotEntity } from "@/domain/entities/goal-snapshot.entity";
 import type { GoalEntity } from "@/domain/entities/goal.entity";
@@ -29,6 +30,11 @@ export interface GoalDetailResult {
  * historico de snapshots mensais.
  *
  * Retorna null se a meta nao for encontrada ou nao pertencer ao usuario.
+ *
+ * Para metas com ativo vinculado (savings linked ou emergency_fund com
+ * linkedAssetId), `resolveGoalProgressInputs` ajusta o goal/macro antes do
+ * calculo (ver esse arquivo pra detalhes de cada caso, incluindo conversao
+ * de moeda).
  */
 export async function getGoalDetail(
   deps: GetGoalDetailDeps,
@@ -48,35 +54,17 @@ export async function getGoalDetail(
     deps.contributions.listForGoal(goalId, CONTRIBUTIONS_LIMIT),
   ]);
 
-  const resolved = await resolveLinkedAsset(deps, goal, profileId);
-  const rawProgress = GoalProgressService.compute(resolved, macro);
+  const { goal: resolvedGoal, macro: resolvedMacro } = await resolveGoalProgressInputs(
+    deps,
+    goal,
+    macro,
+    profileId,
+  );
+  const rawProgress = GoalProgressService.compute(resolvedGoal, resolvedMacro);
 
   const { progress, etaLocked } = isPro
     ? { progress: rawProgress, etaLocked: false }
     : { progress: { ...rawProgress, etaMonths: null }, etaLocked: true };
 
   return { goal, progress, etaLocked, snapshots: snapshotList, contributions: contributionList };
-}
-
-/**
- * Para metas `savings` com `fundingMode === "linked"` e `linkedAssetId`,
- * injeta o valor atual do ativo em `manualSavedCents` antes do calculo.
- */
-async function resolveLinkedAsset(
-  deps: GetGoalDetailDeps,
-  goal: GoalEntity,
-  profileId: string,
-): Promise<GoalEntity> {
-  if (
-    goal.type !== "savings" ||
-    goal.fundingMode !== "linked" ||
-    !goal.linkedAssetId
-  ) {
-    return goal;
-  }
-
-  const asset = await deps.assets.findById(goal.linkedAssetId, profileId);
-  if (!asset) return goal;
-
-  return { ...goal, manualSavedCents: asset.currentValue.toCents() };
 }

@@ -1,12 +1,16 @@
 "use client";
 
-import { Crown, PlusCircle, Target } from "lucide-react";
+import { Crown, Target } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+
+import type { GoalType } from "@/domain/entities/goal.entity";
 
 import type { SerializedGoalWithProgress } from "../_actions/goal-queries";
 
 import { GoalCard } from "./goal-card";
+import { GoalCategorySection } from "./goal-category-section";
+import { GoalsHero } from "./goals-hero";
 import { ProLockRow } from "./pro-lock-row";
 
 interface GoalListProps {
@@ -14,23 +18,30 @@ interface GoalListProps {
   isPro: boolean;
 }
 
+const GOAL_TYPE_ORDER: GoalType[] = [
+  "debt_payoff",
+  "emergency_fund",
+  "savings",
+  "financial_independence",
+];
+
 export function GoalList({ goals, isPro }: GoalListProps) {
   const activeGoals = goals.filter((g) => g.goal.status === "active");
-  const completedGoals = goals.filter(
-    (g) => g.goal.status === "reached" || g.goal.status === "archived",
-  );
+  const reachedGoals = goals.filter((g) => g.goal.status === "reached");
+  const archivedGoals = goals.filter((g) => g.goal.status === "archived");
+
+  const goalsWithTarget = activeGoals.filter((g) => Number(g.progress.targetCents) > 0);
+  const avgProgressPct =
+    goalsWithTarget.length > 0
+      ? goalsWithTarget.reduce(
+          (sum, g) => sum + Math.min(100, Math.max(0, g.progress.pct)),
+          0,
+        ) / goalsWithTarget.length
+      : null;
 
   return (
     <div className="flex flex-col gap-4">
-      <Link
-        href={"/app/metas/nova" as Route}
-        className="focus-ring flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
-      >
-        <PlusCircle size={16} strokeWidth={2} aria-hidden />
-        Nova meta
-      </Link>
-
-      {activeGoals.length === 0 && completedGoals.length === 0 ? (
+      {activeGoals.length === 0 && reachedGoals.length === 0 && archivedGoals.length === 0 ? (
         <section className="flex flex-col items-center gap-3 rounded-2xl border-[1.5px] border-dashed border-[color:var(--color-brand-500)]/50 px-6 py-10 text-center">
           <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-[color:var(--color-brand-500)]/[0.14] text-[color:var(--color-brand-800)]">
             <Target size={22} strokeWidth={1.5} aria-hidden />
@@ -44,15 +55,21 @@ export function GoalList({ goals, isPro }: GoalListProps) {
             </p>
           </div>
         </section>
-      ) : null}
+      ) : (
+        <GoalsHero
+          activeCount={activeGoals.length}
+          completedCount={reachedGoals.length}
+          avgProgressPct={avgProgressPct}
+        />
+      )}
 
-      {activeGoals.length > 0 ? (
-        <div className="flex flex-col gap-2">
-          {activeGoals.map((g) => (
-            <GoalCard key={g.goal.id} data={g} />
-          ))}
-        </div>
-      ) : null}
+      {GOAL_TYPE_ORDER.map((type) => (
+        <GoalCategorySection
+          key={type}
+          type={type}
+          goals={activeGoals.filter((g) => g.goal.type === type)}
+        />
+      ))}
 
       {!isPro ? (
         <div className="flex flex-col gap-2">
@@ -79,12 +96,23 @@ export function GoalList({ goals, isPro }: GoalListProps) {
         </div>
       ) : null}
 
-      {completedGoals.length > 0 ? (
+      {reachedGoals.length > 0 ? (
         <div className="flex flex-col gap-2">
           <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
             Concluídas
           </h3>
-          {completedGoals.map((g) => (
+          {reachedGoals.map((g) => (
+            <GoalCard key={g.goal.id} data={g} />
+          ))}
+        </div>
+      ) : null}
+
+      {archivedGoals.length > 0 ? (
+        <div className="flex flex-col gap-2">
+          <h3 className="text-[0.6875rem] font-bold uppercase tracking-wide text-[color:var(--text-muted)]">
+            Arquivadas
+          </h3>
+          {archivedGoals.map((g) => (
             <GoalCard key={g.goal.id} data={g} />
           ))}
         </div>
