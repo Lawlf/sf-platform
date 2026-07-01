@@ -24,4 +24,10 @@ describe("sitemap", () => {
     const urls = sitemap().map((entry) => entry.url);
     expect(urls.some((u) => u.endsWith("/financas-com-ia"))).toBe(true);
   });
+
+  it("inclui a calculadora da Copa e o jogo ativo", () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls.some((u) => u.endsWith("/copa"))).toBe(true);
+    expect(urls.some((u) => u.endsWith("/copa/brasil-vs-noruega"))).toBe(true);
+  });
 });
