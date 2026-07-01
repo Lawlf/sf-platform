@@ -111,7 +111,7 @@ export default async function ConfiguracoesPlanosPage({ searchParams }: PageProp
 
   const lifetimePlan = activePlans.find((p) => p.billingInterval === "lifetime");
   const lifetimeSold = lifetimePlan ? await subRepo.countByPlanId(lifetimePlan.id) : 0;
-  const availablePlans = sub
+  const availablePlans = isPro
     ? []
     : activePlans.filter(
         (p) => p.billingInterval !== "lifetime" || lifetimeSold < LIFETIME_LIMIT,
@@ -133,7 +133,7 @@ export default async function ConfiguracoesPlanosPage({ searchParams }: PageProp
         <PlanStatusCard sub={sub} priceCents={displayPriceCents} interval={currentInterval} />
       </div>
 
-      {!sub && availablePlans.length > 0 && (
+      {!isPro && availablePlans.length > 0 && (
         <section className="flex flex-col gap-3">
           <h2 className="text-[0.6875rem] font-bold uppercase tracking-[0.8px] text-[color:var(--text-muted)]">
             Escolher plano

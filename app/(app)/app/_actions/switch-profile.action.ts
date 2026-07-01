@@ -62,8 +62,9 @@ export async function switchProfileAction(
   return { ok: true, data: undefined };
 }
 
-// Free escolhe qual perfil único fica ativo. Liberado durante a graça, ou uma
-// vez se ele nunca escolheu. Depois disso, trocar exige Pro.
+// Free escolhe qual perfil único fica ativo. Escolha é única e definitiva: liberada
+// só durante a graça e enquanto nunca escolheu. Escolheu, tranca o resto na hora;
+// mudar depois exige Pro.
 export async function setKeptProfileAction(
   raw: unknown,
 ): Promise<ActionResult<void>> {
@@ -81,7 +82,8 @@ export async function setKeptProfileAction(
 
   const now = clock.now();
   if (!user.isPro) {
-    const canChoose = isInGrace({ proGraceUntil: user.proGraceUntil, now }) || user.freeKeptProfileId === null;
+    const canChoose =
+      isInGrace({ proGraceUntil: user.proGraceUntil, now }) && user.freeKeptProfileId === null;
     if (!canChoose) {
       return {
         ok: false,

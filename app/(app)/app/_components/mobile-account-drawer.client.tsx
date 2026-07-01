@@ -15,10 +15,10 @@ import { switchProfileAction } from "../_actions/switch-profile.action";
 import { CreateProfileSheet } from "./create-profile-sheet.client";
 import { UserAvatar } from "./user-avatar";
 
-function profileSubtitle(profile: SerializedProfile): string {
+function profileTypeLabel(profile: SerializedProfile): string {
   if (profile.type === "PF") return "Pessoal";
-  if (profile.taxClassification === "mei") return "Empresa · MEI";
-  return "Empresa";
+  if (profile.taxClassification === "mei") return "Negócio · MEI";
+  return "Negócio";
 }
 
 interface Props {
@@ -57,32 +57,61 @@ export function MobileAccountDrawer({ open, onOpenChange, displayName, avatarUrl
             {profiles.map((profile) => {
               const active = profile.id === activeId;
               const locked = profile.locked;
+              const typeLabel = profileTypeLabel(profile);
+              const name = profile.displayName ?? typeLabel;
+              const subtitle = active
+                ? "Em uso agora"
+                : profile.displayName != null
+                  ? typeLabel
+                  : null;
+              const avatarNode = (
+                <UserAvatar
+                  dataUrl={profile.isPrimary ? avatarUrl : undefined}
+                  displayName={profile.displayName ?? displayName}
+                  className={`flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.75rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
+                />
+              );
+              if (locked) {
+                return (
+                  <Link
+                    key={profile.id}
+                    href={"/app/configuracoes/planos" as Route}
+                    role="menuitem"
+                    onClick={() => onOpenChange(false)}
+                    className="focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left opacity-60 transition-opacity hover:opacity-100"
+                  >
+                    {avatarNode}
+                    <span className="flex min-w-0 flex-1 flex-col items-start">
+                      <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
+                        {name}
+                      </span>
+                      {subtitle ? (
+                        <span className="text-[0.75rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                      ) : null}
+                    </span>
+                    <Lock size={15} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
+                  </Link>
+                );
+              }
               return (
                 <button
                   key={profile.id}
                   type="button"
                   role="menuitemradio"
                   aria-checked={active}
-                  disabled={pending || active || locked}
+                  disabled={pending || active}
                   onClick={() => handleSwitch(profile.id)}
-                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"} ${locked ? "opacity-60" : ""}`}
+                  className={`focus-ring flex w-full items-center gap-3 rounded-xl px-3 py-3 text-left transition-colors ${active ? "bg-[color:var(--color-brand-500)]/[0.10] ring-1 ring-[color:var(--color-brand-500)]/30" : "hover:bg-[color:var(--surface-2)]"}`}
                 >
-                  <UserAvatar
-                    dataUrl={profile.isPrimary ? avatarUrl : undefined}
-                    displayName={profile.displayName ?? displayName}
-                    className={`flex h-9 w-9 flex-none items-center justify-center rounded-lg bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] text-[0.75rem] font-bold text-white ${active ? "ring-2 ring-[color:var(--color-brand-500)] ring-offset-2 ring-offset-[var(--surface-solid)]" : ""}`}
-                  />
+                  {avatarNode}
                   <span className="flex min-w-0 flex-1 flex-col items-start">
                     <span className="truncate text-[0.9375rem] font-semibold text-[color:var(--text-primary)]">
-                      {profile.displayName ?? displayName}
+                      {name}
                     </span>
-                    <span className="text-[0.75rem] text-[color:var(--text-muted)]">
-                      {locked ? "Guardado · volta com o Pro" : profileSubtitle(profile)}
-                    </span>
+                    {subtitle ? (
+                      <span className="text-[0.75rem] text-[color:var(--text-muted)]">{subtitle}</span>
+                    ) : null}
                   </span>
-                  {locked ? (
-                    <Lock size={15} strokeWidth={2} aria-hidden className="flex-none text-[color:var(--text-muted)]" />
-                  ) : null}
                 </button>
               );
             })}

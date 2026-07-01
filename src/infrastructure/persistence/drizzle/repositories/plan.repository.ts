@@ -1,8 +1,8 @@
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 
 import type { Plan } from "@/domain/entities/plan.entity";
 import type { PaymentProvider } from "@/domain/entities/subscription.entity";
-import type { PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
+import type { NewPlan, PlanRepositoryPort } from "@/domain/ports/repositories/plan.repository";
 
 import { getDb } from "../client";
 import { type PlanRow, plans } from "../schema/plans.schema";
@@ -56,5 +56,39 @@ export class PlanRepository implements PlanRepositoryPort {
       .where(eq(plans.active, true))
       .orderBy(asc(plans.sortOrder));
     return rows.map(toEntity);
+  }
+
+  async findAll(): Promise<Plan[]> {
+    const rows = await getDb().select().from(plans).orderBy(asc(plans.sortOrder));
+    return rows.map(toEntity);
+  }
+
+  async create(input: NewPlan): Promise<Plan> {
+    const rows = await getDb()
+      .insert(plans)
+      .values({
+        slug: input.slug,
+        name: input.name,
+        provider: input.provider,
+        providerProductId: input.providerProductId,
+        providerPriceId: input.providerPriceId,
+        priceCents: input.priceCents,
+        currency: input.currency,
+        billingInterval: input.billingInterval,
+        features: input.features,
+        active: input.active,
+        sortOrder: input.sortOrder,
+      })
+      .returning();
+    const row = rows[0];
+    if (!row) throw new Error("Insert em plans não retornou linha.");
+    return toEntity(row);
+  }
+
+  async setActive(id: string, active: boolean): Promise<void> {
+    await getDb()
+      .update(plans)
+      .set({ active, updatedAt: sql`now()` })
+      .where(eq(plans.id, id));
   }
 }

@@ -125,7 +125,7 @@ export function PlanStatusCard({ sub, priceCents, interval }: Props) {
       </div>
 
       {sub.provider === "manual" && (
-        <p className="rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-2)] px-3 py-2.5 text-[0.75rem] text-[color:var(--text-secondary)]">
+        <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
           Plano manual (cortesia). Para alterar, fale com o suporte.
         </p>
       )}

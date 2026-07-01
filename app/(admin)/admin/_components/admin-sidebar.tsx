@@ -5,6 +5,7 @@ import {
   DollarSign,
   LayoutDashboard,
   MessageCircle,
+  Package,
   Users,
 } from "lucide-react";
 import type { Route } from "next";
@@ -24,6 +25,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: "/admin/faturamento" as Route, label: "Faturamento", icon: DollarSign },
   { href: "/admin/uso" as Route, label: "Uso", icon: Activity },
   { href: "/admin/usuarios" as Route, label: "Usuários", icon: Users },
+  { href: "/admin/planos" as Route, label: "Planos", icon: Package },
   { href: "/admin/suporte" as Route, label: "Suporte", icon: MessageCircle, showFeedbackBadge: true },
 ];
 
