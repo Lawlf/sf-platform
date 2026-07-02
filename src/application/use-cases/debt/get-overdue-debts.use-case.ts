@@ -73,13 +73,14 @@ function currentCycleDue(
   const clampedDay = Math.min(dueDay, daysInMonth(year, month));
   const dueDate = new Date(year, month, clampedDay);
   const startBoundary = startOfDay(debt.startDate);
-  // Empréstimo: a 1ª parcela vence no 1º `dueDay` estritamente APÓS o início
-  // (ninguém deve uma parcela no dia em que pegou o empréstimo), então um
-  // vencimento no próprio dia de início pertence ao ciclo seguinte (`<=`).
-  // Recorrente/cartão: o ciclo do mês de início conta (o aluguel do mês começa
-  // naquele mês), então só exclui vencimentos estritamente antes do início (`<`).
-  const firstDueAfterStart = debt.kind === "personal_loan";
-  if (firstDueAfterStart ? dueDate <= startBoundary : dueDate < startBoundary) return null;
+  // Ciclo do mês de início conta (o aluguel do mês começa naquele mês), então
+  // só exclui vencimentos estritamente antes do início. Exceção: dívida
+  // criada hoje cujo vencimento também cai hoje pertence ao ciclo seguinte
+  // (ninguém deve uma conta no instante em que a cadastrou).
+  if (dueDate < startBoundary) return null;
+  if (dueDate.getTime() === startBoundary.getTime() && startBoundary.getTime() === today.getTime()) {
+    return null;
+  }
   return { debtId: debt.id, label: debt.label, kind: debt.kind, dueDate, amount: monthlyAmount(debt) };
 }
 

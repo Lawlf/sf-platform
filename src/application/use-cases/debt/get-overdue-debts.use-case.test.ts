@@ -217,6 +217,24 @@ describe("getOverdueDebts", () => {
     expect(res.value).toHaveLength(0);
   });
 
+  it("recorrente criado hoje com dueDay no dia do inicio nao fica vencido (1a parcela e no proximo ciclo)", async () => {
+    const repo = makeDebtRepo([
+      makeRecurringDebt({
+        id: "rent-hoje",
+        dueDay: 1,
+        recurringAmountCents: 645000n,
+        startDate: new Date(2026, 6, 1),
+      }),
+    ]);
+    const acks = makeAckRepo();
+    const res = await getOverdueDebts(
+      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 6, 1)) },
+      { userId: "u1", profileId: "p1" },
+    );
+    if (!isOk(res)) throw new Error("expected ok");
+    expect(res.value).toHaveLength(0);
+  });
+
   it("marca cartao vencido quando dueDay passou e nao ha ack paid", async () => {
     const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n })]);
     const acks = makeAckRepo();

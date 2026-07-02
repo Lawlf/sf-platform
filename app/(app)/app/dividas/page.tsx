@@ -25,7 +25,6 @@ import { DividasHero } from "./_components/dividas-hero";
 import { DividasListClient } from "./_components/dividas-list.client";
 import { DueAgenda } from "./_components/due-agenda.client";
 import { DueAlertSettingsButton } from "./_components/due-alert-settings-button.client";
-import { OverdueDebtsBanner } from "./_components/overdue-debts-banner.client";
 
 export const metadata: Metadata = { title: "Dívidas" };
 
@@ -112,9 +111,7 @@ export default async function DividasPage({ searchParams }: PageProps) {
         outOfMonthFormatted={outOfMonth.total.formatted}
       />
 
-      <OverdueDebtsBanner overdue={overdueDues} />
-
-      <DueAgenda dues={upcomingDues} hasDueDatedDebt={hasDueDatedDebt} />
+      <DueAgenda overdue={overdueDues} dues={upcomingDues} hasDueDatedDebt={hasDueDatedDebt} />
 
       <HydrationBoundary state={dehydrate(queryClient)}>
         <Suspense key={statusFilter} fallback={<DividasListSkeleton />}>
