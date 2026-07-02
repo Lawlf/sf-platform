@@ -78,10 +78,19 @@ function currentCycleDue(
   // criada hoje cujo vencimento também cai hoje pertence ao ciclo seguinte
   // (ninguém deve uma conta no instante em que a cadastrou).
   if (dueDate < startBoundary) return null;
-  if (dueDate.getTime() === startBoundary.getTime() && startBoundary.getTime() === today.getTime()) {
+  if (
+    dueDate.getTime() === startBoundary.getTime() &&
+    startBoundary.getTime() === today.getTime()
+  ) {
     return null;
   }
-  return { debtId: debt.id, label: debt.label, kind: debt.kind, dueDate, amount: monthlyAmount(debt) };
+  return {
+    debtId: debt.id,
+    label: debt.label,
+    kind: debt.kind,
+    dueDate,
+    amount: monthlyAmount(debt),
+  };
 }
 
 function monthlyDueDay(debt: DebtEntity): number | null {

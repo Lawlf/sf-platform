@@ -7,7 +7,13 @@ import Link from "next/link";
 import { useState, useTransition } from "react";
 
 import { Button } from "@/app/components/ui/button";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/app/components/ui/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/app/components/ui/sheet";
 import { Spinner } from "@/app/components/ui/spinner";
 
 import { HideableValue } from "../../_components/money-visibility/hideable-value.client";
@@ -119,7 +125,11 @@ export function DueAgenda({ overdue, dues, hasDueDatedDebt }: Props) {
               </div>
               <ul className="flex flex-col gap-2">
                 {visibleOverdue.map((item) => (
-                  <OverdueRow key={item.debtId} item={item} onSettled={() => markSettled(item.debtId)} />
+                  <OverdueRow
+                    key={item.debtId}
+                    item={item}
+                    onSettled={() => markSettled(item.debtId)}
+                  />
                 ))}
               </ul>
             </div>
@@ -223,7 +233,13 @@ function OverdueRow({ item, onSettled }: { item: OverduePayload; onSettled: () =
         </p>
       ) : null}
       <div className="flex items-center gap-3">
-        <Button size="sm" disabled={pending} aria-busy={pending || undefined} onClick={onPaid} className="relative">
+        <Button
+          size="sm"
+          disabled={pending}
+          aria-busy={pending || undefined}
+          onClick={onPaid}
+          className="relative"
+        >
           <span className={pending ? "opacity-0" : "opacity-100"}>Paguei</span>
           {pending ? (
             <span className="absolute inset-0 flex items-center justify-center">

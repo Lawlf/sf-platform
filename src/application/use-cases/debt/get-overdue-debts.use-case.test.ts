@@ -66,7 +66,9 @@ function makeDebtRepo(debts: DebtEntity[]): DebtRepositoryPort {
   };
 }
 
-function makeAckRepo(paid: { debtId: string; cycleIso: string }[] = []): DebtDueAcknowledgementRepositoryPort {
+function makeAckRepo(
+  paid: { debtId: string; cycleIso: string }[] = [],
+): DebtDueAcknowledgementRepositoryPort {
   return {
     upsert: vi.fn(),
     findForDebtCycle: vi.fn(async () => null),
@@ -177,7 +179,12 @@ describe("getOverdueDebts", () => {
     ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -190,14 +197,18 @@ describe("getOverdueDebts", () => {
     ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
     expect(res.value).toHaveLength(1);
     expect(res.value[0]!.debtId).toBe("loan-normal");
   });
-
 
   it("emprestimo criado hoje com dueDay no dia do inicio nao fica vencido (1a parcela e no proximo ciclo)", async () => {
     const repo = makeDebtRepo([
@@ -210,7 +221,12 @@ describe("getOverdueDebts", () => {
     ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 30)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 30)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -228,7 +244,12 @@ describe("getOverdueDebts", () => {
     ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 6, 1)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 6, 1)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -236,10 +257,17 @@ describe("getOverdueDebts", () => {
   });
 
   it("marca cartao vencido quando dueDay passou e nao ha ack paid", async () => {
-    const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n })]);
+    const repo = makeDebtRepo([
+      makeCreditCardDebt({ id: "c1", dueDay: 10, currentStatement: 50000n }),
+    ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -252,7 +280,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 10 })]);
     const acks = makeAckRepo([{ debtId: "c1", cycleIso: "2026-06" }]);
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -287,7 +320,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 20 })]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -298,7 +336,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([makeCreditCardDebt({ id: "c1", dueDay: 15 })]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -306,10 +349,17 @@ describe("getOverdueDebts", () => {
   });
 
   it("recorrente mensal vencido sem ack aparece na lista", async () => {
-    const repo = makeDebtRepo([makeRecurringDebt({ id: "r1", dueDay: 8, recurringAmountCents: 9900n })]);
+    const repo = makeDebtRepo([
+      makeRecurringDebt({ id: "r1", dueDay: 8, recurringAmountCents: 9900n }),
+    ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -318,11 +368,18 @@ describe("getOverdueDebts", () => {
   });
 
   it("recorrente com dueDay null usa dia de startDate", async () => {
-    const repo = makeDebtRepo([makeRecurringDebt({ id: "r2", dueDay: null, recurringAmountCents: 4900n })]);
+    const repo = makeDebtRepo([
+      makeRecurringDebt({ id: "r2", dueDay: null, recurringAmountCents: 4900n }),
+    ]);
     const acks = makeAckRepo();
     // startDate = 2026-01-10, so effective dueDay = 10; today = 15 => overdue
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -337,7 +394,12 @@ describe("getOverdueDebts", () => {
     ]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -355,7 +417,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([debt]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 29)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 29)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -373,7 +440,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([debt]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 7, 15)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 7, 15)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
@@ -387,7 +459,12 @@ describe("getOverdueDebts", () => {
     const repo = makeDebtRepo([debt]);
     const acks = makeAckRepo();
     const res = await getOverdueDebts(
-      { debts: repo, acknowledgements: acks, payments: makePaymentsRepo(), clock: fixedClock(new Date(2026, 5, 30)) },
+      {
+        debts: repo,
+        acknowledgements: acks,
+        payments: makePaymentsRepo(),
+        clock: fixedClock(new Date(2026, 5, 30)),
+      },
       { userId: "u1", profileId: "p1" },
     );
     if (!isOk(res)) throw new Error("expected ok");
