@@ -185,7 +185,7 @@ export function TripCalculator({ match }: { match: CopaMatch }) {
           <div className="flex flex-col gap-4">
             <StepHeader
               title="De onde você sai?"
-              hint={`A gente estima o custo da sua cidade até o ${match.venueName}, em Nova Jersey.`}
+              hint={`Não precisa ser sua cidade exata — escolha o aeroporto mais perto de você. A gente estima o custo até o ${match.venueName}, em Nova Jersey.`}
             />
             <OriginCombobox value={origin} onSelect={setOrigin} />
           </div>
