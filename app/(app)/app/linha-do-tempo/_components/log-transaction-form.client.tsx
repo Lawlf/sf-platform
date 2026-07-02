@@ -6,16 +6,10 @@ import {
   ArrowUpRight,
   CalendarClock,
   CalendarDays,
-  Car,
-  Check,
   CircleDashed,
-  Home,
-  Landmark,
-  Package,
   Pencil,
   Plus,
   Tag,
-  Wallet,
 } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
@@ -32,15 +26,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/app/components/ui/select";
-import {
-  Sheet,
-  SheetContent,
-  SheetDescription,
-  SheetHeader,
-  SheetTitle,
-} from "@/app/components/ui/sheet";
 import { activeCategories } from "@/domain/categories/resolve-categories";
 import { todayIso, toIsoDate } from "@/shared/format/dates";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 import type { IncomeFreeBalanceEvent } from "../../_actions/_free-balance-event";
 import {
@@ -53,9 +41,7 @@ import { CreateCategorySheet } from "../../_components/create-category-sheet.cli
 import { MoneyInput } from "../../_components/money-input";
 import { lancarCopy } from "../../_lib/copy/catalogs";
 import { useCopy } from "../../_lib/copy/use-copy";
-import { wizardInputClass } from "@/ui/wizard-field";
 import { IncomeFreeBalanceResult } from "../../renda/_components/income-free-balance-result";
-import { createCashAccount } from "../_actions/create-cash-account.action";
 import {
   listAttributableAssets,
   type AttributableAssetOption,
@@ -64,6 +50,9 @@ import {
   listCashAccounts,
   type CashAccountOption,
 } from "../_actions/list-cash-accounts.action";
+
+import { AccountCombobox } from "./account-combobox";
+import { AssetCombobox } from "./asset-combobox";
 
 interface FormValues {
   amountCents: bigint;
@@ -103,21 +92,8 @@ function segmentClass(active: boolean, tone: keyof typeof SEGMENT_ACTIVE): strin
 
 const SELECT_TRIGGER_CLASS = "h-11 rounded-xl border-[1.5px]";
 
-const CHIP_BASE =
-  "focus-ring inline-flex items-center gap-1.5 rounded-full border-[1.5px] px-3 py-1.5 text-[0.8125rem] font-semibold transition-all";
-
-function chipClass(active: boolean): string {
-  return active
-    ? `${CHIP_BASE} border-[color:var(--color-brand-500)]/55 bg-[color:var(--color-brand-500)]/16 text-[color:var(--color-brand-500)]`
-    : `${CHIP_BASE} border-[color:var(--border-soft)] text-[color:var(--text-secondary)] hover:text-[color:var(--text-primary)]`;
-}
-
-function assetCategoryIcon(category: AttributableAssetOption["category"]) {
-  if (category === "vehicle") return Car;
-  if (category === "real_estate") return Home;
-  if (category === "investment") return Landmark;
-  return Package;
-}
+const SEGMENT_TRACK_3 =
+  "grid grid-cols-3 gap-1.5 rounded-xl border-[1.5px] border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-1.5";
 
 function initialOccurredAt(defaultMonthIso?: string): string {
   if (defaultMonthIso) {
@@ -156,12 +132,13 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     null,
   );
   const [assetId, setAssetId] = useState<string>("");
-  const [showNewAccount, setShowNewAccount] = useState(false);
-  const [newAccountName, setNewAccountName] = useState("");
-  // Progressive disclosure: agendado e data ficam escondidos atrás de links. O
-  // caminho feliz é "já paguei/recebi" + hoje, sem campos competindo.
-  const [showSchedule, setShowSchedule] = useState(false);
-  const [showDate, setShowDate] = useState(false);
+  // Progressive disclosure: "quando" (outro dia/agendado) fica escondido atrás
+  // de um link. O caminho feliz é hoje, sem campo de data competindo.
+  const [showWhen, setShowWhen] = useState(false);
+  const dateId = useId();
+  const accountFieldId = useId();
+  const categoryId = useId();
+  const assetFieldId = useId();
   // Quando só existe a Carteira, o campo Conta some atrás de um link. O caminho
   // feliz não escolhe conta.
   const [showAccount, setShowAccount] = useState(false);
@@ -171,10 +148,6 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const [showCategory, setShowCategory] = useState(false);
   const [catalog, setCatalog] = useState<CategoryCatalog | null>(null);
   const [showCreateCategory, setShowCreateCategory] = useState(false);
-  const [accountPending, startAccountTransition] = useTransition();
-  const dateId = useId();
-  const categoryId = useId();
-  const accountFieldId = useId();
 
   const form = useForm<FormValues>({
     defaultValues: { amountCents: 0n, description: "" },
@@ -205,23 +178,6 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
     setCategory(NO_CATEGORY_VALUE);
   }
 
-  function handleCreateAccount() {
-    const name = newAccountName.trim();
-    if (name.length === 0) return;
-    setServerError(null);
-    startAccountTransition(async () => {
-      const result = await createCashAccount({ label: name });
-      if (!result.ok) {
-        setServerError(result.message);
-        return;
-      }
-      setAccounts((prev) => [...(prev ?? []), result.data.account]);
-      setAccountId(result.data.account.id);
-      setNewAccountName("");
-      setShowNewAccount(false);
-    });
-  }
-
   // "Salário" continua fora das entradas de propósito: renda recorrente tem
   // porta própria (/app/renda/nova). Deixar salário como avulso era o overlap
   // que confundia.
@@ -242,6 +198,12 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
   const descriptionValue = form.watch("description");
   const looksLikeRecurringIncome =
     direction === "in" && /sal[áa]rio|sal[áa]rios/i.test(descriptionValue ?? "");
+
+  // "Quando" deriva de status+data em vez de um 4º state: já paguei/recebi e a
+  // data é hoje -> Hoje; já paguei/recebi noutra data -> Outro dia; ainda vai
+  // acontecer -> Agendado.
+  const whenMode: "today" | "other" | "scheduled" =
+    status === "scheduled" ? "scheduled" : occurredAt === todayIso() ? "today" : "other";
 
   function onSubmit(values: FormValues) {
     setServerError(null);
@@ -365,36 +327,21 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
         ) : null}
       </div>
 
-      {attributableAssets && attributableAssets.length > 0 ? (
+      {attributableAssets ? (
         <div className="flex flex-col gap-1.5">
-          <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
+          <span
+            id={assetFieldId}
+            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+          >
             É de algum bem? (opcional)
           </span>
-          <div className="flex flex-wrap gap-1.5">
-            <button
-              type="button"
-              aria-pressed={assetId === ""}
-              onClick={() => setAssetId("")}
-              className={chipClass(assetId === "")}
-            >
-              Nenhum
-            </button>
-            {attributableAssets.map((a) => {
-              const Icon = assetCategoryIcon(a.category);
-              return (
-                <button
-                  key={a.id}
-                  type="button"
-                  aria-pressed={assetId === a.id}
-                  onClick={() => setAssetId(a.id)}
-                  className={chipClass(assetId === a.id)}
-                >
-                  <Icon size={14} strokeWidth={2} aria-hidden />
-                  {a.label}
-                </button>
-              );
-            })}
-          </div>
+          <AssetCombobox
+            ariaLabelledBy={assetFieldId}
+            value={assetId}
+            onChange={setAssetId}
+            options={attributableAssets}
+            onCreated={(asset) => setAttributableAssets((prev) => [...(prev ?? []), asset])}
+          />
         </div>
       ) : null}
 
@@ -488,155 +435,86 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
           Conta
         </span>
         {accounts !== null ? (
-          <>
-            <Select value={accountId} onValueChange={setAccountId}>
-              <SelectTrigger aria-labelledby={accountFieldId} className={SELECT_TRIGGER_CLASS}>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {accounts.length === 0 ? (
-                  <SelectItem value={DEFAULT_ACCOUNT_VALUE}>
-                    <span className="flex items-center gap-2">
-                      <Wallet
-                        size={15}
-                        strokeWidth={2}
-                        className="text-[color:var(--text-secondary)]"
-                        aria-hidden
-                      />
-                      Carteira
-                    </span>
-                  </SelectItem>
-                ) : (
-                  accounts.map((a) => (
-                    <SelectItem key={a.id} value={a.id}>
-                      <span className="flex items-center gap-2">
-                        <Wallet
-                          size={15}
-                          strokeWidth={2}
-                          className="text-[color:var(--text-secondary)]"
-                          aria-hidden
-                        />
-                        {a.label}
-                        {a.currency !== "BRL" ? (
-                          <span className="rounded-md bg-[color:var(--surface-2)] px-1.5 py-0.5 text-[0.625rem] font-bold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-                            {a.currency}
-                          </span>
-                        ) : null}
-                      </span>
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
-
-            <button
-              type="button"
-              onClick={() => setShowNewAccount(true)}
-              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-            >
-              <Plus size={14} strokeWidth={2.5} aria-hidden />
-              Nova conta
-            </button>
-
-            <Sheet
-              open={showNewAccount}
-              onOpenChange={(open) => {
-                setShowNewAccount(open);
-                if (!open) setNewAccountName("");
-              }}
-            >
-              <SheetContent side="bottom" className="flex flex-col gap-4">
-                <SheetHeader>
-                  <SheetTitle>Nova conta</SheetTitle>
-                  <SheetDescription>
-                    Um lugar pra guardar e movimentar dinheiro: Nubank, poupança, dinheiro vivo.
-                  </SheetDescription>
-                </SheetHeader>
-                <input
-                  type="text"
-                  autoComplete="off"
-                  value={newAccountName}
-                  onChange={(e) => setNewAccountName(e.target.value)}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleCreateAccount();
-                    }
-                  }}
-                  placeholder="Nome da conta, ex: Nubank"
-                  className={wizardInputClass}
-                />
-                <Button
-                  type="button"
-                  variant="brand"
-                  loading={accountPending}
-                  onClick={handleCreateAccount}
-                >
-                  Criar conta
-                </Button>
-              </SheetContent>
-            </Sheet>
-          </>
+          <AccountCombobox
+            ariaLabelledBy={accountFieldId}
+            value={accountId}
+            onChange={setAccountId}
+            options={accounts}
+            onCreated={(account) => setAccounts((prev) => [...(prev ?? []), account])}
+          />
         ) : null}
       </div>
 
-      {showSchedule ? (
+      {showWhen ? (
         <div className="flex animate-in flex-col gap-1.5 fade-in-0 duration-150">
           <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-            Situação
+            Quando
           </span>
-          <div role="group" aria-label="Situação do lançamento" className={SEGMENT_TRACK}>
+          <div role="group" aria-label="Quando" className={SEGMENT_TRACK_3}>
             <button
               type="button"
-              aria-pressed={status === "paid"}
-              onClick={() => setStatus("paid")}
-              className={segmentClass(status === "paid", "brand")}
+              aria-pressed={whenMode === "today"}
+              onClick={() => {
+                setStatus("paid");
+                setOccurredAt(todayIso());
+              }}
+              className={segmentClass(whenMode === "today", "brand")}
             >
-              <Check size={15} strokeWidth={2.5} aria-hidden />
-              {direction === "in" ? "Já recebi" : "Já paguei"}
+              Hoje
             </button>
             <button
               type="button"
-              aria-pressed={status === "scheduled"}
+              aria-pressed={whenMode === "other"}
+              onClick={() => {
+                setStatus("paid");
+                if (isFutureIso(occurredAt)) setOccurredAt(todayIso());
+              }}
+              className={segmentClass(whenMode === "other", "brand")}
+            >
+              Outro dia
+            </button>
+            <button
+              type="button"
+              aria-pressed={whenMode === "scheduled"}
               onClick={() => {
                 setStatus("scheduled");
-                setShowDate(true);
                 if (!isFutureIso(occurredAt)) setOccurredAt(tomorrowIso());
               }}
-              className={segmentClass(status === "scheduled", "brand")}
+              className={segmentClass(whenMode === "scheduled", "brand")}
             >
-              <CalendarClock size={15} strokeWidth={2.25} aria-hidden />
+              <CalendarClock size={14} strokeWidth={2.25} aria-hidden />
               Agendado
             </button>
           </div>
-        </div>
-      ) : null}
 
-      {showDate ? (
-        <div className="flex animate-in flex-col gap-1.5 fade-in-0 duration-150">
-          <label
-            htmlFor={dateId}
-            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-          >
-            Data
-          </label>
-          <input
-            id={dateId}
-            type="date"
-            value={occurredAt}
-            min={status === "scheduled" ? tomorrowIso() : undefined}
-            onChange={(e) => setOccurredAt(e.target.value)}
-            className={wizardInputClass}
-          />
-          {status === "scheduled" ? (
-            <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
-              Entra no saldo no dia. Até lá, fica como previsto.
-            </p>
+          {whenMode !== "today" ? (
+            <div className="flex animate-in flex-col gap-1.5 fade-in-0 duration-150">
+              <label
+                htmlFor={dateId}
+                className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
+              >
+                Data
+              </label>
+              <input
+                id={dateId}
+                type="date"
+                value={occurredAt}
+                max={whenMode === "other" ? todayIso() : undefined}
+                min={whenMode === "scheduled" ? tomorrowIso() : undefined}
+                onChange={(e) => setOccurredAt(e.target.value)}
+                className={wizardInputClass}
+              />
+              {whenMode === "scheduled" ? (
+                <p className="text-[0.75rem] text-[color:var(--text-secondary)]">
+                  Entra no saldo no dia. Até lá, fica como previsto.
+                </p>
+              ) : null}
+            </div>
           ) : null}
         </div>
       ) : null}
 
-      {!showSchedule || !showDate || !showCategory ? (
+      {!showWhen || !showCategory ? (
         <div className="flex flex-wrap gap-x-4 gap-y-2">
           {!showCategory ? (
             <button
@@ -648,29 +526,14 @@ export function LogTransactionForm({ defaultMonthIso }: Props) {
               Classificar
             </button>
           ) : null}
-          {!showSchedule ? (
+          {!showWhen ? (
             <button
               type="button"
-              onClick={() => {
-                setShowSchedule(true);
-                setShowDate(true);
-                setStatus("scheduled");
-                setOccurredAt(tomorrowIso());
-              }}
-              className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
-            >
-              <CalendarClock size={14} strokeWidth={2.25} aria-hidden />
-              Agendar pra depois
-            </button>
-          ) : null}
-          {!showDate ? (
-            <button
-              type="button"
-              onClick={() => setShowDate(true)}
+              onClick={() => setShowWhen(true)}
               className="focus-ring inline-flex w-fit items-center gap-1.5 rounded-lg text-[0.8125rem] font-semibold text-[color:var(--color-brand-500)] hover:underline"
             >
               <CalendarDays size={14} strokeWidth={2.25} aria-hidden />
-              Outra data
+              Outra data ou agendar
             </button>
           ) : null}
         </div>

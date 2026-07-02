@@ -1,11 +1,37 @@
-import { Bot, FileUp } from "lucide-react";
+"use client";
+
+import { Bot, FileUp, X } from "lucide-react";
 import type { Route } from "next";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+const DISMISSED_KEY = "sf_bring_data_dismissed";
 
 export function HomeBringDataCard() {
+  const [dismissed, setDismissed] = useState(false);
+
+  useEffect(() => {
+    if (window.localStorage.getItem(DISMISSED_KEY) === "1") setDismissed(true);
+  }, []);
+
+  if (dismissed) return null;
+
+  function dismiss() {
+    window.localStorage.setItem(DISMISSED_KEY, "1");
+    setDismissed(true);
+  }
+
   return (
-    <section className="flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
-      <div>
+    <section className="relative flex flex-col gap-3 rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-4 backdrop-blur-xl">
+      <button
+        type="button"
+        onClick={dismiss}
+        aria-label="Dispensar"
+        className="focus-ring absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-full text-[color:var(--text-muted)] transition-colors hover:bg-[color:var(--surface-2)] hover:text-[color:var(--text-primary)]"
+      >
+        <X size={15} strokeWidth={2} aria-hidden />
+      </button>
+      <div className="pr-6">
         <h2 className="text-[0.9375rem] font-bold text-[color:var(--text-primary)]">
           Já tem essas contas registradas em outro lugar?
         </h2>

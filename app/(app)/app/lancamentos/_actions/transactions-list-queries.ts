@@ -60,3 +60,35 @@ export async function fetchTransactionsForRange(args: {
     .map((t) => serialize(t, labelCategory))
     .sort((a, b) => b.occurredAtIso.localeCompare(a.occurredAtIso));
 }
+
+export interface TransactionDetail extends SerializedTxn {
+  accountLabel: string | null;
+  accountIsBase: boolean;
+  assetId: string | null;
+  assetLabel: string | null;
+  source: TransactionEntity["source"];
+}
+
+export async function fetchTransactionDetail(id: string): Promise<TransactionDetail | null> {
+  const user = await getCurrentUser();
+  if (!user) return null;
+  const profileId = await getActiveProfileId();
+
+  const t = await repos.transactions.findByIdForProfile(id, profileId);
+  if (!t) return null;
+
+  const labelCategory = await buildCategoryLabeler(user.id);
+  const [account, asset] = await Promise.all([
+    t.accountId ? repos.assets.findById(t.accountId, profileId) : null,
+    t.assetId ? repos.assets.findById(t.assetId, profileId) : null,
+  ]);
+
+  return {
+    ...serialize(t, labelCategory),
+    accountLabel: account?.label ?? null,
+    accountIsBase: account?.label === "Carteira",
+    assetId: t.assetId,
+    assetLabel: asset?.label ?? null,
+    source: t.source,
+  };
+}
