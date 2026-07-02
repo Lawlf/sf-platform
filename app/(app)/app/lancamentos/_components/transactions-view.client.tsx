@@ -25,18 +25,11 @@ import {
 import type { Route } from "next";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
-import { useForm } from "react-hook-form";
+import type { MouseEvent } from "react";
+import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import { toast } from "sonner";
 
 import { Button } from "@/app/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/app/components/ui/select";
 import {
   Sheet,
   SheetContent,
@@ -45,14 +38,12 @@ import {
   SheetTitle,
 } from "@/app/components/ui/sheet";
 import { activeCategories } from "@/domain/categories/resolve-categories";
-import type { Currency } from "@/domain/value-objects/money.vo";
+import { wizardInputClass } from "@/ui/wizard-field";
 
 import type { CategoryCatalog } from "../../_actions/category-queries";
 import { categoryIcon } from "../../_components/category-icons";
-import { MoneyInput } from "../../_components/money-input";
 import { queryKeys } from "../../_lib/query-keys";
 import { setSelectionBarActive } from "../../_lib/selection-bar";
-import { wizardInputClass } from "@/ui/wizard-field";
 import { createCashAccount } from "../../linha-do-tempo/_actions/create-cash-account.action";
 import {
   listCashAccounts,
@@ -61,10 +52,8 @@ import {
 import { bulkCategorizeAction } from "../_actions/bulk-categorize.action";
 import { bulkDeleteAction } from "../_actions/bulk-delete.action";
 import { bulkExcludeAction } from "../_actions/bulk-exclude.action";
-import { deleteTransactionAction } from "../_actions/delete-transaction.action";
 import { moveTransactionsAction } from "../_actions/move-transactions.action";
 import type { SerializedTxn } from "../_actions/transactions-list-queries";
-import { updateTransactionAction } from "../_actions/update-transaction.action";
 
 const NO_CATEGORY_VALUE = "__none__";
 const ALL_VALUE = "__all__";
@@ -119,6 +108,13 @@ const MONTH_YEAR_FMT = new Intl.DateTimeFormat("pt-BR", {
 
 function dayKey(iso: string): string {
   return iso.slice(0, 10);
+}
+
+function formatSigned(cents: bigint, currency: string): string {
+  const negative = cents < 0n;
+  const abs = negative ? -cents : cents;
+  const fmt = (Number(abs) / 100).toLocaleString("pt-BR", { style: "currency", currency });
+  return negative ? `-${fmt}` : fmt;
 }
 
 function groupByMonth(items: SerializedTxn[]): { month: string; entries: SerializedTxn[] }[] {
@@ -178,7 +174,6 @@ export function TransactionsView({
   const [items, setItems] = useState<SerializedTxn[]>(transactions);
   const [search, setSearch] = useState("");
   const [categoryFilter, setCategoryFilter] = useState<string>(ALL_VALUE);
-  const [editing, setEditing] = useState<SerializedTxn | null>(null);
   const [monthSheet, setMonthSheet] = useState(false);
   const [moreCats, setMoreCats] = useState(false);
   const [periodSheet, setPeriodSheet] = useState(false);
@@ -202,13 +197,13 @@ export function TransactionsView({
     return () => setSelectionBarActive(false);
   }, [selectMode]);
 
-  // Deep-link de "movimentações recentes": abre direto o lançamento clicado, se
-  // ele estiver no período carregado.
+  // Deep-link de "movimentações recentes": vai direto pro detalhe do
+  // lançamento clicado, se ele estiver no período carregado.
   useEffect(() => {
     const txnId = searchParams.get("txn");
     if (!txnId) return;
     const found = transactions.find((t) => t.id === txnId);
-    if (found) setEditing(found);
+    if (found) router.push(`/app/lancamentos/${txnId}` as Route);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -258,22 +253,22 @@ export function TransactionsView({
 
   const days = useMemo(() => groupByDay(filtered), [filtered]);
 
+  const monthSummary = useMemo(() => {
+    let netCents = 0n;
+    for (const t of items) {
+      if (t.excludedFromTotals) continue;
+      const cents = BigInt(t.amountCents);
+      netCents += t.direction === "in" ? cents : -cents;
+    }
+    return { netCents, count: items.length, currency: items[0]?.currency ?? "BRL" };
+  }, [items]);
+
   function invalidateProjection() {
     void queryClient.invalidateQueries({ queryKey: ["timeline"] });
     void queryClient.invalidateQueries({ queryKey: queryKeys.walletBalance });
     void queryClient.invalidateQueries({ queryKey: queryKeys.netWorth });
     void queryClient.invalidateQueries({ queryKey: queryKeys.dashboardSnapshot });
     void queryClient.invalidateQueries({ queryKey: queryKeys.positionDetail });
-  }
-
-  function onSaved(updated: SerializedTxn) {
-    setItems((prev) => prev.map((t) => (t.id === updated.id ? updated : t)));
-    invalidateProjection();
-  }
-
-  function onDeleted(id: string) {
-    setItems((prev) => prev.filter((t) => t.id !== id));
-    invalidateProjection();
   }
 
   const bulkCategories = useMemo(() => {
@@ -559,7 +554,7 @@ export function TransactionsView({
                     <TxnRow
                       key={t.id}
                       txn={t}
-                      onClick={() => setEditing(t)}
+                      href={`/app/lancamentos/${t.id}` as Route}
                       account={accountById.get(t.accountId ?? "") ?? null}
                     />
                   ))}
@@ -568,26 +563,31 @@ export function TransactionsView({
             ))}
           </div>
         )}
-
-        <EditTransactionSheet
-          txn={editing}
-          catalog={catalog}
-          onClose={() => setEditing(null)}
-          onSaved={(u) => {
-            onSaved(u);
-            setEditing(null);
-          }}
-          onDeleted={(id) => {
-            onDeleted(id);
-            setEditing(null);
-          }}
-        />
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-4">
+      <section className="rounded-2xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] p-[22px] backdrop-blur-xl">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0 flex-1">
+            <div className="text-[0.6875rem] font-semibold uppercase tracking-wide text-[color:var(--text-muted)]">
+              {focusedDay ? "Saldo do dia" : "Saldo do mês"}
+            </div>
+            <div className="mt-1 text-[2.25rem] font-extrabold leading-none text-[color:var(--text-primary)]">
+              {formatSigned(monthSummary.netCents, monthSummary.currency)}
+            </div>
+            <div className="mt-1.5 text-[0.8125rem] text-[color:var(--text-secondary)]">
+              {monthSummary.count} {monthSummary.count === 1 ? "lançamento" : "lançamentos"}
+            </div>
+          </div>
+          <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-[color:var(--surface-3)] text-[color:var(--text-secondary)]">
+            <Wallet size={20} strokeWidth={2} aria-hidden />
+          </span>
+        </div>
+      </section>
+
       {focusedDay ? (
         <div className="flex items-center justify-between gap-3">
           <span className="text-[0.875rem] font-bold text-[color:var(--text-primary)]">
@@ -715,9 +715,10 @@ export function TransactionsView({
                   <TxnRow
                     key={t.id}
                     txn={t}
+                    href={`/app/lancamentos/${t.id}` as Route}
                     selectMode={selectMode}
                     selected={selectedIds.has(t.id)}
-                    onClick={() => (selectMode ? toggleSelect(t.id) : setEditing(t))}
+                    onSelectToggle={() => toggleSelect(t.id)}
                     onLongPress={() => {
                       setSelectMode(true);
                       setSelectedIds((prev) => new Set(prev).add(t.id));
@@ -735,17 +736,18 @@ export function TransactionsView({
                     </div>
                     {future.map((t) => (
                       <TxnRow
-                    key={t.id}
-                    txn={t}
-                    selectMode={selectMode}
-                    selected={selectedIds.has(t.id)}
-                    onClick={() => (selectMode ? toggleSelect(t.id) : setEditing(t))}
-                    onLongPress={() => {
-                      setSelectMode(true);
-                      setSelectedIds((prev) => new Set(prev).add(t.id));
-                    }}
-                    account={accountById.get(t.accountId ?? "") ?? null}
-                  />
+                        key={t.id}
+                        txn={t}
+                        href={`/app/lancamentos/${t.id}` as Route}
+                        selectMode={selectMode}
+                        selected={selectedIds.has(t.id)}
+                        onSelectToggle={() => toggleSelect(t.id)}
+                        onLongPress={() => {
+                          setSelectMode(true);
+                          setSelectedIds((prev) => new Set(prev).add(t.id));
+                        }}
+                        account={accountById.get(t.accountId ?? "") ?? null}
+                      />
                     ))}
                   </>
                 ) : null}
@@ -1211,20 +1213,6 @@ export function TransactionsView({
           </div>
         </SheetContent>
       </Sheet>
-
-      <EditTransactionSheet
-        txn={editing}
-        catalog={catalog}
-        onClose={() => setEditing(null)}
-        onSaved={(u) => {
-          onSaved(u);
-          setEditing(null);
-        }}
-        onDeleted={(id) => {
-          setItems((prev) => prev.filter((t) => t.id !== id));
-          setEditing(null);
-        }}
-      />
     </div>
   );
 }
@@ -1300,14 +1288,16 @@ function GuardarGroup({
 
 function TxnRow({
   txn,
-  onClick,
+  href,
+  onSelectToggle,
   onLongPress,
   selectMode = false,
   selected = false,
   account = null,
 }: {
   txn: SerializedTxn;
-  onClick: () => void;
+  href: Route;
+  onSelectToggle?: () => void;
   onLongPress?: () => void;
   selectMode?: boolean;
   selected?: boolean;
@@ -1332,34 +1322,14 @@ function TxnRow({
     timer.current = null;
   }
 
-  return (
-    <button
-      type="button"
-      onClick={() => {
-        if (fired.current) {
-          fired.current = false;
-          return;
-        }
-        onClick();
-      }}
-      onPointerDown={start}
-      onPointerUp={cancel}
-      onPointerLeave={cancel}
-      onPointerCancel={cancel}
-      onContextMenu={(e) => {
-        if (onLongPress) {
-          e.preventDefault();
-          fired.current = true;
-          onLongPress();
-        }
-      }}
-      aria-pressed={selectMode ? selected : undefined}
-      className={`focus-ring flex items-center gap-3 rounded-xl border bg-[color:var(--surface-1)] px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)] ${
-        selected
-          ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08]"
-          : "border-[color:var(--border-soft)]"
-      } ${scheduled || excluded ? "opacity-70" : ""}`}
-    >
+  const className = `focus-ring flex items-center gap-3 rounded-xl border bg-[color:var(--surface-1)] px-4 py-3 text-left transition-colors hover:bg-[color:var(--surface-2)] ${
+    selected
+      ? "border-[color:var(--color-brand-500)] bg-[color:var(--color-brand-500)]/[0.08]"
+      : "border-[color:var(--border-soft)]"
+  } ${scheduled || excluded ? "opacity-70" : ""}`;
+
+  const content = (
+    <>
       {selectMode ? (
         <span
           aria-hidden
@@ -1426,246 +1396,50 @@ function TxnRow({
         {isIn ? "+" : "-"}
         {txn.amountFormatted}
       </span>
-    </button>
+    </>
   );
-}
 
-function formatMoney(cents: bigint, currency: string): string {
-  return (Number(cents) / 100).toLocaleString("pt-BR", { style: "currency", currency });
-}
-
-function EditTransactionSheet({
-  txn,
-  catalog,
-  onClose,
-  onSaved,
-  onDeleted,
-}: {
-  txn: SerializedTxn | null;
-  catalog: CategoryCatalog | null;
-  onClose: () => void;
-  onSaved: (updated: SerializedTxn) => void;
-  onDeleted: (id: string) => void;
-}) {
-  const [pending, startTransition] = useTransition();
-  const [category, setCategory] = useState<string>(NO_CATEGORY_VALUE);
-  const [description, setDescription] = useState("");
-  const [occurredAt, setOccurredAt] = useState("");
-  const [confirmDelete, setConfirmDelete] = useState(false);
-  const dateId = useId();
-  const descId = useId();
-
-  const form = useForm<{ amountCents: bigint }>({ defaultValues: { amountCents: 0n } });
-
-  const categories = txn
-    ? activeCategories((txn.direction === "in" ? catalog?.inflow : catalog?.expense) ?? [])
-    : [];
-
-  // Preenche os campos quando abre pra editar. Vai num effect (não no
-  // onOpenChange) porque o Sheet abre via prop controlada `open`, e o
-  // onOpenChange não dispara em abertura programática.
-  useEffect(() => {
-    if (!txn) return;
-    setCategory(txn.categoryKey ?? NO_CATEGORY_VALUE);
-    setDescription(txn.description);
-    setOccurredAt(txn.occurredAtIso.slice(0, 10));
-    setConfirmDelete(false);
-    form.reset({ amountCents: BigInt(txn.amountCents) });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [txn]);
-
-  function save() {
-    if (!txn) return;
-    const nextKey = category === NO_CATEGORY_VALUE ? null : category;
-    const amountCents = form.getValues("amountCents");
-    if (amountCents <= 0n) {
-      toast.error("O valor precisa ser maior que zero.");
-      return;
-    }
-    const trimmedDesc = description.trim();
-    startTransition(async () => {
-      const r = await updateTransactionAction({
-        transactionId: txn.id,
-        category: nextKey,
-        description: trimmedDesc.length > 0 ? trimmedDesc : txn.description,
-        amountCents,
-        occurredAtIso: new Date(`${occurredAt}T12:00:00.000Z`).toISOString(),
-      });
-      if (!r.ok) {
-        toast.error(r.message);
-        return;
+  const pointerHandlers = {
+    onPointerDown: start,
+    onPointerUp: cancel,
+    onPointerLeave: cancel,
+    onPointerCancel: cancel,
+    onContextMenu: (e: MouseEvent) => {
+      if (onLongPress) {
+        e.preventDefault();
+        fired.current = true;
+        onLongPress();
       }
-      const label =
-        nextKey === null ? null : (categories.find((c) => c.key === nextKey)?.label ?? null);
-      toast.success("Lançamento atualizado.");
-      onSaved({
-        ...txn,
-        categoryKey: nextKey,
-        categoryLabel: label,
-        description: trimmedDesc.length > 0 ? trimmedDesc : txn.description,
-        amountCents: amountCents.toString(),
-        amountFormatted: formatMoney(amountCents, txn.currency),
-        occurredAtIso: new Date(`${occurredAt}T12:00:00.000Z`).toISOString(),
-      });
-    });
-  }
+    },
+  };
 
-  function remove() {
-    if (!txn) return;
-    startTransition(async () => {
-      const r = await deleteTransactionAction({ transactionId: txn.id });
-      if (!r.ok) {
-        toast.error(r.message);
-        return;
-      }
-      toast.success("Lançamento apagado.");
-      setConfirmDelete(false);
-      onDeleted(txn.id);
-    });
+  if (selectMode) {
+    return (
+      <button
+        type="button"
+        onClick={onSelectToggle}
+        aria-pressed={selected}
+        className={className}
+        {...pointerHandlers}
+      >
+        {content}
+      </button>
+    );
   }
 
   return (
-    <>
-    <Sheet
-      open={txn !== null}
-      onOpenChange={(open) => {
-        if (!open) onClose();
+    <Link
+      href={href}
+      onClick={(e) => {
+        if (fired.current) {
+          fired.current = false;
+          e.preventDefault();
+        }
       }}
+      className={className}
+      {...pointerHandlers}
     >
-      <SheetContent side="bottom" className="flex flex-col gap-4">
-        <SheetHeader>
-          <SheetTitle>Editar lançamento</SheetTitle>
-        </SheetHeader>
-
-        {txn ? (
-          <MoneyInput
-            control={form.control}
-            name="amountCents"
-            label="Valor"
-            required
-            currency={txn.currency as Currency}
-          />
-        ) : null}
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor={descId}
-            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-          >
-            Descrição
-          </label>
-          <input
-            id={descId}
-            type="text"
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            className={wizardInputClass}
-          />
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]">
-            Categoria
-          </span>
-          <Select value={category} onValueChange={setCategory}>
-            <SelectTrigger className="h-11 rounded-xl border-[1.5px]">
-              <SelectValue placeholder="Sem categoria" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value={NO_CATEGORY_VALUE}>
-                <span className="flex items-center gap-2">
-                  <CircleDashed
-                    size={15}
-                    strokeWidth={2}
-                    className="text-[color:var(--text-muted)]"
-                    aria-hidden
-                  />
-                  Sem categoria
-                </span>
-              </SelectItem>
-              {categories.map((c) => {
-                const Icon = categoryIcon(c.icon);
-                return (
-                  <SelectItem key={c.key} value={c.key}>
-                    <span className="flex items-center gap-2">
-                      <Icon
-                        size={15}
-                        strokeWidth={2}
-                        className="text-[color:var(--text-secondary)]"
-                        aria-hidden
-                      />
-                      {c.label}
-                    </span>
-                  </SelectItem>
-                );
-              })}
-            </SelectContent>
-          </Select>
-        </div>
-
-        <div className="flex flex-col gap-1.5">
-          <label
-            htmlFor={dateId}
-            className="text-[0.6875rem] font-semibold uppercase tracking-[0.5px] text-[color:var(--text-secondary)]"
-          >
-            Data
-          </label>
-          <input
-            id={dateId}
-            type="date"
-            value={occurredAt}
-            onChange={(e) => setOccurredAt(e.target.value)}
-            className={wizardInputClass}
-          />
-        </div>
-
-        <Button type="button" variant="brand" loading={pending} onClick={save}>
-          Salvar
-        </Button>
-
-        <button
-          type="button"
-          onClick={() => setConfirmDelete(true)}
-          className="focus-ring inline-flex items-center justify-center gap-1.5 rounded-lg py-1.5 text-[0.8125rem] font-semibold text-[color:var(--semantic-negative)] hover:underline"
-        >
-          <Trash2 size={14} strokeWidth={2} aria-hidden />
-          Apagar lançamento
-        </button>
-      </SheetContent>
-    </Sheet>
-
-    <Sheet open={confirmDelete} onOpenChange={setConfirmDelete}>
-      <SheetContent side="bottom" className="flex flex-col gap-4 px-6 pb-8 pt-3">
-        <div
-          className="mx-auto mb-1 h-1 w-10 rounded-full bg-[color:var(--border-strong)] md:hidden"
-          aria-hidden
-        />
-        <SheetHeader>
-          <SheetTitle>Apagar esse lançamento?</SheetTitle>
-          <SheetDescription className="text-[0.8125rem] text-[color:var(--text-secondary)]">
-            O saldo volta ao que era.
-          </SheetDescription>
-        </SheetHeader>
-        <div className="flex gap-2">
-          <Button
-            type="button"
-            variant="ghost"
-            onClick={() => setConfirmDelete(false)}
-            className="flex-1"
-          >
-            Cancelar
-          </Button>
-          <Button
-            type="button"
-            loading={pending}
-            onClick={remove}
-            className="flex-1 bg-[color:var(--semantic-negative)] text-white hover:brightness-105"
-          >
-            Apagar
-          </Button>
-        </div>
-      </SheetContent>
-    </Sheet>
-    </>
+      {content}
+    </Link>
   );
 }

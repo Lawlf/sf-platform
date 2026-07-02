@@ -88,6 +88,18 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
         title="Movimentações"
         description="Uma categoria ao longo dos meses."
         backHref="/app/lancamentos"
+        headerAction={
+          <div className="flex items-center gap-2">
+            <HowItWorksSheet topic="movimentacoes-saldo" variant="brand" />
+            <Link
+              href={"/app/lancar" as Route}
+              className="focus-ring flex items-center gap-1.5 rounded-xl bg-[color:var(--color-brand-500)] px-3.5 py-2 text-[0.8125rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.3)] transition-colors hover:bg-[color:var(--color-brand-600)]"
+            >
+              <Plus size={16} strokeWidth={2.5} aria-hidden />
+              Registrar
+            </Link>
+          </div>
+        }
       >
         <TransactionsView
           key={`c-${categoryParam}-${fromMonth.toIso()}-${toMonth.toIso()}`}
@@ -140,23 +152,19 @@ export default async function LancamentosPage({ searchParams }: PageProps) {
       title="Movimentações"
       description="Suas entradas e saídas avulsas, dia a dia."
       backHref="/app/linha-do-tempo"
+      headerAction={
+        <div className="flex items-center gap-2">
+          <HowItWorksSheet topic="movimentacoes-saldo" variant="brand" />
+          <Link
+            href={"/app/lancar" as Route}
+            className="focus-ring flex items-center gap-1.5 rounded-xl bg-[color:var(--color-brand-500)] px-3.5 py-2 text-[0.8125rem] font-bold text-white shadow-[0_2px_8px_rgba(239,122,26,0.3)] transition-colors hover:bg-[color:var(--color-brand-600)]"
+          >
+            <Plus size={16} strokeWidth={2.5} aria-hidden />
+            Registrar
+          </Link>
+        </div>
+      }
     >
-      <div className="flex flex-col gap-2">
-        <p className="text-[0.75rem] leading-relaxed text-[color:var(--text-muted)]">
-          A renda que você registra entra direto no seu saldo. Aqui ficam só os lançamentos e o
-          extrato, então a soma desta lista não fecha com o saldo, e tá certo assim.
-        </p>
-        <HowItWorksSheet topic="movimentacoes-saldo" variant="plain" />
-      </div>
-
-      <Link
-        href={"/app/lancar" as Route}
-        className="focus-ring flex items-center justify-center gap-2 rounded-xl bg-[linear-gradient(135deg,#f28e25,#ef7a1a)] px-4 py-3 text-[0.875rem] font-bold text-white shadow-[0_6px_16px_rgba(239,122,26,0.3)] transition-[filter] hover:brightness-105"
-      >
-        <Plus size={16} strokeWidth={2.5} aria-hidden />
-        Registrar entrada ou saída
-      </Link>
-
       <TransactionsView
         key={`m-${monthIso}-d-${dayParam ?? ""}`}
         transactions={transactions}
