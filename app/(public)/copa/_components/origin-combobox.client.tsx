@@ -122,7 +122,7 @@ export function OriginCombobox({
   return (
     <div className="flex flex-col gap-1.5">
       <span className="text-[0.8125rem] font-semibold text-[color:var(--text-primary)]">
-        Cidade de origem
+        Aeroporto mais próximo de você
       </span>
       <div className="relative flex items-center gap-2 rounded-xl border border-[color:var(--border-soft)] bg-[color:var(--surface-1)] px-3 backdrop-blur-xl focus-within:border-[color:var(--color-brand-500)]">
         <MapPin size={16} strokeWidth={1.75} className="shrink-0 text-[color:var(--text-muted)]" aria-hidden />
@@ -133,8 +133,8 @@ export function OriginCombobox({
           aria-expanded={showList}
           aria-controls={listId}
           aria-autocomplete="list"
-          aria-label="Cidade ou aeroporto de origem"
-          placeholder="Digite sua cidade ou aeroporto"
+          aria-label="Aeroporto mais próximo de você"
+          placeholder="Digite sua cidade pra achar o aeroporto mais perto"
           className="h-11 w-full bg-transparent text-[0.9375rem] text-[color:var(--text-primary)] outline-none placeholder:text-[color:var(--text-muted)]"
           onChange={(e) => {
             setQuery(e.target.value);

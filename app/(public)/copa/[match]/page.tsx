@@ -7,6 +7,7 @@ import { CalcAccountCta, CalcShell } from "../../calculadora/_components/calc-sh
 import { COPA_MATCHES, getCopaMatch } from "../_lib/copa-2026.config";
 
 import { FaqAccordion, type FaqItem } from "./_components/faq-accordion.client";
+import { MatchInfoSheet } from "./_components/match-info-sheet.client";
 import { TripCalculator } from "./_components/trip-calculator.client";
 
 const siteUrl = process.env.NEXT_PUBLIC_APP_URL ?? "https://www.saborfinanceiro.com.br";
@@ -93,9 +94,17 @@ export default async function CopaMatchPage({
 
       <RevealOnScroll as="div" stagger className="flex flex-col gap-5">
         <header>
-          <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)]">
-            Copa do Mundo 2026 · {match.stageLabel}
-          </p>
+          <div className="flex items-center gap-2">
+            <p className="text-[0.8125rem] font-semibold text-[color:var(--color-brand-700)]">
+              Copa do Mundo 2026 · {match.stageLabel}
+            </p>
+            <MatchInfoSheet
+              stageLabel={match.stageLabel}
+              kickoffLabel={match.kickoffLabel}
+              venueName={match.venueName}
+              venueCity={match.venueCity}
+            />
+          </div>
           <h1
             className="mt-1 text-2xl font-extrabold text-[color:var(--text-primary)] sm:text-[2rem] sm:leading-[1.1]"
             style={{ letterSpacing: "-0.03em" }}
@@ -103,7 +112,7 @@ export default async function CopaMatchPage({
             {h1}
           </h1>
           <p className="mt-3 text-[0.9375rem] leading-relaxed text-[color:var(--text-secondary)]">
-            {match.stageLabel} da Copa do Mundo 2026, {match.kickoffLabel}, no {match.venueName} ({match.venueCity}). Diz de onde você sai e escolhe o setor: a gente estima voo, hotel, ingresso, visto e extras.
+            Diz de onde você sai e escolhe o setor: a gente estima voo, hotel, ingresso, visto e extras.
           </p>
         </header>
 
